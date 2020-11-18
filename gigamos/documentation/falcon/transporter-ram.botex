@@ -1,0 +1,273 @@
+@c transporter-ram.botex
+@c
+@c 13-Apr-88, James Rauen
+
+@chapter Transporter RAM
+
+This chapter describes the purpose and function of the transporter RAM.
+
+
+@section Introduction
+
+The Transporter RAM is a 4K x 4 RAM.  Its purpose is to examine the data
+type of anything that appears on the Memory Data (MD) bus, and cause a
+trap if something is amiss.  This decision is also based on the type of
+memory cycle which caused the data to appear in the MD, and two control
+bits in the Memory Control Register.
+
+
+@section Input Lines
+
+The contents of the Transporter RAM are set up at boot time.  The
+contents should probably not be altered unless the processor is being
+rebooted.  The input lines are connected to bits 7:4 of the MMFIO bus;
+the RAM is loaded by cleverly setting up the address lines, then writing
+to functional destination 1100101.  It requires a small amount of
+wizardry to set up the address lines at boot time; see the function
+K-ADDRESS-TRANSPORTER-RAM in the JB: KBUG; NEW-SPY-UTILITIES.LISP file
+for an example.
+
+
+@section Address Lines
+
+There are twelve address lines.  The top four are decoded from the
+boxedness and functional destination fields of the relevant instruction.
+The middle two are obtained from the Memory Control Register.  The
+bottom six come from the MD bus itself.
+
+
+@subsection Boxedness (Bits 11 and 10)
+
+Bit 11 is the negation of bit 54 of the most recent instruction which
+wrote to any VMA-START-READ, VMA-START-WRITE, or VMA functional
+destination.
+
+Bit 10 is the negation of bit 55 of the most recent instruction which
+wrote to any MD-START-READ, MD-START-WRITE, or MD functional
+destination.
+
+Both of these bits are registered [Memory board, PREQ PAL].  They are
+updated each time an appropriate functional destination is written.
+
+
+@subsection Memory Cycle Type (Bits 9 and 8)
+
+These two address lines depend on the transporter mode requested by the
+most recent memory instruction.  The last memory cycle type is
+registered [Memory board, PREQ PAL].  It is updated every time a VMA or
+MD functional destination is written.
+
+@settabs 6 @columns
+@sp 1
+@< @i[Last Memory] @\ @\ @i[Bit 9] @\ @i[Bit 8] @cr
+@< @i[Cycle Type]  @\ @\ @i[(PMT1)] @\ @i[(PMT0)] @cr
+@sp 1
+@< Read, no Transport      @\ @\ 0 @\ 0 @cr
+@< Read with Transport     @\ @\ 0 @\ 1 @cr
+@< Read, visible EVCP      @\ @\ 1 @\ 0 @cr
+@< Read, will write        @\ @\ 1 @\ 1 @cr
+@< Write (VMA), no GC trap @\ @\ 0 @\ 0 @cr
+@< Write (VMA)             @\ @\ 0 @\ 1 @cr
+@< Write (MD), no GC trap  @\ @\ 1 @\ 0 @cr
+@< Write (MD)              @\ @\ 1 @\ 1 @cr
+
+These bits are represented with negative logic; they therefore appear
+negated on the address lines of the Transporter RAM.  These two
+(negative logic) bits are also loaded into bits 14:13 of the MSR.
+
+It is worth mentioning that a third bit is also registered by the PREQ
+PAL; this bit is 0 if the last memory cycle type was a read operation
+and 1 if the last memory cycle type was a write operation.  This bit is
+also represented with negative logic.  (It is called PROCWRIT~ on the
+design sheets.)  It is loaded (also negated) into bit 12 of the MSR.
+The Transporter RAM ignores this bit.  However, it influences some
+decisions of the trap logic (described below).
+
+
+@subsection MCR Bits (Bits 7 and 6)
+
+Bits 7:6 of the Memory Control Register.  Right now, the only value with
+any meaning is 00.  The other values may be needed when implementing the
+garbage collector.
+
+
+@subsection Data Type (Bits 5 to 0)
+
+Bits 31:26 (the data type field) of the MD.
+
+
+@section Output Lines
+
+The Transporter RAM outputs four useful signals.  Two of them (Trappable
+Pointer and Box Error) have effect during memory writes.  The
+other two have effect during memory reads.
+
+
+@subsection Trappable Pointer
+
+During a memory write, if the trappable pointer line is asserted, a
+volatility comparison takes place.
+
+
+@subsection Trap if Old
+
+Indicates that a trap should occur if bits 25:0 of the MD point into
+oldspace.
+
+
+@subsection Trap if New
+
+Indicates that a trap should occur if bits 25:0 of the MD point into
+newspace.
+
+
+@subsection Box Error
+
+Forces a GC (Garbage Collector) trap.
+
+
+@section Trap Logic
+
+
+@section Contents of the Transporter RAM
+
+For each combination of VMA box bit, MD box bit, data type, and control
+mode, there are sixteen bits in the Transporter RAM.  The sixteen bits are
+a product of four transporter modes and four output lines.  The modes,
+numbered from 00 to 11, have different meanings for read and write operations.
+Two of the output lines are used only during read operations, and two are
+used only during write operations.
+
+
+
+@subsection Read Operations
+
+Eight of the bits affect read operations:
+
+@group
+@example
+MODE                                    OUTPUTS
+
+                       +---------+---------+---------+---------+
+00  No Transport       | Ignored | Trap If | Trap If | Ignored |
+                       |         |   New   |   Old   |         |
+                       +---------+---------+---------+---------+
+01  Transport          | Ignored | Trap If | Trap If | Ignored |
+                       |         |   New   |   Old   |         |
+                       +---------+---------+---------+---------+
+10  Visible EVCP       | Ignored | Trap If | Trap If | Ignored |
+                       |         |   New   |   Old   |         |
+                       +---------+---------+---------+---------+
+11  Will Write         | Ignored | Trap If | Trap If | Ignored |
+                       |         |   New   |   Old   |         |
+                       +---------+---------+---------+---------+
+@end example
+@end group
+
+
+@subsection Write Operations
+
+Eight of the bits affect write operations.  Note that there are two
+encodings for each transporter mode.  One encoding is used when the VMA
+is written before the MD during a write operation; the other encoding is
+used when the MD is written first.  Since the order of writing the MD
+and VMA should not affect the transporter's behavior, it is very
+important that these outputs be the same for both encodings.
+
+@group
+@example
+MODE                                    OUTPUTS
+
+                       +---------+---------+---------+---------+
+00  No GC Trap         |Box Error| Ignored | Ignored |Trappable|
+                       |         |         |         | Pointer |
+                       +---------+---------+---------+---------+
+01  Transport          |Box Error| Ignored | Ignored |Trappable|
+                       |         |         |         | Pointer |
+                       +---------+---------+---------+---------+
+10  No GC Trap         |Box Error| Ignored | Ignored |Trappable|
+                       |         |         |         | Pointer |
+                       +---------+---------+---------+---------+
+11  Transport          |Box Error| Ignored | Ignored |Trappable|
+                       |         |         |         | Pointer |
+                       +---------+---------+---------+---------+
+@end example
+@end group
+
+@subsection Patterns
+
+It is always an error to read boxed data using the no-transport mode or write
+boxed data using the no-gc-trap mode.  Therefore, every transporter entry for
+boxed data should cause a trap in these two situations.  The first chart
+shows the bit patterns which trap on illegal reads; the second chart shows the
+bit patterns which trap on illegal writes.
+
+@group
+@example
+               OUTPUTS                 OUTPUTS
+          +---+---+---+---+       +---+---+---+---+
+       00 |   | 1 | 1 |   |   00  | 1 |   |   |   |
+          +---+---+---+---+       +---+---+---+---+
+       01 |   |   |   |   |   01  |   |   |   |   |
+          +---+---+---+---+       +---+---+---+---+
+       10 |   |   |   |   |   10  | 1 |   |   |   |
+          +---+---+---+---+       +---+---+---+---+
+       11 |   |   |   |   |   11  |   |   |   |   |
+          +---+---+---+---+       +---+---+---+---+
+@end example
+@end group
+
+
+@section Setting up the Transporter RAM
+
+The Transporter RAM setup routines are in the file JB: K;
+TRANSPORTER-RAM.LISP.  The function LOAD-TRANSPORTER-RAM-DATA actually
+sets up the Transporter RAM pattern.  It makes repeated calls to the
+function LOAD-TRANSPORTER-RAM-PATTERN, which takes six arguments: (1)
+The VMA box bit, (2) The MD box bit, (3) The data type, (4) The
+transporter mode, (5) The control mode from the MCR, (6) The value to
+load into the Transporter RAM.  Any of the first five arguments may be
+@t[t], which acts as a wildcard.
+
+The sixth argument is a four-digit binary number.  From MSB to LSB, the
+bits represent the values to place on the: (3) Box Error, (2) Trap if
+New, (1) Trap if Old, and (0) Trappable Pointer output lines.
+
+The default is to trap on anything unusual:
+
+@smalllisp
+  (load-transporter-ram-pattern t t t                 t        t      #b1111)
+@end smalllisp
+
+The following cases handle unboxed data.  Unboxed data is indicated by the VMA
+and MD box bits both being zero.  Reading unboxed data should not cause
+a trap in no-transport mode.  Writing unboxed data should not cause a
+trap in the two no-gc-trap modes.
+
+@smalllisp
+  (load-transporter-ram-pattern 0 0 t                 no-trans normal #b0000)
+  (load-transporter-ram-pattern 0 0 t                 vis-evcp normal #b0110)
+@end smalllisp
+
+The following pattern is used for Lisp values which do not contain
+pointers.  These include NIL, fixnums, and characters.
+
+@smalllisp
+  (load-transporter-ram-pattern t 1 vinc:$$dtp-nil    no-trans normal #b1111)
+  (load-transporter-ram-pattern t 1 vinc:$$dtp-nil    trans    normal #b0000)
+  (load-transporter-ram-pattern t 1 vinc:$$dtp-nil    vis-evcp normal #b1001)
+  (load-transporter-ram-pattern t 1 vinc:$$dtp-nil    write    normal #b0000)
+@end smalllisp
+
+The following pattern is used for Lisp values which contain pointers.
+These include arrays, structures, hash tables, cons cells, symbols,
+bignums, rationals, short floats, single floats, double floats, and
+complex numbers.
+
+@smalllisp
+  (load-transporter-ram-pattern t 1 vinc:$$dtp-bignum   no-trans normal #b1111)
+  (load-transporter-ram-pattern t 1 vinc:$$dtp-bignum   trans    normal #b0011)
+  (load-transporter-ram-pattern t 1 vinc:$$dtp-bignum   vis-evcp normal #b1011)
+  (load-transporter-ram-pattern t 1 vinc:$$dtp-bignum   write    normal #b0011)
+@end smalllisp
+

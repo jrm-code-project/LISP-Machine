@@ -1,0 +1,496 @@
+@c -*- Mode:Text -*-
+
+@chapter Chaosnet Services
+@label[chapter-doc-chaos-app]
+
+Most of the standard Chaosnet functionality has been extended on the Lambda
+to work over TCP/IP as well.
+Those services which exist under both protocols are covered in
+Chapter @ref[chapter-doc-generic-applications].
+
+This chapter describes the user and streams interfaces to various Chaosnet services.
+Many of these services do not have a standard functional interface, but
+they can be used within programs.
+Section @ref[section-chaosnet-streams] describes the general usage of Chaosnet streams.
+The sections in this chapter provide example code illustrating the use of
+Chaosnet streams for particular services.
+
+The following table lists the Chaosnet features that are supported by the Lambda,
+along with the highest level interface available
+and a reference to further information.
+
+@sp 1
+@settabs 3 @columns
+@< @i(Protocol) @\ @i(Interfaces)       @\ @i(References) @cr
+@sp 1
+@< FILE         @\ file-system commands @\ Section @ref[section-file-access] @cr
+@< MAIL         @\ ZMail                @\ @ii(ZMail Ref. Manual) @cr
+@< SUPDUP       @\ @syson[S]            @\ Section @ref[section-supdup] @cr
+@< NAME/FINGER  @\ @termon[F], @l(finger) @\ Section @ref[section-chaos-finger] @cr
+@< SEND         @\ @syson[C], @l(qsend) @\ Section @ref[section-chaos-send] @cr
+@< EVAL         @\ streams              @\ Section @ref[section-chaos-eval] @cr
+@< TIME         @\ streams              @\ Section @ref[section-chaos-time] @cr
+@< UPTIME       @\ streams              @\ Section @ref[section-chaos-uptime] @cr
+@< HOSTAB       @\ streams              @\ Section @ref[section-chaos-hostab] @cr
+@< DISK         @\ print-disk-label,    @\ @cr
+@<              @\  copy-disk-partition @cr
+@cleartabs
+
+@need 1000
+@section Supdup - Remote Login
+@label[section-supdup]
+
+Chaosnet Supdup specifies a protocol for device-independent remote login capability.
+On the Lambda, both user and server programs are provided.
+This protocol is the best means available
+for terminal communications between Lambdas and other Chaosnet hosts.
+
+To invoke the Lambda Supdup user interface, press @syson[S].
+Enter the remote host name to the @l(Connect to host:) prompt.
+
+The @network@  key provides an escape to the Supdup user program.
+For documentation on the @network@  commands, press @neton[@help].
+
+Logging out from the host
+will usually also disconnect you from the remote Supdup connection.
+The key sequence @neton[D] terminates the Supdup connection.
+
+@need 1000
+@section Name/Finger - User Login Status
+@label[section-chaos-finger]
+
+Most Chaosnet hosts support the Name and/or Finger protocols for
+reporting login and other pertinent user information.
+
+The function @l(finger) (which on the Lambda calls a NAME server)
+can be called directly from LISP to ``finger'' a single host:
+
+@defun finger &optional (spec nil) (stream *standard-output*) (hack-brackets-p nil)
+@defunx whois &optional (spec nil) (stream *standard-output*)
+Print information about a user, as specified by @i(spec) (a string), on @i(stream).
+For @l(finger), if @i(hack-brackets-p) is non-NIL, then the first line printed shows what host we are fingering.
+@i(spec) can be a user name, user@@host, or @@host.
+@end(defun)
+
+@l(Whois) provides more detail than @l(finger) does if the verbose mode is supported by the remote host.
+
+Examples:
+
+@lisp
+;Finger the default login host
+(finger)
+
+keith    Keith Corbett          Zmacs           GigaMos Systems
+
+NIL
+
+;Finger Tom on host HOST-A
+(finger "tom@@host-a")
+
+Login name: tom                         In real life: Tom Lear
+
+NIL
+
+;Finger everyone on HOST-B
+(finger "@@host-b")
+
+Login       Name              TTY Idle    When            Location
+root     system manager        p0  48  Mon 15:51
+dhm      Doug McFarland        p1  50  Mon 15:53
+NAME     OPUS                          Wed 14:21
+SUPDUP   OPUS                          Mon 15:51
+
+NIL
+@end(lisp)
+
+The standard system interface to Finger is @termon[F].
+The site variable @l(tv:*finger-arg-alist*) controls
+the type of information displayed.
+
+@defvar tv:*finger-arg-alist* nil
+Controls the format of Finger display.
+@end(defvar)
+
+Typically, pressing @termon[F] with no arguments fingers all LISP machines;
+pressing @termon[0-F] allows the user to enter the desired specification
+to @l[(finger)].
+See @ref[option-finger] for details on controlling the Finger display.
+
+@need 1000
+@section SEND - Broadcast Messages
+@label[section-chaos-send]
+
+The @l(SEND) protocol provides a capability for
+sending interactive messages between Chaosnet hosts.
+This type of exchange is different from Mail in that messages are sent
+immediately to the remote host(s);
+they appear on the other user's screen, and can be viewed with the Converse interface (see below).
+
+@subsection Controlling Message Interruptions
+
+Each user can allow or forbid the receipt of @l(qsend) messages at their work-station:
+
+@defvar zwei:*converse-gagged* @i(NIL)
+If this variable is NIL, then you will receive all incoming Converse messages.
+If it is not T, then it is assumed to be a string that will be sent to any user
+who attempts to send you a message.
+If the value of this variable is T, then all incoming messages are simply rejected.
+Usage of the functions @l(qsends-on) and @l(qsends-off) is encouraged instead.
+@end(defvar)
+
+@defun qsends-on
+Accept messages from other users.
+@end(defun)
+
+@defun qsends-off &optional (gag-message T)
+Refuse messages from other users.
+@i(gag-message) can be a string which is sent automatically as a reply
+to anyone who sends a message here.
+@end(defun)
+
+@need 1000
+@subsection Function Interfaces
+@label[section-qsend]
+
+@defun qsend &optional destination message
+
+Send an interactive message, @i(message), to the user(s) in @i(destination).
+
+If @l(message) is empty, you will be prompted for it.
+
+If @l(destination) is empty, Converse will be selected.
+
+If @l(mail-p) is NIL (the default), the message will be sent interactively,
+otherwise the message will be mailed.
+
+@i(destination) should be a string of the form @i(``username@@hostname'').
+
+@i(hostname) is the name of the host where
+the remote user named @i(username) is currently logged in.
+Multiple recipients separated by commas are also allowed.
+
+If @l(wait-p) is NIL, then queue up to message to be soon, but return NIL.
+
+If @l(wait-p) is T, then wait until we determine the status of the messages sent,
+and return a list of the successful recipients.  The default value of @l(wait-p)
+is contained in the init variable @l(zwei:*converse-wait-p*).@vindex[zwei:*converse-wait-p*]
+
+This function is expected to be called by a user.  Programs which call
+it are guaranteed to do something useful only if @l(message) and
+@l(destination) are non-NIL.
+
+While typing in a message, you can insert the text of the last message received
+by typing @cm[Y].
+
+If you have started typing in a message to @l(qsend), you can switch to Converse
+by typing @cm(E). The text you have typed so far is transferred into Converse.
+
+@end(defun)
+
+@defun reply &optional text
+@defunx qreply &optional text
+
+Sends @i(text) as a message to the last user who sent a message to you;
+otherwise, these functions acts like @l(qsend).
+@end(defun)
+
+@defun chaos:shout &optional message
+
+Sends @i(message) to every LISP machine at your site.
+If you do not specify @i(message), it is read from standard input.
+@end(defun)
+
+@defun print-sends
+Reprints any messages that have been received at your machine.
+@end(defun)
+
+@need 1000
+@subsection Converse Interface
+@label[section-converse]
+
+Converse provides a full-screen conversational @l(qsend) interface.
+Converse is invoked by typing @syson[C].
+The screen is divided into areas for separate messages, with
+earlier messages scrolling down the screen as new ones are received and sent.
+
+The message areas contain separate messages.
+ZWEI editing capabilities are provided;
+for example, you can cut text from a ZMacs editor buffer and paste it into a message buffer.
+
+The first line in each message begins with @i(``To:''), followed by a specification for
+the destination (typically in the form @l("user@@host").
+This specification can also be edited to send messages to a new user or list of users.
+Use the same convention as @see[finger][fun] for specifying remote users.
+
+To send the message that is in the current buffer to the specified user, press @endkey.
+Use @ctrl[@endkey] to send and exit, or @abort@  to just exit.
+
+@need 1000
+@section EVAL - Command Evaluation Server
+@label[section-chaos-eval]
+
+The EVAL server provides remote command evaluation.
+
+On a typical Unix Chaosnet host, the EVAL server can evaluate either a single command or stream of commands.
+
+On the Lambda, EVAL provides a ``read/eval/print'' loop which
+reads from  and prints to the Chaosnet connection (a stream).
+
+Each time the Lambda EVAL server receives a complete @i(S-expression),
+it reads the form, evaluates it, and prints a list the returned values,
+followed by a @l(CRLF) (carriage-return/line-feed).
+The data consists of text in the ASCII character set.
+There is no way for the user process to detect the end of the output
+from a particular command;
+the usual procedure is simply to copy all the output to a user's terminal,
+or to use the received strings for processing.
+Note that this method does not provide for any interactive I/O with
+the remote process.
+
+The following example causes the remote Lambda host ``MYHOST'' to
+recompile and reload its site files; the output is copied at the user's terminal.
+@lisp
+(with-open-stream (server (chaos:open-stream
+                           "MYHOST" "EVAL"
+                           :ascii-translation t))
+  (write-line "(make-system 'site :recompile :noconfirm
+                 :no-reload-system-declaration)"
+               server)
+  (write-line "(update-site-configuration-info)"
+              server)
+  ;;Get server to close our connection
+  (write-line "(close standard-output)"
+              server)
+  (send server :force-output)
+  (stream-copy-until-eof server standard-output))
+
+Generating host table from SYS: CHAOS; HOSTS TEXT >
+Compiling SYS: SITE; SITE LISP >
+Compiling SYS: SITE; LMLOCS LISP >
+Compiling SYS: SITE; HSTTBL LISP >
+Loading site files on account of SYS: SITE; SITE QFASL >
+Loading site files on account of SYS: SITE; LMLOCS QFASL >
+Loading site files on account of SYS: SITE; HSTTBL QFASL >(T)
+(NIL)
+
+NIL
+@end(lisp)
+
+@b[NOTE:] One of the most useful applications of the EVAL server
+is for LISP to execute Unix commands to be run on an attached Lambda-Plus processor.
+The distributed example file @l("SYS:EXAMPLES;STREAMS")
+provides an illustration of how to do this.
+
+The STREAMS example includes the following function,
+which executes Unix commands remotely:
+
+@lisp
+(defun simple-unix-eval (host command
+                         &optional (stream standard-output))
+  (with-open-stream (s (chaos:open-stream
+                         host
+                         (format nil "EVAL ~a" command)))
+    (format stream "~&% ~A~%" command)
+    (do ((c (send s ':tyi) (send s ':tyi)))
+        ((null c))
+      (send stream ':tyo
+            (selectq c
+              ((#o12 #o15) #\return)
+              (#o11 #\tab)
+              (t c))))))
+@end(lisp)
+
+For example:
+
+@lisp
+(simple-unix-eval "unix-a" "cd /usr/local/shareapp;make")
+% cd /usr/local/shareapp;make
+  :
+  :
+@end(lisp)
+
+Some applications of Lambda Extended Streams@tm@
+(a facility using  global shared memory for interprocessor communications)
+use this capability.
+A program called from LISP can start up the desired Unix program through EVAL,
+and then communicate more directly through shared memory.
+
+Note that the EVAL server on Lambda-Plus System 5 Unix
+is logged in as @i(anonymous) while it executes the desired commands.
+This username must be provided by the Unix system administrator, with whatever
+provisions, such as identification and security, that are desired;
+in this way the Unix administrator can exercise some control over what is executed
+from remote sources.
+For this reason it is often desirable to EVAL only commands
+that execute a Unix command script situated in a public account.
+
+@need 1000
+@section TIME - Time of Day Server
+@label[section-chaos-time]
+
+The TIME server allows one host to ask another for the current time of day.
+The form of answer may be implementation-dependent; that is,
+you must know the details of decoding the result from a given type
+of Chaosnet implementation.
+
+The answer received from TIME is a Chaos packet, which must be decoded.
+The time of day is expressed by a Lambda TIME server in @i(universal time) (UT) format.
+This quantity is a 32-bit number contained in a 4 character string, which must be formed into an integer.
+
+The following example prints the time of day received from the Lambda host ``MYHOST'':
+
+@lisp
+(time:print-universal-time
+  (let((timen (lisp:map 'list 'char-int
+                   (chaos:pkt-string
+                     (chaos:simple "MYHOST" "TIME")))))
+    (+ (first timen)
+       (* (second timen) (^ 2 8.))
+       (* (third timen)  (^ 2 16.))
+       (* (fourth timen) (^ 2 24.)))))
+6-Jul-88 14:54
+NIL
+@end(lisp)
+
+@need 1000
+@section UPTIME - Host Uptime Server
+@label[section-chaos-uptime]
+
+Some hosts provide the UPTIME service, which allows other hosts to query
+the amount of time since they last booted up.
+The method of obtaining a remote host's uptime is similar to the TIME example above.
+Lambdas return an UPTIME expressed in internal clock units
+of 60 per second, so the answer from UPTIME must be divided by 60
+to provide an interval in seconds.
+
+The following example prints the uptime received from the Lambda host ``MYHOST'':
+
+@lisp
+(time:print-interval-or-never
+  (quotient
+    (let ((timen (lisp:map 'list 'char-int
+                      (chaos:pkt-string
+                        (chaos:simple "MYHOST" "UPTIME")))))
+      (+ (first timen)
+         (* (second timen) (^ 2 8.))
+         (* (third timen)  (^ 2 16.))
+         (* (fourth timen) (^ 2 24.))))
+    60.))
+4 weeks 1 day 5 hours 14 minutes 22 seconds
+NIL
+@end(lisp)
+
+@need 1000
+@section HOSTAB - Host Information Server
+@label[section-chaos-hostab]
+
+The HOSTAB server provides tables of host information.
+
+To use HOSTAB,
+the user connects to the remote server, initiates a query for each host of interest,
+and then closes the connection.
+Each query is initiated when the user transmits a host name
+followed by a carriage return.
+The server responds with information about that host, terminated with an EOF,
+and is then ready for another transaction.
+
+Each line of text returned by the server
+consists of an attribute name followed by the value of the attribute, separated by a space.
+Values may be strings (free of return characters and @ii(not) surrounded by quotes)
+or numbers (usually octal).
+Attribute names and most values are in upper case.
+There can be more than one value for each attribute;
+a separate line specifying each value for the attribute is returned.
+For example, a host may have more than one name or network address.
+
+The following list describes the most useful attribute names.
+(Note that hosts may implement other attributes.)
+
+@itemize @bullet
+
+@item ERROR -
+The value is an error message.
+@item NAME -
+The value is a name of the host.
+The first NAME line received indicates the official name; all others are nicknames.
+@item MACHINE-TYPE -
+The value is the type of machine, such as LISPM, PDP-10, NU, etc.
+@item SYSTEM-TYPE -
+The value is the type of software running on the machine, such as LISPM, UNIX, etc.
+@item ARPA -
+The value is an address of the host on the Arpanet, in the form @i(host/imp).
+The two numbers are decimal.
+@item CHAOS -
+The value is an address of the host on the Chaosnet (octal).
+@item INTERNET -
+The value is an address of the host on a local Internet (dotted-decimal).
+
+@end(itemize)
+
+@group
+The following example prints the HOSTAB information for the host ``MY-VAX''
+as it is known to the host ``MYHOST''.
+Note that with the streams interface, it is not possible to request information
+about more than one host, since the stream is closed upon receipt of the first EOF.
+
+@lisp
+(with-open-stream(server (chaos:open-stream "MYHOST" "HOSTAB"))
+  (write-line "MY-VAX" server)
+  (send server :force-output)
+  (stream-copy-until-eof server standard-output))
+NAME MY-VAX
+NAME MYVAX
+NAME VAX
+MACHINE-TYPE VAX
+SYSTEM-TYPE VMS
+INTERNET 101.0.0.10
+
+NIL
+@end(lisp)
+@end(group)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end chaos

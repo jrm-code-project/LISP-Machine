@@ -1,0 +1,72 @@
+
+Name:   Microcode Analysis Project
+
+Date:   9/12/88
+
+Programmers: K. Corbett, D. Saslav
+
+Est. Work: 12-15 weeks
+
+Purpose: This project is intended as a part of the effort to port the
+Lambda operating system to the Falcon.  A detailed analysis of all
+Lambda microcode is required to classify each microcode routine into one
+of the following categories:
+
+                Performance optimizations;
+                Standard primitives;
+                Hardware dependencies;
+                Portable routines;
+                Asynchronous routines.
+
+        Having achieved such a classification for each microcoded
+routine, it will then be possible to determine exactly how to go about
+rewriting some of these modules to ensure a smooth inter-machine port
+and a robust final product.
+
+Justification:  Equivalent microcode is not provided on the Falcon.  As
+a result, a project of this kind is necessary in order to assess the
+overall difficulty of the Lambda-to-Falcon system port.
+
+Procedure: Analyze and classify all microcoded Lambda routines into one
+of the following five categories:
+
+        I. Lambda performance optimizations:
+
+        These microcoded routines have been written solely to optimize
+the operating system, and do not require porting to the Falcon.
+
+        II. Standard Common LISP primitives:
+
+        These are functions, macros, and other Common LISP definitions
+which already have microcode implementations for the Falcon.  Assuming
+that all such implementations pass the requisite suite of Common LISP
+tests, no further work will be required to ensure proper Falcon
+functionality for these definitions.
+
+        III. Hardware Dependencies:
+
+        These are the LISP definitions which have been implemented in a
+processor-dependent fashion, and for which equivalent Falcon routines
+are needed.  In each such case, careful analyses of the nature of the
+hardware dependencies, and the means by which equivalent Falcon routines
+could be written, will be required.
+
+        IV. Portable Routines:
+
+        These are the LISP definitions which have been implemented in a
+non-processor-dependent fashion, in adherence with the guidelines set
+forth by the Common LISP specification.  Given the presence and proper
+functioning of the routines in Group II (standard Common LISP
+primitives), the definitions of Group IV should port without further
+human effort.
+
+        V. Asynchronous Routines:
+
+ These are routines which have been written to handle inter-process and
+extra-machine interactions on the Lambda (e.g., the trap handler).  Some
+of these may require porting to the Falcon, and some may not.  Those
+asynchronous routines requiring porting must be identified and analyzed
+from a hardware perspective, to ensure correct Falcon behavior, then
+analyzed from a software perspective for portability considerations,
+and, lastly, rewritten for or simply ported to the Falcon (depending on
+the results of the aforementioned software analysis)

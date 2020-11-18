@@ -1,0 +1,241 @@
+@c editors-note.botex
+@c
+@c David Saslav, 13 June 1988
+
+@parindent 0in
+@parskip .25in
+@library(patbo)
+@library(byf1)
+@begin document
+
+@chapter Editor's Note
+@sp 5
+@b[Revisions have been made to the following sections since the May 27th draft:]
+@sp 2
+@group
+@center @b[4.1 (and ff.)]
+@sp 1
+@i[References to the four hardware clocks have been globally changed
+from] @r[P1X], @r[P2X], @r[M1X], @i[and] @r[M2X] @i[to]
+@r[CPROC1], @r[CPROC2], @r[CMEM1], @i[and] @r[CMEM2].
+@end group
+@sp 2
+@group
+@center @b[4.3.1.3 The OPEN-ACTIVE-RETURN Destination]
+@break
+and
+@break
+@center @b[4.3.2 Functional Sources]
+@sp 1
+@i[Major revisions to both sections:]
+@end group
+@sp 2
+@b[4.3.1.3 The OPEN-ACTIVE-RETURN Destination]
+@sp 1
+
+This destination actually loads a set of registers that will be loaded
+into OPEN, ACTIVE, and RETURN at the end of the next clock tick.  This
+extra step means that these registers take one tick longer than most
+other functional destinations to load.  Therefore, the modified frame
+pointers should not be used to read data until at least five ticks after
+the write instruction (for all CH- operations other than CH-NOOP).
+CH-NOOP and all functional sources require only four ticks between read
+and write operations.
+
+After modifying the OPEN-ACTIVE-RETURN destination, four clock cycles
+are required before using the O, A, or R register frames or using the
+OPEN-ACTIVE-RETURN functional source.  Five clock cycles are required
+before performing any open, call, or return operations.
+
+@example
+
+     Modifying the OPEN-ACTIVE-RETURN Functional Destination
+
+     <write OPEN-ACTIVE-RETURN>
+     <NOP>
+     <NOP>
+     <NOP>
+     <Use O, A, or R register frames>
+     <perform open, call, or return operations>
+
+@end example
+
+@b[4.3.2 Functional Sources]
+
+Functional sources are decoded during the IR phase of an
+instruction, and enabled onto the MFIO bus during the FSRC
+phase of a cycle. They are clocked into the RIGHT register
+at the end of this cycle.
+
+In general, a functional source that is read/write should not
+be read until at least 4 ticks after the register was
+written.  This time may differ for functional sources that are
+slower than normal, such as OPEN-ACTIVE-RETURN.
+
+@example
+     Reading a Functional Source
+
+     <write functional_source>
+     <NOP>
+     <NOP>
+     <NOP>
+     <read functional_source>
+
+@end example
+
+@sp 2
+@group
+@center @b[5.3.4 Opcode (Bits 60 to 58)]
+@sp 1
+@i[
+New title to the section; instructions have been divided up into groups
+of equal bit lengths, and another pass has been made at clarifying the
+macro-carry, macro-select, and macro-link terminology confusion:
+]
+@end group
+@sp 2
+@b[5.3.4 Instruction Format Field (Bits 60 to 58)]
+
+These three bits, along with the Next PC field (bits 57 to 56) and
+the Call Hardware Operation field (bits 50 to 48), determine the
+type of the instruction.  The three fields are decoded by PALs to
+generate the control signals required for the instruction.  The
+instruction types are detailed in the Instructions section below.
+
+@settabs 8 @columns
+@sp 1
+@< @i[Instruction Format] @\ @\ @i[Next PC] @\ @i[CH Op] @\ Instruction Type @cr
+@sp 1
+@< 12-bit Instructions:@cr
+@< X00 @\ @\ 00 @\ x0x @\ Branch Instruction (no 100 call hw op) @cr
+@< X00 @\ @\ 00 @\ x1x @\ Call-Z Instruction @cr
+@< X00 @\ @\ yy @\ x0x @\ ALU Instruction (yy not 00) @cr
+@< X00 @\ @\ 01 @\ x1x @\ Call-Dispatch Instruction @cr
+@sp 1
+@< 18-bit Instructions:@cr
+@< X01 @\ @\ xx @\ xxx @\ ALU Immediate Instruction @cr
+@sp 1
+@< 24-bit Instructions:@cr
+@< 010 @\ @\ 00 @\ x0x @\ Jump Instruction (no 100 call hw op) @cr
+@< 010 @\ @\ 00 @\ x1x @\ Call Instruction @cr
+@sp 1
+@< 32-bit Instructions:@cr
+@< 011 @\ @\ xx @\ xxx @\ 32-bit Immediate Instruction @cr
+@< 110 @\ @\ xx @\ xxx @\ Floating Point ALU Instruction @cr
+@< 111 @\ @\ xx @\ xxx @\ Floating Point Multiplier Instruction @cr
+
+For Instruction Format fields ending in 00 or 01 above, bit 60 is used for
+the macro-carry bit.  The macro-link bit is ALU-boxed.
+
+@sp 2
+@group
+@center @b[5.3.6 Data Type Check (Bits 53 to 51)]
+@sp 1
+@i[
+DT-HAIRY-NUMBER explained, and subsequent paragraph containing some details
+about types reformatted:
+]
+@end group
+@sp 2
+Some details:
+
+A DT-HAIRY-NUMBER is a number of any type other than DT-BOTH-FIXNUM and
+DT-BOTH-FIXNUM-WITH-OVERFLOW.
+
+In the DT-BOTH-CHARACTER case, a trap is caused unless the data type of both
+the ALU inputs is $$DTP-CHARACTER.
+
+In the DT-RIGHT-ARRAY-AND-LEFT-STRUCTURE case, a trap is caused unless the data
+type of the left ALU input is $$DTP-STRUCTURE and the data type of the
+right ALU input is $$DTP-ARRAY (and similarly for DT-RIGHT-LIST and DT-BOTH-FIX-
+NUM).
+
+In the DT-BOTH-FIXNUM-WITH-OVERFLOW case, a trap is caused if
+either:
+
+1. both ALU inputs do not have $$DTP-FIXNUM, or
+
+2. the ALU operation overflows.
+
+For further details, see the chapter on the Datatype RAM.
+
+@sp 2
+@group
+@center @b[5.4.2 ALU Immediate Instruction]
+@sp 1
+@i[Caption for ALU Immediate Instruction clarified:]
+@sp 2
+(This instruction is not part of the Rev. 0 prototype version)
+@end group
+@sp 2
+@group
+@center @b[8.1 Organization]
+@sp 1
+@i[Reference to "yellow alert" trap clarified:]
+@end group
+@sp 2
+The free frame heap keeps track of the 256 register frames.  It
+maintains (in hardware) a list of which frames are currently in use and
+which frames are currently unused.  The heap hardware is also
+responsible for causing a ``yellow alert'' trap (by asserting TRAP_STACK_OVF)
+whenever the call hardware is about to run out of frames.
+
+
+However, the hardware is @i[not] responsible for causing a trap when an
+@i[underflow] is about to occur.  Instead, it is the responsibility of
+the software to set up the call hardware to regain control on underflow.
+This is achieved by replacing the Return PC at the base
+of the call hardware stack with the PC of a special routine.  This routine will:
+
+@itemize @bullet
+@item
+regain control when all frames have exited;
+@item
+read in the top section of the call stack from memory;
+@item
+branch to the Return PC originally found at the base of the hardware stack.
+@end itemize
+@sp 2
+@group
+@center @b[12. ALU Opcodes]
+@sp 1
+@i[ALU Opcodes documentation changes (SIGN, Q Register use):]
+@end group
+@sp 2
+
+This chapter describes each of the 128 opcodes available on the ALU.  (Ref
+AMD manual?)
+
+Several abbreviations are used in the following chart.  "L" represents
+the left source of the ALU.  "R" represents the right source of the ALU.
+"Status" refers to the ALU's internal status register.  "Q" refers to
+the ALU's internal Q register.  "Foo:Bar" means the 64-bit quantity
+whose high 32 bits come from Foo and whose low 32 bits come from Bar.
+All shift instructions which use the Q register use it as the low word.
+
+
+@settabs 8 @columns
+@< @i[Value] @\ @i[Abbreviation] @\ @\ @\ @i[Description] @cr
+@sp 1
+@< #x3D @\ SIGN         @\ @\ @\ Sign (-1 if n=1; 0 otherwise) @cr
+
+@b[Notes and Caveats]
+
+1. Not all of the opcodes are implemented in the assembler.  The
+relevant files are ORSON: FLEABIT.GENERATE; ASSEM LISP and K-SYS: K;
+ALU-OPCODES LISP.
+
+2. There is something funny about the order of the signed multiply
+instructions.
+
+3. There is no last-step-signed-multiply instruction.  Consulting the AMD manual would
+probably be enlightening.
+@sp 8
+@group
+@b[Future versions of this draft will incorporate further revisions to this document.]
+@sp 2
+@flushright
+@b[---David Saslav]
+@end flushright
+@end group
+@end document

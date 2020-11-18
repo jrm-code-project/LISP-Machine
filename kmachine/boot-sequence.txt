@@ -1,0 +1,32 @@
+
+------------------------------------------------------------------------------
+K Machine Boot Sequence
+------------------------------------------------------------------------------
+
+28-Jan-88 Created - JRR
+29-Feb-88 Updated with cold load sequence
+
+------------------------------------------------------------------------------
+
+Cold load
+
+Load warm files
+  Instantiate DEFVAR's with self-evaluating values.  Instantiate other
+  DEFVAR's to unbound, push a SET form onto k2::*warm-eval-list*, and warn
+  about the delayed evaluation.  Push EVAL-WHEN(LOAD) forms onto
+  k2::*warm-eval-list* and warn about the delayed evaluation.
+
+Warm boot
+  Explicitly run warm files' initialization routines.  Includes: package
+  system, streams.  This speeds up loading the hot files.
+
+Load hot files
+  Same restrictions on initialization as for warm files.
+
+Hot boot
+  Explicitly run hot files' initialization routines.  At this point, the
+  evaluator is fully loaded.  Set k2::*evaluator-available?* to true.
+  Evaluate the forms on k2::*warm-eval-list*.
+
+Full FASL Loader
+  Evaluate DEFVAR's and EVAL-WHEN(LOAD)'s at load time.

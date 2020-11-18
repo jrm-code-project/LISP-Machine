@@ -1,0 +1,84 @@
+-*- Mode:Text -*-
+
+From:  Joe and Pace
+
+May 31, 1986
+
+We have discovered a fundamental bug in the implementation of lexical
+variables in our system.  Nothing short of a radical change can repair
+the bug.  Therefore, we present the following plan.  It may seem
+convoluted in places, but it is careful to make each change fairly
+compatable with the preceeding one.  If any step is radically
+incompatable, and you make a mistake, you will be faced with compiling
+the system serveral times, plus addressing the issue of making the
+system support two versions of the compiler at the same time.
+
+1.  Move Rest args to the heap.
+
+Currently, when a function with a rest arg is about to be entered, the
+address of the rest arg is computed and stored into LOCAL|0.  Change
+this to copy the Q's between the end of the required and optional
+arguments into the heap, and then store a pointer to the new block in
+LOCAL|0.  There are some subtle issues when the caller has supplied
+more arguments than there are required and optional arguments, but it is
+not too bad.  APPLY will require special handling.
+
+Finally, put the local block at the end of the args.
+
+2.  Write a QFASL filter to change LOC references to ARG references.
+Something like this was done in system 95 to change the destination
+codes, and the code is probably still around.  If there are N arguments,
+then LOC|M goes to ARG|N+M.  Look for instructions, like
+make-stack-closure that name local slots by number, and translate them
+too.  At this point, the system can still run both old FEF's and new
+translated FEF's.  Use the debugging-info to identify translated fefs.
+
+Update the error handler to work on both old and new fefs.
+
+3.  Remove references to the argument base LOC from the compiler,
+replacing them with the appropriate ARG base, and put a property on the
+file-property-list that disables the above written translator.  Don't
+forget to keep the extra local slots for stack-closure stuff.  Patch the
+old system to refuse to load these new QFASLs.
+
+4.  Build a new cold load using the translator.  Now the world has no
+references to the LOC macroinstruction offset.
+
+5.  Decommit A-LOCALP.
+
+Remove from UC-LAMBDA-MACROCODE all of the macroinstructions that use
+the LOC base.
+
+Change the way STACK-CLOSURES are created to use the end of the argument
+block instead of the local block.
+
+Change any other references to the variable A-LOCALP.
+
+6.  Create a new macroinstruction argument base called ARG-TRANSPORT
+replacing the macroinstructions for LOC.  These instructions are the
+same as ARG, but are willing to follow forwarding pointers from the stack.
+
+7.  Change the compiler to make any code that references variables that
+are lexically closed over do so by using ARG-TRANSPORT.
+
+8.  The big step:
+
+Change %make-stack-closure in the microcode to create a vector in the
+heap for the closed variables.  Copy the current values from the stack,
+and leave behind EXTERNAL-VALUE-CELL-POINTERs.  Then return a
+DTP-CLOSURE.  Change the unshare stuff to work with the new structures.
+Notice that there is nothing left to copy out of the frame when
+returning.  Therefore, remove all code associated with that, namely,
+%%LP-ENS-ENVIRONMENT-POINTER-POINTS-HERE.
+
+Also notice that no DTP-STACK-CLOSUREs can exist in a world booted with
+this new microcode.  All processes are reset by booting, and no stack
+closures can exist in memory.  Therefore, decommit DTP-STACK-CLOSURE at
+this time.
+
+9.  Now that the stack no longer contains any closure information,
+change the compiler so that it doesn't allocate space for stack-closures
+themselves, stack-closure-vectors, or the random words at the end that
+are no longer needed.
+
+10.  Finally, after everything works, recompile again.

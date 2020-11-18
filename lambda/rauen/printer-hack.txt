@@ -1,0 +1,4 @@
+(load "dj:bobp;unix-print")
+(user::set-unix-print-options)
+
+M-x Print Buffer

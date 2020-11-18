@@ -1,0 +1,13 @@
+
+
+(fib 11)
+
+1.6 sec - old evaluator without hooks
+3.4 sec - old evaluator with hooks
+5.7 sec - new evaluator *ki-optimize-unreferenced-blocks* = NIL
+3.7 sec - new evaluator *ki-optimize-unreferenced-blocks* = T
+3.4 sec - defsubsts for selectors
+3.0 sec - look up eval procedure beforehand
+2.9 sec - without hooks
+2.8 sec - with hooks; change keyword to BOA calls in make-frame
+2.7 sec - change keyword to BOA calls in make-lexical-environment

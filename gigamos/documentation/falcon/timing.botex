@@ -1,0 +1,274 @@
+@c timing.botex
+@c
+@c 18-Apr-88, James Rauen
+
+@chapter Timing
+
+This chapter describes the K processor's clocks and pipeline stages.
+
+@section Clocks
+
+The K processor uses four clocks for timing. Two of the
+clocks run at the instruction rate, and the other two run at
+twice the instruction rate. Two of the clocks can be stopped
+by the clock generator during memory waits, instruction
+cache misses, and traps. The other two clocks run the memory
+system and never stop. They will be referred to as follows:
+
+@example
+                   1X        2X
+                   ----      ----
+    Processor -    CPROC1    CPROC2
+
+    Memory    -    CMEM1     CMEM2
+@end[example]
+
+The phasing of the clocks is such that if the CPROC1 clock
+rises, then the other three will rise at the same time. When
+the processor clocks stop, they will always stop in the
+state with both of them low. Whenever the processor clocks
+stop, it will always be for an integral number of 1X clock
+ticks. The following timing diagram shows the relative
+timing:
+
+@example
+                    __    __    __    __                _____
+            CPROC2_|  |__|  |__|  |__|  |______________|     |_
+                    _____       _____                   _____
+            CPROC1_|     |_____|     |_________________|     |_
+                    __    __    __    __    __    __    __    _
+            CMEM2 _|  |__|  |__|  |__|  |__|  |__|  |__|  |__|
+                    _____       _____       _____       _____
+            CMEM1 _|     |_____|     |_____|     |_____|     |_
+@end[example]
+
+The nominal time for the current K processor 1X clock is 80
+nanoseconds. All four clocks are produced by the clock
+generator, which is a synchronous state machine running on a
+20 nanosecond clock.
+
+The majority of the processor runs on the 1X clocks. Only a
+few sections need the 2X times. The main uses are producing
+write enables to RAMs during the first half of a clock tick
+and controlling the direction of the MFIO bus.
+
+@section Pipeline
+
+The K is a pipelined architecture. Instructions normally go
+through four stages of execution: PC, IR, ALU, and OUTPUT.
+Some functional I/O ports act like virtual fourth or even
+fifth stages of the pipeline. The only places where these extra
+stages show up are in special OS internal routines for
+modifying special registers, or loading/unloading the call
+hardware. In fact, for normal instruction execution, only
+three of the four pipeline stages are visible.
+
+@subsection Straight Line Execution
+
+When executing a linear sequence of instructions, the
+pattern of execution is as follows:
+
+@table 3
+
+@item PC
+A program counter is produced from the PC incrementer.
+This PC is fed to the instruction cache, and the specified
+ instruction is fetched. If the instruction isn't in the
+ cache, then the processor clock is stopped while
+ four instructions are fetched.
+
+@item IR
+The previously fetched instruction is loaded into the
+ instruction register for decoding. Any specified registers
+ are accessed from the register RAM using the current call
+ hardware O, A, and R registers. The accessed left and right
+ sources are stored into the left and right data registers at
+ the end of the clock tick.
+
+@item ALU
+The ALU gets the data from left and right registers and
+ an opcode from some IR bits that have been delayed
+ by one clock tick. The ALU output is loaded into the OREG at
+ the end of this clock tick.
+
+@item OUTPUT
+The OREG is written back to the register RAM during
+ this tick. The write happens early in the cycle, so the
+ current IR cycle can read the results from the RAM. The OREG
+ data is also driven onto the MFIO bus for functional
+ destinations.
+
+@end table
+
+@subsection Unconditional Branches and Jumps
+
+Unconditional jumps and branches work by having the current
+IR bits select the low IR bits as the PC source. The
+pipeline does exactly the right thing for this case, and the
+next instruction loaded into the IR will be the one jumped
+to.
+
+@subsection Conditional Branches and Jumps
+
+Conditional transfers are identical to the unconditional
+ones except that the jump bit is used by the PC mux to
+control whether the IR or the PC incrementer is used for the
+next address. The computation of the jump bit shows the
+pipeline effect quite clearly. In order to test something
+and then do a conditional branch on it, a three
+instruction sequence is required. However, for the second and third
+instructions the ALU is free and may be used for other
+computations if the compiler can schedule them in.
+
+The first instruction will do an ALU op that produces some
+status to be branched on. The second instruction will use
+its branch condition field to select the condition. And the
+third instruction will be the actual conditional branch. The
+IR stage must contain the conditional branch instruction at
+just the time when the jump bit is at the OREG
+(effectively). Getting the compiler to make use of the extra
+instructions can triple the machine performance in branch
+intensive sections of code (such as COND handling).
+
+@subsection Dispatches
+
+These show a two stage offset in the pipe similar to
+conditional branches. A computed PC must be in the OREG at
+the same time as the NEXT-PC-DISPATCH field is in the IR.
+This occurs when the dispatch occurs two instructions after the
+PC calculation.
+
+@subsection Subroutine Calls
+
+The timing for a subroutine call (all types) is identical to
+that of an unconditional jump. The only difference is that
+the call hardware saves the OPEN and ACTIVE frame pointers,
+the current PC plus one, and the return destination on the
+call stack when the instruction reaches the ALU phase.
+
+@subsection Subroutine Returns
+
+A subroutine return timing is the same as for unconditional
+jumps. When the instruction is in its IR phase, the next PC
+selected is from the call stack. There is a special
+restriction in the current call hardware implementation:
+two return instructions cannot be executed consecutively.
+(The call stack needs one extra tick to move its
+pointer, read the next entry, and have the next return PC to
+the PC multiplexer early enough to use for the instruction
+cache). This is normally handled by the compiler by inserting
+a NOP between a CALL and a RETURN in the few cases where
+this occurs and a TAIL-CALL could not be used.
+
+@section Functional I/O
+
+Functional I/O occurs to and from registers on the MFIO bus.
+The bus timing is as follows during normal cycles:
+
+@group
+@example
+                 ________________________                          __
+       CPROC1 __|                        |________________________|
+               ____ ________________________ ________________________ _
+       MFIO       X Output Data from OREG  X  Input Data from FSRC  X
+               ---- ------------------------ ------------------------ -
+@end example
+@end group
+
+       This timing is altered during instruction cache misses to
+get the PC to the memory system.
+
+@subsection Functional Destinations
+
+The output data is normally held on the inputs to
+functional destinations (by a latch) until after the CPROC1
+clock rises. This means that functional destinations aren't
+loaded until the end of the output stage (with certain
+special exceptions).
+
+@subsubsection VMA (with and without memory start)
+
+ The VMA is a transparent latch that will be made transparent
+ during the output phase on the MFIO when it is a
+ destination. This will let it feed the memory map with an
+ address during the output phase. By the time the CPROC1 clock
+ edge rises, the map will have produced a physical address,
+ it will have propagated through the DRAM address buffers,
+ and it will be setting up on the DRAM address lines. This will
+ let the RAS signal to the RAMs go active right after the
+ clock edge (if a this was a start cycle), and the memory
+ system decides the cycle should start now.
+
+@subsubsection RAMs
+
+ The various RAMs that are destinations will be written
+ during the output phase of the MFIO bus. These include the
+ Garbage Collector RAM, the Transporter RAM, the Call Stack
+ RAMs, the Heap RAM, the Datatype RAM, and the RETURN
+ destination which will select a location in the register
+ RAM.
+
+@subsubsection The OPEN-ACTIVE-RETURN Destination
+
+ This destination actually loads a set of registers that will
+ be loaded into OPEN, ACTIVE, and RETURN at the end of the
+ next clock tick.  This extra step means that these registers
+ take one tick
+ longer than most other functional destinations to load.
+ Therefore, the modified frame pointers should not be used to
+ read data until at least five ticks after the write
+ instruction (for all CH- operations other than CH-NOOP).
+          CH-NOOP and all functional sources require only four ticks between
+ read and write operations.
+
+After modifying the OPEN-ACTIVE-RETURN destination, four clock cycles
+are required before using the O, A, or R register frames or using the
+OPEN-ACTIVE-RETURN functional source.  Five clock cycles are required
+before performing any open, call, or return operations.
+
+@example
+
+                 Modifying the OPEN-ACTIVE-RETURN Functional Destination
+
+                 <write OPEN-ACTIVE-RETURN>
+                 <NOP>
+                 <NOP>
+                 <NOP>
+                 <Use O, A, or R register frames>
+                 <perform open, call, or return operations>
+
+@end example
+
+@subsection Functional Sources
+
+Functional sources are decoded during the IR phase of an
+instruction, and enabled onto the MFIO bus during the FSRC
+phase of a cycle. They are clocked into the RIGHT register
+at the end of this cycle.
+
+In general, a functional source that is read/write should not
+be read until at least 4 ticks after the register was
+written.  This time may differ for functional sources that are
+          slower than normal, such as OPEN-ACTIVE-RETURN.
+
+@example
+                 Reading a Functional Source
+
+                 <write functional_source>
+                 <NOP>
+                 <NOP>
+                 <NOP>
+                 <read functional_source>
+
+@end example
+
+A reference to a memory system functional source will cause
+the processor clocks to stop until an active cycle is
+complete. This blocking will become effective at the
+beginning of the output phase of an instruction with a
+memory start destination. A memory source should not be
+referenced by the instruction immediately after one that
+starts a cycle. The extra tick will give the memory time to lock if
+necessary. Memory destinations may be consecutive, because
+they follow the natural pipeline sequencing.
+

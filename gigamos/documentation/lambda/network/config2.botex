@@ -1,0 +1,1733 @@
+@comment -*- Mode:Text; Package:USER; Readtable:CL -*-
+@chapter Configuration Procedures
+@label[chapter-doc-configuration]
+
+This chapter explains how to set up network information for Lambdas.
+
+The term ``site files'' is used to refer to the
+source files that define the network (or ``site'') configuration information.
+
+@section Site File Overview
+
+To configure a network with Lambdas,
+the system or network administrator modifies and maintains certain files.
+The information in these files is compiled and then loaded into the
+running LISP environment, or ``world''.
+This process is identical to maintaining a LISP program, or system, made
+up of multiple files.
+Most of the site configuration information is, in fact, entered as LISP code.
+
+Updating the site file sources is a cyclical process much like maintaining any LISP system or program:
+editing, compiling, loading, testing/debugging, and so on,
+until the site file ``program'' is working as desired.
+
+See @ref[figure-sitefiles], for a graphic illustration of
+the edit/compile/load/test cycle for site files.
+This figure diagrams the relationships among the various source and compiled files.
+
+When the changes have been tested and debugged,
+and a stable version of the site files has been achieved,
+it is generally desirable to @l(disk-save) the new site information
+as part of a complete LISP world on disk.
+Otherwise, the site files must be loaded every time the system is booted.
+
+The site files documented below are all
+contained in the directory with the logical pathname @l("SYS:SITE;").
+
+@need 2400
+These files are:@footnote[Other files contained within the @l("SYS:SITE;") directory generally pertain
+to specific software systems.
+See the explanation of @l(make-system) in the @LMM@  for more details.]
+
+@description
+@item SYS: SITE; SYS.TRANSLATIONS -
+defines the logical pathname @l("SYS:SITE;")
+@item SYS: SITE; HOSTS.TEXT -
+contains tabular entries  defining each network host
+@item SYS: SITE; SITE.LISP -
+defines site-wide system options
+@item SYS: SITE; LMLOCS.LISP -
+provides machine location information for each LISP machine;
+optionally, provides for ``local'' (per-host) site option values
+that override the global values
+@end(description)
+
+@fullpagefigure
+@setq figure-sitefiles figure-page
+@tex
+     \special{:saved-paint-image "dj:keith.release-4;paint-sitefiles.qfasl"}
+@end tex
+@vskip 6in
+@caption Edit/Compile/Load/Test Cycle for Site Files
+@end(fullpagefigure)
+
+@need 1200
+@section Defining Network Hosts - HOSTS.TEXT
+
+The file @l("HOSTS.TEXT") is a table which contains one entry for each network host.
+The @l("HOSTS.TEXT") file is actually a data table maintained in NIC (HOSTS2) format.
+
+To process the site files, the system manager executes @l[(make-system 'site ...)],
+providing parameters as required to indicate the kind of compilation and/or loading required.
+@l("HOSTS.TEXT") is the first file processed by @l[(make-system 'site)].
+
+@l("HOSTS.TEXT") is the only site file that does not contain LISP code.
+Instead, @l(make-system) translates each host entry into a LISP form to execute the function @l(si:define-host).
+These forms are then written out to the file @l("HSTTBL.LISP").
+(By default, the translation is only performed
+when the file @l("HOSTS.TEXT") is @ii(newer) than @l("HSTTBL.LISP").)
+
+@sp 1
+@textbox
+Never modify @l("HSTTBL.LISP") directly; make changes only to the source file, @l("HOSTS.TEXT").
+@end(textbox)
+
+@need 1400
+@subsection Format of HOSTS.TEXT
+
+Each line of text in a @l("HOSTS.TEXT") file must be one of the following:
+
+@enumerate
+@item
+A line beginning with a semi-colon ``;'' is @ii(a comment).
+@item
+A line beginning with the token ``NET'' defines @ii(a network).
+@item
+A line beginning with the token ``HOST'' defines @ii(a network host).
+@end(enumerate)
+
+The ``NET'' entry format is supported for historical reasons; it is not used
+by the current Lambda software.
+However, @l("HOSTS.TEXT") may include ``NET'' entries defining the
+Chaosnet subnet(s) to which the hosts have been logically assigned.
+
+For example, the example @l("HOSTS.TEXT") file begins with the following entry:
+@lisp
+NET CHAOS, 7
+@end(lisp)
+
+Before proceeding with a detailed discussion of host entries, look at these
+two illustrative examples:
+
+@smalllisp
+HOST UNIX-A,    CHAOS 3430,USER,UNIX,NU,[UNIXA]
+HOST LAMBDA-A,  [CHAOS 3440,INTERNET 101.0.0.1],USER,LISPM,LISPM,[LAMA,LA]
+@end(smalllisp)
+
+@need 1200
+The host entries in @l("HOSTS.TEXT") have the following format:
+@smalllisp
+@exdent 1 HOST <name>,<addresses>,<user/server>,<system-type>,<machine-type>,[<host-names>]
+@end(smalllisp)
+
+The items in each HOST entry are used to generate arguments to function @l(si:define-host).
+
+@defun si:define-host name &rest options
+Define a host.  Should only be used in SYS:SITE;HSTTBL.LISP.
+
+The @i(name) argument is a string specifying the primary name for the host.
+
+The @i(options) are as follows:
+
+@table 3
+@item :HOST-NAMES
+A list of host names; the last element should be the primary name,
+with the preceding elements sorted by increasing name length.
+The first machine name is used frequently as a short name where brevity is desired.
+@item :MACHINE-TYPE
+A keyword corresponding to a known hardware type.
+@item :SYSTEM-TYPE
+A keyword corresponding to a known software type.
+@item :CHAOS
+A list specifying the valid Chaosnet address(es) for this host.
+@item :INTERNET
+A list specifying the valid Internet address(es) for this host.
+@end(table)
+@end(defun)
+
+
+It is possible to create a host ``on the fly'', by executing
+@l(si:define-host), then calling @see[si:parse-host][fun].
+
+For example:
+
+@lisp
+(si:define-host "TEMP-UNIX"
+                :host-names  '("TEMPU" "TEMP-UNIX")
+                :machine-type :nu
+                :system-type :unix
+                :chaos '(#o3440))
+
+(si:parse-host "TEMP-UNIX")
+@end(lisp)
+
+If the host does not belong on any physical network, specify the keyword @l(:NO-NETWORK)
+instead of either @l(:CHAOS) or @l(:INTERNET), and specify @l(NIL) as the list of addresses.
+
+@sp 1
+@textbox @b(Note:)
+Using @l(si:define-host) directly as described above is @ii(not) recommended.
+This function does not check the host object data.
+Supplying erroneous host information can create severe networking problems;
+it is better to add all new hosts using the normal site file process.
+@end(textbox)
+
+@subsection Host Addresses
+
+Every host specified in the site files must have at least one network address.
+One or more addresses of either type, CHAOS or INTERNET, may be provided.
+(For example, you might provide two Internet addresses for a host acting as a TCP/IP gateway.)@csubindex[TCP][gateways]
+If more than one host address is listed, the series of addresses is enclosed in a pair of brackets.
+
+For example:
+
+@smalllisp
+HOST LAMBDA-A,    CHAOS 3430, ...
+HOST LAMBDA-B,    INTERNET 110.0.0.1, ...
+HOST LAMBDA-C,    [CHAOS 3440, INTERNET 110.0.0.2], ...
+HOST GATE-1,      [INTERNET 110.0.0.100,INTERNET 101.0.0.100], ...
+@end(smalllisp)
+
+Most networking functions that take a @i(host) as an argument
+will parse the argument for either a host name or an address.
+Functions that are specifically related to TCP/IP will interpret any number as an Internet address.
+Strings are parsed first to see if they specify a known host name,
+and finally as dotted decimal numbers (see below).
+Chaosnet functions behave in a similar fashion, and typically expect
+either a host name, host object, or a numeric Chaosnet address.
+
+Some generic functions expect a network keyword and an address, for example,
+@l(:chaos #o3741).
+
+The function @see[net:parse-address][fun]
+is used internally, and may be useful for developers.
+
+@subsubsection Internet Addresses
+@label[section-internet-addresses]
+
+The DOD Military Standard for the IP protocol
+(Ref: MIL-STD-1777, 8/12/83)
+defines, among other aspects of the IP protocol,
+how networks and network entities (hosts)
+are to be identified.
+
+The two IP network designations which are used in Lambda site files
+are the @i[network addresses] for each host and, when subnets are in use,
+the applicable @i[subnet mask(s)].
+These are in turn constrained by the designated @i[network number(s)]
+which correspond to the physical and/or logical network layout in use.
+
+The network addresses, network number, and applicable subnet masks are determined
+by the network administrator;@footnote[Internet network numbers are officially assigned by DDN.]
+all are represented as 32-bit numbers.
+These numbers may be expressed in various ways:
+as large decimal, octal, or hexadecimal numbers,
+or (more legibly) in ``dotted decimal'' format.
+
+@cindex[dotted decimal notation]
+In dotted decimal format, each group of 8 bits, or ``octet'', is expressed decimally,
+and octets are separated by periods.
+An octet can have a printed value from 0 (each bit 0) to 255 (each bit 1).
+If a 32-bit number has all bits set to 1, the dotted decimal representation
+would be @l("255.255.255.255").
+
+LISP can represent decimal, octal, and hexadecimal notations directly and
+can compare numbers using these formats internally.
+But dotted decimal format is not a LISP type,
+so the networking functions use strings which contain the printed form of the address.
+
+@group
+Networking functions expecting an Internet address will generally take any of these formats.
+For example, the following are equivalent Internet address designations for most purposes:
+
+@itemize @bullet
+@item Dotted decimal string: @l("101.0.0.152")
+@item Decimal: @l(1694498968)
+@item Octal: @l(#o14500000230)
+@item Hexadecimal: @l(#x65000098)
+@end(itemize)
+@end(group)
+
+To provide some flexibility in assigning host addresses,
+the IP specification defines several ranges of address, or ``classes''.
+There are three address classes, known as classes A, B, and C.@cindex[Internet classes]
+
+An IP host address consists of three fields:
+
+@enumerate
+@item
+a bit sequence that indicates the network class,
+@item
+a bit sequence for the network number, and
+@item
+a bit sequence for the local (host) address.
+@end(enumerate)
+
+@figure
+@setq figure-internet-address figure-page
+@cindex[Internet addresses]
+@tex
+     \special{:saved-paint-image "dj:keith.release-4;paint-netbits.qfasl"}
+@end tex
+@vskip 4in
+@caption Internet Addresses
+@end(figure)
+
+By inspecting the high-order bits in an address,
+it is always possible to determine the network class designation.
+The offset and length of the other fields depends on the network class.
+@ref[figure-internet-address],
+shows the composition of a typical Internet address.
+
+A @i[subnet mask] is a bit mask which, when applied to an Internet network address,
+masks all of the network number field and, optionally,
+part of the local address field.
+When subnets are in use, the applicable subnet mask is used to keep different subnets together or separate
+for routing purposes.
+As illustrated in @ref[figure-subnet-masks],
+the default subnet masks are those that are commonly used for the appropriate class network
+where subnets are @ii(not) in use.
+
+@figure
+@setq figure-subnet-masks figure-page
+@cindex[subnet mask]
+
+@sp 1
+@settabs 4 @columns
+@< @i(Network Class:) @\ -- A -- @\ -- B -- @\ -- C -- @cr
+@sp 1
+@< Sample address: @\ 100.000.000.002 @\ 128.001.000.002 @\ 192.001.002.003 @cr
+@< Network number: @\ 100.000.000.000 @\ 128.001.000.000 @\ 192.001.002.000 @cr
+@< Default Subnet @cr
+@< @ @ Mask:    @\ 255.000.000.000 @\ 255.255.000.000 @\ 255.255.255.000 @cr
+@cleartabs
+@sp 1
+@caption Example - Network Addresses and Subnet Masks
+@end(figure)
+
+@subsubsection Chaos Addresses
+@label[section-chaos-addresses]
+
+Each host on the Chaosnet local-area network is identified by a 16-bit @i[Chaos address]
+consisting of two fields:
+a @i(subnet), designated by  the most significant 8 bits, and
+a host address (within the subnet), designated by the least significant 8 bits.
+Both fields must be non-zero.
+
+The subnet number of a Chaos address can be determined in LISP with the @l(ldb) function:
+@lisp
+(LDB (byte 8 8) @i(address))
+@end(lisp)
+
+By convention, Chaos addresses are specified as octal numbers.
+In the site file @l("HOSTS.TEXT") each octal address is entered directly, without a prefix.
+In LISP, the octal representation must be indicated by the ``#o'' octal prefix,
+as in ``@l(#o3741)''.
+
+The range of addresses for a particular subnet number may be calculated as follows:
+
+@lisp
+low  address:   (* <subnet> 256)
+high address:   (+ (* <subnet> 256) 255)
+@end(lisp)
+
+@group
+The following table lists the high and low address for subnets 1 through 15:
+
+@settabs 5 @columns
+@sp 1
+@hrule
+@sp 1
+@< @\ @i(SUBNET) @\ @i(LOW) @\ @i(HIGH) @cr
+@sp 1
+@< @\   1       @\ 400  @\ 777  @cr
+@< @\   2       @\ 1000 @\ 1377 @cr
+@< @\   3       @\ 1400 @\ 1777 @cr
+@< @\   4       @\ 2000 @\ 2377 @cr
+@< @\   5       @\ 2400 @\ 2777 @cr
+@< @\   6       @\ 3000 @\ 3377 @cr
+@< @\   7       @\ 3400 @\ 3777 @cr
+@< @\   8       @\ 4000 @\ 4377 @cr
+@< @\   9       @\ 4400 @\ 4777 @cr
+@< @\   10      @\ 5000 @\ 5377 @cr
+@< @\   11      @\ 5400 @\ 5777 @cr
+@< @\   12      @\ 6000 @\ 6377 @cr
+@< @\   13      @\ 6400 @\ 6777 @cr
+@< @\   14      @\ 7000 @\ 7377 @cr
+@< @\   15      @\ 7400 @\ 7777 @cr
+@sp 1
+@hrule
+@cleartabs
+@end(group)
+
+With one exception (described in the next section),
+Lambda Chaosnet software imposes no restrictions on Chaos addresses.
+Lambda hosts on the same physical network may have Chaos addresses
+indicating different logical subnets.
+Note, however, that Lambda hosts cannot act as Chaosnet gateways or bridges,
+but they can co-exist on a network with other Chaosnet hosts that perform these functions.
+
+@subsection Host AMNESIA
+@label[section-amnesia]
+
+Sometimes when a Lambda host boots up it cannot obtain its own host identity.@cindex[pack name]
+This only happens when 1) the host's name is not obtained from the pack name, or
+2) the host's own entry cannot be found among the known hosts
+in the loaded site information.
+
+In this situation, the host assigns itself the reserved Chaos address 3412 (octal).
+By convention, this address is reserved for the special host name, @l(AMNESIA).@cindex[Amnesia]
+
+The sample site files include definitions for @l(AMNESIA) in both
+@l("HOSTS.TEXT") and @l("LMLOCS.LISP").
+It is important to keep these entries in your own site files.
+
+When a system boots as @l(AMNESIA), the system herald
+displays the host name as ``[Unknown Chaos Address]''.
+To correct this condition, use
+@see[si:set-sys-host][fun] and @see[update-site-configuration-info][fun]
+to point to and load a current set of site files.
+
+@need 1000
+@subsection Host User / Server Types
+
+Each @l("HOSTS.TEXT") entry includes a field consisting of one of the keywords ``USER'' or ``SERVER''.
+This field indicates whether the machine provides services to remote hosts.
+
+The Lambda networking software does not maintain or use this information,
+but it must be entered for compatibility with the host-table parser.
+
+@subsection Host Machine / System Types
+@label[section-host-types]
+
+Each @l("HOSTS.TEXT") entry includes the host's
+``machine type'' (hardware) and ``system type'' (software).
+
+The networking software doesn't actually depend on the machine type
+for proper communications; it can be obtained from each host object, however,
+and can be used by developers.
+
+The system type, on the other hand, is critical to networking functionality;
+it is used to determine the host object type, the file system type, and the directory line-parsing type.
+
+@itemize @bullet
+
+@item
+The @ii(system type) corresponds to the @ii(host object type), a flavor definition
+used to implement methods for a particular system type.@cindex[host object]
+See Section @ref[section-host-objects] for a brief discussion on host objects;
+consult the @LMM@  for details.
+
+@item
+The @ii(file system type) is used to determine the appropriate flavor to be used for pathname parsing.
+In general, this corresponds to the @ii(system type) specified in @l("HOSTS.TEXT").@cindex[file system type]
+In exceptional cases, the file system type differs from the general system type,
+to inform the networking software about exceptional behavior.
+These exceptions must be specified in @l("SITE.LISP") with the site file parameter
+@l(:SPECIAL-FILE-HOSTS) (see @ref[option-special-file-hosts]).
+
+@item
+The @ii(directory line parsing type) generally corresponds to the file system type,
+but is defined separately to account for discrepancies among remote file servers.@cindex[directory line parsing]
+
+Directory line parsing is used by TCP/FTP during file access;
+certain FTP operations receive a text listing of a remote directory,
+and the networking software parses each line to obtain detailed information
+about each file, such as owner/author, permissions, and creation date
+(when available).
+
+@end(itemize)
+
+Appendix @ref[appendix-systypes], @b(@nameref[appendix-systypes]),
+describes the implemented system types.
+The associated flavors and keywords (such as system type) are listed for each host type.
+
+@section Site Options
+
+The options specified in @l("SITE.LISP") are global: they affect all Lambda hosts.
+Site options in @l("LMLOCS.LISP") are for a specific Lambda only.
+
+@subsection Global Site Options - SITE.LISP
+
+Most of the site options described below are normally specified as global options.
+
+The only LISP form in @l("SITE.LISP") should be a call to the macro
+@l(si:defsite), which establishes the global values of site options.@findex[si:defsite]
+@l(si:defsite) takes two arguments, @i(site) and @i(options).
+
+The @i(site) argument must be a keyword site name, such as @l(:OUR-SITE).@cindex[site name]
+
+The @i(options) argument is a list of option entries; each entry is a list.
+The @l(CAR) of each entry is a keyword option name, such as @l(:STANDALONE).
+The @l(CADR) of each entry specifies the option value.
+
+See @ref[figure-example-site-lisp], for an example of @l("SITE.LISP").
+(It is a brief version of the example file distributed with the @i(``Release 4 Options Tape'').)
+
+@fullpagefigure
+@setq figure-example-site-lisp figure-page
+
+@smalllisp
+@include xsite
+@end(smalllisp)
+@caption Example of SITE.LISP
+
+@end(fullpagefigure)
+
+@subsection Lambda Machine Locations - LMLOCS.LISP
+
+The file @l("LMLOCS.LISP") contains one entry for each LISP Machine at your site.
+One purpose of this file is to record the physical location of each LISP machine host.
+
+In addition, global site options that are listed in @l("SITE.LISP") can
+be overriden for particular hosts in @l("LMLOCS.LISP").
+In effect, each host sees its own @l("LMLOCS") site option value, if one was specified;
+otherwise, it sees the global value.
+
+The only LISP form in @l("LMLOCS.LISP") should be a @l(defconst) form that defines the
+variable @l(si:machine-location-alist).
+
+@group
+@defconst si:machine-location-alist
+A list of LISP machine location entries.
+@end(defconst)
+@end(group)
+
+This variable is an association list; each member of the list is another list that defines the location of one host.
+The general pattern of a location entry is:
+@lisp
+(host-full-name pretty-name
+ location-string
+ (building floor)
+ associated-machine
+ site-options)
+@end(lisp)
+
+The elements of each location entry are follows:
+
+@itemize @bullet
+
+@item @i(Host-full-name:)
+The name of the host to be defined, specified as a string.
+
+@item @i(Pretty-name:) @cindex[pretty name]
+A string giving a full description of the host.
+This is displayed, for example, by @l(print-herald) and @l(hostat).
+
+@item @i(Location-string:) @cindex[machine locations]
+A string describing the physical location of the host system.
+
+@item @i(Building-floor:)
+A list describing the physical location of the host.
+The first element of the list is a symbol that describes the physical site;
+the second element can be used to distinguish a particular physical location
+within that site.
+A convention that is used at many sites is to enter the building name and floor.
+
+@item @i(Associated-machine:) @cindex[associated machine]
+This is the name of the host where users locate their personal directories.
+The @l(login) function, by default, looks on the associated machine
+for users' directories and initialization files.
+The associated machine need not be the same as the local host;
+on a network where users share multiple machines in a terminal room, for example,
+it may be convenient to designate a file server with a large file capacity
+as the associated machine for all Lambdas.
+
+@item @i(Site-options:)
+This is a list of site option/value pairs that override the global options
+entered in @l("SITE.LISP").
+The overriding values are seen only by the single host defined by the current entry.
+Site options that are customizable for individual convenience,
+such as @l(:DEFAULT-PRINTER), are commonly overriden.
+
+@end(itemize)
+
+@need 2000
+For example, the following entry specifies information specific to Lambda host @l(OTHER-HOST):
+its associated machine is @l(MYHOST),
+and the attached LASER1-Plus printer is the default printer.
+
+@lisp
+("OTHER-HOST" "Keith's Lambda"  "K. Corbett's office"
+ (CAMBRIDGE 7)
+ "MYHOST"
+ ((:DEFAULT-PRINTER (:LASER1+ "OTHER-HOST"))))
+@end(lisp)
+
+See @ref[figure-example-lmlocs-lisp], for a listing of an example of @l("LMLOCS.LISP").
+
+@fullpagefigure
+@setq figure-example-lmlocs-lisp figure-page
+
+@smalllisp
+@include xlmlocs
+@end(smalllisp)
+@caption Example of LMLOCS.LISP
+
+@end(fullpagefigure)
+
+@need 1400
+@subsection Network-Wide Options
+
+This chapter describes the site options that pertain to the network as a whole.
+
+@table 3
+
+@need 1200
+@item :NETWORK-NAMES @i([list-of-network-specs])
+@kindex[:network-names]@cindex[network names]
+@setq option-network-names page
+
+The value of this option is a list of network specifications;
+each specification includes network name(s), number, and (optionally)
+an IP subnet mask.
+
+In practice, the information specified by @l(:NETWORK-NAMES) is only used by
+Lambdas situated on an IP network with subnets.
+However, it is recommended that you include the option, since future software may depend on it.
+
+The first element of each specification is a list of strings.
+Each string provides a nickname for the network.
+
+The second element of each specification is an association list
+describing the protocols supported on this network.
+Each member of this list is itself a list that begins with a network protocol keyword,
+either @l[:CHAOS] or @l[:INTERNET].
+Following each protocol keyword is the corresponding network number.
+For @l[:CHAOS], this is the subnet number;
+for @l[:INTERNET], this is the network number.
+
+@cindex[subnet mask]
+Optionally, following an Internet network number, the site manager
+can specify a @i(subnet mask).
+This mask is used to distinguish addresses on separate subnets within the network.
+If subnets are not in use, the subnet mask @ii(must be NIL or absent)
+for Internet addressing to function correctly.
+
+See Section @ref[section-internet-addresses], @nameref[section-internet-addresses],
+for further information on Internet addresses and subnet masks.
+
+Here's an example @l("SITE.LISP") entry that pertains to a class A network
+which consists of two subnets;
+eight bits of the local address are used to specify the subnet number.
+In this example, hosts have addresses of the form ``100.1.x.x'' or ``100.2.x.x''.
+
+@group
+@smalllisp
+(DEFSITE ...
+ ...
+  (:NETWORK-NAMES '((("A-NETWORK")
+                     ((:INTERNET "100.1.0.0" "255.255.0.0")
+                      (:CHAOS 7)))
+                    (("B-NETWORK")
+                     ((:INTERNET "100.2.0.0" "255.255.0.0")))))
+ ...)
+@end(smalllisp)
+@end(group)
+@sp 1
+
+@need 1200
+@item :SHORT-SITE-NAME @i[<string>]   @kindex[:short-site-name]
+@itemx :LONG-SITE-NAME @i[<string>]   @kindex[:long-site-name]
+@itemx :SITE-PRETTY-NAME @i[<string>] @kindex[:site-pretty-name]
+@setq option-site-name page
+
+These options provide different forms of the network site name.@cindex[site name]
+The short name should be a short (one-word) abbreviation.
+The long and ``pretty'' names can include spaces.
+For example:
+
+@lisp
+(:SHORT-SITE-NAME "W.W.")
+(:LONG-SITE-NAME "Widget Works")
+(:SITE-PRETTY-NAME "++ Widget Works, Inc. ++")
+@end(lisp)
+
+@sp 1
+@end(table)
+
+@subsection Custom Host Initializations
+
+@table 3
+
+@need 1200
+@item :DEFAULT-INITIAL-FORM
+@kindex[:default-initial-form]@cindex[startup initializations]@csubindex[initializations][system default]
+@setq option-default-initial-form page
+
+The site option @l(:DEFAULT-INITIAL-FORM), if present,
+specifies a LISP form to be evaluated when the Lambda boots.
+(It is generally used for specific machines, not the entire site, and thus
+should be used in @l("LMLOCS.LISP").)
+
+When a host is booted, after the cold-boot initializations are completed,
+the @l(:DEFAULT-INITIAL-FORM) (if any) is printed out and the user is asked whether to execute it.
+If the user answers @i(YES) (or after a one-minute timeout),
+the form is evaluated.
+
+A good way to use this feature is to set up a LISP program on the system host
+which executes the desired initializations.
+This way, the initialization procedures may be modified simply by editing
+and compiling the initialization program.
+
+For example, the following entry in @l("LMLOCS.LISP") would execute
+a system startup program at boot time:
+
+@lisp
+ :
+ (:default-initial-form
+    `(catch-error
+        (load "sys:site;startup")))
+ :
+@end(lisp)
+
+The @l(catch-error) form is suggested as a means of trapping errors
+that could cause the system initializations to abort.
+
+@end(table)
+
+@need 1000
+@subsection System Time Services
+
+@table 3
+
+@need 1200
+@item :STANDALONE @i([T or NIL])
+@kindex[:standalone]@csubindex[initializations][system time]
+@setq option-standalone page
+
+If this option is @l(T), each Lambda is ``standalone'', and  gets its system time from its own battery clock.
+If @l(NIL), each Lambda will attempt to get its system time from the remote
+``time server hosts'' (see below).
+@sp 1
+
+@need 1200
+@item :TIMEZONE @i([hours-west-of-GMT])
+@kindex[:timezone]@cindex[timezone]
+@setq option-timezone page
+
+This option specifies the timezone location of the network.
+The timezone is expressed in hours west of Greenwich Mean Time.
+For example, the Continental USA Eastern Timezone is entered as:
+
+@lisp
+(:TIMEZONE 5)
+@end(lisp)
+
+Accordingly, Central time locations use 6, Mountain time locations use 7, and Pacific time locations use 8.
+
+@sp 1
+
+@need 1200
+@item :CHAOS-TIME-SERVER-HOSTS @i([list-of-Chaos-hosts])
+@comment Peter??? TCP???
+@kindex[:chaos-time-server-hosts]@cindex[time server]
+@setq option-chaos-time-server-hosts page
+
+This option specifies a list of Chaosnet hosts which support a server
+to provide the time and date to other hosts.
+On system startup, non-standalone Lambdas will poll these hosts to get the time of day.
+
+The value is a list of host names; for example,
+@lisp
+(:CHAOS-TIME-SERVER-HOSTS '("OPUS" "TISH"))
+@end(lisp)
+
+@end(table)
+
+@subsection Chaosnet Options
+
+The options in this section apply only to Chaosnet.
+
+@table 3
+
+@need 1200
+@item :SERVER-MACHINE @i([T or NIL])
+@kindex[:server-machine]@csubindex[initializations][Chaosnet services]
+@setq option-server-machine page
+
+Normally, a Lambda's Chaosnet services (such as remote file access) are enabled at boot time.
+However, when a Lambda is used often as a server machine at a site, it may be necessary to
+delay access to the services until certain other initializations are performed.
+If the Lambda's @l(:SERVER-MACHINE) site option value is non-NIL, then
+its services are @ii(not) enabled automatically at boot time; instead the
+function @see[si:enable-services][fun] must be called.
+
+Note that the @l(:server-machine) option would normally be specified in @l("LMLOCS.LISP")
+to apply only to specific Lambdas, not all.
+
+@sp 1
+
+@need 1200
+@item :ESC-F-ARG-ALIST @i(alist)
+@kindex[:esc-f-arg-alist]@cindex[Finger program]
+@setq option-finger page
+
+This site option sets the variable @l(tv:*finger-arg-alist*).@vindex[tv:*finger-arg-alist*]
+This variable controls the @l(finger) program display invoked by @termon[F].
+
+The value of the @l[:esc-f-arg-alist] site option should be an association list.
+The @l(CAR) of each element is either a single digit (0 to 9) or @l(T), or @l(NIL).
+These association keys indicate an argument to pass to the @l(finger) program
+when the user types @termon[F].
+For example, the user may type @termon[0-F];
+if there is an associated element of @l(tv:*finger-arg-alist*),
+that argument is passed to @l(finger).
+
+The association element @l(T) indicates the default @l(finger) action to take
+when the @l(finger) argument does not have an associated entry.
+The association element @l(NIL) is used when the user presses @termon[F] with no arguments.
+
+The @l(CDR) of each element specifies a string, keyword, or list that is passed to the @l(finger) program.
+A string specifies a host to be fingered.
+The following keywords are also recognized:
+
+@itemize @bullet
+@item
+:READ - Ask the user which host(s) to finger.
+@item
+:LOGIN - Finger the default login host or associated machine.
+@item
+:ASSOCIATED - Finger the associated machine.
+@item  :LISP-MACHINES, :LOCAL-LISP-MACHINES, :ALL-LISP-MACHINES
+Finger known LISP machines.
+@l(:ALL-LISP-MACHINES) fingers all known hosts of type @l(:LISPM);
+the other keywords finger all hosts listed in the LISPM machine location information
+(from the site file @l("LMLOCS.LISP")).
+@end(itemize)
+
+A list of hosts and/or valid keywords (other than @l(:READ)) can be specified
+to combine their actions.
+
+For example, the following might be entered in @l("SITE.LISP") to define the @l(finger) program's behavior:
+
+@lisp
+(DEFSITE ...
+   :
+   :
+(:ESC-F-ARG-ALIST '((NIL . :ALL-LISP-MACHINES)
+                    (T . :LISP-MACHINES)
+                    (0 . :READ)
+                    (1 "UNIX-A" "UNIX-B")))
+   :
+ )
+@end(lisp)
+
+With this site option value, the effect of @termon[F] with no argument is to finger all LISP machines;
+@termon[0-F] would prompt for a location to finger;
+@termon[1-F] would finger the specified list of Unix hosts;
+and @termon[F] with any other argument would finger LISP machines with location information.
+
+@end(table)
+
+@need 1000
+@subsection TCP/IP Options
+
+The following site option applies only to TCP/IP.
+@table 3
+
+@need 1200
+@item :BROKEN-BERKELEY-UNIX-BROADCAST-ADDRESS-P @i([T or NIL])
+@kindex[:broken-berkeley-unix-broadcast-address-p]
+@setq option-broken-berkeley page
+
+This site option must be specified if there are Berkeley 4.2 Unix
+systems on your network.@csubindex[Berkeley 4.2 Unix][IP broadcasting]
+Such systems have a
+non-standard method of doing IP broadcasting.  If you set this option to
+@i(T) (true), TCP/IP will also use this method, and will be able to
+broadcast to the Unix systems.  If you set the option to NIL (or omit
+it), TCP/IP will use the standard method, and will be able to broadcast
+to systems that properly use the standard method (including systems
+running Berkeley Unix 4.3).
+
+To enable Berkeley 4.2 IP broadcasting compatibility,
+add the following entry in @l("SITE.LISP"):
+@lisp
+(:broken-berkeley-unix-broadcast-address-p T)
+@end lisp
+@sp 1
+
+@end(table)
+
+@need 1200
+@subsection Printer Options
+
+The site options described in this section specify parameters used by the printer software.
+The printer software is documented in the @i(Printer Software Guide).
+
+@cindex[printer setup]
+@table 3
+
+@sp 1
+@need 1200
+@item :DEFAULT-PRINTER @i([printer-spec])
+@kindex[:default-printer]@cindex[printer, default]
+@setq option-default-printer page
+
+This option sets the variable @l(si:*default-printer*),@vindex[si:*default-printer*]
+which in turn specifies the default @l(:PRINTER) argument@kindex[:printer]
+to text hardcopy functions.
+The @i(printer-spec) should be  either a keyword for a type of printer, a string
+for a printer name, or a quoted list containing a keyword and arguments
+specifying the printer type and host location.
+
+Examples:
+
+@lisp
+(:default-printer '(:ti855 "MORTICIA"))
+(:default-printer "TISH-PRINTER")
+(:default-printer :ti855)
+@end(lisp)
+
+The first example is a full specification.
+The second examle illustrates a reference to one of the printers specified by @l(:PRINTER-NAMES).
+The third illustrates a reference to a
+printers specified by @l(:DEFAULT-PRINTER-HOST-ALIST) (see below).
+
+@sp 1
+@need 1200
+@item :DEFAULT-BIT-ARRAY-PRINTER @i([printer-spec])
+@setq option-default-bit-array-printer page
+
+This option sets the variable @l(si:*default-bit-array-printer*),@vindex[si:*default-bit-array-printer*]
+which in turn
+specifies the default @l(:PRINTER) argument to bit-map hardcopy functions.
+The value is specified as for @l(:DEFAULT-PRINTER).
+
+@sp 1
+@need 1200
+@item :DEFAULT-PRINTER-HOST-ALIST @i([a-list])
+@setq option-default-printer-host-alist page
+
+This option is used by the optional Tiger printer software.
+It sets the variable @l(tiger:*default-printer-host-alist*),@vindex[tiger:*default-printer-host-alist*]
+which is used to locate a printer specified only by printer type.
+Specify a quoted association list with host names indexed by printer types.
+
+For example:
+
+@lisp
+(:default-printer-host-alist
+        '((:ti855 "LAMA")
+          (:toshiba "LAMC")))
+@end(lisp)
+
+@sp 1
+@need 1200
+@item :PRINTER-NAMES @i([list])
+@setq option-printer-names page
+
+Sets the variable @l(si:*printer-names*),
+which is used to define printers by name;
+the names can then be used to specify printers within the other printer site options above:
+@l(:default-printer), @l(:default-bit-array-printer), and @l(:default-printer-host-alist).
+
+Specify a quoted list; each element of the list defines a printer
+which can be referred to by its name(s).
+Each sub-list has the form
+
+@lisp
+(("string1" "string2" ...) <printer-spec>)
+@end(lisp)
+
+...where the strings are names by which the printer is known.
+The @i(printer-spec) should be a list specifying the printer type and location.
+
+For example:
+
+@lisp
+(:PRINTER-NAMES
+  '((("OURS" "CS" "CS-LASER") (:IMAGEN "MORTICIA"))
+    (("ITS"  "CS-TI855") (:TI855 "IT"))))
+(:DEFAULT-PRINTER "CS-TI855")
+(:DEFAULT-BIT-ARRAY-PRINTER "CS-LASER")
+@end(lisp)
+
+@end(table)
+
+@need 1200
+@subsection Defining Foreign Systems
+
+This section describes options which specify information required for dealing with
+foreign (non-Lambda) system types.
+
+@table 3
+
+@need 1200
+@item :HOST-DEFAULT-DEVICE-ALIST @i([host . device pairs])
+@kindex[:host-default-device-alist]@cindex[disk devices]
+@setq option-host-device page
+@setq option-host-default-device-alist page
+
+This option specifies which device should be used by default for pathnames on a specific host.
+This is especially useful with hosts that support multiple disk devices.
+
+The option's value is an association list of dotted pairs, one for each remote host.
+The first element of each pair is a host name;
+the second element of each pair is a string specifying the device name.
+
+For example, the following entry specifies that pathnames on the VAX/VMS host ``MY-VAX''
+should include the default disk device ``USER_DISK'' (which is presumably a logical device
+assignment on the VAX):
+
+@lisp
+(:HOST-DEFAULT-DEVICE-ALIST
+  '(("MY-VAX"  .  "USER_DISK")))
+@end(lisp)
+
+@sp 1
+
+@need 1200
+@item :SPECIAL-FILE-HOSTS
+@kindex[:special-file-hosts]@cindex[file system types]
+@setq option-special-file-hosts page
+
+The file-system type of a remote file server host is generally equivalent
+to the system type specified for the host in @l("HOSTS.TEXT").
+However, some exceptions do exist and need be entered using this site option.
+
+An exception exists, for example, when a particular vendor's implementation of a ``standard''
+system type deviates from the standard in certain respects.
+The @l(:special-file-hosts) site option provides keywords that are used
+by the file access software to recognize these exceptional cases.
+
+The @l(:SPECIAL-FILE-HOSTS) option consists of an association list of file-system types.
+Each ``special'' file server host is listed under the appropriate file-system type.
+
+For example:
+
+@lisp
+(:SPECIAL-FILE-HOSTS
+  '((:LMFS "SYMB-1" "SYMB-2")
+    (:UNIX-SGI "SGI-HOST")))
+@end(lisp)
+
+The example above includes a list of
+Symbolics hosts with the @l(:LMFS) file system type,
+and a Silicon Graphics Unix workstation with the @l(:UNIX-SGI) file system type.
+
+For most networking purposes,
+all MIT-descended LISP machines --
+Lambdas, Explorers, and Symbolics -- are quite similar,
+and therefore classified under the system type @l(:LISPM).
+However, the Symbolics pathname syntax differs significantly from the Lambda and Explorer systems.
+Therefore, Symbolics hosts must be specified as @l(:special-file-hosts) of type  @l(:LMFS)
+in order for the Lambda to parse Symbolics pathnames correctly.
+
+@end(table)
+
+@need 1200
+@subsection Mail Options
+
+@table 3
+
+@sp 1
+@need 1200
+@item :CHAOS-MAIL-SERVER-HOSTS @i(list-of-hosts)
+@kindex[:chaos-mail-server-hosts]@csubindex[Chaosnet][mail servers]
+@setq option-chaos-mail-server-hosts page
+
+This option specifies a list of hosts that are capable of accepting mail and forwarding it
+to other locations.
+Most VMS, TOPS-20, and Unix implementations of Chaosnet have this capability.
+Most LISP machines do not.
+
+Example:  @l(:chaos-mail-server-hosts '("UNIX-A" "UNIX-B"))
+
+@sp 1
+@need 1200
+@item :SMTP-MAIL-SERVER-HOSTS @i(list-of-hosts)
+@kindex[:smtp-mail-server-hosts]@csubindex[TCP][mail servers]
+@setq option-smtp-mail-server-hosts page
+
+This option specifies a list of hosts that are capable of accepting TCP/SMTP mail.
+
+Example:  @l(:smtp-mail-server-hosts '("MEGA-VAX"))
+
+@sp 1
+@need 1200
+@item :DEFAULT-MAIL-MODE @i(keyword)
+@kindex[:default-mail-mode]@csubindex[mail][default protocol]
+@setq option-default-mail-mode page
+
+The value of this option should be one of the two keywords, @i(:CHAOS) or @i(:SMTP).
+This option indicates which mail protocol is used by the available mail server(s).
+
+@sp 1
+@need 1200
+@item :ALLOW-LM-IN-FROM-FIELD @i(T or NIL)
+@kindex[:allow-lm-in-from-field]@csubindex[mail][restricting From field]
+@setq option-allow-lm-in-from-field page
+
+This option specifies whether the Lambda mail program @l(ZMail) should allow
+the user to specify a LISP machine in the @i(From:) field of a mail message.@cindex[ZMail]
+Since Lambdas typically do not support a mail server,
+it is assumed that the @l(reply) command in most mail systems may not work correctly
+if the message originates from a LISP machine.
+If this option is @l(NIL),  @l(ZMail) will prompt the user for
+a correct mail origin before sending a message.
+
+@sp 1
+@need 1200
+@item :HOST-FOR-BUG-REPORTS @i(host)
+@kindex[:host-for-bug-reports]@csubindex[mail][bug reports]
+@setq option-host-for-bug-reports page
+
+This option specifies the name of a @i(host) to send bug reports to.
+This option is used by the bug mail interfaces
+in @l(ZMail), the error-handler command @ctrl[M], and the @l[(bug)] function.
+
+The specified @i(host) should be a machine capable of accepting and forwarding mail.
+A mail destination called @l(BUG-LISPM) should be established on the host
+for general LISP machine bug mail.
+
+Example:  @l[(:host-for-bug-reports "MEGA-VAX")]
+
+@end(table)
+
+@section Updating Site Files
+@label[section-updating-sitefiles]
+
+This section documents the procedure for preparing and updating site files
+for use with Release 4.
+The goal of this section is to assist the site manager with
+preparing new site files.
+The goal is to save a band with updated site information for
+each Release 4 Lambda on your network.
+
+@subsection Getting Started
+@label[section-getting-started]
+
+@cindex[system host]
+It is recommended that the site files be modified and compiled
+on the network file server, also referred to as the @i(``system host'').
+This is normally the file-server host on which system sources, site files, etc.
+are stored.
+
+If you have multiple Lambdas, you should choose one Lambda to act as the system host.
+All site file maintenance should then be performed on that system.
+Once you have a working set of site files,
+you can go to other Lambda hosts on the network and load the site files from the system host.
+
+@csubindex[site files][sample files]
+The first step in site file maintenance consists of establishing the site file directory.
+
+@itemize @bullet
+@item
+If this is the first time you are creating a set of site files customized for your network,
+you should begin with the sample site files provided by GigaMos
+on the @i(``Release 4 Options Tape'').
+Restore the site files and copy the @l("RELEASE-4.CUSTOMER-SITE;") directory
+to a directory of your own choosing.
+@item
+If you are upgrading from Release 3, and you already have a customized set of site files,
+and you plan to upgrade all Lambdas to Release 4,
+then you can work with your existing site files.
+If, however, you will need to alternate between Release 3 and Release 4,
+you may need to copy your existing site file directory to a new location.
+As documented earlier (see Section @ref[section-compatibility]),
+Release 4 TCP/IP requires significant (and incompatible) changes@csubindex[TCP][site file changes]
+All the restrictions documented below apply only to TCP/IP with respect to Release 3 site files.
+@end(itemize)
+
+Once you have chosen (and, optionally, copied) your site file directory,
+you establish its current location by redefining the logical pathname @l("SYS:SITE;").
+This pathname is established in one of two ways:
+
+@enumerate
+@item
+The function @see[si:set-sys-host][fun] is used to define @l("SYS:SITE;")
+@ii(temporarily), that is, dynamically in LISP.
+This is the function to use the first time you boot a Lambda on a band
+that contains wholly inaccurate and/or irrelevant network information.
+For example, when you first boot with the ``vanilla'' Release 4 band,
+the LISP world will not contain your site information.
+You should use @l(si:set-sys-host) to point to the directory that contains,
+@i(or that will contain), your site files.
+
+When you first prepare your own site files, you call @l(si:set-sys-host)
+to get started; then you edit and compile the site files.
+Later you can boot each other
+Lambda, call @l(si:set-sys-host) to point to your new site files,
+and load them to acquire the updated information.
+
+@item
+The ``permanent'' definition of the logical host ``SYS'' and @l("SYS:SITE;")
+is entered in @l("SYS.TRANSLATIONS").
+This file must contain a call to the function @l(fs:set-logical-pathname-host) (see below)
+which defines the logical ``SYS'' host.
+This definition gets loaded into LISP whenever you load the current set of site files.
+@end(enumerate)
+
+@need 1000
+@subsubsection Setting the SYSTEM HOST in LISP
+@label[section-setting-sys-host-lisp]
+
+The function @l(si:set-sys-host) is used to establish the system host
+and site file directory temporarily:
+
+@defun si:set-sys-host host-name &optional system-type host-address site-file-directory
+Specify the host from which to read system files.
+When pointing to a remote Lambda,
+this function makes a network connection to confirm the information provided.
+
+The arguments are as follows:
+
+@table 2
+
+@item host-name
+A string specifying the name of the system host.
+To indicate the local machine (the one that you are working on), use @l("LM").
+
+@item system-type
+Operating system type of the system host
+(see Section @ref[section-host-types], @nameref(section-host-types)).
+@l(NIL) means that the system type of the host indicated by @i(host-name) should be used;
+this works only if the @i(host-name) is known to the currently loaded host information.
+
+@item host-address
+The Chaos or Internet address of the system host.
+An octal or decimal number (e.g., @l(#o3741)) is parsed as a Chaos address;
+a string (e.g., @l("101.0.0.1")) is parsed as an Internet address.
+@l(NIL) means that the host address of @i(host-name) should be used;
+like @i(system-type),
+this works only if the @i(host-name) is known to the currently loaded host information.
+
+@item site-file-directory
+A string specifying the @l(namestring) of the directory
+to be used as the translation for @l("SYS:SITE;")
+which points to the site files.
+This string is used as part of the @i(translations) list passed as an argument to @see[fs:set-logical-pathname-host][fun].
+
+
+@end(table)
+
+Normally, all the arguments must be fully specified.
+However, it is sometimes possible to specify @l(NIL) for @i(system-type) and/or @i(host-address).
+This works only if the system host with the name @i(host-name) is already
+known in the currently loaded site information,
+and if the network address for @i(host-name) is accurate.
+As a special case, you may specify both @i(system-type) and @i(host-address)
+as @l(NIL) when you designate @l("LM") as the @i(host-name),
+to indicate that the local host is the system host.
+
+@end(defun)
+
+@need 1000
+Here are some examples:
+
+@smalllisp
+;;;Point to the local machine and default site file directory:
+
+(si:set-sys-host "lm" nil nil  "release-4.customer-site;")
+
+;;;Point to a remote Chaosnet host and custom site directory:
+
+(si:set-sys-host "myhost" :lispm #o3430 "our-site;")
+
+;;;Point to a remote TCP host and custom site (sub)directory:
+
+(si:set-sys-host "myhost" :lispm "101.0.0.101" "our-site.release-4;")
+
+;;;Point to a known host, specifying just the site directory:
+
+(si:set-sys-host "ahost" nil nil "our-site;")
+
+@end(smalllisp)
+
+Several examples of @l(si:set-sys-host) are given in context with the procedures below.
+
+@need 1000
+@subsubsection Setting the SYSTEM HOST in SYS.TRANSLATIONS
+@label[section-setting-sys-host-file]
+
+The function @l(fs:set-logical-pathname-host) is used within @l("SYS.TRANSLATIONS")
+to establish the logical translations for @l("SYS:SITE;"):
+
+@defun fs:set-logical-pathname-host logical-host &key physical-host translations
+Define a logical host named @i(logical-host), which translates to @i(physical-host).
+
+@i(translations) is a list of translations to use: each element looks like:
+
+ (logical-pattern physical-pattern)
+
+where each pattern is a file namestring with wildcards.
+Omitted components default to * (:WILD).
+@end(defun)
+
+The @i(translations) namestring for a Lambda directory can be specified in either of two ways:
+@enumerate
+@item Enclosed in less-than and greater-than characters, for example: @l("<directory>")
+@item With the usual semi-colon suffix, for example: @l("directory;")
+@end(enumerate)
+
+The distributed example file @l("SYS.TRANSLATIONS") illustrates the proper syntax
+for @l(fs:set-logical-pathname-host).
+See @ref[figure-example-sys-translations], for a listing of the full example.
+
+@figure
+@setq figure-example-sys-translations figure-page
+
+@smalllisp
+@include xsys-trans
+@end(smalllisp)
+@caption Example of SYS.TRANSLATIONS
+
+@end(figure)
+
+Note that @l(fs:set-logical-pathname-host) can be used elsewhere
+to define other logical pathname hosts.
+A typical usage is to create logical pathnames for your own software system hierarchies.
+For example:
+@lisp
+(fs:set-logical-pathname-host
+  "PROGRAMS"
+  :physical-host "MYHOST"
+  :translations '(("CODE;"  "PROGRAMS.PROGRAMS-CODE;")
+                  ("TESTS;" "PROGRAMS.CURRENT-TESTS;")
+                  ("FILES;" "PROGRAMS;")
+                  ("*;"     "PROGRAMS.*;")
+                  ("*;*;"   "PROGRAMS.*;*")
+                  ("*;*;*;" "PROGRAMS.*.*.;")))
+@end(lisp)
+
+@need 1200
+@subsection Using the Sample Site Files
+@label[section-using-sample-sitefiles]
+
+If you are installing Release 4 software on your first Lambda system,
+you will need to start with the set of sample site files provided with
+Release 4.@csubindex[site files][sample files]
+Follow the procedure for restoring the options tape
+documented in the @i(Lambda 4.0 LISP Release Notes).
+Restore @i(only) the customer site files, do not attempt to restore any software systems.
+
+Then, working on the system host, temporarily define @l("SYS:SITE;") to point to the sample site files:
+
+@lisp
+(si:set-sys-host "lm" nil nil  "release-4.customer-site;")
+@end lisp
+
+At this point you should proceed to the step in
+Section @ref[section-verify-site-files], @nameref[section-verify-site-files], below.
+
+@need 1200
+@subsection Using Previously Established Site Files
+
+If you already have a set of site files for your network,
+when you boot with the Release 4 distribution band
+you must redefine @l("SYS:SITE;") to point to your site file directory.
+
+@need 2400
+@csubindex[site files][from previous releases]
+If your site files are located on the local machine,
+execute the following:
+
+@lisp
+(si:set-sys-host "lm" nil nil "directory-name;")
+@end(lisp)
+
+where @l(directory-name;) should be filled in with the actual name of your site file directory.
+
+@ii[Be sure to remember] the semi-colon in the directory specification,
+and do not include a host prefix.
+
+@need 2000
+If the site files are located on another Lambda Chaosnet host, you can
+point to them remotely.@csubindex[site files][remote]
+For example, assume your system host is a Lambda named @l(MYHOST) with Chaos address 3430 (octal).
+It contains working site files in the directory @l("OUR-SITE;")
+You would execute the following to point to these site files:
+
+@lisp
+(si:set-sys-host "myhost" :lispm #o3430 "our-site;")
+@end lisp
+
+@subsection Verifying Access to Site Files
+@label[section-verify-site-files]
+
+Once you have pointed to a set of site files, verify that you can access them properly:
+@lisp
+(listf "sys:site;")
+  :
+  :
+#<FS::LOGICAL-PATHNAME "SYS: SITE; * * *">
+@end lisp
+
+@need 1200
+@subsection Copying Site Files to a New Directory
+@label[section-copying-sitefiles]
+
+At this point in the update procedure,
+you may wish to copy @l("SYS:SITE;") to a new directory on the system host.
+
+If you plan for any reason to keep Release 3 running on some systems,
+you should copy the working site files
+to a new directory which will be specifically for Release 4 site files.
+
+If you have restored the example site files, you should copy them to create your own site file directory.
+
+To follow this part of the procedure, @ii(make sure you are working on the system host).
+All examples below are based on this assumption.
+
+You should select a name for your new site file directory which will clearly indicate its purpose.
+It is conventional to form the directory name by combining a short name for your organization
+with the suffix @l("-SITE").
+
+If, for example, you want to establish the site level directory @l("OUR-SITE;")
+you would execute the following:
+
+@lisp
+;;To copy the example or old site files:
+
+(fs:copy-directory "sys:site;*.*#>" "lm:our-site;")
+
+;;To point to the new site file directory:
+
+(si:set-sys-host "lm" nil nil "our-site;")
+
+;;To verify that you can access the new directory:
+
+(listf "sys:site;")
+@end lisp
+
+You are now ready to customize your site files for Release 4 as described earlier in this chapter.
+
+@need 1400
+@subsection Editing Site Files
+@label[section-editing-sitefiles]
+
+@csubindex[site files][editing]
+The most direct way to make changes to your site files
+is to edit the files directly with ZMacs.
+You can use the directory editor to
+obtain a listing of the site file directory by executing
+
+@lisp
+(dired "sys:site;*.*#>")
+@end lisp
+
+@ref[figure-dired-sitefiles] illustrates a DIRED display for the sample site files.
+
+@figure
+@setq figure-dired-sitefiles figure-page
+@smalllisp
+DJ: RELEASE-4.CUSTOMER-SITE; *.*#>
+Free=28872, Reserved=579, Used=167549 (38 pages used in RELEASE-4.CUSTOMER-SITE;)
+      HOSTS.TEXT     #1   4   3682(8)      03/19/86 23:06:50         PW
+      HSTTBL.LISP    #1   4   3204(8)      04/13/86 20:59:43         dg
+      HSTTBL.QFASL   #1   3   1448(16)     04/13/86 21:00:44         dg
+      LMLOCS.LISP    #1   3   2372(8)      03/19/86 23:13:15         PW
+      LMLOCS.QFASL   #1   2    516(16)     04/13/86 21:00:34         dg
+      SITE.LISP      #3   3   2199(8)  !   07/29/88 06:54:23         RG
+      SITE.QFASL     #3   2    706(16) !   07/29/88 06:54:55         RG
+      SYS.TRANSLATIONS #1   1    566(8)    03/19/86 23:22:18         PW
+@end(smalllisp)
+@sp 1
+@caption DIRED display on sample site file directory
+@end(figure)
+
+To edit a particular file, position the cursor on the associated display line and press @i(``E'').
+Make your changes to each file as described earlier in this chapter.
+Be sure to save each file with @ctrl(X) @ctrl(S).
+Return to the Dired display by pressing @ctrl(@meta[L]).
+
+Alternatively, the Site Editor program (provided on the @i(``Release 4 Options Tape''))
+can be used to  maintain the site files.
+The Site Editor is documented in the @i(Site Editor Manual).
+
+@csubindex[site files][check-list]
+If you are updating a set of Release 3 site files, be sure to review
+@ref[figure-site-file-upgrade-checklist], for a check-list of changes that must be made.
+
+Here is a summary of the kinds of changes that are usually required
+to customize site files for a particular network:
+
+@itemize @bullet
+@item
+Add/delete/modify hosts (names, addresses, attributes) in @l("HOSTS.TEXT")
+@item
+Add/delete/modify global site options in @l("SITE.LISP")
+@item
+Add/delete/modify LISP machine locations and options in @l("LMLOCS.LISP")
+@item
+Modify the definition of the @l("SYS") logical host and translations
+to point to your own site file directory and the Release 4 source directories.
+@end(itemize)
+
+@need 1200
+@subsection Recompiling Site Files
+@label[section-compiling-sitefiles]
+
+After editing and saving your site files, they must
+be recompiled.@csubindex[site files][compiling]
+To recompile all the files, execute:
+@lisp
+(make-system 'site :recompile
+             :noconfirm
+             :no-reload-system-declaration)
+@end lisp
+
+Later, if you make further changes in just one or two files,
+you can compile only the modified files by using the option @l(:compile)
+instead of @l(:recompile).
+For example:
+
+@lisp
+(make-system 'site :compile
+             :noconfirm
+             :no-reload-system-declaration)
+@end lisp
+
+@need 1200
+@subsection Updating Site Configuration Information
+
+By default, @l[(make-system 'site)] loads the site files.@csubindex[site files][loading]
+But you may load them at any time by executing:
+@lisp
+(update-site-configuration-info)
+@end(lisp)
+
+@defun update-site-configuration-info
+Loads the current site files (as specified by the current translation for
+@l("SYS:SITE;")) into the running LISP environment.
+@end(defun)
+
+@need 1200
+@section Updating Site Files - Summary
+
+Begin by establishing the logical ``SYS'' host where  your initial site files are located.
+The site files you use initially are either your existing custom files,
+or the example site files restored from the @i(``Release 4 Options Tape'').
+Use @see[si:set-sys-host][fun].
+
+You may need to copy the old site files to your
+own directory, and then use @l(si:set-sys-host) to point to the new directory.
+(See Section @ref[section-copying-sitefiles].)
+
+Use ZMacs or the Site Editor to make the desired changes -- add hosts, printers,
+and other site options.
+(See the early sections of this chapter for information on site file entries.)
+
+Execute the following to process the site files:
+
+@lisp
+(make-system 'site :recompile
+             :noconfirm
+             :no-reload-system-declaration)
+@end(lisp)
+
+This translates @l("HOSTS.TEXT")
+and compiles @l("HSTTBL.LISP"), @l("SITE.LISP"), and @l("LMLOCS.LISP").
+It then loads the corresponding @l(".QFASL") files.
+Then it loads @l("SYS.TRANSLATIONS").
+Finally, it performs various site initializations.
+
+Every time you change any of the source site files, you should execute @l[(make-system 'site)]
+with either the @l(:compile) or @l(:recompile) keyword.
+When you just want to load site information, run @l[(update-site-configuration-info)].
+
+The following is an example of how to recompile, load, and test updated site files:
+@lisp
+;;Recompile and load site files:
+ (make-system 'site :recompile
+              :noconfirm
+              :no-reload-system-declaration)
+ Generating host table from SYS: CHAOS; HOSTS TEXT >
+ Compiling SYS: SITE; SITE LISP >
+ Compiling SYS: SITE; LMLOCS LISP >
+ Compiling SYS: SITE; HSTTBL LISP >
+
+;;Make sure SYS.TRANSLATIONS points to the right site files!
+ (listf "sys:site;")
+  :
+
+;;Make sure you can contact all available Chaos hosts:
+ (hostat)
+ Site   Name/Status          Subnet ...
+ 3701   Our Lambda  ...
+  :
+
+;;Try contacting a remote TCP host - ask for an echo feedback:
+ (icmp:ping 'myvax :echo "testing")
+ 6
+ ("testing")
+@end(lisp)
+
+@need 1200
+@subsection Saving a Band with Site Information
+@label[section-disk-save]
+
+Once you are satisfied that your new site files are completely accurate,
+you should save a new Release 4 band with valid site information.
+You should also save an up-to-date band on every Lambda on your network.
+Then, every Lambda processor will be able to boot with up-to-date site information.
+
+The procedure in the next section below explains how to save an updated band; you should
+always do this on the system host.
+
+On a network with multiple Lambdas, you may use either of two
+alternative procedures for propagating the updated band to other systems:
+
+@enumerate
+@need 1200
+
+@item
+Copy the updated band and current microcode to each system; or
+
+@item
+Save an updated band on each machine separately.
+
+@end(enumerate)
+
+This is an important choice for the Lambda system administrator.
+If it is important to have all users working with the same software,
+it is probably easier to maintain just one load band and copy it
+each time it changes; this provides a central point of control
+and ensures consistency among the Lambdas.
+However, if the software on every system is maintained separately,
+and/or various systems need different customized or optional software,
+it may be easier to customize a band for each machine.
+
+Use the procedure in Section @ref[section-disk-save],
+both for creating a master band, and if you are updating bands separately,
+to update the other systems.
+The procedure in Section @ref[section-remote-update]
+describes how to copy a master band and microcode from the system host
+to a remote system.
+
+@sp 1
+@textbox @b[Note:]
+if you are upgrading from Release 3 to Release 4,
+and if you are running TCP/IP (but not Chaosnet) on the Release 3 systems,
+you may need to use a special procedure to copy load bands for the first time.
+See Section @ref[section-tcp-disk-compatibility], @nameref[section-tcp-disk-compatibility],
+for information on communicating between Release 3 and Release 3 DISK servers.
+@end(textbox)
+
+@need 1200
+@subsubsection Save an Updated Band to Disk
+@label[section-disk-save]
+
+First, boot the Lambda with Release 4.
+
+@sp 1
+@textbox
+@ii[Don't press that @system key.]
+You should not bring up any windows -- not even the editor -- when you are
+saving a band to disk; windows will add substantially to the size of
+the saved band,
+and therefore to the time required to boot the system.
+All the work of disk-saving should be done from the initial Lisp Listener window.
+@end(textbox)
+
+Log in without loading your @l[LISPM.INIT] initialization file.
+For example:
+
+@lisp
+(login 'sitemanager "LM" t)
+@end(lisp)
+
+Next, run @l(si:set-sys-host) as before to point to the new @l("SYS:SITE;") directory.
+Here are the examples again:
+
+@itemize @bullet
+@item @l[(si:set-sys-host "lm" nil nil "our-site;")] -
+points to site directory on local machine
+
+@item @l[(si:set-sys-host "myhost" :lispm #o3430 "our-site;")] -
+points to site directory on remote Chaosnet host
+
+@item @l[(si:set-sys-host "myhost" :lispm "101.0.0.10" "our-site;")] -
+points to site directory on remote TCP host
+@end(itemize)
+
+Next, run @l[(update-site-configuration-info)] to reload the new site files
+into the freshly-booted LISP world.
+
+@sp 1
+@textbox
+@b(Note:) If you want to install Release 4 software options, this is the time to do it.
+See the @i(Lambda 4.0 LISP Release Notes) for information on installing optional software.
+@end(textbox)
+
+@include disksave
+
+@need 1200
+@subsubsection Copying an Updated Band Over the Network
+@label[section-remote-update]
+
+Use the function @see[si:copy-disk-partition][fun] to copy an updated master band
+and current microcode from the system host to other remote Lambda hosts.
+
+For example, working on the system host, you could copy the updated Release 4 band in
+partition ``LOD1'' and the Release 4 microcode in ``LMC1'' to the remote host @b(ANOTHER)
+as follows:
+
+@lisp
+(si:copy-disk-partition 0 'lod1 "another" 'lod1)
+(si:copy-disk-partition 0 'lmc1 "another" 'lmc1)
+@end(lisp)
+
+Make sure you select partitions on the other hosts that may be safely overwritten.
+It is often a good idea to make a backup of existing bands before
+overwriting them with new software.
+
+Be sure to run @l(set-current-band)@findex[set-current-band]
+on each system to make the new band and microcode current.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end config2

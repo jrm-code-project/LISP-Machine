@@ -1,0 +1,92 @@
+;;; DROP THROUGH ON FIX-FIX CASE (ARGUMENTS IN M-1 M-2)
+;;; Clobbers M-1, M-2, M-A, Q-R, M-TEM, A-TEM1.
+new-GCD-FIX-FIX
+;doesn't work if both args are largest negative fixnum
+        ;;ok for explorer??
+        ((M-A) (A-CONSTANT (LOGAND 7777  ;ASSURE SAVE FOR TYPED REGISTER
+                                       (OA-LOW-CONTEXT ((BYTE-FIELD 32. 0))))))
+        (JUMP-GREATER-OR-EQUAL M-1 A-ZERO XGCD0)        ;TAKE ABS OF ARGS
+        ((M-1) SUB M-ZERO A-1)
+XGCD0   (JUMP-GREATER-OR-EQUAL M-2 A-ZERO XGCDL)
+        ((M-2) SUB M-ZERO A-2)
+
+;first count number of zeros in common between m-1 and m-2
+XGCDL   (JUMP-EQUAL M-2 A-ZERO xgcd-final-shift)
+        (jump-equal m-1 a-zero xgcd-final-shift)
+xgcd-count-zeros
+        (JUMP-IF-BIT-SET (BYTE-FIELD 1 0) M-1 XGCD-swallow-zeros)
+        (JUMP-IF-BIT-SET (BYTE-FIELD 1 0) M-2 XGCD-swallow-zeros-in-m-1)
+
+        ((M-A) SUB M-A (A-CONSTANT 37))                 ;BOTH EVEN
+                                                        ;ADD1 TO ROTATE FIELD, SUB1 FROM LENGTH
+        ((M-2) M-2 OUTPUT-SELECTOR-RIGHTSHIFT-1)
+        (JUMP-XCT-NEXT XGCD-count-zeros)
+       ((M-1) M-1 OUTPUT-SELECTOR-RIGHTSHIFT-1)
+
+xgcd-swallow-zeros-in-m-1
+        (jump-if-bit-clear-xct-next (byte-field 1 0) m-1 xgcd-swallow-zeros-in-m-1)
+       ((m-1) m-1 output-selector-rightshift-1)
+
+;now both m-1 and m-2 end in ones
+;m-1 <- (min m-1 m-2), therefore still has a one at the end
+;m-2 <- (ash (abs (- m-1 m-2)) -1)
+
+        (jump-greater-than m-1 a-2 xgcd-sub-m-1-bigger)
+        (jump-not-equal-xct-next m-2 a-zero xgcd-swallow-zeros)
+       ((m-2) sub m-2 a-1 output-selector-rightshift-1)
+        (jump xgcd-final-shift)
+
+;m-1 has a one in the LSB, m-2 is not zero;  swallow all zeros at end of m-2
+xgcd-swallow-zeros
+        (jump-if-bit-clear-xct-next (byte-field 1 0) m-2 xgcd-swallow-zeros)
+       ((m-2) m-2 output-selector-rightshift-1)
+
+;(duplicated from above)
+;now both m-1 and m-2 end in ones
+;m-1 <- (min m-1 m-2), therefore still has a one at the end
+;m-2 <- (ash (abs (- m-1 m-2)) -1)
+
+        (jump-greater-than m-1 a-2 xgcd-sub-m-1-bigger)
+        (jump-not-equal-xct-next m-2 a-zero xgcd-swallow-zeros)
+       ((m-2) sub m-2 a-1 output-selector-rightshift-1)
+        (jump xgcd-final-shift)
+
+xgcd-sub-m-1-bigger
+        ((m-tem) m-2)
+        ((m-2) sub m-1 a-2 output-selector-rightshift-1)
+        (jump-not-equal-xct-next m-2 a-zero xgcd-swallow-zeros)
+       ((m-1) m-tem)
+
+xgcd-final-shift
+        ((oa-reg-low) m-a)
+        (popj-after-next (M-1) DPB M-1 (BYTE-FIELD 0 0) A-ZERO)
+       ((m-t) dpb m-1 q-pointer (a-constant (byte-value q-data-type dtp-fix)))
+
+
+;;;;; ---or---
+
+xgcd-swallow-zeros
+        ((vma-start-read) dpb m-2 (byte 8 0) a-v-gcd-table)
+        (check-page-read)
+        ((oa-mod-low) md)
+        ((m-2) ldb m-2 (byte 0 0) a-zero)
+
+;now both m-1 and m-2 end in ones
+;m-1 <- (min m-1 m-2), therefore still has a one at the end
+;m-2 <- (ash (abs (- m-1 m-2)) -1)
+
+        (jump-greater-than m-1 a-2 xgcd-sub-m-1-bigger)
+        (jump-not-equal-xct-next m-2 a-zero xgcd-swallow-zeros)
+       ((m-2) sub m-2 a-1 output-selector-rightshift-1)
+        (jump xgcd-final-shift)
+
+xgcd-sub-m-1-bigger
+        ((m-tem) m-2)
+        ((m-2) sub m-1 a-2 output-selector-rightshift-1)
+        (jump-not-equal-xct-next m-2 a-zero xgcd-swallow-zeros)
+       ((m-1) m-tem)
+
+xgcd-final-shift
+        ((oa-reg-low) m-a)
+        (popj-after-next (M-1) DPB M-1 (BYTE-FIELD 0 0) A-ZERO)
+       ((m-t) dpb m-1 q-pointer (a-constant (byte-value q-data-type dtp-fix)))

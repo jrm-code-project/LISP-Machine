@@ -1,0 +1,45 @@
+
+  interrupts off
+  garbage <- free-pointer - limit
+  tem2 <- free-pointer
+  jump-greater-than
+  md <- a0
+  vma-start-write-early <- tem2
+  free-pointer <- tem2 + 2
+  md <- a1
+  vma-start-write-cdr-early <- tem2
+  interrupts on
+  return tem2 + dtp-list
+
+
+  open o1 <- index check dt fix,  24 bit
+  ldb dt array-pointer
+  call less than negative index
+  dispatch-call o0 <- array-pointer
+
+art-q:
+  vma-start-read-early array-pointer
+  tem1 <- dpb easy-bit index, 24 bit
+  md - tem1, 24 bit
+  tem2 <- array-pointer + index + 1
+  jump greater index out of bounds
+  vma-start-read-early <- tem2
+  x
+  return md
+
+
+  open o2 <- data
+  o1 <- index check dt fix,  24 bit
+  ldb dt array-pointer
+  call less than negative index
+  dispatch-call o0 <- array-pointer
+
+art-q:
+  vma-start-read-early array-pointer
+  tem1 <- dpb easy-bit index, 24 bit
+  md - tem1, 24 bit
+  tem2 <- array-pointer + index + 1
+  jump greater index out of bounds
+  md <- data
+  vma-start-write-early <- tem2
+  return data

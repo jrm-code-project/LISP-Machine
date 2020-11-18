@@ -1,0 +1,7 @@
+@c gc-ram.botex
+@c
+@c 7-May-88 James Rauen
+
+@chapter Garbage Collector (GC) RAM
+
+    GC RAM ADDRESS IS MD(25:14)

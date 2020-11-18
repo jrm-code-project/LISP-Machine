@@ -1,0 +1,529 @@
+@c call-hardware.botex
+@c
+@c 13-Apr-88, James Rauen
+
+@chapter Call Hardware
+
+This chapter describes the K processor's function call hardware.  
+
+@section Organization
+
+The visible features of the call hardware include the @i[call stack],
+which is used to push and restore machine state during function call
+operations, and the @i[free frame heap], which keeps track of unused
+register frames.
+
+The call stack is used to save and restore processor state during
+function call operations. Each entry on the call stack represents, at
+least conceptually, the Lisp Machine idea of a stack frame.  When a
+function is called, an entry is pushed to save the state of the caller;
+when a function returns, an entry is popped to re-establish the state of
+the caller.
+
+The free frame heap keeps track of the 256 register frames.  It
+maintains (in hardware) a list of which frames are currently in use and
+which frames are currently unused.  The heap hardware is also
+responsible for causing a ``yellow alert'' trap (by asserting TRAP_STACK_OVF)
+whenever the call hardware is about to run out of frames.  
+
+
+However, the hardware is @i[not] responsible for causing a trap when an
+@i[underflow] is about to occur.  Instead, it is the responsibility of
+the software to set up the call hardware to regain control on underflow.
+This is achieved by replacing the Return PC at the base
+of the call hardware stack with the PC of a special routine.  This routine will:
+
+@itemize @bullet
+@item
+regain control when all frames have exited;
+@item
+read in the top section of the call stack from memory;
+@item 
+branch to the Return PC originally found at the base of the hardware stack.
+@end itemize
+
+@section Registers and Memory
+
+@subsection Call Stack
+
+The call stack is a stack on the processor board which has 256 entries.
+Each entry consists of five fields: an Open frame number (8 bits), an
+Active frame number (8 bits), a return PC (24 bits), a global frame
+number (4 bits), and a return destination (7 bits).  The call stack is
+implemented with five RAMs (one for each field) which are addressed by
+an eight-bit Call Stack Pointer.
+
+
+@subsubsection Call Stack Pointer (CSP)
+
+This is an eight-bit up/down counter.  It addresses the five RAMs which
+comprise the call stack.  It can be read or written from bits 7:0 of the
+MFIO bus by accessing functional destination 1001100.
+
+
+@subsubsection Call Stack Open RAM
+
+This is a 256 x 8-bit RAM which contains the open-frame portion of each
+call stack entry.  It is addressed by the CSP. The call hardware loads
+it with the contents of the Previous Open Frame register during OPEN and
+OPEN-CALL operations.  The call hardware loads the Open Frame register
+with the contents of the Call Stack Open RAM during RETURN operations.
+
+
+@subsubsection Call Stack Active RAM
+
+This is a 256 x 8-bit RAM which contains the active-frame portion of
+each call stack entry.  It is addressed by the CSP.  The call hardware
+loads it with the contents of the Previous Active Frame register during
+OPEN and OPEN-CALL operations.  The call hardware loads the Active Frame
+register with the contents of the Call Stack Active RAM during RETURN,
+RETURN-NEW-OPEN, and RETURN-NEW-TAIL-OPEN operations.
+
+
+@subsubsection Call Stack Return Destination RAM
+
+This is a 256 x 7-bit RAM which contains the return-destination portion
+of each call stack entry.  It is addressed by the CSP.
+
+The call hardware loads the Return Destination RAM with the Return
+Destination field of the Instruction Register (IR) during CALL and
+OPEN-CALL operations.  (Depending on the particular instruction, this is
+either bits 61,36:34,2:0 or bits 61,36:32,24 of the IR).  The call
+hardware reads the Return Destination RAM during RETURN operations.
+
+The Return Destination RAM can also be read or written from the MFIO
+bus.  It appears as bits 30:24 of the MFIO bus when the
+RETURN-PC-RETURN-DESTINATION (1001011) functional source/destination is
+accessed.
+
+
+@subsubsection Call Stack Global Frame Number RAM
+
+This is a 256 x 4-bit RAM which contains the return-immediate portion of
+each call stack entry.  It is addressed by the CSP.
+
+The call hardware loads the Global Frame Number RAM with the Global Frame
+Number field of the IR during CALL and OPEN-CALL operations.
+The RAM can also be loaded with the four Miscellaneous bits in the
+Processor Control Register.
+
+For reasons unknown, this RAM is also occasionally referred to as the
+"Call Stack Return Immediate" RAM.
+
+
+@subsubsection Call Stack Return PC RAM
+
+This is a 256 x 24-bit RAM which contains the return-PC portion of each
+call stack entry.  It is addressed by the CSP.
+
+The call hardware loads the Return PC RAM with the contents of the
+delayed-incremented-PC register during CALL and OPEN-CALL operations.
+
+The processor can also read or write the Return PC RAM by using bits
+23:0 of the MFIO bus, accessing the RETURN-PC-RETURN-DESTINATION
+functional source/destination.
+
+
+@subsection Free Frame Heap
+
+The free frame heap keeps track of which local frames are currently
+being used and which local frames are available for use.  The heap is a
+256 x 8 bit RAM organized in the following manner:
+
+@group
+@example
+              +-----------------------+
+              |  Extra Local Frames   |  FF
+              |    for the dumper     |
+              |           .           |
+              |           .           |
+              |           .           |  
+              +-----------------------+
+              |    (Global Frames)    |
+              |           .           |
+              |           .           |
+              |           .           |
+              +-----------------------+
+Initial HP -> |  Local Frames in Use  |
+              |           .           |
+              |           .           |
+              |           .           |
+              +-----------------------+
+        HP -> |  Unused Local Frames  |
+              |           .           |
+              |           .           |
+              |           .           |  00
+              +-----------------------+  
+@end example
+@end group
+
+The contents of the heap are always a permutation of the 256 frame
+numbers (#x00 to #xFF).  When the processor is booted, some of the boot
+code is responsible for setting up the Heap RAM.  Each of the 256
+entries in the Heap RAM should contain a different value.
+
+
+@subsubsection Heap Pointer (HP)
+@label[HP]
+
+This is an eight-bit up/down counter.  It is decremented during OPEN,
+OPEN-CALL, and TAIL-OPEN operations.  It is incremented during RETURN
+and TAIL-CALL operations.
+
+When the HP reaches zero, a "yellow alert" ("heap empty") trap is
+caused.  The handler for this trap is responsible for dumping out the
+contents of register memory and rearranging the call hardware so that
+there is more available space.
+
+The HP can be read and written by accessing functional source/destination
+CALL-HP-SP (1011100).
+
+
+@subsection Open, Active, and Return
+
+The (eight-bit) Open, Active, and Return registers are modified during
+function call operations.  These operations are implemented in hardware
+and are described in one of the sections below.  It is possible to
+directly change the contents of the Open, Active, and Return registers
+by reading and writing a functional source/destination, but there are
+very few cases where this is needed.
+
+@subsubsection Open Frame Register (OF) 
+@label[OF]
+
+This is an eight-bit register whose contents identify the current Open
+frame.  It is clock enabled (i.e., a new value is loaded) only when an
+OPEN, OPEN-CALL, TOPEN, or TOPEN-CALL operation is invoked, or when the
+OPEN-ACTIVE-RETURN functional destination is written.
+
+The Open register can be loaded from any of the following:  (0) The
+open-frame entry at the top of the call stack, (1) The Previous Open
+Frame register, (2) The Return Frame register, or (3) The contents of the
+heap (addressed by HP).  The call hardware selects the source depending
+on the particular call hardware operation.
+
+The Open register can also be read and written from bits 23:16 of the
+MFIO bus by accessing the OPEN-ACTIVE-RETURN functional
+source/destination.
+
+The Previous Open Frame register is loaded with the contents of the Open
+register at each clock tick.  It is connected to the call stack open RAM and
+the Open multiplexer.  It is used for delayed writes to the call stack
+open RAM and for undoing the previous call hardware operation in the
+event of a trap.
+
+
+@subsubsection Active Frame Register (AF) 
+@label[AF]
+
+This is an eight-bit register whose contents identify the current Active
+frame.  It is clock enabled only when a call hardware operation needs to
+modify it, or when the OPEN-ACTIVE-RETURN functional destination is
+written.
+
+The Active register can be loaded from any of the following: (0) The
+Open Frame register, (1) The active-frame entry at the top of the call
+stack, (2) The Return Frame register, or (3) The contents of the heap
+(addressed by HP).  The call hardware selects the source depending on
+the particular call hardware operation.
+
+The Active register can also be loaded from bits 15:8 of the MFIO bus by
+accessing the OPEN-ACTIVE-RETURN functional source/destination.
+
+There are two Previous Active Frame registers.  Each is loaded with the
+contents of the Active Frame register each clock tick.  The output of
+one is used for undoing the previous call hardware operation during
+traps, and the other is used for delaying write data to the call stack
+RAMs.
+
+
+@subsubsection Return Frame Register (RF) 
+@label[RF]
+
+This is an eight-bit register whose contents identify the current Return
+frame.  It is clock enabled only when a call hardware operation needs to
+modify it, or when the OPEN-ACTIVE-RETURN functional destination is
+written.
+
+The Return register can be loaded from either of the following: (0) The
+Active Frame register, or (1) The Previous Return Frame register.
+The call hardware selects the source depending on the particular call
+hardware operation.
+
+The Return register can also be loaded from bits 7:0 of the MFIO bus by
+accessing the OPEN-ACTIVE-RETURN functional source/destination.
+
+The Previous Return Frame register is loaded with the contents of the
+Return Frame register at each clock tick.  Its output is connected to the
+Return register multiplexer.
+
+
+@section Call Hardware Operations
+
+There are eight call hardware operations.  One of these operations
+(RETURN) has three distinct forms, depending on the return destination,
+so there are actually ten operations available.  Each operation is
+described below.
+
+
+@subsection NO-OP
+
+Has no effect on the call hardware.
+
+
+@subsection OPEN
+
+The call hardware OPEN operation is used in preparation for a function
+call.  It pushes the current Open and Active frame numbers onto the call
+stack, so that they can be restored after the function returns.  It
+allocates a new Open frame.  Subsequent instructions should move the
+function's arguments into the Open frame registers, and then issue a
+call hardware CALL operation when the code is ready to call the
+function.
+
+In detail, these are the effects of a call hardware OPEN operation:
+
+@itemize @bullet
+@item
+Increment the call stack pointer (CSP)
+
+@item
+Load the Call Stack Active RAM (addressed by CSP) with the contents of the Active Frame
+register.
+
+@item 
+Load the Call Stack Open RAM (addressed by CSP) with the contents of the Open Frame
+register.
+
+@item
+Load the Open Frame register with the contents of the Heap RAM (addressed by HP).
+
+@item
+Decrement the heap pointer (HP).
+
+@end itemize
+
+
+@subsection CALL
+
+The CALL operation is used to execute a function call.  It must be
+preceded by a corresponding OPEN operation.  It writes a return PC and
+the instruction's Return Destination field onto the call stack.  It
+moves the contents of Open Frame register into the Active Frame
+register.
+
+In detail, these are the effects of a call hardware CALL operation:
+
+@itemize @bullet
+
+@item
+Move the contents of the Open Frame register into the Active Frame register.
+
+@item
+Load the Call Stack Return PC RAM (addressed by CSP) with the contents of
+the PCINC register.
+
+@item 
+Load the Call Stack Return Destination RAM (addressed by CSP) with
+the Return Destination field of the instruction in IR.  
+
+@item
+Load the Call Stack Global Frame Number RAM (addressed by CSP) with the
+Global Frame Number field of the instruction in IR.
+
+@end itemize
+
+
+@subsection OPEN-CALL
+
+The OPEN-CALL operation combines the effects of an OPEN and a CALL
+operation.  It saves time when calling a function with zero or one 
+arguments.  
+
+
+@subsection RETURN
+
+There are three different kinds of RETURN operations.  They are
+distinguished by the instruction's Return Destination field:
+
+@settabs 6 @columns
+@sp 1
+@< @i[RDest] @\ @i[Return Type] @\ @i[Where to put returned value] @cr
+@sp 1
+@< 000RRRR @\ NORMAL @\ Register RRRR of the Open frame @cr
+@< 001RRRR @\ NORMAL @\ Register RRRR of the Active frame @cr
+@< 010RRRR @\ NORMAL @\ Register RRRR of the Return frame @cr
+@< 011RRRR @\ NORMAL @\ Register RRRR of the Global frame @cr
+@< 10XXXXX @\ OPEN   @\ Register O0 of a new Open frame @cr
+@< 11XXXXX @\ TOPEN  @\ Register O0 of a new tail-open frame @cr
+
+
+@subsubsection RETURN (NORMAL)
+
+The RETURN instruction discards the current Return frame by pushing it
+onto the heap.  It moves the contents of the Active Frame register into
+the Return Frame register.  Then it pops the Active Frame, Open Frame,
+Return PC, and Return Destination off of the call stack.  The Return PC
+is used to fetch the next instruction if the PC multiplexer is set that
+way (as it usually is for a return instruction).  The Return Destination
+will be delayed until the OUTPUT phase, and used as the destination at
+that time.
+
+In detail, these are the effects of a normal call hardware RETURN
+operation:
+
+@itemize @bullet
+
+@item
+Increment the heap pointer (HP).
+
+@item
+Store the contents of the Return Frame register into the Heap RAM (addressed by
+HP).
+
+@item
+Move the contents of the Active Frame register into the Return Frame register.
+
+@item
+Load the Active Frame register with the contents of the Call Stack Active RAM (addressed by CSP).
+
+@item
+Load the Open Frame register with the contents of the Call Stack Open RAM (addressed by CSP).
+
+@item
+Configure the PC multiplexer to take the next PC from the Call Stack Return PC RAM.
+
+@item
+Read the return destination from the Call Stack Return Destination RAM.
+Configure the Destination logic to put the ALU output (one clock tick from now) into this destination.
+
+@item
+Decrement the call stack pointer (CSP).
+
+@end itemize
+
+
+@subsubsection RETURN-NEW-OPEN
+
+This operation combines the effects of a RETURN and an OPEN.  The newly opened
+frame is easy to allocate; instead of discarding the Return frame, as RETURN does,
+RETURN-NEW-OPEN uses the old Return frame as a new Open frame.  The destination
+in this case will always be one of the registers in the newly opened frame.
+
+In detail, these are the effects of a call hardware RETURN-NEW-OPEN operation:
+
+@itemize @bullet
+
+@item
+Load the Open Frame register with the contents of the Return Frame register.
+
+@item
+Load the Return Frame register with the contents of the Active Frame register.
+
+@item
+Load the Active Frame register with the contents of the Call Stack Active RAM (addressed by CSP).
+
+@item
+Configure the PC multiplexer to take the next PC from the Call Stack Return PC RAM.
+
+@item
+Read the return destination from the Call Stack Return Destination RAM.
+Configure the Destination logic to put the ALU output (one clock tick from now) into this destination.
+
+@end itemize
+
+
+@subsubsection RETURN-NEW-TAIL-OPEN
+
+This operation combines the effects of a RETURN and a TAIL-OPEN.  The destination in
+this case will always be one of the registers in the newly tail-opened frame.
+
+In detail, these are the effects of a call hardware RETURN-NEW-TAIL-OPEN operation:
+
+@itemize @bullet
+
+@item
+Load the Open Frame register with the contents of the Return Frame register.
+
+@item
+Load the Return Frame register with the contents of the Active Frame register.
+
+@item
+Load the Active Frame register with the contents of the Call Stack Active RAM (addressed by CSP).
+
+@item
+Configure the PC multiplexer to take the next PC from the Call Stack Return PC RAM.
+
+@item
+Read the return destination from the Call Stack Return Destination RAM.
+Configure the Destination logic to put the ALU output (one clock tick from now) into this destination.
+
+@item
+Decrement the call stack pointer (CSP).
+
+@end itemize
+
+
+@subsection TAIL-OPEN
+
+The TAIL-OPEN (or TOPEN) operation is used in preparation for a tail-recursive
+function call.  Tail recursive call hardware operations do not affect the
+call stack; there is no need to save any of the caller's state.  All that a
+TAIL-OPEN operation has to do is obtain a fresh frame from the heap.
+
+In detail, these are the effects of a call hardware TAIL-OPEN operation:
+
+@itemize @bullet
+
+@item
+Load the Open Frame register with the contents of the Heap RAM (addressed
+by HP).
+
+@item
+Decrement the heap pointer (HP).
+
+@end itemize
+
+
+@subsection TAIL-CALL
+
+The TAIL-CALL (or TCALL) operation executes a tail-recursive function
+call.  It must be preceded by a corresponding TAIL-OPEN operation.  
+
+In detail, these are the effects of a call hardware TAIL-CALL operation:
+
+@itemize @bullet
+
+@item
+Increment the heap pointer (HP).
+
+@item
+Store the contents of the Return Frame register into the Heap RAM.
+
+@item
+Load the Return Frame register with the contents of the Active Frame register.
+
+@item
+Load the Active Frame register with the contents of the Open Frame register.
+
+@end itemize
+
+
+@subsection TAIL-OPEN-CALL
+
+The TAIL-OPEN-CALL (or TOPEN-CALL, or TOPEN-TCALL) operation combines the
+effects of a TAIL-OPEN and a TAIL-CALL.  
+
+In detail, these are the effects of a TAIL-OPEN-CALL operation:
+
+@itemize @bullet
+
+@item
+Load the Open and Active Frame registers with the contents of the Return Frame register.
+
+@item
+Load the Return Frame Register with the (previous) contents of the Active Frame register.
+
+@end itemize
+
+

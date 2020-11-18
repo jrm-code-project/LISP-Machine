@@ -1,0 +1,5 @@
+
+
+Specification of SHADOW.  "The symbol is also placed on the
+shadowing-symbols list..."  Which symbol, the one given or
+the one created?

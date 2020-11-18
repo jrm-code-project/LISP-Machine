@@ -1,0 +1,920 @@
+@c instruction-set.botex
+@c
+@c 11-Apr-88, James Rauen
+
+@chapter Instruction Set
+
+This chapter describes the instruction set of the K processor.  
+
+@settabs 8 @columns
+
+
+@section Introduction
+
+A K machine instruction is 64 bits long.  Machine instructions are
+stored in memory with the word containing the low 32 bits occurring at
+an even numbered address, followed by the word containing the high 32
+bits.
+
+A single instruction is capable of performing several different actions
+simultaneously.  For example, an instruction might do an ALU operation
+and invoke a call-hardware operation at the same time, or it might do a
+conditional jump and a register move at the same time.  The meaning of
+an instruction, therefore, can be rather complicated.
+
+
+@section Instruction Register (IR) 
+@label[IR]
+
+The Instruction Register is a 64-bit registered multiplexer which
+contains the current instruction being executed.  For details about how
+the IR is loaded, see the Instruction Cache chapter.
+
+
+@section Bit Fields
+
+This section describes the different bit fields in K machine instructions.
+Not all bit fields are used by all instructions, and some bit fields occur
+at different places in different kinds of instructions.  The next section
+describes how the bit fields fit together to form valid instructions.
+
+The bit fields listed in the @i[Value] columns of charts in this section
+are given from most significant bit to least significant bit.  A bit is
+"set" if its value is 1 and "reset" or "not set" if its value is 0.  The
+symbols listed in @i[Abbreviation] columns are symbols recognized by the
+assembler.
+
+
+@subsection Status Bit (Bit 63)
+
+If this bit is set and bits 3:1 of the Memory Control Register are 010,
+executing the instruction causes the statistics counter (a 32-bit
+counter) to be incremented.
+
+
+@subsection Instruction Trap Bit (Bit 62)
+
+This bit, if set, will cause a trap to occur before the instruction
+begins to execute.  (To the trap handler, it will appear that the
+instruction is about to execute, but hasn't yet.) This feature is used
+to implement fast dynamic linking (see the chapter on linking).  It is
+also used by the garbage collector to identify code in oldspace.
+
+
+@subsection X-16 Bit (Bit 61)
+
+The X-16 bit is only used during dispatch operations.  When X-16 bit is
+set in a dispatch instruction, the bottom four bits of the dispatch
+address are zeroed.
+
+In branch and jump instructions, bit 61 determines whether or not the
+branch/jump is conditional or unconditional.  If bit 61 is zero, the
+branch/jump is conditional.  If bit 61 is one, the branch/jump is
+unconditional.
+
+
+@subsection Instruction Format Field (Bits 60 to 58)
+
+These three bits, along with the Next PC field (bits 57 to 56) and
+the Call Hardware Operation field (bits 50 to 48), determine the
+type of the instruction.  The three fields are decoded by PALs to
+generate the control signals required for the instruction.  The
+instruction types are detailed in the Instructions section below.
+
+@settabs 8 @columns
+@sp 1
+@< @i[Instruction Format] @\ @\ @i[Next PC] @\ @i[CH Op] @\ Instruction Type @cr
+@sp 1
+@< 12-bit Instructions:@cr
+@< X00 @\ @\ 00 @\ x0x @\ Branch Instruction (no 100 call hw op) @cr
+@< X00 @\ @\ 00 @\ x1x @\ Call-Z Instruction @cr
+@< X00 @\ @\ yy @\ x0x @\ ALU Instruction (yy not 00) @cr
+@< X00 @\ @\ 01 @\ x1x @\ Call-Dispatch Instruction @cr
+@sp 1
+@< 18-bit Instructions:@cr
+@< X01 @\ @\ xx @\ xxx @\ ALU Immediate Instruction @cr
+@sp 1
+@< 24-bit Instructions:@cr
+@< 010 @\ @\ 00 @\ x0x @\ Jump Instruction (no 100 call hw op) @cr 
+@< 010 @\ @\ 00 @\ x1x @\ Call Instruction @cr
+@sp 1
+@< 32-bit Instructions:@cr
+@< 011 @\ @\ xx @\ xxx @\ 32-bit Immediate Instruction @cr
+@< 110 @\ @\ xx @\ xxx @\ Floating Point ALU Instruction @cr
+@< 111 @\ @\ xx @\ xxx @\ Floating Point Multiplier Instruction @cr
+
+For Instruction Format fields ending in 00 or 01 above, bit 60 is used for
+the macro-carry bit.  The macro-link bit is ALU-boxed.
+
+The branch and jump instructions cannot be used with the RETURN Call Hardware
+Operations (call hardware with instruction format 100).  
+
+@subsection Next PC (Bits 57 to 56)
+
+This field tells where to get the new Program Counter from. 
+
+@settabs 7 @columns
+@sp 1
+@< @i[Value] @\ @i[Abbreviation] @\ @\ @i[Meaning] @cr
+@sp 1
+@< 00 @\                  @\ @\ Bits 23 to 0 of the IR @cr
+@< 01 @\ NEXT-PC-DISPATCH @\ @\ OREG (the ALU output) @cr
+@< 10 @\ NEXT-PC-RETURN   @\ @\ Call Stack Return PC @cr
+@< 11 @\ NEXT-PC-PC+1     @\ @\ PC + 1 (increment the PC) @cr
+
+
+@subsection Boxedness of ALU Output (Bits 55 to 54)
+
+The exact meaning of this field depends on what destination the
+ALU output is being sent to.
+
+When the destination is a register, this field designates how the box
+bit of the ALU output will be calculated.  This calculation also depends
+on the Box Mux bit in the Processor Control Register.  For normal
+operation, the Box Mux bit is zero.  The other mode (Box Mux bit = 1) is
+used by the call hardware dump/restore software when it is reloading
+register frames.
+
+When the destination is a functional destination in the memory system,
+this field indicates the desired box bits of the MD and VMA registers.
+For details, see the Transporter RAM chapter.
+
+Other functional destinations don't care about the box bit; in these
+cases, the boxedness field is ignored.
+
+
+@subsubsection Register Destinations - Normal Mode
+
+This table shows how the ALU box bit is calculated during normal
+operation.
+
+@settabs 6 @columns
+@sp 1
+@< @i[Value] @\ @i[Abbreviation] @\ @\ @i[Meaning] @cr
+@sp 1
+@< 00 @\ BOXED-LEFT  @\ @\ Use box bit of the left source  @cr
+@< 01 @\ BOXED-RIGHT @\ @\ Use box bit of the right source @cr
+@< 10 @\ UNBOXED     @\ @\ Make the output be unboxed      @cr
+@< 11 @\ BOXED       @\ @\ Make the output be boxed        @cr
+
+
+@subsubsection Register Destinations - Reload Mode
+
+This table shows how the ALU box bit is calculated during reload
+operations.
+
+@settabs 6 @columns
+@sp 1
+@< @i[Value] @\ @i[Abbreviation] @\ @\ @i[Meaning] @cr
+@sp 1
+@< 00 @\ OUTREG0 @\ @\ Use bit 0 of the ALU output @cr
+@< 01 @\ none    @\ @\ Make the output be unboxed  @cr
+@< 10 @\ UNBOXED @\ @\ Make the output be unboxed  @cr
+@< 11 @\ BOXED   @\ @\ Make the output be boxed    @cr
+
+
+@subsubsection Memory System Destinations
+
+When writing to the VMA, any of the VMA-START-READ, or any of the
+VMA-START-WRITE functional destinations, bit 54 of the IR is taken as
+the VMA box bit.
+
+When writing to the MD, any of the VMA-START-READ, or any of the
+MD-START-WRITE functional destinations, bit 55 of the IR is taken as the
+MD box bit.
+
+
+@subsection Data Type Check (Bits 53 to 51)
+
+This field determines what check, if any, should be made to the data
+types of the ALU inputs.  If the ALU inputs fail this test, a datatype
+trap is caused. 
+
+These data-type check cases are not hardwired into the processor; they
+are downloaded at boot time.  It is possible to change the data type
+checks by changing the contents of the Datatype RAM.  But you
+probably don't want to.  The current definitions reside in K-SYS: K;
+FIRM-DEFINITIONS LISP.
+
+@settabs 8 @columns
+@sp 1
+@< @i[Value] @\ @i[Abbrev] @\ @i[Another Abbreviation] @cr
+@sp 1
+@< 000 @\ DT-0 @\ DT-NONE                           @cr
+@< 001 @\ DT-1 @\ @i[spare]                         @cr
+@< 010 @\ DT-2 @\ DT-HAIRY-NUMBER                   @cr
+@< 011 @\ DT-3 @\ DT-BOTH-CHARACTER                 @cr
+@< 100 @\ DT-4 @\ DT-RIGHT-ARRAY-AND-LEFT-STRUCTURE @cr
+@< 101 @\ DT-5 @\ DT-RIGHT-LIST                     @cr
+@< 110 @\ DT-6 @\ DT-BOTH-FIXNUM                    @cr
+@< 111 @\ DT-7 @\ DT-BOTH-FIXNUM-WITH-OVERFLOW      @cr
+
+Some details:
+
+A DT-HAIRY-NUMBER is a number of any type other than DT-BOTH-FIXNUM and
+DT-BOTH-FIXNUM-WITH-OVERFLOW.
+
+In the DT-BOTH-CHARACTER case, a trap is caused unless the data type of both
+the ALU inputs is $$DTP-CHARACTER.
+
+In the DT-RIGHT-ARRAY-AND-LEFT-STRUCTURE case, a trap is caused unless the data
+type of the left ALU input is $$DTP-STRUCTURE and the data type of the
+right ALU input is $$DTP-ARRAY (and similarly for DT-RIGHT-LIST and DT-BOTH-FIXNUM).
+
+In the DT-BOTH-FIXNUM-WITH-OVERFLOW case, a trap is caused if
+either:
+
+1. both ALU inputs do not have $$DTP-FIXNUM, or 
+
+2. the ALU operation overflows.
+
+For further details, see the chapter on the Datatype RAM.
+
+@subsection Call Hardware Operation (Bits 50 to 48)
+
+This field determines what call-hardware operation the instruction will
+perform.  The eight possibilities are listed below.  For further
+details, see the chapter on the call hardware.
+
+@settabs 7 @columns
+@sp 1
+@< @i[Value] @\ @i[Abbreviation] @\ @\ @i[Meaning] @cr
+@sp 1
+@< 000 @\ CH-NOOP @\ @\ No operation @cr
+@< 001 @\ CH-OPEN @\ @\ Open a frame, preparing for a function call @cr
+@< 010 @\ CH-CALL @\ @\ Make a function call @cr
+@< 011 @\ CH-OPEN-CALL @\ @\ Do an OPEN and a CALL @cr
+@< 100 @\ CH-RETURN @\ @\ Return from function call @cr
+@< 101 @\ CH-TAIL-OPEN @\ @\ Open a frame, preparing for tail-recursive call @cr
+@< 110 @\ CH-TAIL-CALL @\ @\ Make a tail-recursive call @cr
+@< 111 @\ CH-TAIL-OPEN-CALL @\ @\ Do a TAIL-OPEN and TAIL-CALL @cr
+
+
+@subsection Destination (Bits 47 to 41)
+
+This field determines where the output of the ALU is stored.
+
+If bit 47 is zero, then output is stored in a register.  Bits 46 and 45
+tell which frame to use: the current Open frame, the current Active
+frame, the current Return frame, or the current Global frame.  Bits 44
+to 41 tell which register in that frame to use.  Note that the current
+Open, Active, and Return frames are determined by the contents of the
+Open, Active, and Return registers, whereas the current Global frame is
+determined by the Global Frame Number (bits 40 to 37 of the
+instruction).
+
+If bit 47 is one, then output is sent to a functional destination.
+Functional destinations include various special-purpose registers, RAMs,
+and memory system requests.  A list of functional destinations and their
+encodings appears in the Functional I/O chapter.
+
+@settabs 6 @columns
+@sp 1
+@< @i[Value] @\ @i[Meaning] @cr
+@sp 1
+@< 000RRRR @\ Register RRRR in the Open frame @cr
+@< 001RRRR @\ Register RRRR in the Active frame @cr
+@< 010RRRR @\ Register RRRR in the Return frame @cr
+@< 011RRRR @\ Register RRRR in the Global frame (determined by bits 40 to 37) @cr
+@< 1XXXXXX @\ Functional Destination XXXXXX @cr
+
+
+@subsection Global Frame Number (Bits 40 to 37)
+
+These four bits select the global frame that the instruction uses.  Any
+left-source, right-source, or destination references in this instruction
+to "global register RRRR" will use the RRRRth register of this frame.
+Since there are only four bits with which to select a global frame, the
+global frames are limited to #x00 to #x0F.
+
+Note that any particular instruction can only access one global frame.
+To perform an operation on registers in more than one global frame,
+several instructions must be used.
+
+
+@subsection Jump Condition (Bits 36 to 34)
+
+This field determines a test to perform on the ALU output.  If the test
+succeeds, and the next instruction is a conditional branch instruction,
+then the branch will occur.
+
+@group
+@settabs 8 @columns
+@sp 1
+@< @i[Value] @\ @i[Test] @\ @\ @i[Abbreviations] @cr
+@sp 1
+@< 000 @\ @\
+@\ BR-ALWAYS @cr
+@< 001 @\ JINDIR bit        @\ @\ BR-JINDIR @cr
+@< 010 @\ Z                 @\ @\ BR-EQUAL, BR-ZERO @cr
+@< 011 @\ ~Z                @\ @\ BR-NOT-EQUAL, BR-NOT-ZERO @cr
+@< 100 @\ (V XOR N)         @\ @\ BR-NOT-GREATER-OR-EQUAL, BR-LESS-THAN, @cr
+@<     @\ @\ @\ BR-NEGATIVE @cr
+@< 101 @\ (V XNOR N)        @\ @\ BR-GREATER-OR-EQUAL, BR-NOT-LESS-THAN, @cr
+@<     @\ @\ @\ BR-NOT-NEGATIVE @cr
+@< 110 @\ ((V XOR N) NOR Z) @\ @\ BR-GREATER-THAN, BR-NOT-LESS-OR-EQUAL, @cr
+@<     @\ @\ @\ BR-POSITIVE @cr
+@< 111 @\ ((V XOR N) OR Z)  @\ @\ BR-LESS-OR-EQUAL @cr
+@end group
+
+The JINDIR condition means to branch if the JINDIR bit is set.  The
+JINDIR bit is part of the Processor Control Register.  It is used when
+exiting from trap routines while restoring the state of the machine.
+
+
+@subsection Byte Width (Bits 33 to 32)
+
+The two bits in this field are directly wired to the Byte Width inputs
+of the AMD 29332 ALU.  For details about how the Byte Width affects the
+ALU operations, consult the 29332 documentation.  Here is a summary of
+its effects:
+
+@subsubsection ALU Byte Instructions
+
+Some of the ALU operations (I believe the ones numbered from #x00 to
+#x5F) are "byte" operations.  For these functions, this field determines
+what size "bytes" the ALU operates on.  In most cases, the ALU will
+treat its inputs as 32-bit quantities.  However, in certain cases
+(fixnum arithmetic, for instance) the ALU performs 24-bit operations on
+its inputs.  In other situations (manipulating characters), the ALU
+considers only the lowest 8 bits of its inputs.
+
+@settabs 8 @columns
+@sp 1
+@< @i[Value] @\ @i[Abbrev] @\ @i[Meaning] @cr
+@sp 1
+@< 00 @\ BW-32 @\ 32-bit ALU operation @cr
+@< 01 @\ BW-8  @\ 8-bit ALU operation @cr
+@< 10 @\ BW-16 @\ 16-bit ALU operation @cr
+@< 11 @\ BW-24 @\ 24-bit ALU operation @cr
+
+
+@subsubsection ALU Bit Instructions
+
+The other ALU operations are called "bit" operations.  Such operations
+have two additional arguments, a "shift" field and a "mask" field.  For
+these instructions, the Byte Width field indicates where the shift and
+mask arguments come from.
+
+If bit 33 is zero, then the shift field is taken from bits 10:5 of the
+instruction.  If bit 33 is one, then the shift field is taken from the
+ALU's internal shift register.  Note that the AMD documentation refers
+to the shift field as the "position" field.
+
+If bit 32 is zero, then the mask field is taken from bits 4:0 of the
+instruction.  If bit 32 is one, then the mask field is taken from the
+ALU's internal mask register.  Note that the AMD documentation refers to
+the mask field as the "width" field.
+
+
+@subsection Right Source (Bits 31 to 25)
+
+This field determines where the input to the right side of the ALU
+comes from.
+
+If bit 31 is zero, then the input comes from a register.  Bits 30 and 29
+determine which frame the register is taken from: Open, Active, Return,
+or Global.  Bits 28 through  25 determine which register in that frame
+is used.  This pattern is identical to that of the Destination field
+(bits 47 to 41).
+
+If bit 31 is one, then the input comes from somewhere else in the
+machine.  This is referred to as a "functional source".  A table of
+functional sources and their encodings appears in the Functional I/O chapter.
+In general, if bits 30 and 29 are both zero, the input comes from
+somewhere on the processor board.  If either bit 30 or bit 29 is one,
+then the input comes from somewhere on the memory board.
+
+@settabs 6 @columns
+@sp 1
+@< @i[Value] @\ @i[Meaning] @cr
+@sp 1
+@< 000RRRR @\ Register RRRR in the Open frame @cr
+@< 001RRRR @\ Register RRRR in the Active frame @cr
+@< 010RRRR @\ Register RRRR in the Return frame @cr
+@< 011RRRR @\ Register RRRR in the Global frame (determined by bits 40 to 37) @cr
+@< 1XXXXXX @\ Functional Source XXXXXX @cr
+
+
+@subsection Left Source (Bits 24 to 19)
+
+This field determines where the input to the right side of the ALU comes
+from.  The left source cannot come from a functional source; it must
+come from a register.  Bits 24 and 23 determine which frame the register
+is taken from: Open, Active, Return, or Global.  Bits 22 through 19
+determine which register in that frame is used.
+
+@settabs 6 @columns
+@sp 1
+@< @i[Value] @\ @i[Meaning] @cr
+@sp 1
+@< 00RRRR @\ Register RRRR in the Open frame @cr
+@< 01RRRR @\ Register RRRR in the Active frame @cr
+@< 10RRRR @\ Register RRRR in the Return frame @cr
+@< 11RRRR @\ Register RRRR in the Global frame (determined by bits 40 to 37) @cr
+
+
+@subsection ALU Opcode (Bits 18 to 12, or 31 to 25)
+
+This field determines the ALU operation that the instruction uses.  
+For details, see the chapters on the ALUs and the ALU Opcodes, and the
+AMD 29332 documentation.
+
+
+@subsection ALU Shift Field (Bits 10 to 5)
+
+This field determines the "shift" input to the ALU for bit operations.
+For details, see the chapters on the ALUs and the ALU Opcodes, and the
+AMD 29332 documentation.
+
+
+@subsection ALU Mask Field (Bits 4 to 0)
+
+This field determines the "mask" input to the ALU for bit operations.
+For details, see the chapters on the ALUs and the ALU Opcodes, and the
+AMD 29332 documentation.
+
+
+@subsection Return Destination (Scattered)
+
+This field is used in call instructions.  It indicates where the value
+returned by the call should be placed:
+
+@settabs 6 @columns
+@sp 1
+@< @i[Value] @\ @i[Meaning] @cr
+@sp 1
+@< 000RRRR @\ Register RRRR in the current Open frame @cr
+@< 001RRRR @\ Register RRRR in the current Active frame @cr
+@< 010RRRR @\ Register RRRR in the current Return frame @cr
+@< 011RRRR @\ Register RRRR in the current Global frame (bits 40:37) @cr
+@< 10XRRRR @\ Register RRRR in a newly opened frame @cr
+@< 11XRRRR @\ Register RRRR in a newly tail-opened frame @cr
+
+
+@section Instructions
+
+The instruction set of the K processor is limited to the following
+combinations of the fields described above.
+
+@subsection ALU Instruction
+@group
+
+@tex
+\startbyf
+\ibif{63}{St}{at}
+\ibif{62}{Tr}{ap}
+\ibif{61}{X}{16}
+\ibyf{60}{58}{Opcode}{x00}
+\ibyf{57}{56}{Next}{PC}
+\ibyf{55}{54}{Box}{}
+\ibyf{53}{51}{DTP}{Check}
+\ibyf{50}{48}{Call HW}{Op}
+\ibyf{47}{41}{Destination}{}
+\ibyf{40}{37}{Global}{Frame}
+\ibyf{36}{34}{Jump}{Condition}
+\ibyf{33}{32}{Byte}{Width}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+
+\startbyf
+\ibyf{31}{25}{Right Source}{}
+\ibyf{24}{19}{Left Source}{}
+\ibyf{18}{12}{ALU}{Opcode}
+\ibif{11}{X}{X}
+\ibyf{10}{5}{ALU}{Shift}
+\ibyf{4}{0}{ALU}{Mask}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+@end tex
+@end group
+
+This is the most common form of instruction.  It can perform an
+arbitrary ALU operation.  The only legal combinations of X-16, Next PC,
+and Call Hardware Operation are as follows.
+
+@settabs 8 @columns
+@< @i[X-16] @\ @i[Next PC] @\ @i[Call HW Op] @\ @i[Function] @cr
+@sp 1
+@< 0 @\ 11 @\ 000 @\ Normal @cr
+@< 0 @\ 11 @\ 001 @\ Open @cr
+@< 0 @\ 11 @\ 101 @\ Tail-Open @cr
+@< 0 @\ 10 @\ 100 @\ Return from subroutine @cr
+@< 0 @\ 01 @\ 000 @\ Dispatch @cr
+@< 0 @\ 01 @\ 001 @\ Dispatch and Open @cr
+@< 0 @\ 01 @\ 101 @\ Dispatch and Tail-Open @cr
+@< 1 @\ 01 @\ 000 @\ Dispatch, zeroing low 4 bits of PC @cr
+@< 1 @\ 01 @\ 001 @\ Dispatch, zeroing low 4 bits of PC, and Open @cr
+@< 1 @\ 01 @\ 101 @\ Dispatch, zeroing low 4 bits of PC, and Tail-Open @cr
+
+"Open" and "Tail-Open" are call hardware operations which allocate
+new register frames.
+
+
+@ignore
+subsection ALU Immediate Instruction
+group
+
+(This instruction is not part of the Rev. 0 prototype version)
+
+tex
+\startbyf
+\ibif{63}{St}{at}
+\ibif{62}{Tr}{ap}
+\ibif{61}{X}{16}
+\ibyf{60}{58}{Opcode}{x01}
+\ibyf{57}{56}{Next}{PC}
+\ibyf{55}{54}{Box}{}
+\ibyf{53}{51}{DTP}{Check}
+\ibyf{50}{48}{Call HW}{Op}
+\ibyf{47}{41}{Destination}{}
+\ibyf{40}{37}{Global}{Frame}
+\ibyf{36}{34}{Jump}{Condition}
+\ibyf{33}{32}{Byte}{Width}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+
+\startbyf
+\ibyf{31}{25}{ALU}{Opcode}
+\ibyf{24}{19}{Left Source}{}
+\ibif{18}{B}{ox}
+\ibyf{17}{0}{Immediate}{Data}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+end tex
+end group
+@end ignore
+
+
+@subsection 32-Bit Immediate Instruction
+@group
+
+@tex
+\startbyf
+\ibif{63}{St}{at}
+\ibif{62}{Tr}{ap}
+\ibif{61}{X}{16}
+\ibyf{60}{58}{Opcode}{011}
+\ibyf{57}{56}{Next}{PC}
+\ibyf{55}{54}{Box}{}
+\ibyf{53}{51}{DTP}{Check}
+\ibyf{50}{48}{Call HW}{Op}
+\ibyf{47}{41}{Destination}{}
+\ibyf{40}{37}{Global}{Frame}
+\ibyf{36}{34}{Jump}{Condition}
+\ibyf{33}{32}{XX}{XX}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+
+\startbyf
+\ibyf{31}{0}{Immedate}{Data}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+@end tex
+@end group
+
+The call hardware, X-16, and Next PC fields are subject to the same
+constraints as for the ALU instruction.
+
+
+@subsection Floating Point ALU Instruction
+@group
+
+@tex
+\startbyf
+\ibif{63}{St}{at}
+\ibif{62}{Tr}{ap}
+\ibif{61}{X}{16}
+\ibyf{60}{58}{Opcode}{110}
+\ibyf{57}{56}{Next}{PC}
+\ibyf{55}{54}{Box}{}
+\ibyf{53}{51}{DTP}{Check}
+\ibyf{50}{48}{Call HW}{Op}
+\ibyf{47}{41}{Destination}{}
+\ibyf{40}{37}{Global}{Frame}
+\ibyf{36}{34}{Jump}{Condition}
+\ibyf{33}{32}{XX}{XX}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+
+\startbyf
+\ibyf{31}{25}{Right Source}{}
+\ibyf{24}{19}{Left Source}{}
+\ibyf{18}{17}{FPU}{Check}
+\ibyf{16}{9}{Floating Point}{ALU Function}
+\ibyf{8}{3}{FPU}{Load}
+\ibyf{2}{0}{FPU}{Unload}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+@end tex
+@end group
+
+The call hardware, X-16, and Next PC fields are subject to the same
+constraints as for the ALU instruction.
+
+
+@subsection Floating Point Multiplier Instruction
+@group
+
+@tex
+\startbyf
+\ibif{63}{St}{at}
+\ibif{62}{Tr}{ap}
+\ibif{61}{X}{16}
+\ibyf{60}{58}{Opcode}{111}
+\ibyf{57}{56}{Next}{PC}
+\ibyf{55}{54}{Box}{}
+\ibyf{53}{51}{DTP}{Check}
+\ibyf{50}{48}{Call HW}{Op}
+\ibyf{47}{41}{Destination}{}
+\ibyf{40}{37}{Global}{Frame}
+\ibyf{36}{34}{Jump}{Condition}
+\ibyf{33}{32}{XX}{XX}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+
+\startbyf
+\ibyf{31}{25}{Right Source}{}
+\ibyf{24}{19}{Left Source}{}
+\ibyf{18}{17}{FPU}{Chk}
+\ibyf{16}{9}{Floating Point}{Multiplier Function}
+\ibyf{8}{3}{FPU}{Load}
+\ibyf{2}{0}{FPU}{Unload}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+@end tex
+@end group
+
+The call hardware, X-16, and Next PC fields are subject to the same
+constraints as for the ALU instruction.
+
+
+@subsection Conditional Branch Instruction
+@group
+
+@tex
+\startbyf
+\ibif{63}{St}{at}
+\ibif{62}{Tr}{ap}
+\ibif{61}{Co}{nd}
+\ibyf{60}{58}{Opcode}{x00}
+\ibyf{57}{56}{NxPC}{00}
+\ibyf{55}{54}{Box}{}
+\ibyf{53}{51}{DTP}{Check}
+\ibyf{50}{48}{Call HW}{Op}
+\ibyf{47}{41}{Destination}{}
+\ibyf{40}{37}{Global}{Frame}
+\ibyf{36}{34}{Jump}{Condition}
+\ibyf{33}{32}{Byte}{Width}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+
+\startbyf
+\ibyf{31}{25}{Right Source}{}
+\ibyf{24}{19}{Left Source}{}
+\ibyf{18}{12}{ALU}{Opcode}
+\ibyf{11}{0}{Low Bits}{of Address}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+@end tex
+@end group
+
+This instruction performs a branch.  If the Cond field (bit 61) is zero, then
+the branch is conditional.  The branch will take place if the jump condition
+tested in the previous instruction succeeded.  If the Cond field is 1, then
+the branch is unconditional.
+
+The only legal call hardware operations are 000 (NO-OP), 001 (OPEN), and
+101 (TAIL-OPEN).  The Next PC field must be 00.
+
+This instruction can also perform any ALU operation which does not
+require shift and mask fields.
+
+@tex
+The high twelve bits of the target address are taken from the high twelve
+bits of PC+1 (the next Program Counter).  The low twelve bits are taken
+from bits 11:0 of the instruction.  Therefore, a branch instruction can
+only branch to other instructions in the same block of $2^{12}$ instructions.
+@end tex
+
+@group
+@tex
+\startbyf
+\byf{23}{12}{Bits 23:12 of PC+1}
+\byf{11}{ 0}{Bits 11:0 of IR}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil Target: \byfbox}
+@end tex
+@end group
+
+
+@subsection Call-Z Instruction
+@group
+
+@tex
+\startbyf
+\ibif{63}{St}{at}
+\ibif{62}{Tr}{ap}
+\ibif{61}{D}{6}
+\ibyf{60}{58}{Opcode}{x00}
+\ibyf{57}{56}{NxPC}{00}
+\ibyf{55}{54}{Box}{}
+\ibyf{53}{51}{DTP}{Check}
+\ibyf{50}{48}{Call HW}{Op}
+\ibyf{47}{41}{Destination}{}
+\ibyf{40}{37}{Global}{Frame}
+\ibyf{36}{34}{DR}{(5:3)}
+\ibyf{33}{32}{Byte}{Width}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+
+\startbyf
+\ibyf{31}{25}{Right Source}{}
+\ibyf{24}{19}{Left Source}{}
+\ibyf{18}{12}{ALU}{Opcode}
+\ibyf{11}{4}{Address}{}
+\ibif{3}{X}{X}
+\ibyf{2}{0}{DR}{(2:0)}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+@end tex
+@end group
+
+This instruction performs a call into low memory.  The return
+destination is taken from bits 61,36:34,2:0.  The Next PC must be 00.
+
+The only legal call hardware operations are 010 (CALL), 011 (OPEN-CALL),
+110 (TAIL-CALL), and 111 (TAIL-OPEN-CALL).
+
+This instruction can also perform any ALU operation which does not
+require shift and mask fields.
+
+The high twelve bits and the low four bits of the target address are zero.
+The other eight bits come from bits 11:4 of the instruction.
+
+@group
+@tex
+\startbyf
+\byf{23}{12}{0000 00000000}
+\byf{11}{ 4}{Bits 11:4 of IR}
+\byf{ 3}{ 0}{0000}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil Target: \byfbox}
+@end tex
+@end group
+
+
+@subsection Jump Instruction
+@group
+
+@tex
+\startbyf
+\ibif{63}{St}{at}
+\ibif{62}{Tr}{ap}
+\ibif{61}{Co}{nd}
+\ibyf{60}{58}{Opcode}{010}
+\ibyf{57}{56}{NxPC}{00}
+\ibyf{55}{54}{Box}{}
+\ibyf{53}{51}{DTP}{Check}
+\ibyf{50}{48}{Call HW}{Op}
+\ibyf{47}{41}{Destination}{}
+\ibyf{40}{37}{Global}{Frame}
+\ibyf{36}{34}{Jump}{Condition}
+\ibyf{33}{32}{Byte}{Width}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+
+\startbyf
+\ibyf{31}{25}{Right Source}{}
+\ibif{24}{X}{X}
+\ibyf{23}{0}{Address}{}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+@end tex
+@end group
+
+This instruction performs a jump.  If the Cond field (bit 61) is zero, then
+the jump is conditional.  The branch will take place if the jump condition
+tested in the previous instruction succeeded.  If the Cond field is 1, then
+the jump is unconditional.
+
+The only legal call hardware operations are 000 (NO-OP), 001 (OPEN), and
+101 (TAIL-OPEN).  The Next PC field must be 00.
+
+The target address is taken from bits 23:0 of the instruction.
+
+This instruction also performs an ALU operation which passes the Right
+Source to the Destination.
+
+
+@subsection Call Instruction
+@group
+
+@tex
+\startbyf
+\ibif{63}{St}{at}
+\ibif{62}{Tr}{ap}
+\ibif{61}{D}{6}
+\ibyf{60}{58}{Opcode}{010}
+\ibyf{57}{56}{NxPC}{00}
+\ibyf{55}{54}{Box}{}
+\ibyf{53}{51}{DTP}{Check}
+\ibyf{50}{48}{Call HW}{Op}
+\ibyf{47}{41}{Destination}{}
+\ibyf{40}{37}{Global}{Frame}
+\ibyf{36}{32}{DR}{(5:1)}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+
+\startbyf
+\ibyf{31}{25}{Right Source}{}
+\ibif{24}{D}{0}
+\ibyf{23}{0}{Address}{}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+@end tex
+@end group
+
+This instruction performs a subroutine call operation.  The call
+hardware operation (bits 50:48) must be one of 010 (CALL), 011
+(OPEN-CALL), 110 (TAIL-CALL), or 111 (TAIL-OPEN-CALL).  Bits 61,36:32,24
+specify the return destination (where the subroutine is supposed to put
+its result).
+
+This instruction performs a subroutine call.  The return
+destination is taken from bits 61,36:32,24.  The Next PC must be 00.
+
+The only legal call hardware operations are 010 (CALL), 011 (OPEN-CALL),
+110 (TAIL-CALL), and 111 (TAIL-OPEN-CALL).
+
+The target address is taken from bits 23:0 of the instruction.
+
+
+@subsection Call-Dispatch Instruction
+@group
+
+@tex
+\startbyf
+\ibif{63}{St}{at}
+\ibif{62}{Tr}{ap}
+\ibif{61}{D}{6}
+\ibyf{60}{58}{Opcode}{x00}
+\ibyf{57}{56}{NxPC}{01}
+\ibyf{55}{54}{Box}{}
+\ibyf{53}{51}{DTP}{Check}
+\ibyf{50}{48}{Call HW}{Op}
+\ibyf{47}{41}{Destination}{}
+\ibyf{40}{37}{Global}{Frame}
+\ibyf{36}{34}{DR}{(5:3)}
+\ibyf{33}{32}{Byte}{Width}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+
+\startbyf
+\ibyf{31}{25}{Right Source}{}
+\ibyf{24}{19}{Left Source}{}
+\ibyf{18}{12}{ALU}{Opcode}
+\ibif{11}{X}{X}
+\ibyf{10}{5}{ALU}{Shift}
+\ibif{4}{X}{X}
+\ibif{3}{X}{16}
+\ibyf{2}{0}{DR}{(2:0)}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+@end tex
+@end group
+
+This instruction performs a subroutine call to an address computed by
+the ALU during the last instruction.  The return destination is taken
+from bits 61,36:34,2:0.  The Next PC must be 01.
+
+The call hardware operation must be one of 010 (CALL), 011 (OPEN-CALL),
+110 (TAIL-CALL), or 111 (TAIL-OPEN-CALL).
+
+The X-16 bit, if set, causes the low four bits of the target address 
+to be zeroed.
+
+This instruction can also perform any ALU operation which does not
+require a mask field.

@@ -1,0 +1,318 @@
+-*- Mode:Text -*-
+
+                                Proposal
+
+                      Generating Internal Releases
+
+                  (Jim O'Dell / Last modified 11/10/88)
+
+
+
+SUMMARY:
+
+
+
+This document puts forth the philosophy, definitions, procedure, and
+frequency for generating internal Falcon software releases over the
+lifetime of Falcon software development.  The goals of making internal
+releases are:
+
+ o provision of reliable snapshots of critical project components;
+ o early detection of problems incurred by system file changes;
+ o accommodation of individual and team project schedules;
+ o minimization of required "code freeze" periods;
+ o economical disk space usage.
+
+As stated above, the Release mechanism exists partly for taking
+snapshots of the Falcon source files upon completion of major system
+components.  Sufficiently radical changes to the main development line
+could warrant new Releases in and of themselves; in such a case, all
+other developers should work to "the soonest convenient stopping point,"
+thus allowing the Release process to proceed.  In any event, no more
+than six months should ever elapse between two Falcon Releases.
+
+
+
+BACKGROUND:
+
+
+
+The Falcon system software is currently found in the directory "JB:K;",
+and may be referred to by a logical pathname, "K:<subsystem>;" where
+<subsystem> takes the form "K-<x>", <x> being an integer that is to be
+incremented with each release.
+
+As always, logical pathnames may be redefined by developers wishing to
+use a different set of Falcon source and binary files.
+
+The files in the main line of Falcon system development (only) are found
+in the directory "JB:K;".
+
+
+
+PROPOSAL:
+
+
+
+The proposed release mechanism consists of six parts, each of which will
+be discussed in the body of the proposal:
+
+  A. Stating the Release Goals
+  B. Announcing a Code Freeze
+  C. Incrementing The Release Version Number
+  D. Copying the Falcon Source Files
+  E. Compiling the Copies
+  F. Regression Testing the Compiled Release
+  G. Creating a New Falcon System
+  H. Substituting Modified Copies Back into the Main Development
+     Hierarchy
+  I. Archiving Old Falcon Releases
+
+
+A. Stating the Release Goals
+
+
+Before any Release of the Falcon System is undertaken, all K developers
+must come to terms with exactly which state of the world they wish to
+capture in making the release.  This is accomplished by having each
+design group (individual or team) make a formal (i.e., written or
+ZMailed) statement of the particular design efforts they wish to
+complete before the new K Release is begun.  In this manner, potential
+problems due to module incompleteness at the time of the Release may be
+averted.  For example, a developer involved in making a major revision
+to the cross-compiler could request that the state of the Falcon source
+files be such that the Release process await a particular cross-compiler
+milestone.
+
+Certain criteria should always be met before a new Falcon Release is
+undertaken:
+
+  o All K developers should have arrived at a suitable stopping
+     point;
+  o Mega-booting should work.
+  o (Any others?)
+
+
+B. Announcing a Code Freeze
+
+  Once all individual and team development Release goals are understood,
+the Project manager must decide upon the time at which to begin the
+Release process.  Once Step 1. of this process has begun, no code should
+be added to the main line of development until after Part H. of the
+Release process has completed.  This period is known as a "code freeze".
+
+  It is the responsibility of the Release maker to coordinate this
+freeze period amongst ALL team members and groups by formally announcing
+its inception WELL IN ADVANCE.  This announcement should take on written
+form, and should be distributed at least 48 hours in advance, all
+consensus concerning Release date notwithstanding.
+
+  When Releases are done over weekends and holidays, the source files
+may be assumed to be less active than normal; these times make ideal
+Release-making periods, as the required freeze time can be minimized.
+
+
+C. Incrementing The Release Version Number
+
+
+  In the JB: root directory (obtainable by executing Dired on the
+directory specification "JB:~;") will appear a series of directories
+named "K-<version>" where <version> is an integer.
+
+  The Version Number of the new Release will be the integer one greater
+than the <version> component of the highest existing "K-<version>"
+directory name.  For the purposes of this document, we will assume that
+the current Release is contained in the directory "JB:K-<n>;", and the
+desired new Release will be contained in the directory "JB:K-<n+1>".
+These directories correspond to Release Versions n and n+1,
+respectively.
+
+  The directory named "JB:K-TEST-SOURCES;" exists as a temporary
+repository for copies of the Falcon sources during trial runs for new
+Releases.
+
+  1. Create the new "JB:K-<n+1>;" directory, and confirm that
+     the directory "JB:K-TEST-SOURCES;" is empty.
+
+
+D. Copying the Falcon Source Files
+
+
+  2. Copy the "#>" versions of all LISP files found in
+     "JB:K;" into "JB:K-TEST-SOURCES;".
+
+
+E. Compiling the Copies
+
+
+  For now, it is necessary to make a release of Falcon files using a Lambda with no Falcon knowledge yet loaded.
+Make a Falcon system, then compile the copies of the source files in
+"JB:K-TEST-SOURCES;", thereby generating automatically the corresponding
+binary files into the new directory.
+
+  3. a. Evaluate
+
+        (make-system :falcon :noconfirm)
+
+     b. Evaluate
+
+        (switch-k-release "K-TEST-SOURCES" "JB")
+
+     c. Evaluate
+
+        (load-k-system :recompile)
+
+     d. Evaluate
+
+        (mega-boot :compile-type :recompile)
+
+  4. Repeat Steps 3c. and 3d., until the system compiles
+     completely and correctly.
+
+
+F. Regression Testing the Compiled Release
+
+
+  5. Run the regression test suite on the test system.
+
+  If minimal acceptability levels are not recorded in Step 5., then the
+maker of the Release should bring pertinent performance issues to the
+attention of the Project team as quickly as possible for reconciliation
+in the K-TEST-SOURCES directory.  When the copies of the source files
+have been corrected, the Release maker should go back to Step 3c. and
+proceed as before.
+
+  ["Minimal acceptability levels," as used above, means, at least for
+now, that no newly created Release should fail to meet the performance
+levels of the previous one.  A set of regression tests for the LISP
+language, as well as for other LISP Machine system modules, will be
+constructed and used for this purpose.  The Gabriel benchmarks may also
+be used as a part of this test suite.]
+
+  Any other tests which have been devised for testing a Falcon Release
+should be run now as well.
+
+   Should Step 5. become a bottleneck, the freeze period should be
+lifted, the current Release process aborted, and a new one attempted at
+a later date.
+
+
+G. Creating a New Falcon System
+
+
+  To create a new Falcon system, simply copy the LISP sources and the
+binary files from "JB:K-TEST-SOURCES;" both to "JB:K;" and to
+"JB:K-<n+1>;" using the function MAKE-K-SYSTEM-RELEASE.
+
+  6. Evaluate the form
+
+     (make-k-system-release <host> <n+1>)
+
+     where
+
+     <host> is the name of the system host on which the release is
+            to be created (We are currently using "JB:")
+
+     and
+
+     <version> is the version number of the release.
+
+
+H. Substituting Modified Copies Back into the Main Development
+   Hierarchy
+
+
+  If any of the LISP source file copies were modified and recompiled in
+Part F., then these versions and the new binary files they generated
+(later in Part F.) should be included in the set of files copied back
+into the main K development hierarchy (currently "JB:K;").  At this
+point the code freeze may be considered over; files in the main line may
+once again be considered open for further development.
+
+
+I. Archiving Old Falcon Releases
+
+
+Once the "K-TEST-SOURCES;" directory has been copied back into the "K;"
+directory, all files in K-TEST-SOURCES should be renamed to the
+"JB:K-<n+1>" directory.  These files then serve as an archived Release
+of the state of Falcon development until the next Release is undertaken.
+
+
+
+OPEN ISSUES:
+
+
+
+Limitations on disk space suggest adoption of a rational scheme for
+deleting old and excess versions of files.  All current ("#>") versions
+of LISP and binary source files will be kept online.
+
+All archived Releases over three months old will be migrated to tape
+format to free up disk space.
+
+Discretion is advised when migrating or deleting source or binary files
+other than those mentioned here.
+
+
+
+COMMENTS:
+
+wkf: In section A, add that we should run the read-eval-print loop and
+also the regression test suite before copying and recompiling. In the
+period right before the code freeze where we are verifying mega-boot
+etc.  The code should only be changed to fix bugs found while verifying
+it.
+   ;;; Does the partial sentence "In the period... ...mega-boot etc."
+   ;;; go with the first or the third sentence? <saz 15-Nov-88>
+
+wkf: Step 2 says to copy the #> from k-n directory to k-test-sources, to
+me this implies that development work is done in the k-n directory.
+This does not seem good since in that directory there will not be a
+history of file versions.  Instead the successive versions will be
+spread out over several directories.
+   ;;; Corrected. <saz 15-Nov-88>
+
+wkf: Is it possible to make a directory read-only? This would help
+enforce the software freeze.
+   ;;; No, there isn't.  The freeze will have to be self-enforced.
+   ;;; <saz 15-Nov-88>
+
+wkf: Step 3 should say to boot a lambda on a band with no K knowledge.
+This implies adding (make-system :falcon :noconfirm) to the steps as
+well.
+   ;;; Incorporated. <saz 15-Nov-88>
+
+wkf: Step 6 could be used to copy for k-test-sources if we used k-0 to
+stand for k-test-sources.  I guess the reason for the intermediate
+directory is if the K's run off the highest release number always.  If
+we drop that idea then we no longer need the intermediate directory.
+Step 6 would become a copy back of the corrections of the release to the
+main K directory.  I believe this copy back should include all verion
+numbers in the n+1 directory so that we have the history of the
+corrections.  We could speed up the copy from the main K directory to
+the n+1 directory by only copying sources (i.e., .lisp files since .qfasl,
+.kfasl, and .kenv will be remade.) In the reverse direction when we
+update the main K directory with the corrections to make the release
+work we only need the #> versions of binary files.
+
+wkf: This document seems inconsistent to me as to whether we work from
+the k-n directory or the main k directory.  It seems to me that the best
+way is to work from the main k directory.
+   ;;; The typo in Step 2 has been corrected to make clear that we work
+   ;;; from "JB:K;".  <saz 15-Nov-88>
+
+wkf: On deleting of old verions of files: In general I believe we should
+never delete files which have not yet been backed up by the regular
+backup proceedures. For binary files, when we have verified the main k
+system and have frozen the sources, we should delete all but the
+greatest verions (It seems like this is easily automated.)  For lisp
+files at any time we can delete multiple backed up versions of the same
+file written by the same author in any one 24 hour period without
+intervening versions by other authors.  For files older than three
+months, we can delete all but the last three versions of that file (this
+may imply deleting all verions older than three months if since that
+time we have more than three verions after reaping multiple versions in
+a day by one person.)
+
+STATUS: Open

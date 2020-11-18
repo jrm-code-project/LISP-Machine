@@ -1,0 +1,43 @@
+
+
+Right Now
+
+       Youceff -paging
+        design paging and file interface clean enuf to port across hosts.
+        implement for Lambda, MacII, and Silicon Graphics in that order.
+       Naha - Stack dump reload
+       Ed & Kent -   compiler, etc.
+       Erric - package stuff.  Build cold and start loading files, etc.
+
+    Question: With current compiler are there any CL major
+        features remaining to be implemented?
+
+
+       Rauen - Evaluator
+
+
+
+Needed
+      Loader need to know about package roots,
+        code to initialize k with two package roots
+      Lambda Cold load (erric)
+      Flavors - one major piece of "new work" involved
+         in the whole thing. (rg)
+      low level display -done by youcef -
+      Window System (rg also)
+      Error Handling  stack format sensitive (?)
+      Compatibility issues:   reimplement microcoded functions (minor)
+                              decommitted functions (minor)
+                              CDR-codes (minor)
+                              ART-Q arrays  (either implement or decomit)
+
+      Networking ...  (not immediately vital.  stuff on lambda will port).
+      "Common-LISP" improvements  (ie that stuff which more or less works now)
+        speed up loading
+        Arithmetic, trig functions, etc
+
+      GC
+
+
+host application program:
+        implements host side of swapping and file protocol above.

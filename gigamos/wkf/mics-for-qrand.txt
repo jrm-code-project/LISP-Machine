@@ -1,0 +1,94 @@
+;;; -*- Mode:Text; Package:SYSTEM-INTERNALS; Readtable:CL; Base:10 -*-
+
+
+;;Does EQ work on dtp-instance etc?
+;;Can we edit files like QRAND or use #+lambda etc.  ie get recursive definiton of GET
+
+Needed for file QRAND.lisp
+
+Function  - PLIST                    dj:l.sys;QRAND
+  PROPERTY-CELL-LOCATION -- Microcode file UC-FCTNS
+  %DATA-TYPE             -- Microcode file UC-FCTNS  ;;Returns number representing data-type
+  Variable  - DTP-INSTANCE and DTP-LOCATIVE
+  Function  - NO-CASE-ERROR
+
+Function  - NO-CASE-ERROR           dj:l.sys2;LMMAC
+  Function  - MAKE-CONDITION
+  Function  - SIGNAL
+  Variable  - *SAVE-RETURN-CRAP-0*
+
+Function  - MAKE-CONDITION          dj:l.debugger;EHF
+  Error when cross compiling!!!  ;;ETYPECASE failure k:TRAP-PC+
+
+Function  - SIGNAL                  dj:l.debugger;EHF
+  Error when cross compiling!!!  ;;ETYPECASE failure k:TRAP-PC+
+
+
+
+Function  - SETPLIST
+  PROPERTY-CELL-LOCATION -- Microcode file UC-FCTNS
+  %DATA-TYPE             -- Microcode file UC-FCTNS  ;;Returns number representing data-type
+  Variable  - DTP-INSTANCE and DTP-LOCATIVE
+  Function  - NO-CASE-ERROR
+  Variable  - *SAVE-RETURN-CRAP-0*
+
+
+
+Function  - PLIST-LOCATION
+  PROPERTY-CELL-LOCATION -- Microcode file UC-FCTNS
+  %DATA-TYPE             -- Microcode file UC-FCTNS  ;;Returns number representing data-type
+  Variable  - DTP-INSTANCE and DTP-LOCATIVE
+  Variable  - *SAVE-RETURN-CRAP-0*
+  Function  - NO-CASE-ERROR
+
+
+
+Function  - GET
+  Recursive definition using microcode
+  Must work on symbol or plists  k is only symbols now
+
+
+
+Function  - GETF
+  Recrusive defintion using microcode
+
+
+
+Function  - GET-PROPERTIES
+  Can not take a locf of functional argument since on the stack.
+  Function  - GET-PROPERTIES-INTERNAL
+
+
+
+Function  - GET-PROPERTIES-INTERNAL
+  Error compiling:  K-FIND-RETURN-REGISTER-COUNT is undefined.
+
+
+
+Fucntion  - PUTPROP
+Function  - PUTPROP-IN-AREA
+Function  - SETPROP
+Funciton  - SETPROP-IN-AREA
+  Error compiling:  Convert this.  See function P2LIST-CROSS
+
+
+
+Function  - (:property defprop special-form-bootstrap)
+  Function  - CERROR             dj:l.debugger;EHF.lisp
+  Function  - PUTPROP
+  Variable  - *SAVE-RETURN-CRAP-0*
+
+
+
+Function  - CERROR               dj:l.debugger;EHF.lisp
+  Error when cross compiling!!!  ;;ETYPECASE failure k:TRAP-PC+
+
+
+
+Function  - REMPROP
+  %DATA-TYPE             -- Microcode file UC-FCTNS  ;;Returns number representing data-type
+  Variable  - DTP-INSTANCE and DTP-LOCATIVE
+  PROPERTY-CELL-LOCATION -- Microcode file UC-FCTNS
+  Variable  - INHIBIT-SCHEDULING-FLAG
+  Variable  - *SAVE-RETURN-CRAP-0*
+  Function  - NO-CASE-ERROR

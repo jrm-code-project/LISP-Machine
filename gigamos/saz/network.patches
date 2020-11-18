@@ -1,0 +1,25 @@
+;;; -*- Mode:LISP; Package:FILE-SYSTEM; Base:10 -*-
+
+(DEFUN QFILE-PROCESS-ERROR-NEW (STRING &OPTIONAL PATHNAME-OR-STREAM
+                               PROCEEDABLE NOERROR &REST MAKE-CONDITION-ARGS
+                               &AUX S-P ERROR-CODE ERROR-SEVERITY ERROR-STRING WHO-FOR
+                               (DEFAULT-CONS-AREA SYS:BACKGROUND-CONS-AREA))
+  (TYPECASE PATHNAME-OR-STREAM
+    (PATHNAME (SETQ WHO-FOR PATHNAME-OR-STREAM))
+    (SI:FILE-STREAM-MIXIN (SETQ WHO-FOR (SEND PATHNAME-OR-STREAM :PATHNAME)))
+    (T (SETQ WHO-FOR PATHNAME-OR-STREAM)))
+  (SETQ S-P (QFILE-CHECK-COMMAND "ERROR" STRING))
+  (SETQ ERROR-CODE (SUBSTRING STRING S-P (SETQ S-P (STRING-SEARCH-CHAR #/SPACE STRING S-P))))
+  (SETQ S-P (1+ S-P))
+  (SETQ ERROR-SEVERITY
+        (SUBSTRING STRING S-P (SETQ S-P (STRING-SEARCH-CHAR #/SPACE STRING S-P))))
+  ;;Some file errors to which we wish to append more text have ugly periods attached.
+  (SETQ ERROR-STRING (string-right-trim "." (NSUBSTRING STRING (1+ S-P) (STRING-LENGTH STRING))))
+  ;;Replace stupid unix strings, as they are discovered -- saz 8/5/88
+  (setq error-string (selector error-string string-equal
+                               ("Wildcard that got through pathname parsing but file system didn't like it"
+                                "Unknown type of wildcard used")
+                               (otherwise error-string)))
+  (APPLY 'FILE-PROCESS-ERROR
+         (GET (INTERN ERROR-CODE (SYMBOL-PACKAGE 'FOO)) 'FS:FILE-ERROR)
+         ERROR-STRING PATHNAME-OR-STREAM PROCEEDABLE NOERROR MAKE-CONDITION-ARGS))

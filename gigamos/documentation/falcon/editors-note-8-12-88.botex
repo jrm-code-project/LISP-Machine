@@ -1,0 +1,173 @@
+@c
+@c This file contains changes to the K Technical Manual since 7/12/88
+@c editors-note-7-12.botex contains changes to the manual previous to 7/12/88
+@c
+@chapter Editor's Note
+@sp 2
+This draft of the @b[K Technical Manual] contains the
+following revisions (in cases where there are discrepancies in
+chapter/section numbers between drafts, those of the current draft are
+used).
+
+@sp 2
+@group
+@center @b[9.1 Organization]
+@sp 1
+@i[Entire section has been revised and reworded.]
+@end group
+@sp 1
+@b[9.1 Organization]
+@sp 1
+The visible features of the call hardware include the @i[call stack],
+and the @i[free frame heap].
+
+The call stack is used to save and restore processor state during
+function call operations. Each entry on the call stack represents, at
+least conceptually, the Lisp Machine idea of a stack frame.  When a
+function is called, an entry is pushed to save the state of the caller;
+when a function returns, an entry is popped to re-establish the state of
+the caller.
+
+The free frame heap maintains a hardware list of unused register frames.
+The heap hardware is also responsible for causing a ``yellow alert''
+trap (by asserting TRAP_STACK_OVF) whenever the call hardware allocates
+more than a pre-established number of frames.  This trap is used to
+trigger the copying of the call stack to memory; the copied frames are
+then available for immediate use.
+
+The hardware does not cause a trap when a call stack
+@i[underflow] is about to occur.  Software
+must set up the Return PC at the base
+of the call hardware stack with the address of a special routine, which
+must:
+
+@itemize @bullet
+@item
+read in the top section of the call stack from memory;
+@item
+branch to the Return PC of the routine whose frame was found at the base
+of the hardware stack.
+@end itemize
+
+@sp 2
+@group
+@center @b[19.3.2 Bignums]
+@sp 1
+@i[Byte specifier diagram for bignums has been modified to indicate that only the low-order 18
+bits are relevant for the Number of Data Words pointer.]
+@end group
+@sp 1
+@b[19.3.2 Bignums]
+
+@tex
+Bignums may use up to $2^{18}$ words of storage for a number.
+The range of bignums is $-2^{2^{23}}$ to $2^{2^{23}} - 1$.  However, a
+bignum may not have a value in the fixnum range ($-2^{23}$ to $2^{23} - 1$).
+If the result of a bignum operation lies in that range, it must be converted
+to a fixnum.
+@end tex
+
+@group
+@tex
+\startbyf
+\bif{32}    {1}
+\byf{31}{26}{000100}
+\byf{25}{ 0}{Pointer (P)}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil\byfbox}
+\vskip 0.2in
+
+\startbyf
+\byf{31}{26}{100000}
+\byf{25}{19}{Unknown}
+\byf{18}{ 0}{Number of data words (N)}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{\hfil$P\rightarrow$\byfbox}
+
+\startbyf
+\byf{31}{ 0}{Least Significant Word}
+\endbyf
+\line{\hfil$P+1\rightarrow$\byfbox}
+
+\startbyf
+\byf{31}{ 0}{Middle Words $\ldots$}
+\endbyf
+\line{\hfil$\ldots$\byfbox}
+
+\startbyf
+\byf{31}{ 0}{Most Significant Word}
+\endbyf
+\line{\hfil$P+N\rightarrow$\byfbox}
+@end tex
+@end group
+
+
+@sp 2
+@group
+@center @b[19.7.4.2 Fill Pointer]
+@sp 1
+@i[Clarification to text:]
+@end group
+@sp 1
+@b[19.7.4.2 Fill Pointer]
+
+The fill pointer is a fixnum that indicates the number of
+words currently used in an array. If present, it is the first
+leader word.
+
+
+
+@sp 2
+@group
+@center @b[19.7.4.4 Leaders]
+@sp 1
+@i[Clarification to text:]
+@end group
+@sp 1
+@b[19.7.4.4 Leaders ]
+
+If the has leader bit is set then the array has an array leader. The
+offset from the main header to the "Number Of Leader Words" word is in the
+leader-offset field.
+
+
+
+@sp 2
+@group
+@center @b[19.8 Compiled Functions]
+@sp 1
+@i[Change to byte specifier abbreviation of word pointed at by instruction P+6,
+to "CP":]
+@end group
+@sp 1
+@group
+.
+
+.
+
+.
+
+@tex
+\startbyf
+\byf{31}{26}{Data Type}
+\byf{25}{ 0}{Compiled Function Code Pointer (CP)}
+\endbyf
+\line{\hfil$P+6\rightarrow$\byfbox}
+@end tex
+.
+
+.
+
+.
+
+@end group
+@sp 8
+@group
+Future drafts of the @b[K Technical Manual] will incorporate further revisions to this document.
+@sp 2
+@flushright
+@b[---David Saslav]
+@end flushright
+@end group

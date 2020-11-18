@@ -1,0 +1,58 @@
+;;; -*- Mode:LISP; Package:USER; Readtable:CL -*-
+
+(load-patches :noselective)
+;;(gc:gc-on :degree 1)
+
+(load "dj:smh;isearch")
+(load "dj:smh;crasscom")
+
+;;(format t "Remember to (GC:GC-ON :DEGREE 1) !!")
+(GC:GC-ON :DEGREE 1)
+
+zwei:
+(DEFCOM COM-SET-tvFONT "Quietly toggle the current buffer's font between TVFONT and CPTFONT." ()
+  (LET* ((FONT (if (eq (TV:FONT-NAME (AREF (SEND (WINDOW-SHEET *WINDOW*) :FONT-MAP) 0))
+                       'fonts:tvfont)
+                   'fonts:cptfont 'fonts:tvfont)))
+
+    (unless (BOUNDP FONT)
+      (LOAD (FORMAT NIL "SYS: FONTS; ~A" FONT)
+            :PACKAGE 'FONTS
+            :SET-DEFAULT-PATHNAME NIL
+            :IF-DOES-NOT-EXIST NIL)
+      (OR (BOUNDP FONT) (BARF "~S is not a defined font" FONT)))
+    (SEND *INTERVAL* :SET-ATTRIBUTE :FONTS (list FONT) nil)
+    (REDEFINE-FONTS *WINDOW* (list (CONS (SYMBOL-NAME FONT) (SYMBOL-VALUE FONT))))
+    (UPDATE-FONT-NAME))
+  DIS-ALL)
+
+zwei:
+(progn
+  (command-store 'com-kill-or-save-buffers
+                 #\super-B
+                 *standard-comtab*)
+  (command-store 'com-tags-search
+                 #\super-.
+                 *standard-comtab*)
+  (command-store 'com-set-tvfont
+                 #\super-t
+                 *standard-comtab*)
+  (command-store 'com-crasscompile-region #\super-control-c *standard-comtab*)
+  (set-comtab *zmacs-comtab* '(#\control-@ com-indent-for-enhancement-suggestive-cts))
+  (set-comtab *zmacs-comtab* '(#\control-+ com-indent-for-maintenance-suggestive-cts))
+  (set-comtab *zmacs-comtab* '(#\control-$ com-indent-for-local-modification-cts))
+  (set-comtab *zmacs-comtab* '(#\control-& com-indent-for-systematic-modification-cts))
+  )
+
+;;Groady lossage.
+;;(fs:reset-file-access '("angel" #+never "dj" "jb") 'fs:ftp-access)
+
+(when (member :for-falcon *features*)
+  (setq *features* (delete :for-falcon *features*)))
+
+;; I want this NIL (standard default) when debugging the compiler itself, but
+;; most of the time any normal person would expect it T.
+
+(setq si:trace-compile-flag 't)
+
+(setq tv:beep-wavelength #o2000)

@@ -1,0 +1,224 @@
+-*- Mode:Text; Package:GLOBAL; Base:10 -*-
+
+              A Proposal for Annotating Source File Changes
+
+                       Revised Draft 24Oct88 - smh
+
+
+BACKGROUND:
+
+     Whenever one of the several Falcon implementors makes a change to
+any source code, there are several dimensions along which this change
+might require later scrutiny.  For example, a change might represent an
+incomplete implementation requiring future augmentation.  Alternatively,
+it could be a "stub" requiring a future substitution by other code.  In
+many cases, changes have far-reaching performance implications.  In
+general, the potential for subtle and not-so-subtle ramifications when
+entering changes to source files obviates the need for rigorous
+adherence to a standard source code comment-inclusion procedure.
+
+DEFINITIONS:
+
+     For the purposes of this Proposal, a "source file" is any file that
+is pointed to by the relevant system defining file.  For Falcons this is
+the file "JB: K; FALCON-SYSDEF.LISP".  In addition, "source file" refers
+to any Lambda files which the cross compiler shares with the native
+Lambda compiler.
+
+     A future Proposal may suggest an extension of this definition to
+Macintosh-supported files as well.
+
+MECHANISM:
+
+  A. ANNOTATING SOURCE CHANGES
+
+     When modifying a Falcon source file, a developer demarcates the
+changed section with a comment string containing all of the following
+components:
+
+
+    [;]_LISP-code_Comment-type-symbol_comment-text_<AUTHOR DATE>
+
+ [;]
+
+This indicates one or more semi-colon.  As a review, here is a summary
+of standard practice for semi-colon usage in entering comments is as
+follows:
+
+     Long Comments:
+
+        A Long Comment is a comment which takes up the entire horizontal
+        space (possibly excluding line-initial whitespace) of one or
+        more contiguous lines in a LISP file.  There are two kinds of
+        Long Comment:
+
+          Left Justified Long Comments (";;;"):
+
+          Long Comments, all of whose lines begin in the left-most
+          (0th) column of the file, are demarcated by three semi-colons.
+
+          Code Justified Long Comments (";;"):
+
+          Long Comments, all of whose lines begin in the same
+          column as the opening parenthesis of the referent code, are
+          demarcated with two semi-colons.
+
+    In-line Comments (";"):
+
+       An In-line Comment is one that does not occupy the entire
+       horizontal line on which it is found; rather, it shares a line
+       with (and may be found to the right of) the code to which it
+       pertains.
+
+_ ("Underbars")
+
+Underbars in the above template indicate one or more spaces separating
+two fields.
+
+ LISP-code
+
+In-line comments (see below for definition of comment types) which hide
+pieces of LISP code from the reader, evaluator, compiler, etc. should be
+left between the semi-colon and the Comment Type Symbol.
+
+ comment-text
+
+This is the text of the comment, and should be present for all types of
+comment (as described below).
+
+ Comment-type-symbol
+
+The [Comment-type-symbol] field uniquely identifies the reason for the
+comment's existence.  Currently, there are four kinds of CTS (Comment
+Type Symbol):
+
+    The Local Modification Demarcating CTS: "$$$"
+
+    This CTS is used in comments when any textual changes have
+    been entered in a source file.  The purpose of this CTS is
+    to enable future file browsers to minimize the time spent
+    determining whether the "Before" and "After" sections of
+    the file are exactly the same or different in any way.  All
+    code modification, reformatting, and redocumentation must
+    have an accompanying Local Modification Demarcating CTS.
+
+    The Systematic Modification Demarcating CTS: "&&&"
+
+    This CTS is used at the beginning of files which have been
+    modified in some global, systematic fashion.  See the
+    section on Annotating Systematic Source Changes for more
+    details.
+
+    The Enhancement Suggestive CTS: "@@@"
+
+    This CTS implies that its containing comment suggests an
+    enhancement or an optimization technique from which the
+    existing source code would likely benefit.  Use of this CTS
+    does not necessarily imply that any actual source file code
+    has been changed.
+
+    The Maintenance Suggestive CTS: "+++"
+
+    The use of this CTS in a comment indicates that the code to
+    which it refers "requires" (as opposed to "would likely
+    benefit from") maintenance.  Like the Enhancement
+    Suggestive CTS, use of this CTS does not necessarily imply
+    that any actual source file code has been changed.
+
+Note that any combination of "$$$", "@@@", and "+++" could
+exist in the same comment, depending on the particular
+circumstances for which it was entered.
+
+ <AUTHOR DATE>
+
+The commentator should leave a unique, consistent insignia, set off by
+angle brackets, identifying himself as the commentator.  Also in the
+pair of brackets should be the date in the format <ddmmmyy>.
+
+The following fictitious excerpt contains examples of both kinds of Long
+Comments as well as an In-line Comment, demonstrating comments which do not
+require CTS-style comments (those of the original code author) and those
+which do.  For the purposes of this example, assume that John Q. Public
+(jqp) wrote the new code on September 19, 1988.
+
+;;; $$$ Inserted this variable for efficiency. <jqp 19sep88>
+;;; $$$ Reformatted not to be all on one long line. <jrh 21sep88>
+(defvar all-possible-alphabetic-text-symbols
+  ;; This saves the evaluator all sorts of trouble at run time!
+  (list 'a 'b 'c 'd 'e 'f 'g ; 'h $$$ I dislike the letter `h' <jd 20sep88>
+        'i 'j 'k 'l 'm 'n 'o 'p
+        'q 'r 's 't 'u 'v 'w 'x
+        'y 'z
+        ;; '0 '1 '2 '3 '4 '5 $$$ &&& 0-9 are self-evaluaters and
+        ;; '6 '7 '8 '9               should not have been inclu-
+        ;;                           ded here. Furthermore, this
+        ;;                           entire variable could be a
+        ;;                           system constant or omitted
+        ;;                           entirely. <abc 13Jan89>
+        ;; +++ Why is 'AD missing from this line!? <abc>
+        'aa 'ab 'ac 'ae 'af 'ag 'ah 'ai 'aj
+              .
+              .
+              .   )
+
+The following tools are to be provided for entering CTS templates in Zwei buffers:
+
+        Control-$       Inserts a "$$$"-style CTS template on the current line
+        Control-@       Inserts a "@@@"-style CTS template on the current line
+        Control-+       Inserts a "+++"-style CTS template on the current line
+        Control-&       Inserts a "&&&"-style CTS template on the current line
+                         (note this type of CTS should only go at the beginnings
+                          of files.)
+
+
+  B. ANNOTATING SYTEMATIC SOURCE CHANGES
+
+     The intention of the above mechanism is that when a few, small,
+localized changes are made to a file, they will be individually
+annotated.  Systemic changes, however, do not usually lend themselves
+to individual annotation.  In cases where many files are modified in
+exactly the same way, the special CTS &&& is used inside a Left
+Justified Long Comment at the top of each affected file (after the mode
+line). For example,
+
+------------------------------------------------------------------------
+-*- Mode:LISP; Package:GLOBAL; Base:10 -*-                             |
+;;; &&& This file contains the new version of KMAC:DONALD-HAD-A-FARM   |
+;;; &&& This file contains the new version of LAMBDA:HAD-A-LITTLE-MARY |
+                                                                       |
+ :                                                                     |
+ :                                                                     |
+ :                                                                     |
+ :                                                                     |
+ :                                                                     |
+ :                                                                     |
+ :                                                                     |
+
+
+
+  C. REMOVING COMMENTS FROM SOURCE FILES
+
+     Most comments regarding changes to source code are intended to be
+temporary. "Uninteresting" comments may be deleted from the source files
+(without leaving a record of the deletion) after a suitable time period
+has elapsed.  Naturally, this time period varies depending on the
+comment.
+
+     For comments regarding action items (e.g., "This function call
+should be changed to a macro!" or "This code does not handle boundary
+conditions properly!"), the CTS should be modified after the
+appropriate steps have been taken with respect to the code.  In such
+cases, a "$$$" CTS and comment should be left in place of the CTS and
+comment that were replaced.
+
+     A comment of "historical" interest only may become uninteresting
+and therefore deletable after as little as three months, while other
+motivational comments may remain an important part of the design record
+for a longer period of time, possibly forever.
+
+Mature discretion, strict adherence and limited flexibility are
+implicit in any scheme for removing others' comments from code.
+
+ COMMENTS:
+
+ STATUS: Accepted

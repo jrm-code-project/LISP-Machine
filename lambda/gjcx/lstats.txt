@@ -1,0 +1,17 @@
+
+Some stats from the Lisp the Draper people are hacking on the IBM 3090
+
+Address space: 32 bits (all other lisps people seems to have for IBM are 24 bit byte addressed)
+
+ 1000! in 0.055 seconds.
+ 1000! including printing in 0.096 seconds.
+
+  A GC in the middle of this computation, with 1 MEGAWORD LIST SPACE and 1 MEGABYTE STRING SPACE
+  took .321 seconds.
+
+
+ 18.5 nanosecond machine cycle. Many simple instructions execute in one cycle.
+
+  LENGTH/CDR down a list takes 40 nanoseconds per CDR when a short list in cache.
+  Goes up to 150 nanoseconds with big lists.
+

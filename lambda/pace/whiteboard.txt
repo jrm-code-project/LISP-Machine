@@ -1,0 +1,63 @@
+IMICRO
+return/receive m-v
+boxed-a-mem
+don't disk-save after snap
+
+
+documentation
+cadr-paper
+lispm manual
+ti virt machine
+ti processor man
+common lisp book
+window system manual
+winston lisp
+gc paper
+lambda company documentation
+baker gc paper
+NIL manual
+
+Tools
+
+zmail zmacs
+lisp lam
+lisp debugger
+inspector
+apropos frames of editor/lisp
+
+save after jammed in cold loadstream
+user level make-system
+running micro-assembler
+loading and trying new ucode
+chaning initial area sizes
+write and install new misc inst in main ucode
+
+-----
+
+** must be done for 3.0
+* should be done for 3.0
+
+* c-m-c-m end wedges machine un-warmbootably
+* c-m-c-m-rubout doesn't work
+move rest arg
+** abort in default initial form
+prepare-sheet for xor
+adjust region sizes
+editor return storage/array out of sources
+warn about running out of space for flips or totally
+don't clobber microcode paging area during warm boot
+** really flush temp areas
+zwei-line-area
+** array microcode errors
+illop-debug
+** prom sysconf > 1 apge
+continue from c-m-c-m-line
+sort error table
+flush select methods
+flush quoted args
+
+zero flushed pages
+getchar macoro
+make find-structure-header not die on list-headers
+format:case-confert stream has bad debug-info
+C-R in debugger to eval

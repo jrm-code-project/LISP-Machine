@@ -1,0 +1,5 @@
+;;-*-mode:lisp;package:zwei;base:10-*-
+(login-setq *zmail-startup-file-name* "LMI-ANGEL://lmi//gjc//mail.bb")
+(login-setq *from-user-id* "gjc")
+(login-setq *from-host* "LMI-ANGEL")
+(login-setq fs:user-personal-name-first-name-first "George Carrette")

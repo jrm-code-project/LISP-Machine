@@ -1,0 +1,51 @@
+
+ TCP-IP INSTALLATION INSTRUCTIONS FOR RELEASE 3.0
+
+
+(Step 1) Install Excelan Hardware
+(Step 2) boot machine. it will say:
+
+[WARNING: TCP network hardware available but no INTERNET address given]
+[REQUEST: Please update site and machine configuration]
+
+    Unless the user has customized his site files and saved his bands already
+    and assigned INTERNET addresses, in which case it will say:
+
+[WARNING: TCP network hardware download data not loaded. Not initializing]
+[REQUEST: Please install TCP or call LMI software support]
+
+
+
+At this point we can procedure with the TCP test installation.
+
+(Step 3)
+
+  Evaluate:
+
+ (TCP:CRYPT-DOWNLOAD-DATA "some password" "some-code")
+
+
+The pair "some-code" and "some password" go together, and are known by Dave Goodine.
+
+
+(Step 4)  This is the usual tests to make sure hardware, including ethernet cables and transceivers
+          are working correctly. The address "100.0.0.1" should be changed to whatever is proper
+          at the particular site. And "100.0.0.2" to whatever other machine is on the site.
+
+  (TCP:START :MY-INTERNET-ADDRESS "100.0.0.1")
+
+  (TCP-APPLICATION:TELNET-GLASS-TTY "100.0.0.1" 'SMTP T)  ;; loop-back-test to our own mail server.
+   QUIT
+
+  (TCP-APPLICATION:TELNET-GLASS-TTY "100.0.0.2")  ;; connection to telnet server on some remote host.
+  <ABORT>
+
+(Step 5) Hardware is now checked out. Now on to site files. This is the same as in RELEASE 2.0
+
+  Exception: If there are other LMI-LAMBDA's at a site, or some machine that provides
+             a TIME server implementing the protocol documented in RFC-868
+             via TCP-IP then these can be added to the site option:
+
+                (:TIME-SERVER-HOSTS '("LAMBDA-A" "LAMBDA-B" "MACHINE-X"))
+
+             So that (:STANDALONE NIL) is the proper thing in this case.

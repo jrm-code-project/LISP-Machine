@@ -1,0 +1,99 @@
+-*- Mode:Text -*-
+
+Multibus address space
+8/5/86
+
+Multibus I/O Space:
+
+I/O space is considered to be an 8-bit space for purposes of allocation,
+but this is probably not necessary.  The current devices decode 12 or 16
+bits, so it should be possible to use more than the first 256 locations.
+
+Customers may use I/O ports 0xc0 .. 0xff.  LMI will attempt to keep these
+free in future releases.
+
+Multibus I/O space:
+        0x2000..0x3f00  TITN
+        0x40 .. 0x43    smd 2181
+        0x60 .. 0x63    tapemaster
+        0x80 .. 0x87    mti (systech serial mux)
+        0xa0 .. 0xa7    excelan ethernet
+
+Multibus Memory Space:
+
+The system uses a 20-bit Multibus address space.  The devices listed in
+the table are the only fixed addresses at present.  Multibus devices and
+SDU programs that do DMA access to the NuBus must have additional
+multibus space to use for the transactions that are mapped to the NuBus.
+
+20-bit Multibus memory space:
+        0x0-ffff        0 .. 63k        SDU RAM
+        0x18000-18fff   96 .. 99k       SDU multibus => nubus map control registers
+        0x1c000         112k            SDU registers (serial ports etc.)
+        0x1e000-1ffff   120 .. 127k     SDU cmos ram
+        x20000-23fff    128 .. 143k     Reliance serial I/O
+        x2f8000         190k            Burr-brown debug master (second)
+        x2fc000         191k            Burr-brown debug master (first)
+        x30000-31fff    192 .. 199k     3com ethernet
+        x38000-3ffff    224 .. 255k     CDC serial I/O
+        x40000-xeffff   256 .. 960k     Dynamically allocated area
+        xf0000-xfffff   960 .. 1023k    SDU ROM
+
+The "dynamically allocated area" is the resource for the Boot software
+and for the DMA transfers for normal operation of all the processors.
+Space in this area is allocated from the bottom up; whatever is left is
+available for user-defined Multibus operations and is allocated from the
+top down.  This ensures that the user-defined area is at a fixed
+location (the top end, at least) independent of the amount of the
+available space.
+
+To compute the available space, subtract the appropriate numbers shown
+below from 700k.
+
+Space required for all configurations:
+        100k    SDU Boot (Newboot)
+        140k    LAMBDA (each)
+        70k     System V UNIX (each)
+        50k     2.0 V7 UNIX (each)
+
+Space taken by optional DMA devices:
+        70k     Tapemaster 1/2" tape
+        30k     Excelan Ethernet (each)
+        4k      MTI serial I/O (each)
+        ??      CDC serial I/O
+        ??      Reliance serial I/O
+
+For example, the following table shows the available space for some
+configurations, not including any optional DMA devices.
+
+Space available, not including optional DMA devices:
+        460k    LAMBDA
+        390k    LAMBDA-Plus (System V)
+        320k    LAMBDA 2x2
+        250k    2x2-Plus (System V)
+        184k    LAMBDA 3x3
+
+The "available space" may be reserved by the using the SDU Config
+program "system maps" command.  Config warns if the reserved space is
+close to the limit.  If too much space is reserved, the machine will fail
+to boot or may crash after some time.
+
+Note that the available space computed and printed by Config is for V7
+UNIX, and so should be decreased by 20k for System V.
+
+For nB bytes of user-defined space, the address range is:
+        (#xF0000 - nB) .. #xEFFFF
+So, for 64k, that is #xE0000 .. #xEFFFF.
+
+=============================================
+
+Multibus interrupts:
+
+        0       3com Ethernet
+        1       SDU IOMSG (software)
+        2       Tapemaster 1/2" tape (unix)
+        3       <free>
+        4       SMD 2181 disk controller
+        5       <free>
+        6       MTI serial I/O
+        7       SDU disk driver (software)

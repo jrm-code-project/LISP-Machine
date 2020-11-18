@@ -1,0 +1,33 @@
+;;-*-Mode:LISP;Package:ZWEI;Base:10;ReadTable:CL-*-
+
+(login-setq *zmail-startup-file-name* "ANGEL: /lmi/cstacy/mail.bb"
+            *zmail-homedir-real-new-mail-filename* "ANGEL: /usr/spool/mail/cstacy"
+            *zmail-usual-mail-file-directory* "ANGEL: /lmi/cstacy/"
+            fs:user-personal-name-first-name-first "Christopher C. Stacy"
+            *from-user-id* "cstacy"
+            *from-host* (si:parse-host "ANGEL"))
+
+(login-setq *prune-headers-after-yanking* t
+            *default-mail-window-configuration* ':msg
+            *reply-window-mode* ':yank
+            *require-subjects* ':init
+            *inhibit-background-mail-checks* t)
+
+(pushnew '("FALCON"
+            :value "FALCON"
+            :documentation "Report an issue for the Falcon development group")
+         zwei:*zmail-bug-list*
+         :key #'car
+         :test #'string-equal)
+
+(pushnew '("FALCON-COMPILER"
+            :value "FALCON-COMPILER"
+            :documentation "Report an issue for the Falcon Compiler development group")
+         zwei:*zmail-bug-list*
+         :key #'car
+         :test #'string-equal)
+
+(pushnew '("RTFL" :value "rtfl" :documentation "")
+         zwei:*zmail-bug-list*
+         :key #'car
+         :test #'string-equal)

@@ -1,0 +1,566 @@
+-*- Mode:Text; Package:USER -*-
+(defun tak (x y z)
+  (if (not (< y x))
+      z
+    (tak (tak (1- x) y z)
+         (tak (1- y) z x)
+         (tak (1- z) x y))))
+
+TAK:
+ 16 PUSH ARG|1                ;Y
+ 17 < ARG|0                   ;X
+ 18 BR-NOT-NIL 20
+ 19 MOVE D-RETURN ARG|2       ;Z
+ 20 CALL D-RETURN FEF|6       ;#'TAK
+ 21 CALL D-PDL FEF|6          ;#'TAK
+ 22 PUSH 1- ARG|0             ;X
+ 23 PUSH ARG|1                ;Y
+ 24 MOVE D-LAST ARG|2         ;Z
+ 25 CALL D-PDL FEF|6          ;#'TAK
+ 26 PUSH 1- ARG|1             ;Y
+ 27 PUSH ARG|2                ;Z
+ 28 MOVE D-LAST ARG|0         ;X
+ 29 CALL D-LAST FEF|6         ;#'TAK
+ 30 PUSH 1- ARG|2             ;Z
+ 31 PUSH ARG|0                ;X
+ 32 MOVE D-LAST ARG|1         ;Y
+
+
+(tak 18. 12. 6)
+
+(1 ENTER TAK: 18 12 6)
+  (2 ENTER TAK: 17 12 6)
+    (3 ENTER TAK: 16 12 6)
+      (4 ENTER TAK: 15 12 6)
+        (5 ENTER TAK: 14 12 6)
+          (6 ENTER TAK: 13 12 6)
+            (7 ENTER TAK: 12 12 6)
+            (7 EXIT TAK: 6)
+            (7 ENTER TAK: 11 6 13)
+              (8 ENTER TAK: 10 6 13)
+                (9 ENTER TAK: 9 6 13)
+                  (10 ENTER TAK: 8 6 13)
+                    (11 ENTER TAK: 7 6 13)
+                      (12 ENTER TAK: 6 6 13)
+                      (12 EXIT TAK: 13)
+                      (12 ENTER TAK: 5 13 7)
+                      (12 EXIT TAK: 7)
+                      (12 ENTER TAK: 12 7 6)
+                        (13 ENTER TAK: 11 7 6)
+                          (14 ENTER TAK: 10 7 6)
+                            (15 ENTER TAK: 9 7 6)
+                              (16 ENTER TAK: 8 7 6)
+                                (17 ENTER TAK: 7 7 6)
+                                (17 EXIT TAK: 6)
+                                (17 ENTER TAK: 6 6 8)
+                                (17 EXIT TAK: 8)
+                                (17 ENTER TAK: 5 8 7)
+                                (17 EXIT TAK: 7)
+                                (17 ENTER TAK: 6 8 7)
+                                (17 EXIT TAK: 7)
+                              (16 EXIT TAK: 7)
+
+We examine the first level 16 call to tak from its entry, through 3
+function calls, and this its exit.
+
+(tak 8. 7. 6.)
+ 16 PUSH ARG|1                ;Y <7>
+ 17 < ARG|0                   ;X <8>
+ 18 BR-NOT-NIL 20
+ ...
+ 20 CALL D-RETURN FEF|6       ;#'TAK
+ 21 CALL D-PDL FEF|6          ;#'TAK
+ 22 PUSH 1- ARG|0             ;X <8>
+ 23 PUSH ARG|1                ;Y <7>
+ 24 MOVE D-LAST ARG|2         ;Z <6>
+   (tak 7 7 6)
+   16 PUSH ARG|1                ;Y <7>
+   17 < ARG|0                   ;X <7>
+   18 BR-NOT-NIL 20
+   19 MOVE D-RETURN ARG|2       ;Z <6>
+      ... return is to D-PDL ...
+ 25 CALL D-PDL FEF|6          ;#'TAK
+ 26 PUSH 1- ARG|1             ;Y <7>
+ 27 PUSH ARG|2                ;Z <6>
+ 28 MOVE D-LAST ARG|0         ;X <8>
+   (tak 6 6 8)
+   16 PUSH ARG|1                ;Y <6>
+   17 < ARG|0                   ;X <6>
+   18 BR-NOT-NIL 20
+   19 MOVE D-RETURN ARG|2       ;Z <8>
+      ... return is to D-PDL ...
+ 29 CALL D-LAST FEF|6         ;#'TAK
+ 30 PUSH 1- ARG|2             ;Z <6>
+ 31 PUSH ARG|0                ;X <8>
+ 32 MOVE D-LAST ARG|1         ;Y <7>
+   (tak 5 8 7)
+   16 PUSH ARG|1                ;Y <8>
+   17 < ARG|0                   ;X <5>
+   18 BR-NOT-NIL 20
+   19 MOVE D-RETURN ARG|2       ;Z <7>
+      ... return is to D-LAST ...
+   (tak 6 8 7)
+   16 PUSH ARG|1                ;Y <8>
+   17 < ARG|0                   ;X <6>
+   18 BR-NOT-NIL 20
+   19 MOVE D-RETURN ARG|2       ;Z <7>
+      ... return is to D-RETURN ...
+
+
+And now, a list of the micro-instructions actually run by a lambda.
+
+
+(tak 8. 7. 6.)
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        >>memory delay<<
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 16 PUSH ARG|1                ;Y <7>
+qimove-pdl-arg (macro-ir-decode (move pdl arg))
+        (popj-after-next
+          (pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+       ((c-pdl-buffer-pointer-push m-t) q-typed-pointer c-pdl-buffer-index)
+ 17 < ARG|0                   ;X <8>
+qlsp-arg   (macro-ir-decode (qind2 < arg))
+        ((pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+        (jump-data-type-not-equal c-pdl-buffer-index
+                (a-constant (byte-value q-data-type dtp-fix)) qlsp-hard-pi)
+        (jump-data-type-not-equal c-pdl-buffer-pointer
+                (a-constant (byte-value q-data-type dtp-fix)) qlsp-hard-pi)
+        ((M-1) OUTPUT-SELECTOR-EXTEND-25 C-PDL-BUFFER-POINTER-POP)
+        ((M-2) OUTPUT-SELECTOR-EXTEND-25 C-PDL-BUFFER-INDEX)
+        ((M-T) A-V-NIL)
+        (POPJ-AFTER-NEXT POPJ-GREATER-OR-EQUAL M-1 A-2)  >>condition fails<<
+       ((M-T) A-V-TRUE)
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        >>memory delay<<
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 18 BR-NOT-NIL 20
+qbrnnl-pos (macro-ir-decode (branch qbrnnl (0 1 2 3)))
+        (popj-equal m-t a-v-nil)  >>codition fails<<
+        ((m-1) dpb macro-ir (byte-field 8. 1) a-zero)
+        (popj-after-next (location-counter) add location-counter a-1)
+       (no-op)
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        >>memory delay<<
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 20 CALL D-RETURN FEF|6       ;#'TAK
+qicall-fef      (macro-ir-decode (call * (0 1 2 3)))
+        ((m-1) ldb (byte-field 8 0) macro-ir)
+        ((vma-start-read) add m-fef a-1)
+        (check-page-read)
+        >>memory delay<<
+        (dispatch transport read-memory-data)
+        (no-op)
+trans-evcp
+        (jump-if-bit-clear (byte-field 1 0) read-i-arg transport-header-drop-through)
+        ((m-tem1) md)
+        (popj-after-next
+          (vma-start-read) selective-deposit vma q-all-but-pointer a-tem1)
+       (check-page-read)
+
+        (dispatch transport read-memory-data)
+
+        ((m-t) q-typed-pointer md)
+
+CBM     ((M-C) macro-ir-DEST)           ;EVENTUAL DESTINATION
+CBM0                                    ;%OPEN-CALL-BLOCK etc. call in here
+        ((M-ZR) ADD PDL-BUFFER-POINTER  ;Open macro-to-macro call block
+                 (A-CONSTANT (EVAL %LP-CALL-BLOCK-LENGTH)))
+        ((M-TEM) SUB M-ZR A-IPMARK)     ;Compute delta to prev open block
+        ((m-TEM1) DPB M-TEM (LISP-BYTE %%LP-CLS-DELTA-TO-OPEN-BLOCK)
+                A-DEFAULT-CALL-STATE)   ;Normally fixnum 0, has %%lp-cls-attention set if
+                                        ; metering enabled.
+        ((M-TEM) SUB M-ZR A-AP)         ;Compute delta to prev active block
+        ((m-TEM1) DPB M-TEM (LISP-BYTE %%LP-CLS-DELTA-TO-ACTIVE-BLOCK) A-TEM1)
+        ((C-PDL-BUFFER-POINTER-PUSH)    ;Push LPCLS Q
+            DPB M-C (LISP-BYTE %%LP-CLS-DESTINATION) A-TEM1)
+        ((C-PDL-BUFFER-POINTER-PUSH)    ;Push LPEXS Q
+            (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-FIX)))
+        ((C-PDL-BUFFER-POINTER-PUSH)    ;Push LPENS Q
+            (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-FIX)))
+        (POPJ-AFTER-NEXT                ;Push LPFEF Q
+          (C-PDL-BUFFER-POINTER-PUSH) M-T)
+       ((A-IPMARK) PDL-BUFFER-ADDRESS-MASK M-ZR)        ;A-IPMARK -> new open block
+ 21 CALL D-PDL FEF|6          ;#'TAK
+qicall-fef      (macro-ir-decode (call * (0 1 2 3)))
+        ((m-1) ldb (byte-field 8 0) macro-ir)
+        ((vma-start-read) add m-fef a-1)
+        (check-page-read)
+        (dispatch transport read-memory-data)
+        (no-op)
+trans-evcp
+        (jump-if-bit-clear (byte-field 1 0) read-i-arg transport-header-drop-through)
+        ((m-tem1) md)
+        (popj-after-next
+          (vma-start-read) selective-deposit vma q-all-but-pointer a-tem1)
+       (check-page-read)
+
+        (dispatch transport read-memory-data)
+
+        ((m-t) q-typed-pointer md)
+
+CBM     ((M-C) macro-ir-DEST)           ;EVENTUAL DESTINATION
+CBM0                                    ;%OPEN-CALL-BLOCK etc. call in here
+        ((M-ZR) ADD PDL-BUFFER-POINTER  ;Open macro-to-macro call block
+                 (A-CONSTANT (EVAL %LP-CALL-BLOCK-LENGTH)))
+        ((M-TEM) SUB M-ZR A-IPMARK)     ;Compute delta to prev open block
+        ((m-TEM1) DPB M-TEM (LISP-BYTE %%LP-CLS-DELTA-TO-OPEN-BLOCK)
+                A-DEFAULT-CALL-STATE)   ;Normally fixnum 0, has %%lp-cls-attention set if
+                                        ; metering enabled.
+        ((M-TEM) SUB M-ZR A-AP)         ;Compute delta to prev active block
+        ((m-TEM1) DPB M-TEM (LISP-BYTE %%LP-CLS-DELTA-TO-ACTIVE-BLOCK) A-TEM1)
+        ((C-PDL-BUFFER-POINTER-PUSH)    ;Push LPCLS Q
+            DPB M-C (LISP-BYTE %%LP-CLS-DESTINATION) A-TEM1)
+        ((C-PDL-BUFFER-POINTER-PUSH)    ;Push LPEXS Q
+            (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-FIX)))
+        ((C-PDL-BUFFER-POINTER-PUSH)    ;Push LPENS Q
+            (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-FIX)))
+        (POPJ-AFTER-NEXT                ;Push LPFEF Q
+          (C-PDL-BUFFER-POINTER-PUSH) M-T)
+       ((A-IPMARK) PDL-BUFFER-ADDRESS-MASK M-ZR)        ;A-IPMARK -> new open block
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        >>memory delay<<
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 22 PUSH 1- ARG|0             ;X <8>
+q-one-minus-arg (macro-ir-decode (qind5 1- arg))
+        ((pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+        (jump-data-type-not-equal c-pdl-buffer-index
+           (a-constant (byte-value q-data-type dtp-fix)) q-one-minus-local-hard)
+        ((m-t) output-selector-mask-25 add c-pdl-buffer-index
+                (a-constant (plus (byte-value q-data-type dtp-fix) (byte-value q-pointer -1))))
+        (jump-equal m-t (a-constant (plus (byte-value q-data-type dtp-fix)
+                                          (byte-value boxed-num-except-sign-bit -1)))
+                    q-one-minus-overflow)
+        (popj-after-next
+          (pdl-push) dpb m-t q-all-but-cdr-code (a-constant (byte-value q-cdr-code cdr-next)))
+        (no-op)
+ 23 PUSH ARG|1                ;Y <7>
+qimove-pdl-arg (macro-ir-decode (move pdl arg))
+        (popj-after-next
+          (pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+       ((c-pdl-buffer-pointer-push m-t) q-typed-pointer c-pdl-buffer-index)
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        >>memory delay<<
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 24 MOVE D-LAST ARG|2         ;Z <6>
+qimove-last-arg (macro-ir-decode (move last arg))
+        ((pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+        (jump-xct-next qmrcl)
+       ((c-pdl-buffer-pointer-push) dpb c-pdl-buffer-index q-all-but-cdr-code
+            (a-constant (byte-value q-cdr-code cdr-nil)))
+;;; Activate pending call.
+QMRCL   ((M-S PDL-INDEX) M-AP)
+     ;; Shift 2 to align with location counter.
+        ((m-TEM1) DPB PDL-INDEX-INDIRECT (BYTE-FIELD Q-POINTER-WIDTH #+lambda 2 #+exp 1)
+                                 (A-CONSTANT 0))
+          ;Relative PC (hwds)
+        ((M-TEM) SUB LOCATION-COUNTER A-TEM1 #+lambda OUTPUT-SELECTOR-RIGHTSHIFT-1)
+        ((M-AP PDL-INDEX) A-IPMARK)
+        ((M-A) Q-TYPED-POINTER C-PDL-BUFFER-INDEX)
+        ((m-fef) m-a)
+     ;; M-R passes argument count to callee.
+        ((M-R) SUB OUTPUT-SELECTOR-MASK-11 PDL-BUFFER-POINTER A-IPMARK)
+     ;; Build exit-state word from PC, M-FLAGS, and previous contents (old QLLV)
+        ((PDL-INDEX) ADD M-S (A-CONSTANT (EVAL %LP-EXIT-STATE)))
+     ;; Code knows that %%LP-EXS-EXIT-PC is 0017
+        ((m-TEM1) SELECTIVE-DEPOSIT PDL-INDEX-INDIRECT (BYTE-FIELD 21 17) A-TEM)
+     ;; Save M-QBBFL then clear it. (cleared after dispatch-xct-next below for speed)
+        ((PDL-INDEX-INDIRECT) DPB M-FLAGS (LISP-BYTE %%LP-EXS-PC-STATUS) A-TEM1)
+     ;; Following code integrated from old FINISH-ENTERED-FRAME.
+        ((PDL-INDEX) ADD M-AP (A-CONSTANT (EVAL %LP-ENTRY-STATE)))
+        ((M-TEM) C-PDL-BUFFER-INDEX)
+        ((C-PDL-BUFFER-INDEX) DPB M-R (LISP-BYTE %%LP-ENS-NUM-ARGS-SUPPLIED) A-TEM)
+     ;; Compute new pdl level in PDL-INDEX (truncated to 10 bits).
+        ((PDL-INDEX) SUB M-AP A-S)
+        ((M-PDL-BUFFER-ACTIVE-QS) ADD PDL-INDEX A-PDL-BUFFER-ACTIVE-QS)
+     ;; Note: M-FLAGS must be taken care of in PDL-BUFFER-DUMP, also.
+        (CALL-GREATER-THAN M-PDL-BUFFER-ACTIVE-QS A-PDL-BUFFER-HIGH-WARNING
+            PDL-BUFFER-DUMP-RESET-FLAGS)
+        (dispatch-xct-next qmrcl-dispatch m-a)
+       ((M-FLAGS) SELECTIVE-DEPOSIT M-FLAGS M-FLAGS-EXCEPT-PROCESSOR-FLAGS A-ZERO)
+
+QLENTR
+#-LAMBDA((VMA-START-READ) M-A)  ;THIS CYCLE STARTED BY DISPATCH-START-MEM-READ ON LAMBDA.
+        (CHECK-PAGE-READ)
+   ;no transport necessary since MD not a pointer.
+meter-function-entry-return
+        (DISPATCH-XCT-NEXT (LISP-BYTE %%HEADER-TYPE-FIELD) MD D-QLENTR-DISPATCH)
+       ((M-J) (LISP-BYTE %%FEFH-PC) MD) ;MAY GET CHANGED DUE TO OPTIONAL ARGS.
+
+
+QLENTR-FAST-FIXED-NO-LOCALS
+        ((M-1) DPB M-A (BYTE-FIELD Q-POINTER-WIDTH 1) (A-CONSTANT 0))   ;NOW UNRELOCATE PC
+        ((LOCATION-COUNTER) ADD M-1 A-J #+lambda OUTPUT-SELECTOR-LEFTSHIFT-1)
+        ((M-E) (LISP-BYTE %%FEFH-ARGS-FOR-FANL) MD)
+        (POPJ-EQUAL M-E A-R)
+       ((A-IPMARK) M-AP)        ;NO OPEN CALL BLOCK YET
+
+   (tak 7 7 6)
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        >>memory delay<<
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+   16 PUSH ARG|1                ;Y <7>
+qimove-pdl-arg (macro-ir-decode (move pdl arg))
+        (popj-after-next
+          (pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+       ((c-pdl-buffer-pointer-push m-t) q-typed-pointer c-pdl-buffer-index)
+   17 < ARG|0                   ;X <7>
+qlsp-arg   (macro-ir-decode (qind2 < arg))
+        ((pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+        (jump-data-type-not-equal c-pdl-buffer-index
+                (a-constant (byte-value q-data-type dtp-fix)) qlsp-hard-pi)
+        (jump-data-type-not-equal c-pdl-buffer-pointer
+                (a-constant (byte-value q-data-type dtp-fix)) qlsp-hard-pi)
+        ((M-1) OUTPUT-SELECTOR-EXTEND-25 C-PDL-BUFFER-POINTER-POP)
+        ((M-2) OUTPUT-SELECTOR-EXTEND-25 C-PDL-BUFFER-INDEX)
+        ((M-T) A-V-NIL)
+        (POPJ-AFTER-NEXT POPJ-GREATER-OR-EQUAL M-1 A-2)  >>condition fails<<
+       ((M-T) A-V-TRUE)
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        >>memory delay<<
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+   18 BR-NOT-NIL 20
+qbrnnl-pos (macro-ir-decode (branch qbrnnl (0 1 2 3)))
+        (popj-equal m-t a-v-nil)  >>codition is true<<
+        (no-op)
+   19 MOVE D-RETURN ARG|2       ;Z <6>
+      ... return is to D-PDL ...
+qimove-return-arg (macro-ir-decode (move return arg))
+        ((pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+        (jump-xct-next qmddr)
+       ((m-t) q-typed-pointer c-pdl-buffer-index)
+
+QMDDR
+FAST-QMDDR
+;;; DESTINATION RETURN  value in M-T.  Q-ALL-BUT-TYPED-POINTER bits must be 0.
+        (CALL-DATA-TYPE-EQUAL M-T (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-STACK-CLOSURE))
+                    STACK-CLOSURE-RETURN-TRAP)   ;do this first because it can result
+                ;in attention getting set in current frame!.
+        ((PDL-INDEX) ADD M-AP (A-CONSTANT (EVAL %LP-CALL-STATE)))
+        ((M-C) PDL-INDEX-INDIRECT)
+        (JUMP-IF-BIT-SET (LISP-BYTE %%LP-CLS-ATTENTION) PDL-INDEX-INDIRECT QMDDR-SLOW)
+        ((PDL-POINTER) SUB M-AP (A-CONSTANT (EVAL %LP-CALL-BLOCK-LENGTH))) ;FLUSH PDL
+        ((m-TEM1) (LISP-BYTE %%LP-CLS-DELTA-TO-OPEN-BLOCK) M-C)
+        ((A-IPMARK) SUB OUTPUT-SELECTOR-MASK-11 M-AP A-TEM1)            ;COMPUTE PREV A-IPMARK
+        ((m-TEM1) (LISP-BYTE %%LP-CLS-DELTA-TO-ACTIVE-BLOCK) M-C)
+        ((M-AP PDL-INDEX) SUB OUTPUT-SELECTOR-MASK-11 M-AP A-TEM1)      ;RESTORE M-AP
+        ((M-PDL-BUFFER-ACTIVE-QS) SUB M-PDL-BUFFER-ACTIVE-QS A-TEM1)
+        ;; Make sure frame being returned to is in the pdl buffer
+        (CALL-LESS-THAN M-PDL-BUFFER-ACTIVE-QS
+                        (A-CONSTANT PDL-BUFFER-LOW-WARNING) PDL-BUFFER-REFILL)
+        ;; Now restore the state of the frame being returned to.  We will restore
+        ;; the FEF stuff even if it's not a FEF frame, at the cost of a slight
+        ;; amount of time.
+
+        ((M-A) Q-POINTER PDL-INDEX-INDIRECT)    ;FUNCTION RETURNING TO
+        ((m-fef) pdl-index-indirect)            ;do this after pdl-buffer-refill.
+        ((PDL-INDEX) ADD M-AP (A-CONSTANT (EVAL %LP-ENTRY-STATE)))
+        ((M-TEM) (LISP-BYTE %%LP-ENS-MACRO-LOCAL-BLOCK-ORIGIN) PDL-INDEX-INDIRECT)
+        ((A-LOCALP) ADD M-AP A-TEM)
+        ((PDL-INDEX) ADD M-AP (A-CONSTANT (EVAL %LP-EXIT-STATE)))
+        ((M-FLAGS) (LISP-BYTE %%LP-EXS-PC-STATUS) PDL-INDEX-INDIRECT A-FLAGS)
+
+                                ;FEF address in bytes
+        ((M-TEM) DPB M-A (BYTE-FIELD Q-POINTER-WIDTH 2) (A-CONSTANT 0))
+        ((m-TEM1) DPB PDL-INDEX-INDIRECT (BYTE-FIELD 17 1) A-ZERO)
+                        ;CODE KNOWS THAT %%LP-EXS-EXIT-PC IS 0017
+        ((LOCATION-COUNTER) ADD M-TEM A-TEM1)
+F-QIMOVE-EXIT   ;Store into destination in M-C.  Could be D-MICRO
+        (DISPATCH (LISP-BYTE %%LP-CLS-DESTINATION) M-C QMDTBD) >>popj-xct-next in this cae<<
+       ((PDL-PUSH) DPB M-T Q-ALL-BUT-CDR-CODE
+                        (A-CONSTANT (BYTE-VALUE Q-CDR-CODE CDR-NEXT)))
+
+ 25 CALL D-PDL FEF|6          ;#'TAK
+ 26 PUSH 1- ARG|1             ;Y <7>
+ 27 PUSH ARG|2                ;Z <6>
+ 28 MOVE D-LAST ARG|0         ;X <8>
+   (tak 6 6 8)
+   16 PUSH ARG|1                ;Y <6>
+   17 < ARG|0                   ;X <6>
+   18 BR-NOT-NIL 20
+   19 MOVE D-RETURN ARG|2       ;Z <8>
+      ... return is to D-PDL ...
+ 29 CALL D-LAST FEF|6         ;#'TAK
+ 30 PUSH 1- ARG|2             ;Z <6>
+ 31 PUSH ARG|0                ;X <8>
+ 32 MOVE D-LAST ARG|1         ;Y <7>
+   (tak 5 8 7)
+   16 PUSH ARG|1                ;Y <8>
+   17 < ARG|0                   ;X <5>
+   18 BR-NOT-NIL 20
+   19 MOVE D-RETURN ARG|2       ;Z <7>
+      ... return is to D-LAST ...
+   (tak 6 8 7)
+   16 PUSH ARG|1                ;Y <8>
+   17 < ARG|0                   ;X <6>
+   18 BR-NOT-NIL 20
+   19 MOVE D-RETURN ARG|2       ;Z <7>
+      ... return is to D-RETURN ...
+
+
+Code for new machine
+
+(defun tak (x y z)
+  (if (not (< y x))
+      z
+    (tak (tak (1- x) y z)
+         (tak (1- y) z x)
+         (tak (1- z) x y))))
+
+PREV-ACTIVE - R00
+RET-ADR - R01
+NARGS - R02
+X - R03
+Y - R04
+Z - R05
+
+        call-not-equal R02 DTP-FIX-3 wrong-number-args
+        F1 <- R04
+        F2 <- R03
+        F3 <- ..0
+        F4 <- ..1
+        jump compare-less-than
+..0:    R-RETURN <- R05
+        jump return
+..1:    PP <- next frame
+        push FRAME-BASE
+        push ..2
+        push DTP-FIX 3
+        PP <- next frame
+        push FRAME-BASE
+        push ..3
+        push DTP-FIX 3
+        F01 <- R03
+        F02 <- ..4
+        jump sub1
+..4:    push F01
+        push R04
+        push R05
+        vma-start-read <- M-FEF + 6
+        check-page-read
+        F00 <- activate-frame
+        dispatch transport md
+..3:    PP <- prev frame
+        PP <- PP + 2
+        push R-RETURN
+        ...
+..2:    ...
+
+trans-evcp
+        ((m-tem1) md)
+        ((vma-start-read) selective-deposit vma q-all-but-pointer a-tem1)
+        (check-page-read)
+        (jump F00)
+
+
+activate-frame
+        FRAME-BASE <- PP ( & ~#xf )
+        jump-data-type-not-equal MD DTP-FEF-POINTER not-fef
+        MD <- (MD + 1) << 1
+        jump MD
+
+return
+        MD <- R01
+        FRAME-BASE <- R00
+        jump MD
+
+compare-less-than
+        compare-data-type-equal F0 dtp-fix
+        jump-not-equal hard
+        compare-data-type-equal F1 dtp-fix
+        jump-not-equal hard
+        F0 extend-25 F0
+        F1 extend-25 F1
+        compare F0 F1
+        jump-less-than F2
+        jump F3
+
+sub1
+        compare-data-type-equal F0 dtp-fix
+        jump-not-equal hard
+        F0 mask25 F0 - 1
+        jump-not-equal F0 overflow-value F1
+
+
+
+-----
+
+
+PREV-ACTIVE - R00
+RET-ADR - R01
+NARGS - R02
+X - R03
+Y - R04
+Z - R05
+
+        call-not-equal R02 DTP-FIX-3 wrong-number-args
+
+        compare-data-type-equal R04 dtp-fix
+        jump-not-equal hard
+        compare-data-type-equal R03 dtp-fix
+        jump-not-equal hard
+        R04 extend-25 R04
+        R03 extend-25 R03
+        compare R04 R03
+        jump-less-than ..1
+        R-RETURN <- R05
+        jump return
+
+..1:    PP <- next frame
+        push FRAME-BASE
+        push ..2
+        push DTP-FIX 3
+        PP <- next frame
+        push FRAME-BASE
+        push ..3
+        push DTP-FIX 3
+
+        compare-data-type-equal R03 dtp-fix
+        jump-not-equal hard
+        R03 mask25 R03 - 1
+        jump-equal R03 overflow-value hard
+
+        push R03
+        push R04
+        push R05
+        vma-start-read <- M-FEF + 6
+        check-page-read
+        F00 <- activate-frame
+        dispatch transport md
+
+..3:    PP <- prev frame
+        PP <- PP + 2
+        push R-RETURN
+        ...
+..2:    ...
+
+trans-evcp
+        ((m-tem1) md)
+        ((vma-start-read) selective-deposit vma q-all-but-pointer a-tem1)
+        (check-page-read)
+        (jump F00)
+
+
+activate-frame
+        FRAME-BASE <- PP ( & ~#xf )
+        jump-data-type-not-equal MD DTP-FEF-POINTER not-fef
+        LC <- (MD + 1) << 1
+
+return
+        MD <- R01
+        FRAME-BASE <- R00
+        jump MD

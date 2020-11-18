@@ -1,0 +1,1026 @@
+-*- Mode:Text; Package:COMPILER -*-
+What is Common Lisp?
+
+  1.  Common LISP consists of a set of EXPLICIT PRIMITIVES, IMPLICIT PRIMITIVES,
+      UTILITY FUNCTIONS, CONSTANTS, VARIABLES, and TYPES and a specification of the
+      behavior of these functions under certain circumstances.
+
+      An example of an explicit primitive is CAR.
+      An example of a utility function is MEMBER.
+      An example of a constant is MOST-POSITIVE-FIXNUM.
+      An example of a variable is *PRINT-PRETTY*.
+      An example of a type is SYMBOL.
+
+  2.  Common LISP is incomplete in that some of the primitives which Common
+      LISP provides are not specified.  For example, the SETF macro causes
+      (SETF (AREF <array> <index>) <new-value>) to change the contents of
+      the array.  Because SETF expands into lisp code that modifies the array,
+      there must be a primitive that can mutate the array.  Common LISP does
+      not specify a primitive that can modify an array.
+
+  3.  Common LISP is partially overspecified.  There are vestigal parts of things
+      left hanging in Common LISP.  An example is the optional ENV argument to
+      macroexpand.  It is there, but there is no way to examine, mutate, create
+      or do anything with it.  Another example is MOST-POSITIVE-FIXNUM.  Since
+      all Common LISP integer operators deal with FIXNUMs or BIGNUMs, there should
+      be no reason for the user to need this constant.  In addition, there is
+      no function he can call that will materially change the behavior of the machine if
+      this number is passed as an argument.  What is it for?
+
+  4.  Several functions in Common LISP do not specify what happens under boundary
+      conditions.  What happens if LENGTH is called on a circular list?
+
+  5.  Common LISP is vague.  *PRINT-PRETTY* specifies that the printer is to
+      "insert extra whitespace where apropriate to make the expression more
+       readable".
+
+Basically, Common LISP is obviously an incomplete kludge.  The danger here is if
+it turns into a complete kludge.  It is clear that some parts of Common LISP were
+to be specified at a later date.  Maybe macroenvironments will be implemented, for
+example.  The implementor has several choices to make as regards the unspecified
+parts of Common LISP.  Common LISP may in the future specify these things, and if
+the implementor has guessed wrong, he loses.
+
+What is ZETALISP?
+
+  1.  ZETALISP consists of a set of EXPLICIT PRIMITIVES,
+      UTILITY FUNCTIONS, CONSTANTS, VARIABLES, and TYPES and a specification of the
+      behavior of these functions under certain circumstances.
+
+  2.  ZETALISP is complete in that all of the primitives which ZETALISP
+      provides are specified (in the microcode).  For example, the SETF macro causes
+      (SETF (AREF <array> <index>) <new-value>) to change the contents of
+      the array.  Because SETF expands into lisp code that modifies the array,
+      there must be a primitive that can mutate the array.  ZETALISP provides
+      ASET.
+
+  3.  ZETALISP is not overspecified, every part of ZETALISP is there for a
+      purpose (albeit not always a good or even useful one).
+
+  4.  ZETALISP is defined by the environment running on the LISP machine.
+
+Our problem is that we have 10 megabytes of source in ZETALISP.  We cannot just
+throw it away.  Our second problem is that some of ZETALISP will not run on the
+K processor.  Please note that there is the danger that Common LISP will adopt
+something that cannot run on the K.  There is nothing to be done about that, but
+there may be some clout we could have if the K becomes popular.
+
+We can divide ZETALISP into several classes of functions, constants,
+variables and types.
+
+  1.  Common LISP compatible:  Where ZETALISP and Common LISP behave identically.
+      Code that is Common LISP compatible does not need any modification.
+
+  2.  Common LISP orthogonal:  ZETALISP utilities that would run equally well
+      under Common LISP.  Extra ZETALISP features.
+
+  3.  Common LISP superset:  Where Common LISP specifies that "it is an error"
+      to do some particular thing, ZETALISP allows such a thing.
+      Example "It is an error if the array specified as the :displaced-to argument
+      does not have th esame :element-type as the array being created."
+      ZETALISP allows that and "does the right thing" (which, actually, it shouldn't
+      as anyone using this kind of bagbiter is a loser anyway.)
+
+  4.  Common LISP incompatible:  ZETALISP does something completely different.
+
+  5.  K-machine incompatible:  Features that cannot work on the K.
+
+What do we want to offer to customers?
+
+  1.  A full Common LISP environment including the LISP, USER, KEYWORD, and
+      SYSTEM package.  The LISP package is to include all symbols mentioned
+      by Common LISP and all functions are to work as specified in Common
+      LISP.  Any strict Common LISP program should run in this package.
+
+  2.  A Common LISP extension package.  These are to be functions that will
+      be written in Common LISP and will be supported indefinitely.  The sources
+      should be available to the user and the user's code should remain
+      portable if he brings the sources over also.
+
+  3.  An object-oriented paradigm, probably Common LOOPS.
+
+  4.  A ZETALISP compatability package.  These are to be functions that will
+      be written in Common LISP, but perhaps not supported indefinitely.
+      Portable code should be able to be written using these sources, but it
+      should be discouraged.
+
+  5.  An EMACS editor, a compiler, an inspector, a debugger, an interpreter (evaluator),
+      job control, and a garbage collector.
+
+  6.  A standard window system, when a standard is available.
+
+What do we not want to offer to customers?
+
+  1.  Any feature that we are not willing to support until the end of the world.
+      Note that any feature that we add is likely to be used and will cost
+      manpower to maintain.  We may also have compatability problems across
+      systems when we finally abandon the K and move on to better things.
+
+  2.  The internal system code.  This is not so much for "security purposes" but to
+      protect ourselves from the customers who won't listen to "don't use this feature"
+      warnings.  It may be true that we treat our customers like children, but
+      unhappy customers generate less income than bug reports and pull down valuable
+      programmers.  I would rather piss off a thousand RMS's than one MCC.
+
+What this means for the system.
+
+  Anything we want to put in the system that will work, we can!  This means we can
+use flavors in the editor, we can keep the old window system, we can keep or flush
+what we want.  The decisions on what to keep and what to flush should be based on
+cost of maintenance only.
+
+Abstraction
+   Abstraction is the most powerful tool to reduce the complexity of a system
+and make it understandable.  This is an amazingly simple concept that almost
+everyone ignores totally.  They lose because of it.
+
+Modularity
+   A modular system is easier to maintain.  A modular system means that local
+changes will not have global effects and that black box abstraction works.  This
+means that working code will be less likely to break when other code is changed,
+and that non-specialized people can maintian this code without having detailed
+knowledge of the system.
+
+Models
+   All code should present an intuitive model of what is going on.  In some
+cases, this is not possible, but in most of the cases, it is just not
+documented.  It is difficult to get programmers to document their code, but
+if we can get them to at least think about the model, the code may end up
+more maintainable (this is weak.)
+
+Familiarity
+   All new code should be written in Common LISP to facilitate bringing new
+programmers up to speed.
+
+The BIG BOOJUMS
+
+   ZWEI
+   WINDOW SYSTEM
+   FLAVORS
+   JOB CONTROL
+   RUBOUT HANDLER
+
+Flavors
+  The big problem with flavors is that people will be wanting to use Common LOOPS.
+They are not incompatible (I think it is possible to implement Flavors as
+a Common LOOPS meta-class).  Supporting two object oriented paradigms is not a
+good idea.  Unfortunately, Common LOOPS is not complete and is unlikely to be
+completed by the time we need it.
+The right thing to do here is
+
+  1) Abandon Flavors where they are not needed.  Object oriented paradigms
+     provide two things:  generic operations and controlled inheritance.
+     Some of the things that use flavors do not need this kind of power.
+     Common LISP implementations should not use them.
+
+  either
+     2) Implement Flavors natively on the new machine.  Just do this to
+        bring up the editor.  This isn't too hard (I don't think).  The advantage
+        is that it is a known problem.
+
+          or
+
+     3) Implement Common LOOPS on the new machine and bring up flavors
+        on top of it.   This may be hard (it may not, RPK would know).  The
+        problem here is if the Common LISP community does not accept
+        Common LOOPS (unlikely).
+
+  eventually
+    4)  Rewrite the parts of the code that use flavors to use the new
+        object oriented paradigm whatever that might be.  This will not
+        be too bad, one object oriented system is as good/bad as another, but
+        it may involve some subtleties.  It will still be easier than
+        maintaining 2 systems.   In the interim, we should figure out what
+        to give the customers who are using flavors.  If we take on option
+        3, we can just give them that.
+
+This is a list of ZETALISP primitives.
+
+ CAR
+ CDR
+ CAAR
+ CADR
+ CDAR
+ CDDR
+ CAAAR
+ CAADR
+ CADAR
+ CADDR
+ CDAAR
+ CDADR
+ CDDAR
+ CDDDR
+ CAAAAR
+ CAAADR
+ CAADAR
+ CAADDR
+ CADAAR
+ CADADR
+ CADDAR
+ CADDDR
+ CDAAAR
+ CDAADR
+ CDADAR
+ CDADDR
+ CDDAAR
+ CDDADR
+ CDDDAR
+ CDDDDR
+
+ %LOAD-FROM-HIGHER-CONTEXT
+ %LOCATE-IN-HIGHER-CONTEXT
+ %STORE-IN-HIGHER-CONTEXT
+ %DATA-TYPE
+ %POINTER
+ %MAKE-REST-ARG-SAFE
+;(DEFMIC %PERMIT-TAIL-RECURSION 306 () NIL T)
+ INTERNAL-FLOAT
+ %MAKE-POINTER
+ %SPREAD
+ %P-STORE-CONTENTS
+ %LOGLDB
+ %LOGDPB
+ LDB
+ DPB
+ %P-STORE-TAG-AND-POINTER
+
+ INTERNAL-GET-2
+ GETL
+ ASSQ
+ LAST
+ LENGTH
+ 1+
+ 1-
+ RPLACA
+ RPLACD
+ ZEROP
+ SET
+ INTEGERP
+ (FIXP . INTEGERP)
+ FLOATP
+ EQUAL
+ %SET-SELF-MAPPING-TABLE
+ PDL-WORD
+ FALSE
+ TRUE
+ NOT
+ (NULL . NOT)
+ ATOM
+ ODDP
+ EVENP
+ %HALT
+ GET-PNAME
+ (SYMBOL-NAME . GET-PNAME)
+ LSH
+ ROT
+ *BOOLE
+ NUMBERP
+ PLUSP
+ MINUSP
+ \
+ MINUS
+ %SXHASH-STRING
+ VALUE-CELL-LOCATION
+ FUNCTION-CELL-LOCATION
+ PROPERTY-CELL-LOCATION
+ NCONS
+ NCONS-IN-AREA
+ CONS
+ CONS-IN-AREA
+ XCONS
+ XCONS-IN-AREA
+ %SPREAD-N
+ SYMEVAL
+ (SYMBOL-VALUE . SYMEVAL)
+ POP-M-FROM-UNDER-N
+ GET-LEXICAL-VALUE-CELL
+ %CALL-MULT-VALUE
+ %CALL0-MULT-VALUE
+ %RETURN-2
+ %RETURN-3
+ %RETURN-N
+ RETURN-NEXT-VALUE
+ RETURN-LIST
+ UNBIND-TO-INDEX-UNDER-N
+ %BIND
+ (BIND . %BIND)
+ %NWAY-BRANCH
+ MEMQ
+ (INTERNAL-< . M-<)
+ (INTERNAL-> . M->)
+ (INTERNAL-= . M-=)
+ INTERNAL-CHAR-EQUAL
+ %STRING-SEARCH-CHAR
+ %STRING-EQUAL
+ NTH
+ NTHCDR
+ (*PLUS . M-+)
+ (*DIF . M--)
+ (*TIMES . M-*)
+ (*QUO . M-//)
+ (*LOGAND . M-LOGAND)
+ (*LOGXOR . M-LOGXOR)
+ (*LOGIOR . M-LOGIOR)
+ ARRAY-LEADER
+ STORE-ARRAY-LEADER
+ GET-LIST-POINTER-INTO-ARRAY
+ ARRAY-PUSH
+ INTERNAL-APPLY
+ %MAKE-LIST
+; these next four have been moved to macrocode --- leave this in for now in case of some weird screw. Mly
+ LIST
+ LIST*
+ LIST-IN-AREA
+ LIST*-IN-AREA
+ LOCATE-IN-INSTANCE
+ %P-CDR-CODE
+ %P-DATA-TYPE
+ %P-POINTER
+ %PAGE-TRACE
+ THROW-N
+ %P-STORE-CDR-CODE
+ %P-STORE-DATA-TYPE
+ %P-STORE-POINTER
+ FLOAT-EXPONENT
+ FLOAT-FRACTION
+ SCALE-FLOAT
+ %CATCH-OPEN
+ %CATCH-OPEN-MV
+ INTERNAL-FLOOR-1
+;;; due to lossage, this INTERNAL-FLOOR-1 is pretty weird.
+;;; does not store in its destination.  Instead, destination field decodes:
+;;;  0 => FLOOR, 1 => CEIL, 2 => TRUNC, 3 => ROUND
+
+ %DIV
+ %FEXPR-CALL
+ %FEXPR-CALL-MV
+ %FEXPR-CALL-MV-LIST
+ %CATCH-OPEN-MV-LIST
+ *CATCH
+ (CATCH . *CATCH)
+ %BLT
+ *THROW
+ (THROW . *THROW)
+ %XBUS-WRITE-SYNC
+ %P-LDB
+ %P-DPB
+ MASK-FIELD
+ %P-MASK-FIELD
+ DEPOSIT-FIELD
+ %P-DEPOSIT-FIELD
+ COPY-ARRAY-CONTENTS
+ COPY-ARRAY-CONTENTS-AND-LEADER
+ %FUNCTION-INSIDE-SELF
+ ARRAY-HAS-LEADER-P
+ COPY-ARRAY-PORTION
+ FIND-POSITION-IN-LIST
+ %GET-SELF-MAPPING-TABLE
+ G-L-P
+ INTERNAL-FLOOR-2
+;;; takes two args on stack, two values also to stack.
+;;; destination of this one also weird. See INTERNAL-FLOOR-1.
+ EQL
+ AR-1
+ AR-2
+ AR-3
+ AS-1
+ AS-2
+ AS-3
+ %INSTANCE-REF
+ %INSTANCE-LOC
+ %INSTANCE-SET
+ %BINDING-INSTANCES
+ %EXTERNAL-VALUE-CELL
+ %USING-BINDING-INSTANCES
+ %GC-CONS-WORK
+ %P-CONTENTS-OFFSET
+ %DISK-RESTORE
+ %DISK-SAVE
+ %ARGS-INFO
+ %OPEN-CALL-BLOCK
+ %PUSH
+ %ACTIVATE-OPEN-CALL-BLOCK
+ %ASSURE-PDL-ROOM
+ STACK-GROUP-RETURN
+ AS-2-REVERSE
+;Perhaps the next one should be flushed.
+ %MAKE-STACK-LIST
+ STACK-GROUP-RESUME
+ %CALL-MULT-VALUE-LIST
+ %CALL0-MULT-VALUE-LIST
+ %GC-SCAV-RESET
+ %P-STORE-CONTENTS-OFFSET
+ %GC-FREE-REGION
+ %GC-FLIP
+ ARRAY-LENGTH
+ ARRAY-TOTAL-SIZE
+ ARRAY-ACTIVE-LENGTH
+ %COMPUTE-PAGE-HASH
+ THROW-SPREAD
+ %UNIBUS-READ
+ %UNIBUS-WRITE
+ %GC-SCAVENGE
+ %CHAOS-WAKEUP
+ %AREA-NUMBER
+ *MAX
+ *MIN
+ CLOSURE
+ AR-2-REVERSE
+ LISTP
+ NLISTP
+ SYMBOLP
+ NSYMBOLP
+ ARRAYP
+ FBOUNDP
+ STRINGP
+ BOUNDP
+ INTERNAL-\\
+ FSYMEVAL
+ (SYMBOL-FUNCTION . FSYMEVAL)
+ AP-1
+ AP-2
+ AP-3
+ AP-LEADER
+ %P-LDB-OFFSET
+ %P-DPB-OFFSET
+ %P-MASK-FIELD-OFFSET
+ %P-DEPOSIT-FIELD-OFFSET
+ %MULTIPLY-FRACTIONS
+ %DIVIDE-DOUBLE
+ %REMAINDER-DOUBLE
+ HAULONG
+ %BETTER-GC-SCAVENGE
+;(DEFMIC %ALLOCATE-AND-INITIALIZE-ARRAY 616 (HEADER INDEX-LENGTH LEADER-LENGTH AREA NQS) T)
+ %MAKE-POINTER-OFFSET
+ ^
+ %CHANGE-PAGE-STATUS
+ %CREATE-PHYSICAL-PAGE
+ %DELETE-PHYSICAL-PAGE
+ %24-BIT-PLUS
+ %24-BIT-DIFFERENCE
+ %24-BIT-TIMES
+ ABS
+ %POINTER-DIFFERENCE
+ %P-CONTENTS-AS-LOCATIVE
+ %P-CONTENTS-AS-LOCATIVE-OFFSET
+ (EQ . M-EQ)
+ %STORE-CONDITIONAL
+ %STACK-FRAME-POINTER
+ *UNWIND-STACK
+ %XBUS-READ
+ %XBUS-WRITE
+ ELT
+ MOVE-PDL-TOP
+ SHRINK-PDL-SAVE-TOP
+ SPECIAL-PDL-INDEX
+ UNBIND-TO-INDEX
+ UNBIND-TO-INDEX-MOVE
+ FIX
+;; Changed in 95 to exist only for old code. -- now use INTERNAL-FLOAT
+ FLOAT
+ SMALL-FLOAT
+ %FLOAT-DOUBLE
+ BIGNUM-TO-ARRAY
+ ARRAY-TO-BIGNUM
+ %UNWIND-PROTECT-CONTINUE
+ %WRITE-INTERNAL-PROCESSOR-MEMORIES
+ %PAGE-STATUS
+ %REGION-NUMBER
+ %FIND-STRUCTURE-HEADER
+ %STRUCTURE-BOXED-SIZE
+ %STRUCTURE-TOTAL-SIZE
+ %MAKE-REGION
+ BITBLT
+ %DISK-OP
+ %PHYSICAL-ADDRESS
+ POP-OPEN-CALL
+ %BEEP
+ %FIND-STRUCTURE-LEADER
+ BPT
+ %FINDCORE
+ %PAGE-IN
+ ASH
+ %MAKE-EXPLICIT-STACK-LIST
+ %DRAW-CHAR
+ %DRAW-RECTANGLE
+ %DRAW-LINE
+ %DRAW-TRIANGLE
+ %COLOR-TRANSFORM
+ HEIGHT
+ %RECORD-EVENT
+ %AOS-TRIANGLE
+ %SET-MOUSE-SCREEN
+ %OPEN-MOUSE-CURSOR
+ SETELT
+ %BLT-TYPED
+ %DRAW-PATTERNED-LINE
+;(DEFMIC %ETHER-WAKEUP 711 (RESET-P) T)
+;(DEFMIC %CHECKSUM-PUP 712 (ART-16B-PUP START LENGTH) T)
+;(DEFMIC %DECODE-PUP 713 (ART-BYTE-PUP START LENGTH STATE SUPER-IMAGE-P) T)
+ AR-1-FORCE
+ AS-1-FORCE
+ AP-1-FORCE
+ AREF
+ ASET
+ ALOC
+ EQUALP
+ %MAKE-EXPLICIT-STACK-LIST*
+ SETCAR
+ SETCDR
+ GET-LOCATION-OR-NIL
+ %STRING-WIDTH
+ AR-1-CACHED-1
+ AR-1-CACHED-2
+ %MULTIBUS-READ-16
+ %MULTIBUS-WRITE-16
+ %MULTIBUS-READ-8
+ %MULTIBUS-WRITE-8
+ %MULTIBUS-READ-32
+ %MULTIBUS-WRITE-32
+
+ SET-AR-1
+ SET-AR-2
+ SET-AR-3
+ SET-AR-1-FORCE
+ SET-AREF
+ SET-ARRAY-LEADER
+ SET-%INSTANCE-REF
+ VECTOR-PUSH
+ ARRAY-HAS-FILL-POINTER-P
+ ARRAY-LEADER-LENGTH
+ ARRAY-RANK
+ ARRAY-DIMENSION
+;Moved to macrocode. KHS 2/85
+;(DEFMIC ARRAY-IN-BOUNDS-P 754 (ARRAY &REST SUBSCRIPTS) T T)
+;(DEFMIC ARRAY-ROW-MAJOR-INDEX 755 (ARRAY &REST SUBSCRIPTS) T T)
+
+ RETURN-N-KEEP-CONTROL
+ RETURN-SPREAD-KEEP-CONTROL
+ COMMON-LISP-LISTP
+
+ %NUBUS-READ
+                                ;SLOT is really the high 8 bits.
+                                ;the "top F" can be supplied via slot, avoiding bignums.
+ %NUBUS-WRITE
+ %MICROSECOND-TIME
+ %FIXNUM-MICROSECOND-TIME
+ %IO-SPACE-READ
+                                ;32 bit read from HARDWARE-VIRTUAL-ADDRESS space.
+                                ;actual ucode is identical to that for %XBUS-READ on CADR.
+ %IO-SPACE-WRITE
+                                ;on CADR.
+ %NUBUS-PHYSICAL-ADDRESS
+                                ;arg is "apparent" physical page number (gotten, for example,
+                                ;by shifting value from %PHYSICAL-ADDRESS).
+                                ;value is 22 bit NUBUS page number.
+
+ VECTORP
+ SIMPLE-VECTOR-P
+ SIMPLE-ARRAY-P
+ SIMPLE-STRING-P
+ BIT-VECTOR-P
+ SIMPLE-BIT-VECTOR-P
+ NAMED-STRUCTURE-P
+ NAMED-STRUCTURE-SYMBOL
+ TYPEP-STRUCTURE-OR-FLAVOR
+ FIXNUMP
+ SMALL-FLOATP
+ CHARACTERP
+
+ CAR-SAFE
+ CDR-SAFE
+ CADR-SAFE
+ CDDR-SAFE
+ CDDDDR-SAFE
+ NTHCDR-SAFE
+ NTH-SAFE
+ CARCDR
+ ENDP
+ CONSP-OR-POP
+ INDICATORS-VALUE
+ %POINTER-TIMES
+ COMMON-LISP-AREF
+ COMMON-LISP-AR-1
+ COMMON-LISP-AR-1-FORCE
+ INTERNAL-GET-3
+
+ CHAR-INT
+ INT-CHAR
+ ALPHA-CHAR-P
+ UPPER-CASE-P
+ ALPHANUMERICP
+ PACKAGE-CELL-LOCATION
+ MEMBER-EQL
+ RATIONALP
+ RATIOP
+ COMPLEXP
+ %RATIO-CONS
+ %COMPLEX-CONS
+ BOTH-CASE-P
+ CHAR-UPCASE
+ CHAR-DOWNCASE
+ LOWER-CASE-P
+
+ %micro-paging
+ %processor-switches
+ %cold-boot
+
+ %test-multiply-return-low
+ %test-multiply-return-high
+ %mult-16
+ %mult-32
+
+ %quart-transfer
+;; quart-flags bit0 0-> read, 1-> write. value is number blocks transferred
+ %nubus-read-8
+;; SLOT is really the high 8 bits. The "top F" can be supplied via slot, avoiding bignums.
+ %nubus-write-8
+
+ %lambda-rg-quad-slot
+ %lambda-tv-quad-slot
+ %lambda-sdu-quad-slot
+
+ %lambda-sys-conf-virtual-to-phys
+ %lambda-sys-conf-phys-to-virtual
+ %lambda-sys-conf-virtual-adr
+
+;; Gets mouse button state directly out of a-memory.
+ %lambda-mouse-buttons
+
+ member
+ (member-equal . member)
+ assoc
+ (assoc-equal . assoc)
+
+;; Don't bind %meter-micro-enables anymore... use this instead.
+ %set-meter-enables
+
+ invalidate-cons-caches
+
+ %internal-list
+ %internal-list*
+ %internal-list-in-area
+ %internal-list*-in-area
+ %internal-mapc
+ %internal-mapcar
+ %internal-append-2
+ %internal-nconc-2
+
+;; Fast FEFs bypass the old trap-on-next-call-within-this-stack-group mechanism.
+;; Call this for BREAKON.
+ %trap-on-next-call
+
+ %blt-boole
+ %findcore-hexadec
+
+ %sxhash-substring
+
+ %stat-counter
+
+ %internal-delq
+
+ %make-structure
+ %make-array
+
+ %pointer-info          ;leaves one value on stack plus returns one!
+                        ;if invalid-region,   NIL on stack,                  returns 0
+                        ;if to unboxed,       obj origin as fixnum on stack, returns 1
+                        ;if to boxed,         obj origin as fixnum on stack, returns 2
+
+ %pointer-lessp
+ %pointer-greaterp
+
+ %io-cmd-run
+
+ %advance-free-pointer-and-wipe
+        ;used to initialize MOBY areas.
+
+ %string-translate
+
+ %multibus-blt-16
+ %regular-pdl-index
+
+ %store-conditional-double
+
+ %p-store-data-type-and-pointer
+ %nubus-read-safe
+ %nubus-read-8-safe
+ %nubus-write-safe
+ %nubus-write-8-safe
+
+ %set-mouse-arrays
+
+ %map-device-quantum
+
+;;; FROM HERE TO 1777 FREE
+
+;;;; Instructions and other symbols for LAP
+
+ CALL
+
+ CALL0
+
+ MOVE
+
+ CAR
+
+ CDR
+
+ CADR
+
+ CDDR
+
+ CDAR
+
+ CAAR
+
+;ND1
+ MAKE-STACK-CLOSURE-TOP-LEVEL
+ *PLUS
+ *DIF
+ *TIMES
+ *QUO
+ *LOGAND
+ *LOGXOR
+ *LOGIOR
+
+;ND2
+ INTERNAL-=
+ INTERNAL->
+ INTERNAL-<
+ EQ
+;;; SETE CDR 112000
+;;; SETE CDDR 132000
+;;; SETE 1+ 152000
+;;; SETE 1- 172000
+
+;ND3
+;;; 13000 unused, used to be BIND.
+ BINDNIL
+ BINDPOP
+ SETNIL
+ SETZERO
+ PUSH-E
+ MOVEM
+ POP
+
+;BRANCH is 14
+
+;MISC
+ MISC
+ MISC1
+                                                ; by adding 34000
+
+;; ND4
+ STACK-CLOSURE-DISCONNECT
+ STACK-CLOSURE-UNSHARE
+ MAKE-STACK-CLOSURE
+ PUSH-NUMBER
+ STACK-CLOSURE-DISCONNECT-FIRST
+ PUSH-CDR-IF-CAR-EQUAL
+ PUSH-CDR-STORE-CAR-IF-CONS
+
+;; AREFI
+ AREFI
+ AREFI-LEADER
+ AREFI-INSTANCE
+ AREFI-COMMON-LISP
+ AREFI-SET
+ AREFI-SET-LEADER
+ AREFI-SET-INSTANCE
+
+
+;;; - MISCELLANEOUS FUNCTIONS -  these all obsolete.
+ ASETI
+ ASETI-LEADER
+ ASETI-INSTANCE
+
+ UNBIND
+ UNBIND-0
+ UNBIND-1
+ UNBIND-2
+ UNBIND-3
+ UNBIND-4
+ UNBIND-5
+ UNBIND-6
+ UNBIND-7
+ UNBIND-10
+ UNBIND-11
+ UNBIND-12
+ UNBIND-13
+ UNBIND-14
+ UNBIND-15
+ UNBIND-16
+ UNBIND-17
+ POPPDL
+ POPPDL-0
+ POPPDL-1
+ POPPDL-2
+ POPPDL-3
+ POPPDL-4
+ POPPDL-5
+ POPPDL-6
+ POPPDL-7
+ POPPDL-10
+ POPPDL-11
+ POPPDL-12
+ POPPDL-13
+ POPPDL-14
+ POPPDL-15
+ POPPDL-16
+ POPPDL-17
+;The rest of these come from the DEFMIC table above.
+
+;QIND5 group (only 4 opcodes here)
+ 1+-to-pdl
+ 1--to-pdl
+ single-address-zerop
+
+;; QID1 destination group.
+ %reference-simple-q-vector
+ %set-simple-q-vector
+
+;;;Source address types
+
+ FEF
+
+ CONST-PAGE
+
+ LOCAL
+
+ ARG
+
+;OBSOLETE NAME
+ LPDL
+
+;Following word holds the actual source address
+ EXTEND
+
+ PDL-POP
+
+;DESTINATIONS
+ %%MACRO-DEST-FIELD
+
+ D-IGNORE
+
+ D-INDS
+
+ D-PDL
+ D-NEXT
+
+ D-RETURN
+
+ D-LAST
+
+;Old values from when the dest field was 3 bits long.
+;(DEFPROP D-PDL 20000 QLVAL)
+;(DEFPROP D-NEXT 20000 QLVAL)
+
+;(DEFPROP D-PDL-NEW 40000 QLVAL)
+
+;(DEFPROP D-LAST  60000 QLVAL)
+
+;(DEFPROP D-RETURN 100000 QLVAL)
+
+;(DEFPROP D-LAST-NEW 140000 QLVAL)
+
+
+;(DEFPROP DEST-ARG-QTD 60000 QLVAL)             ;ADDED TO D-NEXT,D-LAST
+
+;(DEFPROP D-NEXT-LIST 160000 QLVAL)
+
+
+ZETALISP SPECIAL FORMS (from qcluke)
+
+lambda subst cli:subst named-lambda named-subst
+
+LET
+LET*
+LET-IF
+MULITPLE-VALUE-BIND
+with-stack-list
+with-stack-list*
+compiler-let
+prog
+prog*
+tagbody
+do
+do*
+do-named
+do*-named
+go
+return-from
+return
+block
+function
+cond
+if
+multiple-value
+multiple-value-setq
+multiple-value-call
+multiple-value-prog1
+with-self-accessible
+quote-eval-at-load-time
+variable-boundp
+variable-location
+variable-makunbound
+boundp
+value-cell-location
+flet
+macrolet
+labels
+(function (lambda ...))
+catch
+and
+or
+setq
+login-setq
+progn
+locally
+progv
+progw
+unwind-protect
+dont-optimize
+eval-when
+multiple-value-list
+nth-value
+si::advise-progn
+si::advise-let
+si::advise-setq
+si::setq-if-unbound
+si::advise-multiple-value-list
+patch-source-file
+si::defvar-1
+si::defconst-1
+si::advise-prog
+si::encapsulation-let
+declare?
+
+;;; Forms with p1 properties (special forms)
+
+%BIND
+%MAKE-EXPLICIT-STACK-LIST
+%MAKE-EXPLICIT-STACK-LIST*
+%USING-BINDING-INSTANCES
+*CATCH
+*THROW
+AND
+APPEND
+BLOCK
+BLOCK-FOR-PROG
+BLOCK-FOR-WITH-STACK-LIST
+CASEN
+CHANGE-PDLLVL
+COMPILER-LET-INTERNAL
+COND
+DONT-OPTIMIZE
+FLET
+FLET-INTERNAL
+FUNCALL-WITH-MAPPING-TABLE
+FUNCALL-WITH-MAPPING-TABLE-INTERNAL
+FUNCTION
+GO
+GO-HACK
+IF
+IGNORE
+INHIBIT-STYLE-WARNINGS
+KLUDGEY-COMPILATION-VARIABLE-LOCATION
+LABELS
+LABELS-INTERNAL
+LAMBDA
+LET-FOR-AUXVARS
+LET-FOR-LAMBDA
+LEXPR-FUNCALL-WITH-MAPPING-TABLE
+LEXPR-FUNCALL-WITH-MAPPING-TABLE-INTERNAL
+LIST
+LIST*
+LOCALLY
+MACROLET
+MATCHCARCDR-HACK
+MULTIPLE-VALUE
+MULTIPLE-VALUE-BIND
+MULTIPLE-VALUE-PROG1
+MULTIPLE-VALUE-PUSH
+NCONC
+NTH-VALUE
+OR
+P1CLOSURE
+PROG1
+PROGN
+QUOTE-EVAL-AT-LOAD-TIME
+RETURN
+RETURN-FROM
+RETURN-LIST
+SELF-REF
+SETQ
+TAGBODY
+THE
+UNWIND-PROTECT
+VALUES
+VARIABLE-BOUNDP
+VARIABLE-LOCATION
+VARIABLE-MAKUNBOUND
+WITH-SELF-ACCESSIBLE
+WITH-SELF-VARIABLES-BOUND
+WITH-STACK-LIST
+WITH-STACK-LIST*

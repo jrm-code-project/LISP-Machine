@@ -1,0 +1,68 @@
+
+
+    NETWORK WHITEPAPER NUMBER 3
+    OCTOBER 3, 1985, GEORGE CARRETTE
+    PURPOSE:
+     FOR LMI INTERNAL USE AND DISCUSSION
+     INFORMATION FOR LMI MARKETTING
+
+LMI presently implements two classes of protocols, the CHAOSNET protocols
+which orginated at MIT, and the ARPA or TCP-IP protocols, which has its
+origins in the DOD Advanced Research Protects network, or arpanet.
+
+The CHAOSNET protocols were designed (somewhat through evolution)
+to provide all the services needed by a network of personal computers
+(Lispmachines) connecting to each other and to central timesharing
+computers used as MAIL and FILE servers.
+
+The TCP-IP protocols were not designed for a network of personal
+computers and did not evolve in such an environment. Instead the
+protocols evolved in an environment of MAINFRAMES seperated by
+large distances. However, TCP-IP protocols have recently been used
+more and more in an environment of personal computers. Some manufacturers
+such as SUN and SYMBOLICS have implemented their own protocols of
+the TCP-IP class, especially to optimize FILE ACCESS between machines.
+
+
+LMI's CHAOSNET product provides all the services to make profitable
+use of and to do effective software maintainence on its machines.
+The TCP-IP product, on the other hand (at this time), is only designed/intended
+to provide a way of communicating with other machines that talk
+the basic standard TCP-IP protocols, TELNET (remote login),
+FTP (file transfer), and SMTP (mail).
+
+
+
+      TABLE OF FEATURES AND FUNCTIONALITIES
+
+
+
+  Feature/Function      Under TCP    Under Chaosnet
+
+File Access                2             3
+Directory Listing          2             3
+File Service               2             3
+Remote Login Originate     2             3
+Remote Login Service       2             1
+Band/Microcode transfer    0             3
+Unix Root Transfer         0             0
+Mail Send                  2             3
+Mail Receive               2             0 (note 1)
+Terminal Message Send      0             3
+Terminal Message Receive   0             3
+Interactive Phone Utility  0             0
+User Programmability       3 (note 2)    3 (note 2)
+
+Notes:
+  1. Mail Receive and forwarding code is available on the Unix processor,
+     it is also used in-house on the LAMBDA, the directory containing
+     the code is SYS:MAIL; which is not distributed. Setting up mail
+     service is a configuration/support problem.
+  2. The creation of bidirectional stream oriented user protocols
+     and services is about as easy under both TCP-IP and CHAOSNET.
+
+ Legend: Quality of support.
+         0 ... not attempted.
+         1 ... poor.
+         2 ... usable.
+         3 ... good.

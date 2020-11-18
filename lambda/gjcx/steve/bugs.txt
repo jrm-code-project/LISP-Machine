@@ -1,0 +1,91 @@
+-*- Text -*-
+
+(60)
+
+(59) "I defined two kbd macros.  When I did M-X name kbd macro, I typed esc n
+     for the first, and then I defined another and hung it on the same key,
+     typing M-n this time (I forgot to use my meta key the first time).  Well,
+     now esc n gets me one, and M-n the other."
+
+(58) M-% should be bound to m-X Query Replace
+
+(57) If you have a file called MAIN.LSP in your home directory, and start up a
+     NIL and do Find File on that file, you'll get the right version number in
+     your modeline, but the file's text won't be read in.
+
+(56) When STEVE says *done* it seems to eat a character.  It should
+     UNTYI it if it isn't a space -- like EMACS does.
+
+(55) Missing: m-X Evaluate Buffer
+
+(53) M-X insert-file leaves a return (blank line) at the beginning of the
+     buffer (before the text inserted) even when the buffer inserted into
+     was empty.
+
+(52) ( should not be a delimiter in text mode
+
+(51) M-X Set Key seems to read its command names in the package that
+     is set by M-X Reparse Attribute List.  It seems like it should
+     always default to the STEVE package, or at least show you what
+     package it's in.
+
+(50) Mail buffer doesn't start up in text mode
+
+(49) C-X C-F sys$sylogin: gets a wta error in fs:parse-vms-pathname-hack-device
+
+(48) one can't include a return in a replace string argument, even if one tries
+     to quote it with ^Q, which doesn't work anyway.
+
+(47) If you should do a C-X M iwhen already in the process of sending mail,
+     Steve happily destroys your previous message.
+
+(46) line wraparound confuses list walker
+
+(45) c-X c-F fails to get a more recent version from the disk, if that
+     file is currently being visited.  Diagnosis:  no record is kept of the
+     version number of the file in a buffer.
+
+(44) c-U c-L redisplays the Nth line in the top window even when the
+     cursor is on the Nth line in the bottom window
+
+(41) (query) replace does not preserve case
+
+(40) remind user about unsaved buffers when exiting nil
+
+(39) Fucked up hardware tabs screw up everything!
+
+(38) In two window mode, c-X B and c-m-Z select the other window if it
+     is displaying the desired buffer.  It should bring a copy into the
+     current window.
+
+(36) There is a problem with the reverse-video feature. If there is
+     a failing I-search for a long string near the begining of the
+     screen, the whole screen is reversed. Most ugly.
+
+(35) Comments mess up indentation. In fact any non-parenthsized s-expr may.
+
+(34) c-m-U loses a lot
+
+(32) multiple line searches (ha ha)
+
+(29) Nonexistent m-Q
+
+(28) Dired E gets explicit version number so can't save easily
+
+(26) Redisplay needs to be rewritten to do better terminal handling
+
+(25) ^U, auto-arg, and bit prefixes freeze redisplay!!!
+     and no timeout stuff for "M-" "C-M-" and "C-X-" prompts
+
+(24) minibuffer area should be a window (i.e. all the WITH-...)
+
+(21) c-X c-F lets you start editing a new file in a nonexistent directory
+
+(13) there is no concept of a region or the mark being "activated"
+
+(9) can't have buffer w/o an associated file
+
+(8) c-s doesn't echo typeahead chars until after they are found
+    (but neither does EMACS)
+
+(6) reparse attribute list looks at file not buffer

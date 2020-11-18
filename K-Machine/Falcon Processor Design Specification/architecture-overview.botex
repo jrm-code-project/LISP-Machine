@@ -1,0 +1,65 @@
+@c architecture-overview.botex
+@c
+@c 18-Apr-88, James Rauen
+
+@chapter Overview of the K Architecture
+
+@section History
+
+The K machine is a high-speed processor heavily optimized to run Lisp.
+It was originally designed at LMI (Lisp Machine, Incorporated) to run on
+two NuBus or VME-bus boards.  One board is devoted to processor
+functions, and the other board is devoted to the on-board memory system.
+The NuBus boards have undergone several small design modifications and
+are now in use at GSI.
+
+A second design, placing the processor and memory system on chips
+instead of boards, is currently taking place at GigaMos and SilicArt.
+The chip design differs from the board design in several ways.  Some of
+the differences are due to the limited amount of space on the chips;
+several of the boards' features have been scaled down for this reason.
+
+@section Board Set vs. Chip Set
+
+The primary intention of this manual is to document the board set.  Most
+of the hardware references will specifically mention chips and signals
+which appear on the processor board and memory board design sheets.
+Nevertheless, most of the information in this manual should still be
+applicable to the chip set design.
+
+Here is a list (by no means exhaustive) of some of the differences between
+the board and chip designs:
+
+@itemize @bullet
+
+@item
+The size of register frame memory has been reduced for the chip
+set.  There are 64 register frames in the chip set, compared to 256 in
+the board set.
+
+@item
+The arrangement of bits in the Processor Control, Processor Status, Memory
+Control and Memory Status registers has been changed.
+
+@item
+The instruction cache has been completely redesigned.  The board set has two fully
+associative sets and a special low core cache.  
+
+@item
+The floating point ALUs have been eliminated from the chip set.
+@end itemize
+
+
+@section Processor Board
+
+The processor board contains most of the actual processor hardware.
+This includes the instruction cache, the register memory, the call
+hardware, and the ALUs.  Each of these features is documented in subsequent
+chapters.
+
+
+@section Memory Board
+
+The memory board contains the processor's on-board memory.  It also
+contains hardware to help implement the virtual memory system, a
+volatility-based garbage collector, the transporter, and traps.

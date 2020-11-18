@@ -1,0 +1,170 @@
+;;; -*- Mode:LISP; Package:USER; Base:10; Readtable:ZL -*-
+
+;;;SAZ's LISPM init file
+
+(format t "~%~%~\date\~%~%" (time:get-universal-time))  ;What the hell day is it, anyway?
+(login-setq fs:user-id "saz")                           ;ensure lower case
+(load "dj:saz;mass-millions")
+
+
+(login-setq ZWEI:*CONVERSE-BEEP-COUNT* 0
+            ZWEI:*NOTIFY-ON-NEW-MAIL-IN-BACKGROUND* ':converse
+            ZWEI:*FIND-FILE-EARLY-SELECT* T     ;where has this one been all my life?
+            tv:mouse-double-click-time 125000.
+            tv:beep-duration 50000
+            tv:beep-wavelength 1275)
+
+(send tv:who-line-documentation-window :set-font-map '(tr8b))
+(send tv:who-line-documentation-window :refresh)
+
+(login-setq zwei:*zmail-init-loaded* t)
+(load "dj:saz;zmail.init")                      ;don't wait for me to fire up zmail to get my init file read in...
+
+(login-setq zwei:*from-host* "gsi-cam")         ;don't wait for me to fire up zmail to enable me to send mail from
+                                                ;Zwei without header canonicalization problems...
+
+(tv:map-over-sheets #'(lambda (win) (send win :set-deexposed-typeout-action ':permit)))
+
+(tv:kbd-esc-more 0)                             ;turn it off until lispm.init is done loading
+
+
+(defun boost-all-quanta (amt)                   ;efficiency hack
+  (login-setq si::default-quantum amt)
+  (mapcar #'(lambda (proc)
+              (send proc :set-quantum amt))
+          si::all-processes))
+
+(defmacro with-fdefine-warnings-inhibited ((&body body))
+  `(let ((inhibit-fdefine-warnings t))
+     ,body))
+
+(defmacro ndelq (object list &optional (times -1))
+  ;;really delete object from list regardless of position...
+  `(if (mem #'eq ,object ,list)
+       (if (zerop (find-position-in-list ,object ,list))
+           (setq ,list (delq ,object ,list ,times))
+         (delq ,object ,list ,times))))
+
+(defmacro watch-vars (vars form)
+  ;; indicates any mutations of variables specified in vars which arose
+  ;; as a result of evaluating form...
+  ;; E.g., (watch-vars (foo bar) (setq foo 3 bar 4))
+  ;;   ==> foo: NIL --> 3
+  ;;       bar: NIL --> 4
+  ;;       4
+  ;; ...assuming of course that the two variables were unbound before
+  ;; calling watchvars...
+  `(let ((vars-before (mapcar #'(lambda (var) (if (boundp var) (symeval var)))
+                              ',vars)))
+     (let ((return-me (si:eval-special-ok ',form)))
+       (loop for var in ',vars and old-val in vars-before do
+             (format t "~%~A: ~S --> ~S" var old-val (symeval var)))
+       return-me)))
+
+(defun zwei:wops (thing)
+  ;;It is not a good idea to send messages to anything other than instances and named-structures,
+  ;;as send employs funcall on its arguments.  For example, if destructive-function is a function
+  ;;which ignores its first argument, then doing a (send #'fs:destructive-function :message) will
+  ;;trigger the execution of destructive-function in all its destructive glory.
+  (etypecase thing
+    ((or instance named-structure)
+     (condition-case ()
+         (let ((ops (send-if-handles thing :which-operations)))
+           (if (null ops)
+               (format t "~%No :which-operations method defined for ~A ~A"
+                       (string-downcase (type-of thing)) thing)
+             (pprint ops)
+             ops))
+       ((sys:undefined-function si:invalid-function)
+        (format t "~%~A,~
+                   ~%an object of type ~A, does not support messages." thing (type-of thing)))))))
+
+(defun STOPWATCH ()
+  (let ((foo (time:get-universal-time)))
+    (progn (tyi)
+           (format t "~2%Seconds elapsed: ~A~%" (- (time:get-universal-time) foo)))))
+
+#+regression-testing
+(cl-tests:deftest-seq
+  (zwei:wops zwei:wops-1 :simple)
+  (((zwei:wops-1 :is-error) (zwei:wops nil))
+   ((zwei:wops-2 :is-error) (zwei:wops t))
+   ((zwei:wops-3 :is-error) (zwei:wops 5))
+   ((zwei:wops-4 :is-error) (zwei:wops #'si:print-disk-label))
+   ((zwei:wops-5) (zwei:wops (zl:make-instance 'si:vanilla-flavor)))))
+
+(defvar *JUST-EXECUTE-EVERYTHING* nil)
+
+(defmacro ASK-WAIT-AND-EXECUTE (prompt timeout-secs response-if-no-answer
+                                value-if-no-user-answer &body body)
+  ;;;prompt and response-if-no-answer are strings, timeout-secs a fixnum.
+  `(*catch 'RESULT
+     (if *just-execute-everything*
+         (progn (format query-io ,response-if-no-answer)
+                ;; Automatically use the defalut for this and all other calls to this function.
+                (if ,value-if-no-user-answer ,@body)
+                (*throw 'result ,value-if-no-user-answer))
+       (if (with-timeout ((* ,timeout-secs 60)
+                          (format query-io ,response-if-no-answer)
+                          ;; only if user did not respond
+                          ;; within the time allotted by the top-level call
+                          (*throw 'RESULT ,value-if-no-user-answer))
+             (y-or-n-p ,prompt))
+           (progn ,@body                        ;do it
+                  (*throw 'result t))           ;only if user responded, affirmatively
+         (*throw 'result nil)))))               ;only if user responded, negatively
+
+(login-setq *JUST-EXECUTE-EVERYTHING*
+      (ask-wait-and-execute "Shall I default automatically during init file loading?"
+                            10
+                            "... OK, I'll default: ~%"
+                            t                   ;yes if user is not around...
+        nil))                                   ;this value is unimportant...
+
+
+(ask-wait-and-execute "~&Boost all quanta? " 10 "~& ... all quanta boosted." t (boost-all-quanta 6.))
+
+;;;This will work after fquery gets fixed...!
+;(defun SET-GC-DEGREE-OR-TURN-IT-OFF (max-response-time)
+;  (let* ((response-seconds (* max-response-time 60.))
+;        (degree (fquery `(:type :tyi
+;                               :timeout ,response-seconds
+;                               :default-value no-answer
+;                               :choices ((0 "~&0") (1 "~&1") (2 "~&2") (3 "~&3") :any))
+;                        "~&Turn GC on with degree: ")))
+;    (cond ((and (fixp degree)
+;               ( degree 0)
+;               ( degree 3))
+;          (progn (gc:gc-on :degree degree)
+;                 (format t "~&~%GC turned on at level ~A" degree)))
+;         ((eq degree 'no-answer)                       ;timed out; what we usually want
+;          (progn
+;            (gc:gc-on :degree 0)
+;            (format t "~&~%GC turned on at level 1")))
+;         (t (progn (gc:gc-off)
+;                   (format t "~&~%GC turned off"))))))
+
+;(SET-GC-DEGREE-OR-TURN-IT-OFF 5.)
+
+(ask-wait-and-execute (format nil "~&Load system patches and//or site
+configuration information? ")
+                                           20 "~& ... loading system patches now ..." t   (load-patches :noselective))
+
+;(ask-wait-and-execute "~&Make a BUGMAN system?" 20 "~& ... making the BUGMAN system now ... "
+;                      t (make-system 'bugman :noconfirm))
+;(ask-wait-and-execute "~&Make a WINDOW-MAKER system?" 20 "~& ... making the WINDOW-MAKER system now ... "
+;                      t (make-system 'window-maker :noconfirm))
+(ask-wait-and-execute "~&Make a VALID system?" 20 "~& ... Ok, making the VALID system now ... "
+                      t (make-system 'valid :noconfirm))
+(ask-wait-and-execute "~&Load LISP macros?" 10 "~& ... loading LISP macros now ... "
+                      t (with-fdefine-warnings-inhibited (load "dj:saz;macros" :set-default-pathname nil)))
+(load "dj:saz;pathname")
+(ask-wait-and-execute "~&Load ZMacs enhancement file?" 10 "~& ... loading ZMacs enhancement file now ... "
+                      t (with-fdefine-warnings-inhibited (load "dj:saz;zmacs" :set-default-pathname t)))
+
+
+(export 'zwei:wops 'global)
+
+(setq fs:*remember-passwords* t)
+(setq *just-execute-everything* nil)
+(tv:kbd-esc-more 1)

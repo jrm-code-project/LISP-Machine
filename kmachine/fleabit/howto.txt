@@ -1,0 +1,103 @@
+EFH                                                            1/22/87
+
+                      How To Use the New Compiler
+
+
+First load it:
+
+       (load "orson:fleabit;sysdef")
+       (make-system 'fleabit)
+
+Make sure you are in a package which uses LISP.
+Then use the following functions:
+
+NC:NCOMPILE-FILE <input-file> &optional <output-file>
+  Compile the given source file, producing an object
+  file (this is a temporary format) with the type KBIN.
+
+NC:NFASLOAD <filename>
+  Loads the KBIN file.  Compiled function objects will
+  be created, they can be installed on the machine with
+  KBUG:LOAD-FCNS.
+
+Super-Shift-C in ZMACS is "Compile Defun for New Processor"
+  A compiled function object will be created.
+
+
+NC:NC <lambda>
+  Compile a lambda, returning a list of assembly code.
+  Example:
+
+       (nc '(lambda (x) x))  =>  (TAG::P_2 (RETURN K:A0))
+
+
+NC:NCA <lambda>
+  Compile a lambda, returning numeric instructions and
+  link information.
+  Example:
+
+       (nca '(lambda (x) (bar x))) =>
+       (632474273205714944)
+       NIL
+       ((0 . BAR))
+       NIL
+
+  See the documentation for ASSEMBLE-INSTRUCTION-LIST
+  for an explanation of the link information.
+
+
+NC:C <defun>
+  Compile a defun, returning numeric instructions and
+  link information.
+
+
+NC:CC <defun>
+  Compile a defun, and install a compiled function object
+  on the symbol.
+  Example:
+
+     (cc '(defun foo (x y)
+            (bar (+ x y))))
+     =>
+     #<NCOMPILED-FUNCTION FOO 75072054>
+
+
+  after this, the symbol may be used with LINK, NDISASSEMBLE, PRINS
+  and LOAD-FCN or LOAD-FCNS in the debugger
+
+
+
+NC:NDISASSEMBLE <fcn>
+  Disassembles and prints the installed compiled code object for
+  <fcn> which may be a compiled code object or symbol.
+    (ndisassemble 'foo)
+    (ALU L+R O0 A0 A1 CH-TAIL-OPEN BW-24)
+    (TAIL-CALL 0 <NARGS> (NOP-NO-OVERFLOW-TRAP O0))
+
+
+NC:PRINS <fcn>
+  Like NDISASSEMBLE but prints numeric instructions in hex.
+    (prins 'foo)
+    Start: NIL
+    03C5000322842000
+    08C6840000000000
+
+NC:LINK <fcn> <starting-address>
+  Relocates local references and resolves external references
+  to already linked functions.
+  Note: This function is not completely implemented with regard
+        to relinking calles etc.  Best is to link all functions
+        twice, LOAD-FCNS in the debugger does this
+
+
+NC:DEBUG-ON &rest <debug-types>
+  Turn on various compiler debugging switches.
+  To print out nice assembly code for a function
+  (like into a buffer maybe (M-X Ex Com, Super-Shift-C)
+  use (debug-on :post)
+  to really slow down the compiler and see a lot of
+  random stuff, (debug-on :all)
+
+
+NC:DEBUG-OFF &rest <debug-types>
+  What you would expect. Use (debug-off :all) to win.

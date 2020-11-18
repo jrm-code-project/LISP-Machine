@@ -1,0 +1,124 @@
+@chapter Changes to TCP/IP Applications
+@label[chapter-tcp-app]
+
+This chapter outlines changes to TCP/IP for Release 4,
+with a section devoted to each major TCP service.
+
+@section FTP
+
+@csubindex[TCP][FTP]@cindex[FTP command]
+The command interface to FTP, formerly called @l(ftp:cmd),
+is now defined as
+@see[ftp:ftp][fun].
+Various options have been modified and improved,
+and the interface is more robust.
+
+Other changes to the File Transfer Protocol are internal and should not be visible to the user.
+
+@section Telnet
+
+@csubindex[TCP][Telnet]
+Telnet provides remote terminal access via TCP/IP.
+The various Telnet interfaces have been enhanced significantly.
+
+Most importantly, the Telnet interface accessible via @syson[T]
+now works properly over TCP/IP.
+
+The new Telnet provides a robust interface for remote logins between Lambdas.
+When the Lambda Telnet interface contacts a Telnet Server
+running on another Lambda, the two programs agree to use the Chaosnet Supdup output options.
+This results in dramatically improved behavior:
+standard rubout handling features are provided,
+LISP machine characters are displayed properly, and
+special keys such as @abort@  are handled correctly.
+
+See Section @ref[section-telnet], @nameref[section-telnet], for details.
+
+@section SMTP
+
+The SMTP (Simple Mail Transfer Protocol) software has not changed since Release 3.
+Lambda hosts cannot provide full mail-server capabilities, but
+ZMail does work properly with other SMTP mail hosts.
+
+The function @l(ftp:make-unix-zmail-init-file) @findex[zwei:make-unix-zmail-init-file]
+has been moved to the @l(ZWEI:) package.
+
+@section Imagen Printer Driver
+
+@cindex[Imagen printer]
+The networking and printer software support Imagen laser printers  (Imagen model IP/II and compatibles).
+A standalone Imagen printer is accessed via TCP/IP.
+
+With Release 4, the @l(:IMAGEN) driver is fully supported
+and much improved over previously distributed versions.
+
+Users are no longer forced to log in in order to send files to Imagen
+printers.
+
+The Imagen driver now supports the printing of individual
+pages of a text file.  This may be done with the @l(:page-list) keyword, followed
+by a list of the desired page numbers.
+For example:
+
+@lisp
+(hardcopy-file "programs.lisp" :page-list '(3 7 13))
+@end(lisp)
+
+See Section @ref[section-imagen], @nameref[section-imagen], for further details.
+
+@section DISK
+
+@csubindex[TCP][DISK]
+The TCP DISK Server (LMIDISK protocol) is more dependable, and
+provides a full range of functionality similar to Chaosnet.
+
+See Section @ref[section-disk], @nameref[section-disk], for information on using the DISK functions.
+
+Also see Section @ref[section-tcp-disk-compatibility], @nameref[section-tcp-disk-compatibility],
+for information on communicating between Release 3 and Release 3 DISK servers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c end tcp-app1

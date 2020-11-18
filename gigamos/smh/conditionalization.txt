@@ -1,0 +1,171 @@
+
+
+
+                  Lambda System Source Code Conditionalization
+
+                                     for the
+
+                                Falcon Processor
+
+                                  *** DRAFT ***
+                        [internal document -- smh 8Aug88]
+
+
+     This document addresses how a single set of Lisp system source files can be
+conditionalized and maintained to compile and run on the Lambda, K, and any
+other processors that might be of interest.  Obviously, certain files
+implementing low-level portions of each system (as well as components like
+compiler code generators) are completely machine-dependent and must be
+maintained separately, but the bulk of the files implementing the lisp language
+and environment tools are `mostly' machine independent.  They require only
+occasional conditionalizations for different processors or different run-time
+environments.  However, the problem of cross compilation adds significantly to
+the problems.
+
+     This document attempts to establish a (very few) necessary standards needed
+to bring up the lambda system on the Falcon.  All developers should read it and
+either adopt the standards or suggest reasons for alternatives.
+
+
+
+
+                     ====  Run-Time Code Conditionalization  ====
+
+     Any number of places in run-time code require conditionalization for the
+different processors and system options on which the code will run.  One way of
+providing this conditionalization is to have code that explicitly checks some
+status at run time.  This is sometimes reasonable if the condition being checked
+is something which cannot be determined at compile time, e.g., whether or not a
+floating-point accelerator is present on the run-time system.  However, run-time
+checks are pointless for conditionalizing on processor type; there is no sense
+for code compiled for a K processor to test whether it is running on a Lambda.
+This `test' is implicitly be done at compile time.
+
+     The normal way to implement a compile-time conditionalization is with the
+read-time conditionalizers #+feature and #-feature.  These examine whether the
+(keywordized) feature symbol is present on the system's *FEATURES* list.  This
+mechanism is not sufficient to conditionalize for cross compilation because the
+conditionalization depends on the machine doing the compilation (actually, the
+reading) instead of the machine for which the code is being compiled.
+
+     An extension has been made to the #+ and #- reader macros to support cross
+compilation for multiple target processors.  The macros understand a new keyword
+symbol which performs conditionalization with regard to SI:*TARGET-FEATURES*.
+This is best illustrated by an example:
+
+        (defconstant pi #+(target lambda) 3.14285s0
+                        #+(target falcon) 22/7
+                        #-(target (or lambda k)) 3.1415926s0)
+
+*TARGET-FEATURES* is initially NIL and may be lambda bound as appropriate by
+top-level cross-compilation drivers.  In order for source code to work when
+*not* cross compiling, when *TARGET-FEATURES* is NIL the reader conditionalizers
+will use *FEATURES* instead.
+
+
+
+     For completeness, the syntax #+(LOCAL ...) is also understood and forces
+conditionalization with regard to the compiling machine.  It would be used only
+if conditionalization with regard to the compiling machine were needed somewhere
+inside a target-conditionalized form.  This may never happen.
+
+     The current initial value of the *FEATURES* list in the Lambda system is:
+
+(:LAMBDA :LEXICAL :COMMONLISP :LOOP :DEFSTRUCT :LISPM :MIT :LMI :COMMON
+ :CHAOS :SORT :FASLOAD :STRING :NEWIO :ROMAN :TRACE :GRINDEF :GRIND)
+
+     The current initial value of the variable COMPILER:*FALCON-FEATURES* is the
+same, except that :CHAOS is deleted and :LAMBDA is replaced by :FALCON.
+
+     These reader macros should be used everywhere compile-time target
+conditionalization of system source code is required.  (Actually, there may be
+some exceptions, but we haven't thought of them yet.)  The symbol used to
+conditionalize the Lambda processor should always be LAMBDA.  The symbol used to
+conditionalize for the Falcon (aka K aka Phoenix) processor should always be
+FALCON.  Later major revisions of the Falcon system may want to use a different
+symbol, so we should try all to use the same one now and appropriate only the
+minimum-necessary part of the namespace.
+
+     There are certain functions in the compiler itself that are used both when
+compiling for the Lambda and for the Falcon, for instance, in the optimizer.
+This code should do run-time conditionalization on the value of
+COMPILER:*TARGET-COMPUTER*, which will have either the value COMPILER::K or the
+value COMPILER::LAMBDA-INTERFACE.  Good style usually indicates using ECASE
+rather than IF to conditionalize.
+
+     It is still open what we should use to conditionalize (for example) for the
+operating-system host of the Falcon processor.  This could be conditionalized
+either at compile time or at run time.  Since space is at a premium, we lean
+towards compile-time conditionalization; however, we have not yet addressed the
+issue in reality.
+
+
+
+                      ====  Compilation Environments  ====
+
+
+     The regular Lambda compiler now supports a new type of structure, the
+COMPILER:COMPILATION-ENVIRONMENT.  It is implemented as a defstruct that
+contains a couple internal hash tables.  It is a place where definitions
+established during a compilation can be stored separate from the running
+environment of the compiling machine.
+
+     For instance, suppose the Lambda and K environments require different
+expansions of the MULTIPLE-VALUE-BIND macro.  The two definitions can be
+conditionalized using #+ reader macros.  However, when cross compiling (e.g.
+compiling K code on the Lambda) one can't just redefine the Lambda's
+MULTIPLE-VALUE-BIND because that will cause the Lambda to lose big the next time
+some native code is compiled for the lambda.  So when doing a file compilation,
+the compiler stores macro definitions and symbol properties inside a
+compilation-environment structure which is freshly created for that compilation,
+and which is discarded after the compilation.
+
+     This is actually not a new mechanism.  The existing Lambda compiler
+maintained several association lists during a file compilation which carried the
+same data.  The new mechanism is more efficient, and permits long-term storage
+of definitions.
+
+     The CROSS-COMPILE-FOR-K cross compiler produces two output files.  The
+Falcon compiled code file has the standard extension "FBIN".  In addition, a `K
+Environment' file is also created with the standard extension "FENV".  It is a
+QFASL-format file that contains all the file-local definitions accumulated in
+the compilation-environment file.  When it is subsequently loaded into a world
+the definitions will be added to the COMPILATION-ENVIRONMENT structure in
+COMPILER:*COMPILATION-ENVIRONMENT*.  Loading a FENV file into a cross-compiling
+Lambda world is analogous to loading the compiled FBIN into the Falcon world,
+were compilation being done natively.  In other words, loading a FENV file into
+the Lambda makes available to the cross compiler the macro and constant
+definitions in a previously-compiled file.
+
+     To make this work, COMPILATION-ENVIRONMENT structures are actually nested.
+Each one has a NEXT field, which is either NIL or some other
+COMPILATION-ENVIRONMENT from which it inherits additional definitions.  The
+COMPILATION-ENVIRONMENT created for a COMPILE-FILE is automatically nested
+inside the current binding of COMPILER:*COMPILATION-ENVIRONMENT*.  This
+simulates the inheritance of the definitions in compiled files previously loaded
+into the world.
+
+     This mechanism happens automatically, so developers probably won't have to
+worry about it very much.  Nesting of environments can occur to any depth, but
+it is doubtful whether there will ever be any use for more than two levels.
+However, COMPILE-FILE and QC-FILE now accept an explicit keyword
+EXPLICIT-COMPILATION-ENVIRONMENT argument in case the MAKE-SYSTEM facility finds
+use for more control.
+
+
+
+    The following are the developer-visible functions which support cross
+compilation.
+
+    The function COMPILE-FILE-FOR-FALCON is just like COMPILE-FILE but invokes
+the cross compiler instead, after binding *COMPILATION-ENVIRONMENT* to the value
+stored in COMPILER:*FALCON-ENVIRONMENT*.  The version numbers of the FBIN and
+FDEF files will be the same as the source file, just as is done for QFASL files.
+
+    COMPILER:*FALCON-ENVIRONMENT* is a variable which holds a
+COMPILATION-ENVIRONMENT structure.  This accumulates definitions from all the
+FDEF files that have ever been loaded.
+
+    The function LOAD-FALCON-DEFINITIONS is just like load except that it
+defaults the pathname type to FDEF and binds *COMPILATION-ENVIRONMENT* to the
+value in COMPILER:*FALCON-ENVIRONMENT*.

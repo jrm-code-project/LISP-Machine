@@ -1,0 +1,68 @@
+DCP's note that best summarizes the flaming that was set off by
+a few notes from GJC.
+
+Date: Tue, 4 Mar 86 21:26 EST
+From: David C. Plummer <DCP at SCRC-QUABBIN.ARPA>
+To:   Lab Manager <lab at ROCHESTER.ARPA>, fahlman at c.cs.cmu.edu
+cc:   common-lisp at SU-AI.ARPA
+Re:   What is that -*- line for, anyway?
+
+    Date: Tue, 4 Mar 86 12:16:04 est
+    From: Lab Manager(Brad Miller)  <lab@rochester.arpa>
+
+    Subject: What does LOAD use for read table & package?
+
+        Date: Sun, 2 Mar 1986  00:31 EST
+        Message-Id: <FAHLMAN.12187397057.BABYL@C.CS.CMU.EDU>
+        Sender: FAHLMAN@C.CS.CMU.EDU
+        From: "Scott E. Fahlman" <Fahlman@C.CS.CMU.EDU>
+        To: "George J. Carrette" <GJC@MC.LCS.MIT.EDU>
+        Cc: common-lisp@SU-AI.ARPA
+        Subject: What does LOAD use for read table & package?
+        In-Reply-To: Msg of 1 Mar 1986  08:29-EST from George J. Carrette <GJC at MC.LCS.MIT.EDU>
+
+            You should not be so quick to say that the "-*-" shouldnt be used. It
+            may be ugly but experience has shown that it works very well.
+
+        ....
+
+        But all of that is irrelevant to the point I was making.  Let me try
+        again: There is no mention of "-*-" comments anywhere in the current
+        definition of Common Lisp.  As far as Common Lisp is concerned,
+        everything in a comment is ignored.  Any code that depends for its
+        correct interpretation on the "-*-" not being ignored is not portable
+        Common Lisp.  Therefore, depending on this construct to set up packages
+        and the like should be avoided in code that is intended to be portable.
+        That's what In-Package is for.
+
+    I concur. -*- is fine if you want frozzbozzy things for your editor so it
+    need not actually 'read' lisp, but the lisp language certainly shouldn't
+    define it, nor depend on it.
+
+I don't dissent, from a literal reading of CLtL, but I'll make the
+following observations.
+
+CLtL is a language specification.  It does very little in the way of
+program development tools or programming environment aids.  For those
+people that have non-Lisp-understanding text editors, they will parse
+neither the -*- 'attribute line' nor the possible in-package forms.  As
+soon as you want your editor to be integrated into your environment
+(e.g., be able to ask the question "What's the arglist of the function
+the cursor is pointing at?" or "Macro expand the form after the cursor.")
+you need to know various things about the 'state' of the file/buffer.
+This includes things like *package*.
+
+Hystorically, (MIT derived) Lisp Machine files have code which is in the
+same package.  Therefore, the -*- attribute list and an in-package form
+are equivalent, but the former is a lot easier for the editor to
+understand; either it is there at a known place or it isn't.  The
+compiler and loader and other >tools< where made to know about the
+attribute list.  In fact, binary files contain an attribute list which
+requires minimal parsing of the binary file.
+
+It is not 'certain' that a lisp language should not define it.  If we
+really specify the least common denominator, of course it won't be part
+of the language, but the least common denominator isn't a powerful
+language.  If we attempt to define some relatively simple standards for
+useful program development aids, then I think something should be
+defined.

@@ -1,0 +1,149 @@
+;;;-*- Mode:text-*-
+
+BIGNUM File:
+        Most of the problem I encountered are in instructions that try to
+access memory using a pointer and an offset. Let us suppose that
+register a0 has an offset and a1 a pointer. We can distinguish two
+cases:
+
+        (1) a0 has a boxed quantity. In this case, we must specify the
+byte width of the instruction that adds the pointer and the offset, such
+that we preserve the tag field of the pointer. The instruction for a
+memory read would then be of the form:
+
+        (alu L+R vma-start-read a0 a1 bw-24 [un]Boxed-vma [un]Boxed-md)
+
+        Notice that the register with the pointer is used as the right
+source of the alu. The result takes the top 8 bits from the right
+source. Most of the bugs seens in the bignum files are of two folds: the
+register containing the pointer is used as the left source, and the
+width of the operation is unspecified. Since the width in bits over
+which the operation is to be performed is unspecified, the result
+contains a bogus tag that is the sum of the tags of the two operands. If
+we are lucky we will error because of a transporter trap.
+
+        (2) a0 has an unboxed quantity. In this case, provided that the
+tag field of the offset is all zero, it is ok to use a bw-32 width, and
+any order in the operands. The instruction can be written as follows:
+
+        (alu L+R vma-start-read a0 a1 [un]Boxed-vma [Un]Boxed-md)
+
+        I suspect that they are still some bugs in the bignum handlers.
+Each function should be tested to make sure that bignum routines are
+working. I think that I caught all the bugs in the function
+BIGNUM-FIELD-PASS, although more testing of the routines will be
+appropriate.
+
+ARRAYS
+        See documentation on array data structure from Rauen.
+
+        There are two make-array functions : one (called make-array) is
+CommonLisp and the other (called zl-make-array) is zeta-lisp compatible.
+Most of the array functions listed in the Steele CommonLisp book are
+implemented and can be found in one of the two files: ARRAY and ARRAY2.
+Still to be done is ADJUST-ARRAY, ARRAY-PUSH-EXTEND.
+
+        Most of the functions that initialize arrays and array leaders
+have yet to be written. Also, Error checking at make-array time should
+be reviewed. For example, CommonLisp arrays do not allow anything else
+than another array to be the displaced-to argument to a make-array call.
+
+        All array accessors lock the array. Someone should check each of
+such functions and make sure that the array is unlock when exiting the
+function, otherwise Sequence breaks will be inhibited forever.
+
+K-UC-TV File:
+        All the function that are in the microcode file uc-tv are
+implemented in lisp for the K. A driver for character drawing has to be
+written. The driver should check if the current drawing of a row pattern
+from the font table will fit on a single word of wideo buffer memory, if
+so call the fast version of character drawing, otherwise call the slow
+version. The fast version has been tested but the slow version has not.
+Global variables are used for caching the sheet's parameter and the font
+characteristics. Some work still has to happen at this level. Things
+like select sheet, decode font object etc...
+
+        DrawLine, DrawRectangle, and BITBLT have been fully tested and
+do work. May be it should be tried again just to make sure that every in
+that file does what it is supposed to do. BITBLT uses a set of global
+registers which are the K return registers, and that is ok since all the
+subroutines do not use multiple values returns or if they do, never
+glober the chosen registers. This is a decision that I made to make sure
+that BITBLT is as fast as possible. AnyWay to use the code in the
+K-UC-TV file, you must load also VCMEM-DRIVER file that contains the
+code that initializes the VCMEM Board. All test functions are contained
+in the test file "YOUCEF.K;tests".
+
+NUBUS-INTERRUPTS FILE
+        All addresses and data arguments for the functions accessing the
+bus are unboxed. Virtual Cluster 4 is reserved for bus accesses. When
+doing a bus access, one store bits 31-12 of the unboxed address in the
+map entry associated with cluster 4, to setup the map.  Write the data
+into the MD register if it is a write operation. Use the value of the
+variable *bus-access-address* and the low 12 bits of the address to
+generate the value to put into the VMA, and start the memory cycle. On
+entry of all bus access, we make sure that the memory system if free for
+use (we just try to access the MD register). Remember that to supply
+byte addresses all the time.
+
+        Byte accesses are supported as well as 16 bit accesses. For
+either of these operations, one needs to setup the memory control
+register to reflect the type of operation. For byte addresses, the last
+two bits of the address determine which byte to read/write, and for 16
+bit access, bit 1 of the address determines which low or high half to
+use. For write operations, the data must be placed in the appropriate
+place before the write. For read operations, the data must be picked out
+of the right field from the contents of the MD. (for more details refer
+to the code in the file "NUBUS-INTERRUPTS").
+
+        In the file, there also exists a set of functions that allocate
+space in virtual address space, without allocating any physical memory,
+i.e., the physical space is non local to the K processor. A good example
+is the video buffer.
+
+WINDOW ORIENTED DEBUGGER
+        To use the window oriented debugger for the k machine, you
+should load:
+        kbug-generic-patch
+        kbug2-patch
+        falcon-debugger
+
+        All the commands that are available in regular kbug2 are
+available in the window oriented debugger. The window oriented debugger.
+
+        Register Display:
+                Display routines for the register do work. The updating
+of the window that display the open, active, and return registers is
+done after each instruction when single stepping. Each boxed value is
+mouse sensitive, unboxed values are not. A boxed value is indicated by a
+star"*". Selecting a register and clicking right, pops
+up a menu of choices.
+
+        Lisp Object Display:
+                The hex value displayed can be viewed as a lisp object
+in the lisp object display window. If the type of the quantity is
+unknown, or if the code to handle a data type in written yet, the window
+displays "Unknown object". Lines describing an object can be expanded by
+clicking on the line and collapsed by double clicking on the line. A
+middle mouse click on a line will remove it from the display.
+
+        Menu:
+                Items in the menu are not handled properly by the
+system. It needs more work. Kbug2 process is interfering when trying to
+do a warm-boot or cold-boot while it is running.
+
+        Memory Display:
+                The display is like the show memory in kbug2. It
+displays 16 memory location at a time. If the data type of the pointer
+to memory is known, the code will try to access the lowest address
+associated with the object at hand and display the next 16 words of
+memory from there. So far it handles arrays.
+
+        Call Stack window:
+                Needs to be redone to display any call hardware
+operations, like open, call and returns. I tried to have it only track
+function calls which the wrong thing to do on the k machine.
+
+        Lisp Listener or Rep loop:
+                So far just calls the listener or rep loop. Nothing
+special has been done to it.

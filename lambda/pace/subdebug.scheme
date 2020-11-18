@@ -1,0 +1,74 @@
+;;; -*- Mode:SCHEME; Package:SCHEME; Readtable:SCHEME; Base:10 -*-
+
+(define *sd-read-base* 8)
+(define *sd-print-base* 8)
+
+(define *sd-unread-char* nil)
+
+(define (sd-read-char)
+  (cond ((null? *sd-unread-char*)
+         (read-char))
+        (t
+         (let ((c *sd-unread-char*))
+           (set! *sd-unread-char* nil)
+           c))))
+
+(define (sd-unread-char c)
+  (set *sd-unread-char* c))
+
+(define (sd-write-char c)
+  (write-char t c))
+
+(define *sd-input-buffer* (make-string 100))
+
+(define (sd-read-token)
+  (iterate loop ((c (sd-read-char)) (index 0))
+    (cond ((or (and (char<=? #\0 c)
+                    (char<=? c #\9))
+               (and (char<=? #\A c)
+                    (char<=? c #\Z))
+               (and (char<=? #\a c)
+                    (char<=? c #\z))
+               (char=? c #\_)
+               (char=? c #\-)
+               (char=? c #\%)
+               (char=? c #\!)
+               (char=? c #\*)
+               (char=? c #\&)
+               (char=? c #\=))
+           (sd-write-char c)
+           (set (string-ref *sd-input-buffer* index) c)
+           (loop (sd-read-char) (1+ index)))
+          ((zero? index)
+           (sd-write-char c)
+           (set (string-ref *sd-input-buffer* 0) c)
+           (1+ index))
+          (t
+           (sd-unread-char c)
+           index))))
+
+(define (sd-parse-number end)
+  (iterate loop ((val 0) (index 0))
+    (let ((c (string-ref *sd-input-buffer* index)))
+      (cond ((or (>= index end)
+                 (not (and (char<=? #\0 c)
+                           (char<=? c #\9))))
+             val)
+            (t
+             (loop (+ (* val *sd-read-base*) (- c #\0))
+                   (1+ index)))))))
+
+(define (sd-command-loop)
+  (iterate loop ((accumulator 0)
+                 )
+    (let ((end (sd-read-token)))
+      (cond ((zero? end)
+             (loop 0))
+            (t
+             (let ((c (string-ref *sd-input-buffer* 0)))
+               (cond ((and (char<=? #\0 c)
+                           (char<=? c #\9))
+                      (loop (+ accumulator (sd-parse-number end))))
+                     ((char=? c #\space)
+                      (loop accumulator))
+                     ((char=?

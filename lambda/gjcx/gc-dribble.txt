@@ -1,0 +1,129 @@
+;Reading at top level in Lisp Listener 1.
+;Reading in base 10 in package LAMBDA with standard Zetalisp readtable.
+
+()
+NIL
+(foo)
+;Back to top level in Lisp Listener 1.
+(si:report-elapsed-time standard-output 0 'foo 'list)
+Starting FOO... Finished -- process took 0.045 seconds 0.00 seconds disk wait
+NIL
+(gc:full-gc :mode :system-release)
+Starting FULL-GC...
+  Starting reclamation of oldspace... Finished -- process took 383 microseconds 0.00 microseconds disk wait
+  Starting before full gc initializations... Finished -- process took 0.751 seconds 0.58 seconds disk wait
+    Starting removal of previous method definitions... Finished -- process took 1 minute 7 seconds 56 seconds disk wait.
+    Starting removal of previous symbol function definitions... Finished -- process took 1 minute 37 seconds 1 minute 2 seconds disk wait.
+    Starting linearization of flavor plists... Finished -- process took 1 minute 8 seconds 41 seconds disk wait.
+    Starting linearization of symbol plists... Finished -- process took 3 minutes 15 seconds 2 minutes 18 seconds disk wait.
+  Starting turning off gc, reclaim oldspace...
+  ...Finished turning off gc, reclaim oldspace -- process took 11.3 seconds 8.18 seconds disk wait
+  Starting flip and reclaim level 0...
+GC: Flipped 10,205,778 words of volatility 0 storage
+GC: Reclaimed 1,874,591 words of storage (18%)
+  ...Finished flip and reclaim level 0 -- process took 2 hours 40 seconds 35 minutes 13 seconds disk wait.
+  Starting flip and reclaim level 0...
+GC: Flipped 8,525,974 words of volatility 0 storage
+GC: Reclaimed 194,646 words of storage (2%)
+  ...Finished flip and reclaim level 0 -- process took 1 hour 48 minutes 24 minutes 4 seconds disk wait.
+  Starting after full gc initializations...
+  ...Finished after full gc initializations -- process took 2 minutes 4 seconds 1 minute 14 seconds disk wait.
+...Finished FULL-GC -- process took 3 hours 58 minutes 25 seconds 1 hour 5 minutes 51 seconds disk wait.
+NIL
+(print-herald)
+LMI Lambda Release 3.0 (Alpha Test), band 2 of lam2 lam2b. (a3 updated)
+1536K physical memory, 32511K virtual memory, NuBus slot 0.
+ Experimental System                  110.229
+ Experimental Lambda-Diag               7.13
+ Experimental Local-File               68.7
+ Experimental FILE-Server              18.4
+ Experimental Unix-Interface            9.1
+ Experimental ZMail                    65.14
+ Experimental Object Lisp               3.3
+ Experimental Tape                      6.38
+ Experimental Site Data Editor          3.3
+ Experimental Tiger                    24.0
+ Experimental KERMIT                   31.3
+ Experimental Window-Maker              1.1
+ Experimental Gateway                   4.8
+ Experimental TCP-Kernel               39.7
+ Experimental TCP-User                 62.7
+ Experimental TCP-Server               45.5
+ Experimental MEDIUM-RESOLUTION-COLOR   3.4
+ Experimental MICRO-COMPILATION-TOOLS   3.2
+ Experimental DOE-Macsyma               1.1
+ Microcode                           1508
+ SDU                                    3.12
+LMI Lambda Two, with associated machine LAD.
+
+NIL
+(room t)
+Physical memory: #o6000000 (1536K), Free space: #o120500000 (20640K), Wired pages 169+63 (58K)
+Unless otherwise noted, area names are in the SYSTEM package
+RESIDENT-SYMBOL-AREA.....................(1 region) 12/400 used.  96% free.
+SYSTEM-COMMUNICATION-AREA................(1 region) 35/400 used.  88% free.
+SCRATCH-PAD-INIT-AREA....................(1 region) 32/400 used.  89% free.
+MICRO-CODE-SYMBOL-AREA...................(1 region) 0/3000 used.  100% free.
+REGION-ORIGIN............................(1 region) 400/400 used.  0% free.
+REGION-LENGTH............................(1 region) 400/400 used.  0% free.
+REGION-BITS..............................(1 region) 400/400 used.  0% free.
+REGION-FREE-POINTER......................(1 region) 400/400 used.  0% free.
+WIRED-DISK-BUFFER........................(1 region) 0/400 used.  100% free.
+PAGE-TABLE-AREA..........................(1 region) 0/200000 used.  100% free.
+PHYSICAL-PAGE-DATA.......................(1 region) 0/100000 used.  100% free.
+ADDRESS-SPACE-MAP........................(1 region) 1000/1000 used.  0% free.
+VIRTUAL-PAGE-VOLATILITY..................(1 region) 20000/20000 used.  0% free.
+REGION-MAXIMUM-VIRTUAL-PAGE-VOLATILITY...(1 region) 400/400 used.  0% free.
+REGION-GC-POINTER........................(1 region) 400/400 used.  0% free.
+REGION-LIST-THREAD.......................(1 region) 400/400 used.  0% free.
+REGION-ALLOCATION-STATUS.................(1 region) 400/400 used.  0% free.
+REGION-AREA-MAP..........................(1 region) 400/400 used.  0% free.
+AREA-NAME................................(1 region) 400/400 used.  0% free.
+AREA-REGION-LIST.........................(1 region) 400/400 used.  0% free.
+AREA-REGION-BITS.........................(1 region) 400/400 used.  0% free.
+AREA-REGION-SIZE.........................(1 region) 2000/2000 used.  0% free.
+SUPPORT-ENTRY-VECTOR.....................(1 region) 20/400 used.  93% free.
+CONSTANTS-AREA...........................(1 region) 77/1400 used.  91% free.
+EXTRA-PDL-AREA...........................(1 region) 16K allocated, 11K used.
+MICRO-CODE-ENTRY-AREA....................(1 region) 566/2000 used.  63% free.
+MICRO-CODE-ENTRY-NAME-AREA...............(1 region) 566/2000 used.  63% free.
+MICRO-CODE-ENTRY-ARGS-INFO-AREA..........(1 region) 566/2000 used.  63% free.
+MICRO-CODE-ENTRY-MAX-PDL-USAGE...........(1 region) 0/2000 used.  100% free.
+MICRO-CODE-PAGING-AREA...................(1 region) 0/400000 used.  100% free.
+VIRTUAL-PAGE-DATA........................(1 region) 400000/400000 used.  0% free.
+SCAVENGER-QUEUE..........................(1 region) 0/2000 used.  100% free.
+MICRO-CODE-ENTRY-ARGLIST-AREA............(1 region) 566/2000 used.  63% free.
+MICRO-CODE-SYMBOL-NAME-AREA..............(1 region) 2000/2000 used.  0% free.
+INIT-LIST-AREA...........................(1 region) 256310/322000 used.  16% free.
+WORKING-STORAGE-AREA...................(12 regions) 3072K allocated, 2627K used.
+PERMANENT-STORAGE-AREA..................(3 regions) 768K allocated, 534K used.
+PROPERTY-LIST-AREA......................(2 regions) 128K allocated, 16K used.
+P-N-STRING..............................(3 regions) 768K allocated, 377K used.
+CONTROL-TABLES...........................(1 region) 16K allocated, 7K used.
+NR-SYM..................................(7 regions) 448K allocated, 346K used.
+MACRO-COMPILED-PROGRAM..................(5 regions) 1280K allocated, 1233K used.
+PDL-AREA................................(2 regions) 256K allocated, 237K used.
+SPECIAL-PDL-AREA........................(3 regions) 96K allocated, 86K used.
+FASL-TABLE-AREA..........................(1 region) 32K allocated, 16K used.
+FASL-TEMP-AREA...........................(1 region) 16K allocated, 1K used.
+PKG-AREA................................(5 regions) 320K allocated, 312K used.
+SI::DEBUG-INFO-AREA.....................(4 regions) 1024K allocated, 878K used.
+FORMAT::FORMAT-AREA.....................(4 regions) 64K allocated, 30K used.
+EH::ERROR-HANDLER-AREA...................(1 region) 16K allocated, 5K used.
+SI::WIREABLE-STRUCTURES-AREA.............(1 region) 1000/40000 used.  97% free.
+SI::DISK-BUFFER-AREA.....................(1 region) 64K allocated, 21K used.
+FS::PATHNAME-AREA......................(11 regions) 368K allocated, 307K used.
+CHAOS::CHAOS-BIGGER-BUFFER-AREA..........(1 region) 16K allocated, 16K used.
+COMPILER::COMPILER-AREA..................(1 region) 256K allocated, 39K used.
+TV:SHEET-AREA...........................(7 regions) 896K allocated, 630K used.
+TV::WHO-LINE-AREA........................(1 region) 16K allocated, 1K used.
+TV::BLINKER-AREA.........................(1 region) 16K allocated, 3K used.
+WORKING-STORAGE-AREA...................(12 regions) 3072K allocated, 2627K used.
+ZWEI::ZWEI-LINE-AREA....................(5 regions) 1280K allocated, 973K used.
+SI::ANALYZE-AREA........................(3 regions) 96K allocated, 81K used.
+FS::LOCAL-FILE-SYSTEM-AREA..............(2 regions) 32K allocated, 2K used.
+ZWEI::ZMAIL-MSG-AREA.....................(1 region) 16K allocated, 2K used.
+
+NIL
+"We also have the ti 8meg memory board on a 2x2"
+"We also have the ti 8meg memory board on a 2x2"

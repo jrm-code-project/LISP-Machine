@@ -1,0 +1,100 @@
+Babyl Options:
+Mail: DJ: SAZ; MAIL.TEXT#0
+Version:5
+
+0, recent,,
+*** EOOH ***
+Date: Monday, 7 November 1988, 14:15-EST
+From: Keith Corbett <keith@GSI-CAM>
+Subject: Errors from Initialize Timebase
+To: cstacy@GSI-CAM, BUG-LISPM@GSI-CAM
+In-reply-to: <8811060104.AA17573@gsi-cam.UUCP>
+Message-ID: <[GSI-GLASS].7-Nov-88 14:15:53.keith>
+
+    Message-ID: <8811060104.AA17573@gsi-cam.UUCP>
+    Date: Saturday, 5 November 1988, 20:04-EST
+    From: Christopher C. Stacy <cstacy@GSI-CAM>
+    Subject: Errors from Initialize Timebase
+    To: BUG-LISPM@GSI-CAM
+	:
+	:
+    PS.  Is it really likely that the "update bit on clock chip seems to be stuck"
+	 message in fact indicates a hardware problem with Boris Badinoff?
+	 This happens every time I boot, and seems to involve some bit that is
+	 supposed to be cleared within a second or so after frobbing the clock.
+	 I haven't ever noticed the time on my machine being wrong.
+
+
+Some SDU boards do indeed have the "update bit stuck" problem, and they
+will exhibit it forever.  (I.e. until the clock chip is replaced.)  The time
+gets sets correctly when the Lambda reads it over the net.
+
+
+
+0, recent,,
+*** EOOH ***
+Date: Monday, 7 November 1988, 17:53-EST
+From: Keith Corbett <keith@GSI-CAM>
+Subject: Please fix your latest patch
+To: saz@GSI-CAM
+Message-ID: <[GSI-GLASS].7-Nov-88 17:53:11.keith>
+
+
+  (DEFMETHOD (ZMAIL-WINDOW :AROUND :EDIT) (CONT MT ARGS &REST IGNORE)
+    (SYS:%BIND (LOCF (TV:BLINKER-DESELECTED-VISIBILITY POINT-BLINKER))
+	       :ON)
+    (setf (fill-pointer (get 'ZMAIL-SUMMARY-MOUSE :WHO-LINE-DOCUMENTATION)) 0)
+    (setf (get 'ZMAIL-SUMMARY-MOUSE :WHO-LINE-DOCUMENTATION)
+	  (array-push-portion-extend
+	    *edit-msg-documentation*
+	    "Edit msg with normal Zwei commands; click mouse in summary window to save changes and jump to new msg."))
+    (LET ((*SELECTABLE-MODE-LINE-ELEMENTS* NIL))
+      (AROUND-METHOD-CONTINUE CONT MT ARGS)))))
+
+This blows up -- the first setf, because the string doesn't have a
+fill-pointer.  (Most do not.)  In fact, after commenting out the first
+SETF, the second one gets a similar error - *EDIT-MSG-DOCUMENTATION*
+also doesn't have a fill-pointer either, as it's a simple string.
+
+(How did this ever work for you?)
+
+And ARRAY-PUSH-EXTEND isn't what you want here; that extends the array in
+place (i.e. it's destructive).  That means the array could get extended
+every time.
+
+A cosmetic suggestion: instead of "edit msg with normal Zwei commands;",
+how about something like "Edit message in buffer, or ...".
+
+  --Keith
+
+P.S. I hope to be able to disk-save the new system 129 band tomorrow
+(today, by the time you read this), and ZMail is the last system with
+problems, this being one of the two problems.  So I'd appreciate your
+quick attention to this.  (Blink blink.)
+
+
+
+0, unseen, recent,,
+*** EOOH ***
+Date: Monday, 7 November 1988, 18:03-EST
+From: Keith Corbett <keith@GSI-CAM>
+Subject: My proposed fix
+To: saz@GSI-CAM
+Message-ID: <[GSI-GLASS].7-Nov-88 18:03:30.keith>
+
+
+I think this does the "right thing":
+
+  (DEFMETHOD (ZMAIL-WINDOW :AROUND :EDIT) (CONT MT ARGS &REST IGNORE)
+    (SYS:%BIND (LOCF (TV:BLINKER-DESELECTED-VISIBILITY POINT-BLINKER))
+	       :ON)
+    (let-globally ((who-line-override-documentation-string
+		     #.(string-append "Edit message in buffer; press "
+				      #/end
+				      " to save changes, or click in summary window to save and jump.")))
+      (LET ((*SELECTABLE-MODE-LINE-ELEMENTS* NIL))
+	(AROUND-METHOD-CONTINUE CONT MT ARGS))))
+
+You should try it, and (re)patch.  (Unless, of course, you see something better.)
+
+

@@ -1,0 +1,37 @@
+As a function of getting K processors to execute out of NuBus memory, RG
+discovered that reading the same address in the virtual-to-physical-address
+map occasionally returns incorrect data.  In a test that RG had installed
+to assist in tracking the problem, two consecutive reads of the same map
+location were found to differ from each other fairly early in the cold
+load sequence, and this failure occurred repeatedly and predictably at
+the same point on successive mega-boot attempts.  Changing the position of
+the reads in memory caused the failure to disappear, something which, we
+believe, is characteristic of other less-clearly-delineated failures that
+we have experienced.
+
+My investigation with the HP 1630 indicated that one of the two reads was
+an instruction that was not in cache, and had to be fetched from main
+memory.  (That fetching a line of instructions from NuBus memory takes
+nearly ten microseconds limited the resolution of the sample rate that
+the logic analyzer could use.)  The logic analyzer trace suggested that
+timing for the map read itself was tight.  Although the enable for the
+map data onto the MMFIO and MFI busses was asserted in plenty of time,
+the fact that the map read occurred at the trailing end of a cache-line
+fill, together with the half-clock-cycle delay on the SELVMAHI output
+of the memory state machine, meant that the vma was not addressing the
+map until less than half a clock cycle before the map output was to be
+clocked into the ALU operand register.
+
+Inspection of the source for the memory state machine revealed that the
+PC is, in fact, selected as the map address source throughout the cache-
+line fill sequence.  This seems to me to be unnecessary, if not
+undesirable, since neither on-board memory nor off-board memory should
+need the mapped PC address during the data transfer to the processor.
+So, I modified the VMAHI bit of the memory state machine to restore
+the VMA as the map address source one clock period earlier for both
+local and NuBus cache-line reads.  Specifically, I modified bit 1 of
+addresses 3D XX1X and 67 XXXX of the MSM3 prom, changing the VMAHI
+bit from 1 to 0 in these locations.  After verifying that the change
+corrects the problem and has no apparent side effects, I will move
+the revised source for the MSM to the ANGEL:/lmi/khh/k/v2/pals
+directory as Version 6 of the MSM file.

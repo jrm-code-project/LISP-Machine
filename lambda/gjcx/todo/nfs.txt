@@ -1,0 +1,219 @@
+
+Date: Wednesday, 9 July 1986, 15:22-EDT
+From: Jon Lancaster <jonl@SUN.COM>
+Message-ID: <8607091922.AA03081@sunset.sun.uucp>
+To: gjc@mit-mc.arpa
+Subject: NFS port
+CC: annieb@SUN.COM, sai@SUN.COM, sgadol@SUN.COM
+
+>Date: Monday, 7 July 1986, 16:20-EDT
+>From: George Carrette <lmi-angel!gjc%LMI-ANGEL.ARPA>
+>Subject: NFS and Excelan Transport.
+>To: mitccc!sgadol%sun%mc@angel.ARPA
+>Message-Id: <[LMI-MOE].7-Jul-86 16:20:14.GJC>
+>
+>
+>Reply to GJC@MIT-MC, which gets forwarded.
+>
+>In using the Excelan UDP for transport layer of RPC/NFS one is limited
+>to packets of 2048 bytes.
+>
+>Q: How will this impact my implementation of a NFS as SERVER?
+>Q: What work arounds or problems were experienced in the System V
+>   implementation mentioned in the SUN documents that used the
+>   Excelan transport?
+
+at the nfs "connectathon" we had back in january prior to our nfs exhibition
+at uniforum we had a few vendors using ethernet hardware from Excelan.  if my
+memory serves me correctly someone from Excelan came out with a network monitor
+and in checking things out found some problems in the firmware they were
+currently shipping...you might mention this to your Excelan support person.
+Steve Issac, who manages our NFS consulting group can probably give more
+complete (as well as more current) information.
+
+as far as the 2048 byte max packets, there are now options to the mount command
+in our version of UNIX which allow you to set the size so that a server doesn't
+overrun a client's ability to slurp up packets (or vice versa).  check out the
+manual pages for mount, umount, export, import, etc.
+
+i have to plead ignorance on the system 5 compatibility issues...i remember
+the system 5 microvax port was down to the wire and they were one of the groups
+using the Excelan ethernet gear, but i can't recall much beyond that.
+
+-jon
+
+
+
+
+Date: Thursday, 10 July 1986, 17:26-EDT
+From: Jon Lancaster <jonl@SUN.COM>
+Message-ID: <8607102126.AA15818@sunset.sun.uucp>
+To: gjc@mit-mc.arpa
+Subject: UDP/NFS Update Info
+CC: sai@SUN.COM
+
+
+
+----- Begin Forwarded Message -----
+
+>From sai@jazz Thu Jul 10 14:18:16 1986
+Return-Path: <sai@jazz>
+Received: from jazz.sun.uucp by sunset.sun.uucp (1.1/SMI-3.0DEV3)
+        id AA15698; Thu, 10 Jul 86 14:18:11 PDT
+Received: by jazz.sun.uucp (1.1/SMI-3.0DEV3)
+        id AA28019; Thu, 10 Jul 86 14:15:21 PDT
+Date: Thu, 10 Jul 86 14:15:21 PDT
+From: sai@jazz (steve)
+Message-Id: <8607102115.AA28019@jazz.sun.uucp>
+To: mitccc!sgadol%sun%mc@angel.ARPA
+Subject: NFS
+Cc: jonl@sunset
+Status: R
+
+Well, I'm glad to hear that you are putting
+NFS up on your machines! We actually got Excelan to put
+9K UDP packets into their stuff. Talk to Grant Rostig
+(408-434-2284) in Excelan support about this. Another
+Excelan contact is Sid Aurora, a marketing person, who
+we have worked with extensively on NFS things. Sid is
+able to get things done quite effectively within the
+Excelan organization.
+
+Keep me informed on your progress.
+
+
+----- End Forwarded Message -----
+
+
+
+
+To: mitccc!jonl%sun%mc@angel
+CC: mitccc!annieb%SUN%MC@ANGEL, mitccc!sai%SUN%MC@ANGEL, mitccc!sgadol%SUN%MC@ANGEL
+re: XDR
+--Text Follows This Line--
+Its too bad that XDR doesnt bother to transmit the type of the object along with each object.
+The overhead for small objects like XDR_INT might be a lot, but it appears that in actual
+protocols that data is small compared with the amount in strings and counted byte arrays.
+And of course one can always have a uniform array type, where all elements are of the
+same type, so you transmit the length, the type, then the elements.
+
+The engineering value of the error-checking capability provided by the extra info is considerable,
+and the runtime cost certainly small compared with the network overhead.
+
+[Now, isnt that just the kind of comment you'd expect from a lisp programmer.
+ Typical. Introducing extra complexity like uniform arrays to get around the extra overhead
+ of runtime type encoding.]
+
+Even Barbara Liscov, Ms Compile-Time-Type-Checking personified, found she wanted to introduce
+runtime type checking into the Argus language, the derivative of CLU for distributed computations.
+
+Be that as it may, you might be interested in how the XDR library takes shape under lisp.
+The very clever and clean convention useful in the C language implementation, with
+reflexive primitives that do both the encode and decode operation, which makes it possible
+for the user to directly define compound data structure representation in a single procedure,
+does not work out very well in lisp. There is no clean and efficient "&" construct.
+So XDR_INT and XDR_ARRAY and XDR_U_INT etc are out. Instead I have two primitives,
+
+ XDR_TRANSMIT(XDRS,OBJECT,TYPE)
+
+ XDR_RECEIVE(XDRS,TYPE)
+
+e.g. XDR_TRANSMIT(stream,555,INTEGER)
+
+also
+
+      {int x;
+       x = XDR_RECEIVE(stream,INTEGER);}
+
+
+
+The TYPE is of course available at runtime and is dispatched on by the transmit and receive routines.
+Then since, to quote page 35 of the "External Data Representation Protocol Specification"
+
+  "The XDR standard also suggests a language to describe data."
+
+I in fact implement such a language. Ignoring the next statement:
+
+ "The language is a bastardized C; it is a data description language, not a programming language."
+
+
+Instead the language is bastardized Lisp (which is a redundant adjective to use) which is
+of course both a data description language and a programming language.
+
+
+
+
+
+
+
+
+-gjc
+
+
+
+
+"." is really outside of the scope of the protocol, and is really an
+artifact of Unix.  Unix uses the "." as a placeholder for the current
+working directory, and uses ".." as the parent directory. These aren't
+technically parts of the protocol then, but perhaps they ought to be
+documented to make it easier for non-Unix ports such as yours to be aware
+of them so they can be mapped into your naming space.
+
+> (2) the NFSPROC_READ routine is being called with an offset outside of
+>     the file. Consistenly reading off then end of the file when using
+>     cat, cp, etc.  If I return a zero length string then the client is
+>     happy.
+
+This is another artifact of Unix.  Most read loops look something like
+this:
+
+        while ((numbytes = read(fd,buffer,bytestoread)) > 0)
+                do_something;
+
+where fd is a filedescriptor, buffer is the buffer the data goes into,
+and bytestoread is the number of bytes requests.  Read returns the
+number of bytes read into numbytes.  With the exception of the last
+(possibly partial) read of the file, numbytes should always equal
+bytestoread.  The last read returns a partial buffer (everything from
+the last read to end of file) and the number of bytes read in numbytes
+(0 > numbytes >= bytestoread).  The program then makes a final read,
+which, since they are now at EOF, returns a null buffer and numbytes is
+0, quitting the loop.
+
+What this means is that your choice of sending a 0 length stream is
+correct. I hope the above clarifies things instead of making them worse.
+
+chuq
+
+
+
+To:  mitccc!chuq%SUN%mc@angel
+Subject: clarificiations of NFS
+--Text Follows This Line--
+
+That certainly clarifies "." and ".." and the read offset artifact.
+It should definitely be documented that a SUN NFS client may
+ask for "." and ".." in NFSPROC_LOOKUP. Handling of
+out-of-range arguments in both READ and WRITE should also be
+described.
+
+It is very clever that the SUN NFS client caches files that
+have been already read. I was suprised when I did
+% cp foo/bar.lisp bar.lisp
+for the first time. Saw it run, then decided to benchmark
+my server by doing
+% time cp foo/bar/lisp bar.lisp
+I couldnt beleive how fast it was. Then I noticed that
+only LOOKUP and GETATTR was being called on my server.
+
+Suggestions for handling how to map filesystems with types
+and version numbers, e.g. VMS, TOPS-20, all 3 Lispmachine companies,
+would also be in order. I will write up the techniques that
+we found useful along with suggestions.
+
+In general this has been the most pleasent to implement set of
+protocols I have ever done. And the only ones that I actually
+could and did read the specs for completely, (and without looking
+at any implementations). I have to admit that I never completely
+read TELNET, FTP, etc.
+

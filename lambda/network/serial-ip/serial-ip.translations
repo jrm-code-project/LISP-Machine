@@ -1,0 +1,17 @@
+;;; -*- Mode:LISP; Package:USER; Base:10; Readtable:CL -*-
+
+;;; Copyright (C) GigaMOS Systems, Inc. 1988
+;;;   See filename "Copyright.Text" for
+;;; licensing and release information.
+
+(fs:set-logical-pathname-host
+  "SERIAL-IP"
+  :physical-host
+  (send
+    (send (fs:translated-pathname "SYS:SITE;") :host)
+    :name)
+  :translations
+  '(("TESTS;" "DISCUS.TESTS;")
+    ("SERIAL-IP;" "DISCUS.SERIAL-IP;")
+    ("*;" "DISCUS.SERIAL-IP.*;")
+    ("*.*;" "DISCUS.SERIAL-IP.*.*;")))

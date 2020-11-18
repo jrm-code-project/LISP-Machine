@@ -1,0 +1,599 @@
+[2007-04-09 Jrm wrote this.]
+
+Funargs.
+
+In LISP, functions are first class data objects.  That is, a function
+can be assigned to a variable, passed as an argument, consed into a
+list, returned from a function, etc.  Two of the uses of first class
+data objects cause so many problems when the data is a function that
+they have been given names:
+A FUNARG is a functional argument.  A DOWNWARD FUNARG is a function that
+is used as an argument to another function.  An UPWARD FUNARG is a
+function that is returned as a value (or placed in a data structure,
+etc. more on this later).
+
+FUNARGS are really useful (and although the mere mention of them makes
+some people say "ARGH", I think they are lots of fun).  Here is an
+example.  Suppose I wanted decrement every element in a list (I do this
+daily).  I could do it like this:
+
+(defun decrement-every-element-in-this-list (list)
+  (let ((backwards-result '()))
+    (dolist (element list)
+      (push (1- element) backwards-result))
+    (reverse backwards-result)))
+
+Suppose every now and then I have reason to want to increment every
+element in a list (to compensate for fencepost errors caused by the
+above).
+
+(defun increment-every-element-in-this-list (list)
+  (let ((backwards-result '()))
+    (dolist (element list)
+      (push (1+ element) backwards-result))
+    (reverse backwards-result)))
+
+This is needless duplication of code.  It is hard to maintain because
+changes to one part necessitate changes to the other, but both need not
+be even in the same file.  It is also unsatisfactory from an aesthetic
+standpoint.  It is clear something is going on here which has little to
+do with incrementing or decrementing.  This is the idea of mapping a
+function over a list.  Here is a function that does this:
+
+(defun mapcar (f list)
+  (let ((result '()))
+    (dolist (element list)
+      (push (funcall f element) result))
+    (reverse result)))
+
+Now I can do this:
+
+(defun increment-every-element-in-this-list (list)
+  (mapcar (function 1+) list))
+
+(defun decrement-every-element-in-this-list (list)
+  (mapcar (function 1-) list))
+
+In this example, 1+ and 1- are DOWNWARD FUNARGS.
+
+
+LAMBDA, ANONYMOUS FUNCTIONS and CLOSURES.
+
+Ok.  Today, I want to add 3 to every element in a list.  I could do
+this:
+
+(defun 3+ (number)
+  (+ number 3))
+
+(defun add-three-to-every-element-in-the-list (list)
+  (mapcar (function 3+) list))
+
+Well, I was complaining before of needless duplication of code, but now
+if I want to add an arbitrary number to a list, I have to define a
+function to add the number.  This is particularly annoying considering
+that there are 33,554,432 different fixnums.  What I want
+to do is generate the appropriate function on the fly.  This is what
+LAMBDA is used for.
+
+(defun add-x-to-every-element-in-the-list (x list)
+  (mapcar #'(lambda (number) (+ number x)) list))
+
+Think of lambda as an anonymous defun, i.e. it makes a function that has
+no name.  It works just like a regular defun.
+
+Now, in mapcar, when we do (funcall f element), this lambda will get
+called on an element in our list.  Lets say the element just happened to
+be 5.  (funcall (lambda (number) (+ number x)) 5)
+
+(funcall (lambda (number) (+ number x)) 5)
+
+It is clear here that five will be added to x.  What is x?  Well, it
+seems that it should be the same x that we had when we called
+add-x-to-every-element-in-the-list.  In the lambda expression, X is a
+FREE variable (it is used without being bound by the lambda expression).
+The value of X is determined by the scope of x (i.e. where it is
+possible to see x).
+
+There are several ways of finding out what x is.
+One of the first that comes to mind is to have a big table of variables
+and their values.  Whenever we bind a variable (temporarily assign it a
+value like when we use it as an argument), we store the old value away
+somewhere and put in the new value.  When we are done, we put the old
+value back.  This is called SHALLOW BINDING and the variables have
+DYNAMIC scope.  If we implement binding in this way, our lambda
+expression will behave like we expect it to behave.
+
+A different way of binding variables is to have a list of all the
+variables that can be seen at any given point in the code.  When we bind
+a variable, we put the new value on the list.  When we reference a
+variable, we look back down the list to find the most recent binding and
+use that value.  This is called DEEP BINDING and in this example, the
+variables also have DYNAMIC scope.
+
+DYNAMIC scope means that the variables are visible only during the call
+to the function.
+
+Here is a problem:
+
+(defun add-result-of-hairy-computation-to-list (hairy-function list)
+  (let ((result (funcall hairy-function *latest-random-value*)))
+    (mapcar #'(lambda (element) (+ result element)) list)))
+
+When the lambda expression is called inside of mapcar, a little
+confusion will RESULT, to wit, what RESULT do we mean?  The RESULT we
+will get is the temporary variable result used inside of mapcar.  This
+is because it is the latest value of the variable result.  Since our
+code won't work right, we have two options:  Change the name of either
+RESULT, or invent a new scoping rule.
+
+Changing the name is just not satisfactory.  If this were the case, I
+would have to know the name of every temporary variable in every
+function I might call.  If someone changes the name of a temporary in
+mapcar, it could cause much confusion and breakage.  What we really want
+here is LEXICAL scoping.  In lexical scoping, the value of a free
+variable in a lambda expression is the value of the variable in the code
+surrounding the lambda expression.  What this means is that in the above
+problem, the RESULT is the same variable as the RESULT in the let
+expression above it.  One easy way to accomplish this is to use deep
+binding and then notice that the lexically visible binding is the same
+as the dynamic binding *when the lambda expression is evaluated*.
+
+Now, when we create our anonymous function with the lambda expression,
+we include the list of variables that are visible to it so we can find
+the correct variable to use later.  This is called a lexical closure.
+
+THE STACK
+
+Most lisp expressions can be evaluated using a stack discipline.
+
+(+ 4 (+ 2 3))
+
+We start by evaluating each of the subexpressions:
+
+ (+ => evaluates to a procedure that adds
+
+  4 => evaluates to itself
+
+  (+ 2 3) => whoops, we must recursively evaluate this so...
+    (+ => evals to add
+     2 => evals to 2
+     3 => evals to 3) => whole thing evals to 5
+   ) =>evals to 9
+
+In this example, each subproblem can be evaluated completely before
+returning to the main problem.  This is true of the subproblems
+subproblems and so on.  Since the last expression we exited was the
+first one we entered, we have evaluations that take place in stack
+discipline.
+
+A lot of memory is used by evaluating subproblems:  we must remember
+where we were in the main evaluation, we must also have room to hold the
+arguments to the subproblems.  Since we know when we will be done with the
+subproblem, the memory allocated for evaluating it can be recycled
+immediately.  Most computers have special hardware for doing this
+efficiently.  This hardware is called, surprisingly enough, "the stack".
+
+A stack is not necessary for evaluating expressions, it is just so
+useful that evaluation is nearly always done this way.
+
+Upward funargs.
+
+I could improve my add-foo-to-a-list code a little by writing a function
+that returns a function as a value.
+
+(defun make-list-adder (number-to-add)
+  #'(lambda (list)
+      (mapcar #'(lambda (element) (+ element number-to-add)) list)))
+
+Now,
+
+(deff add-three-to-elements-in-list (make-list-adder 3))
+
+(deff increment-elements-of-list (make-list-adder 1))
+
+(increment-elements-of-list '(1 2 3 5)) ==> (2 3 4 6)
+
+make-list-adder returns a function that adds something to a list.
+
+The function that make-list-adder returns is called an upward funarg.
+It is upward because it is being returned to the caller of the function
+that created it.
+
+Upward funargs cause problems.  When one has a downward funarg, all the
+free variables it references are sitting on the stack above it.  This
+is why it is called a downward funarg.  For an upward funarg, the
+variables are no longer on the stack:  we automatically deallocated
+them.  Any lexical closure which may live longer than the stack frame it
+was created in is called an upward funarg.
+
+We can solve the upward funarg problem in a few different ways.  One way
+is to not allocate variables on the stack.  This solves the problem, but
+it really wastes the ability to follow stack discipline when we are not
+using closures.  Another way is to try to detect when we are using an
+upward funarg and move the variables off the stack when necessary.  This
+is how it is done in the LAMBDA.
+
+Framed and unframed stacks
+
+There are two ways to use a stack to implement recursion.  One way is to
+keep the current data in the processor memories (registers) and to save
+it on the stack when that data may be clobbered.  Another way is to keep
+all the relevant data on the stack and only bring it into the processor
+memories for computation.  This is called a framed stack discipline
+while the former is an unframed stack discipline.  The LAMBDA uses a
+framed stack.
+
+A framed stack offers several advantages to the unframed stack.
+A framed stack only needs a few processor registers to hold the state of
+the machine.  These are usually the program counter, the base of frame
+pointer and the top of stack pointer.  Another is that it is trivial to
+do process switches, one only has to save about three registers.
+
+A disadvantage to a framed stack is that all of the data is on the stack
+and computation is limited to the speed of the stack.  On the LAMBDA,
+there is a special fast memory called the PDL buffer (for push-down
+list) in which the stack is contained.  This greatly speeds up stack
+references.
+
+In a framed stack, someone has to build the frame.  On the lambda, the
+caller builds the stack frame.  The call sequence goes something like
+this:
+
+Lisp code:
+      
+      
+(let ((a 3)
+      (b 6))
+  (foo a 5 b))
+
+Macrocode:
+CALL D-RETURN #'foo
+MOVE D-PDL    LOCAL|1  ;a
+PUSH-NUMBER  '5
+MOVE D-LAST   LOCAL|2  ;b
+
+The call d-return opens up a new stack frame for a call to foo.
+The move d-pdl is a push of the first argument to foo.
+The move d-last is a push of the last argument to foo.  D-LAST also
+activates the latest stack frame, so the code would then proceed at foo.
+
+The stack would look like this:
+
+
+
+Base of open frame  (dtp-fix)  call-state  3 words linkage info
+                    (dtp-fix)  exit-state  see sys:cold;qcom
+                    (dtp-fix)  entry-state
+                    (dtp-fef-pointer  --)----> points to compiled function FOO
+Arguments           (dtp-fix 3)
+                    (dtp-fix 5)
+Top of stack        (dtp-fix 6)
+
+The first four words were pushed by the call instruction.  This is where
+the linkage to the previous frame will be stored.
+
+The lambda uses four registers to run with this kind of
+stack discipline:
+The program counter.        LC
+The stack ponter.           PDL-BUFFER-POINTER
+The base of frame pointer:  M-AP which points at the FEF in the frame.
+The open frame pointer:     A-IPMARK with points at the latest frame
+                            opened.
+
+Suppose that foo was defined as follows.
+
+(defun foo (a b c)
+  (let ((x (+ a b)))
+    (bar x c)))
+
+The variable x needs a home.  Upon entry to foo, the stack pointer is
+bumped up a bit to make room for the locals.  This is called the local
+block.
+
+Suppose that foo took an &rest argument.
+
+(defun foo (a &rest everything-else)
+  ...)
+
+In this case, any argument beyond "a" will be put together in a list and
+bound to "everything-else".  What happens on the stack is this.  The
+arguments are pushed one by one with the cdr codes set up so that it
+looks like a cdr coded list.  A local variable by the name of
+everything-else is created which contains a dtp-list pointer into the
+middle of the argument block and now we have &rest args bound into the
+list.
+
+Because we have no way of knowing how big the argument block is when
+there are rest args, there is yet another pointer called A-LOCALP which
+points at the first local variable.
+
+Block structure as function application
+
+(let ((a 3)
+      (b 5))
+  (foo a b))
+
+can be implemented as:
+
+(funcall #'(lambda (a b) (foo a b)) 3 5)
+
+Lexical environments.
+
+(defvar *funny-function-list*)
+
+(defun make-funny-function (how-many)
+  (funcall
+    #'(lambda (last-called)
+        (dotimes (count how-many)
+          (funcall
+            #'(lambda (my-id my-count)
+                (push
+                  #'(lambda ()
+                      (format t "I am funny function ~D.~
+                                 I have been called ~D times.~
+                                 The previous function called was ~D."
+                              my-id my-count last-called)
+                      (setq last-called my-id)
+                      (incf my-count))
+                  *funny-function-list*))
+            count 0)))
+    0))
+
+This function creates a list of functions each of which, when called,
+will report their id and the id of the last function that was called.
+Each function will leave its own id as the value of last-called.
+
+The functions that are placed on the list all make three free references:
+LAST-CALLED MY-COUNT and MY-ID.  The binding of LAST-CALLED was not
+changed during the creation of the functions, but the bindings of MY-ID
+and MY-COUNT were made anew each time through the loop.  Thus, we should
+expect that these functions will share the binding of LAST-CALLED, but
+will each have a private version of MY-ID and MY-COUNT.
+
+One way to arange for this to happen is via shared list structure.
+
+                   (last-called 0)
+                         /|
+           -------------/ |
+         /            ----/
+       /             /
+       |             |
+  (my-count 0)   (my-count 0)  ...
+  (my-id    1)   (my-id    2)  ...
+
+
+Now the binding of last-called is shared among all the functions, but
+the bindings for my-id and my-count are separate.  This structure that
+details what bindings are visible is called the environment.
+
+Notice that at each level of the environment more than one binding can
+exist.  Each level of the environment is called a frame.  There are
+rules for the creation and use of frames.
+
+1.  When a lexical closure is made, the current lexical environment is
+recorded with the closure.
+
+2.  When a lexical closure is applied, a frame is created which holds
+the bindings of the arguments to the closure.  This frame is consed on
+to the front of the closure's lexical environment and the result becomes
+the new environment.
+
+3.  Any variable reference refers to the nearest binding in the
+environment.  If there are no such bindings, we assume that the dynamic
+binding (the special binding) is what is wanted.
+
+(In the above example, we assume that the internal lambdas which are
+applied for the sake of binding local variables are not optimized out by
+the compiler.)
+
+The Heap
+
+The storage in a LISP environment which is not automatically deallocated
+by stack discipline is called the heap.  The heap is where permanent
+objects are created.  LISP has a tremendous advantage over other
+languages in that storage is allocated by simple creation of an object
+and is deallocated by dropping all pointers to that object.  This
+entails the use of a "garbage collector" which figures out which storage
+is currently in use and which can be reclaimed for later recycling.
+
+How does the lexical closure stuff fit in with stack frames?
+
+In the MIT implementation of SCHEME, there are no stack frames.
+Whenever a procedure is entered, all the arguments are copied out of the
+stack and into a waiting heap-consed lexical frame.  This is fine for an
+interpreter based LISP, but it is extremely non-optimal for a compiler
+based LISP.
+
+We wish to keep arguments on the stack in the LAMBDA because stack
+references are very fast and the arguments are placed there by default
+upon evaluation.  Copying the arguments out to the heap would be slow,
+and if we don't actually make a closure, we would just be wasting time.
+This means that rule 2 above must be compromised.  We change rule 2 to
+state that a new frame is not created upon application of a closure.  We
+change rule 1 to generate the frame upon creation of an internal
+closure.  In addition, we place invisible pointers in the new frame to
+point to the arguments.  These arguments live on the stack.
+
+This can be accomplished by a simple modification to the compiler.
+Since the compiler can know before hand whether or not there will be any
+closures created in a certain piece of code, we will make it so that it
+allocates an extra slot in the locals block of the stack frame.  This
+slot is used by the microcode to hold the lexical frame.  The lexical
+frame will be a vector of invisible pointers to the arguments in the
+stack frame.
+
+There is a problem.  When the stack frame is exited, the invisible
+pointers in the lexical frame will point to unused storage.  The
+microcode therefore must scan the lexical frame for pointers to the
+stack upon exiting the stack frame.  Any invisible pointers will be
+replaced by the actual values of the arguments.  Now the arguments live
+in the heap and our troubles are over.
+
+Optimizations
+
+It is not necessary for every argument to be in the lexical frame:
+only those which are referenced by closures later on.  The compiler can
+optimize this and make smaller lexical frames.  The data for which
+arguments are necessary for the closures is kept in a slot in the FEF of
+the running function.  When it becomes necessary to make a lexical
+frame, the microcode looks up this map and uses it as a model for the
+lexical frame it is constructing.
+
+In the current scheme of things, this information is stored 2 slots
+before the unboxed instructions in the FEF.  It is a compact list of
+fixnums which designate which arguments or locals are in the lexical
+frame.  The sign bit is used to indicate that a local variable is
+wanted and not an argument.  The list is stored in reverse order (this
+is marginally faster in one implementation).
+
+Optimizing downward funargs
+
+If the closure is passed as an argument to another function which simply
+applies the closure, it is not necessary to find new homes for the
+arguments upon leaving the stack frame.  This is because although there
+are invisible pointers to the arguments in the lexical frame, there are
+no pointers to the lexical frame.  In this case, we can simply pop the
+stack frame and the lexical frame will be reclaimed at the next garbage
+collection.  Our scheme for doing this must take less time in the long
+run than simply copying the variables all the time.
+
+In order to do this, we must make sure that any time there is any
+possibility of having a pointer to the lexical frame anytime after the
+stack frame is popped that we find new homes for the variables.  We can
+do this by examining all storage for pointers to the lexical
+frame upon exit from a stack frame.  This is not going to be quicker
+than just copying the variables.  A quick way to catch the most often
+used case of downward funargs is to simply check to see if we store the
+closure anywhere but in the stack.  This will easily optimize functions
+used for mapcar, etc. without slowing down everything else.
+
+To implement this on the LAMBDA, we make a new data type called
+"STACK-CLOSURE".  A stack closure is one in which the arguments to the
+lexical frames in the closure environment are never expected to move off
+the stack.  Whenever we do a write to memory or a return from a
+function, we check the data type of the datum we are concerned with.  If
+it is a stack closure, we go down the list of lexical frames in the
+environment, find the associated stack frames, and mark them so that the
+variables will be copied out into the heap on popping the stack frame.
+We then change the datum to data type "CLOSURE" so that we don't take
+any more traps on that object.  In addition, if we make a closure in a
+stack frame, we check the bit that indicates whether or not we are going
+to copy the arguments on exit.  If we are, then we simply cons a
+"CLOSURE" because we know that we have to copy the arguments.  This
+means we will take only a couple of closure traps per stack frame in the
+worst case.
+
+It is now necessary to be able to find out which stack frame a given
+lexical frame is associated with.  What we do is make a pointer to the
+FEF in the stack in the lexical frame.  In the LAMBDA, this pointer is
+located one before the pointers to the arguments.  There is a bit of
+hair in the implementation to make this compatable with the old version
+of closures which had no room to allocate such a variable.  This pointer
+is treated like an argument pointer and is changed to not point at the
+stack at the same time as the other argument pointers.  Think of it as
+argument -1.
+
+Context flattening.
+
+(defun make-funny-function (how-many)
+  (funcall
+    #'(lambda (last-called)
+        (dotimes (count how-many)
+          (funcall
+            #'(lambda (my-id my-count)
+                (push
+                  #'(lambda ()
+                      (format t "I am funny function ~D.~
+                                 I have been called ~D times.~
+                                 The previous function called was ~D."
+                              my-id my-count last-called)
+                      (setq last-called my-id)
+                      (incf my-count))
+                  *funny-function-list*))
+            count 0)))
+    0))
+
+The above function makes two internal function calls.  This wastes time
+by making two stack frames and several lexical environments.  In
+addition, references to variables via lexical offsets is far slower than
+references to arguments and locals on the stack.
+The compiler can rearrage this code to be like this:
+
+(defun make-funny-function (how-many)
+  (prog (last-called count temp my-id my-count)
+        (setq last-called 0)
+        (psetq count 0
+               temp how-many)
+        (go test)
+     loop
+        (psetq my-id count
+               my-count 0)
+        (push
+          #'(lambda ()
+              (format t "I am funny function ~D.~
+                         I have been called ~D times.~
+                         The previous function called was ~D."
+                      my-id my-count last-called)
+              (setq last-called my-id)
+              (incf my-count))
+          *funny-function-list*)
+        (incf count)
+     test
+        (if (< count temp)
+            (go loop)
+            (return nil))))
+
+Now we only have one stack frame and one internal lexical environment.
+You may notice that my-id and my-count are now shared among all the
+closures on the funny function list.  This is not the behavior we want.
+We could modify the compiler somewhat to produce the following kind of
+code.
+
+(defun make-funny-function (how-many)
+  (prog (last-called count temp l-temp c-temp my-id my-count)
+        (setq last-called 0)
+        (psetq count 0
+               temp how-many)
+        (go test)
+     loop
+        (psetq my-id count
+               my-count 0)
+        (setq c-temp #'(lambda ()
+                         (format t "I am funny function ~D.~
+                                    I have been called ~D times.~
+                                    The previous function called was ~D."
+                                 my-id my-count last-called)
+                         (setq last-called my-id)
+                         (incf my-count)))
+        (setq l-temp (copy-lexical-frame-and-unshare c-temp))
+        (unshare-variable 'my-count l-temp)
+        (unshare-variable 'my-id    l-temp)
+        (incf count)
+     test
+        (if (< count temp)
+            (go loop)
+            (return nil))))
+
+Where COPY-LEXICAL-FRAME-AND-UNSHARE makes an identical copy of the
+lexical frame of the given closure and changes that closure to contain
+the copy.  UNSHARE makes a copy of a variable and makes the lexical
+environment copy contain the variable copy.  Now, we have a sharing just
+like we want, but the amount of list structure is much less and there
+are fewer stack frames.
+
+The compiler actually issues such instructions.
+
+CLOSURE-DISCONNECT-FIRST unshares a lexical frame and makes the closure
+point to the new copy.
+
+CLOSURE-DISCONNECT makes a closure point at the latest unshared frame.
+This is for use when several closures need unsharing at once.
+
+CLOSURE-UNSHARE unshares a variable in the latest copy of the lexical
+frame.
+
+Now, there are several copies of the lexical frame, all of which can
+contain pointers to the stack frame.  We keep a list of all copies made
+of the frame and scan them all for pointers to the stack when we exit
+the stack frame.  A lot of hair is in the closure code to make sure
+shared things remain shared among the context flattened code.

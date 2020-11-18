@@ -1,0 +1,217 @@
+
+(%better-gc-scavenge amount-of-work idle-flag)
+
+better-scavenge:
+    a-scavenge-work  unbox first argument
+    a-scavenge-idle-flag  second argument
+    call scavenge-even-without-interrupts
+    return NIL
+
+scavenge-while-consing:
+    return if a-inhibit-scheduling-flag  NIL
+    a-scavenge-idle-flag  NIL
+
+scavenge-even-without-interrupts:
+    return if m-transport-flag set
+    return if a-inhibit-scavenging-flag  NIL
+    return if a-gc-flip-ready  NIL
+    call scavenge-save
+    a-scavenge-volatility  (mask volatility from a-gc-switches)
+    if a-scavenge-state = 0 then jump scavenge-regions
+
+resume-scavenge:
+    call load-region-scavenge-parameters
+    micro-stack-data-push a-scavenge-block-return-pc
+    if a-scavenge-state = 2 then jump scavenge-block
+    call structure-info [m-t  a-scavenge-object]
+    a-scavenge-block-bound  m-3 + a-scavenge-object
+    jump scavenge-block
+
+scavenge-next-region:
+    m-1  a-scavenge-region-free-pointer
+    call store-region-gc-pointer
+
+scavenge-regions:
+    md  (VMA, illop) (400 + %sys-com-number-regions)
+    a-scavenge-region  unbox md
+
+scavenge-regions-loop:
+    decrement a-scavenge-region
+    if a-scavenge-region < 0 then jump finish-scavenge
+    md  (VMA, illop) a-scavenge-region + a-v-region-bits
+    if (md %%region-scavenge-enable bit) = 0 then jump scavenge-regions-loop
+    pdl-push md
+    call load-region-scavenge-parameters
+    m-tem  pdl-pop
+    if m-1 = a-scavenge-region-free-pointer then jump scavenge-regions-loop
+    if m-1 > a-scavenge-region-free-pointer then illop
+    if (m-tem %%region-scavenge-carefully bit) then jump scavenge-region-carefully
+
+scavenge-next-page:
+    a-scavenge-queue-work  a-scavenge-work
+    ;* perhaps this should check if queue size = 0 instead
+    if a-scavenge-queue-pointer  -1 then call run-scavenge-queue
+    a-scavenge-work  a-scavenge-queue-work
+    if a-scavenge-page-resident  0 then jump scavenge-dont-flush
+
+scavenge-flush-page:
+    m-t  m-1 - 400
+    call search-page-hash-table
+    if (md pht1-valid-bit) = 0 then jump scavenge-dont-flush
+    if (pht1-swap-status-code md)  %pht-swap-status-normal then jump scavenge-dont-flush
+    ...
+
+scavenge-dont-flush:
+    if m-1  a-scavenge-region-free-pointer then call scavenge-check-region-free-pointer
+    m-1  dpb m-zero (byte 10 0) a-1
+    if a-scavenge-volatility
+    ?? if scavenging level = 0 then jump scavenge-page
+
+scavenge-page-search:
+
+scavenge-page-pipeline:
+    if bits 1-0  a-scavenge-volatility then jump scavenge-page-0
+    if bits 3-2  a-scavenge-volatility then jump scavenge-page-1
+    if bits 5-4  a-scavenge-volatility then jump scavenge-page-2
+    if bits 7-6  a-scavenge-volatility then jump scavenge-page-3
+    m-1  m-1 + 2000
+    if md  0 then jump scavenge-page-pipeline
+
+scavenge-skip-sector:
+    ??
+    if m-1  a-scavenge-region-free-pointer then call scavenge-check-region-free-pointer
+    jump scavenge-page-search
+
+scavenge-page-n:
+    m-1  m-1 + (400 * n) ; m-1 = address of top of page
+    call search-page-hash-table, m-t = strip m-1
+    a-scavenge-page-resident  if pht1-valid-bit = 0 then 0 else 1
+    if m-1  a-scavenge-region-free-pointer then call scavenge-check-region-free-pointer
+    ; volatility of this page  0
+    a-gc-trap-vma  m-1
+    a-gc-trap-md-volatility  0
+    call update-page-volatility
+    m-3  ?? strip page number from m-1
+    call read-structure-handle
+    a-scavenge-next-object  m-1 + a-5    ;First-object
+    a-scavenge-object-bound  m-1 + a-6   ;Initial-Qs
+    a-scavenge-object  m-1
+    a-scavenge-state  2
+    micro-stack-data-push memory location of scavenge-next-page:
+    a-scavenge-block-bound  min(m-1 + 400, a-scavenge-region-free-pointer)
+    ; if a-scavenge-region-free-pointer < m-1 + 400 then call load-scavenge-region-free-pointer & try again
+    jump scavenge-block
+
+scavenge-block-next-object:
+    m-1  a-scavenge-next-object
+    a-scavenge-object-bound  -1
+
+scavenge-block:
+    if m-1  a-scavenge-block-bound then return
+    if m-1 = a-scavenge-object-bound then jump scavenge-block-next-object
+    md  (VMA, check-page-read) m-1
+    decrement a-scavenge-work
+    increment m-1
+    dispatch on data type of md with d-scavenge-word
+    dispatch on md with transport-scav
+    (VMA, check-page-write-force) vma  md
+    update page volatility if necessary
+    if a-scavenge-idle-flag = TRUE then jump scavenge-maybe-suspend-idle-scavenging
+    if a-scavenge-work > 0 then jump scavenge-block-loop
+    a-scavenge-block-return-pc  micro-stack-data-pop
+    jump suspend-scavenge
+
+scavenge-maybe-suspend-idle-scavenging:
+    ; suspend if we waited for the disk
+    if a-scavenger-start-disk-time = a-disk-wait-time then jump scavenge-block-loop
+    a-scavenge-work  0
+    a-scavenge-block-return-pc  micro-stack-data-pop
+    jump suspend-scavenge
+
+finish-scavenge:
+    if a-scavenge-queue-pointer  -1 then jump finish-scavenge-not-quite-done
+    a-scavenge-state  0
+    a-gc-flip-ready  TRUE
+    jump scavenge-restore
+
+finish-scavenge-not-quite-done:
+    ;; All regions seem scavenged, but there are still objects on the scavenge queue.
+    ;; Run the queue to completion (won't take long), then loop through all the regions
+    ;; again, just to make sure.
+    a-scavenge-queue-work  
+    ; *this test appears to be redundant.
+    if a-scavenge-queue-pointer  -1 then call run-scavenge-queue
+    jump scavenge-regions
+
+load-region-scavenge-parameters:
+    m-k  a-scavenge-region
+    md  (VMA, illop) (m-k + a-v-region-origin)
+    a-scavenge-region-origin  unbox md
+    md  (VMA, check) (m-k + a-v-region-gc-pointer)
+    m-1  unbox (md + a-scavenge-region-origin)
+
+load-scavenge-region-free-pointer:
+    ; m-k is a region number
+    a-scavenge-region-free-pointer 
+      if m-k = a-copy-cons-region then unbox a-copy-cons-cache-free-pointer
+      elseif m-k = a-active-cons-cache-region then unbox a-active-cons-cache-free-pointer
+      else md  (VMA, illop) (m-k + a-v-region-free-pointer)
+           unbox (md + a-scavenge-region-origin)
+
+                                                ;
+;*** Scavenge queue ***
+
+transport-run-scavenge-queue:
+    m-tem  min [a-transport-boxed-size, 77]
+    md  (m-tem, bits 31Q-36Q  a-transport-new-object-base)
+    m-tem  ?? a-scavenge-queue-pointer + 1
+    if m-tem  a-scavenge-queue-maximum-depth then m-tem  0
+    if a-scavenge-queue-depth < a-scavenge-queue-maximum-depth then increment a-scavenge-queue-depth
+    a-scavenge-queue-pointer  m-tem
+    swap md, a-scavenge-queue-top-item
+    (VMA, check-page-write-unboxed) (m-tem + a-v-scavenge-queue)  md
+    if a-scavenge-queue-active  0 then return ; no recursion!
+    pdl-push a-transport-new-object
+    pdl-push a-trans-vma
+    a-scavenge-queue-work  a-transporter-scavenge-queue-work-quantum
+    call run-scavenge-queue
+    pdl-pop a-trans-vma
+    pdl-pop a-transport-new-object
+    return
+
+run-scavenge-queue:
+    a-scavenge-queue-active  1
+
+scavenge-queue-loop:
+    if a-scavenge-queue-depth = 0 then jump scavenge-queue-exit
+    m-tem  a-scavenge-queue-pointer
+    m-tem1  high bits of a-scavenge-queue-top-item
+    m-tem2  a-scavenge-queue-top-item
+    pdl-push low bits of m-tem2
+    if m-tem1  1 then jump pop-scavenge-queue
+    decrement m-tem1
+    m-tem  unbox (m-tem2 + 1)
+    a-scavenge-queue-top-item  (m-tem1, top bits  a-tem)
+
+scavenge-queue-transport:
+    md  (VMA, check) pdl-pop
+    decrement a-scavenge-queue-work
+    ** if vma = m-1 then increment m-1
+    dispatch transport-scav md
+    ** (VMA, ??) vma  md
+    if a-scavenge-queue-work  0 then jump scavenge-queue-loop
+    a-scavenge-queue-active  0
+    return
+
+scavenge-queue-exit:
+    a-scavenge-queue-pointer  -1
+    a-scavenge-queue-active  0
+    return
+
+pop-scavenge-queue:
+    decrement a-scavenge-queue-pointer
+    md  (VMA, check) (a-scavenge-queue-pointer + a-v-scavenge-queue)
+    if a-scavenge-queue-pointer < 0 then a-scavenge-queue-pointer  a-scavenge-queue-maximum-depth - 1
+    decrement a-scavenge-queue-depth
+    a-scavenge-queue-top-item  md
+    jump scavenge-queue-transport

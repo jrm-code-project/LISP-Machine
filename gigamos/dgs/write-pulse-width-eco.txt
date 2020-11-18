@@ -1,0 +1,23 @@
+The width of the write pulse to the K Processor's register stack was determined
+purely as a function of component propagation delays in the board implementation.
+Of course, this results in problems.  In the case at hand, the problem is that
+the write pulse is significantly narrower than the memory devices' minimum
+spec'ed write pulse width.  I broadened the pulse slightly by inserting an
+additional gate delay in the feedback path that terminates the pulse, but
+I noticed last week a board with an eleven nanosecond write pulse, including
+the added component delay.  Something more appropriate needs to be done.
+
+How would it be if we just removed the feedback path B16.6 -> D7.13,12,11 ->
+C13.10?  (Presumably this is where the present design came from.)  In this
+configuration, the danger is that the address will change before the write
+pulse terminates.  Note that EC2-PROC2* gates both the write pulse and
+the C2-REGA clock (which, in turn, clocks the registers addressing the array).
+Address hold time after write is zero for the RAM devices, so this
+configuration works as long as Tpd(min) of the AS805 sourcing C2-REGA, plus
+Tpd(min)C->Q of the address registers exceeds Tpdlh(max) of the AS20
+that drives the write line to the RAM array.  (Both the address lines and the
+write line are equally loaded.)  Tpd(min) is 3 nS for the F399's, 1 nS for
+the AS805.  Tpdlh(max) for the AS20 is 5 nS.  In the worst case, we lose
+by a nanosecond, but in the typical case, I bet that we could squeak by.
+Note that the AS805 has 13 loads on it, which should slow it down a
+bit.

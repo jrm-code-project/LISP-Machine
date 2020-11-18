@@ -1,0 +1,159 @@
+                                                        January 27,1988
+
+                GigaMOS Systems Software Product Report.
+
+
+                        Overview
+
+        The purpose of this report is to set forth the status, options,
+resource requirements and schedules of the Software effort of GigaMOS
+Systems.  The unifying core of GigaMOS Systems is the provision of
+hardware and software to support A.I. applications of the future.
+(Although we expect that such hardware and software will prove useful
+in many other situations as well of course.)  Our focus is on tagged
+as opposed to conventional machines.  LISP, of course, is our primary
+language, there may be some opportunity to come to terms with C as well.
+
+                        Background
+
+        The primary hardware project of the company is the Falcon
+project, sometimes also known as the K project.  The Falcon processor is
+the only known processor designed (as opposed to adapted) after it
+became feasible to locate the entire primary "core" memory on the
+processor board itself (as opposed to communicating over a relatively
+narrow "bus").  Among known processor designs, it is the only one to
+incorporate CALL Hardware, in which it goes a step beyond the most
+advanced of the RISC machines, and which is particularily important to
+LISP.  In short, these features and others give it a performance
+advantage of at least a demonstrated factor of 3 in benchmarks as
+compared to the current market leader for comparable machines (the TI
+Explorer II).  Since the E-II is currently running with a clock almost
+twice as fast, it could be reasonably argued that we have an
+architectural advantage of approximately a factor of five.  (Note that
+TI's anticipated Mac II board is only approximately one half as fast as
+the Explorer II).
+
+
+                       Additional Background References
+
+        Appendix 1 details the history of the AI computer market.  A
+capsule summary is that circa 1980 tagged machines comming out of MIT
+openned the market by introducing landmark improvements in performance,
+ability to run large programs, and debugging enviroment.  In the last
+couple of years, conventional machines (SUN, DEC, etc) have made headway
+at the expense of tagged machines, mainly due to considerably lower
+prices (as much as a factor of 3 for comparable hardware) and the
+promise of several companies whose mission was to produce AI software
+for conventional machines (LUCID, FRANZ).  Also, arbitrary limitations
+that disqualified earlier conventional machines (notably address space
+restrictions and lack of virtual memory) have been largely overcome,
+although the software picture for conventional machines does remain
+murky in key respects.  Recently, a relentless industry drive to agreed
+upon standards has become apparent.  At the hardware level, white hot
+competition has resulted in outstanding values for the purchasors of
+industry standard boxes, especially in periphal equipment.  The
+resulting market forces are operating to reduce the number of viable box
+vendors to approximately 4 (IBM-PC (further divided into IBM PS/2 and
+Old-PC, Apple, DEC, and possibly SUN).  Of these, the APPLE MAC-II has
+the most steam at the moment, and is sort of threatening to take
+over the AI workstation world.  IBM is hampered by the OS/2 screwup.
+Also, they are apparently threatening to sue would-be users of their
+Micro-Channel Bus, which apparently accounts for Symbolic's decision
+to defer their 386 style board in favor of their MAC-II board.  OLD-PC
+also has OS/2 problems and in addition some technical limitations.
+The visible champion of OLD-PC is COMPAQ.  DEC is relatively secure
+and happy in its world, but is not really paying attention to AI.
+DEC's actual benchmark performace is surprisingly bad.  SUN is
+hanging in suprisingly well.  Their old machines are expensive but
+no doubt very profitable.  Their new machines appear seductive, but
+turn out sufficently limited as to force customers to buy the old
+expensive ones.  SUN has succeeded in setting industry "tone" with
+its (supposed) commitment to open standards.   AT&T and Xerox
+have been announced as licensees of its SPARC RISC machine and
+AT&T has signed an agreement to buy 20% of SUN for $200 million.
+(This last, by the way, is causing quite a stir in the UNIX world.)
+SUN is openly rumoring 100MHz clock speeds for some future version
+of their SUN-4 chip (no doubt several years away).
+
+        We assume here some familiarity as to what a tagged machine is,
+etc, and will not go into that here. (See appendix 2, ....) Briefly,
+although tagged machines are in some sense "right" and have various
+important features, their perceived advantages for the ultimate user
+(who presumably is operating a fully debugged program, etc) have been
+eroding, and this combined with high price (>$50K in most cases) have
+resulted in the market trends noted above.  One primary remaining
+differentiator has been the presence of volatility based Garbage Collection
+on tagged machines and not on conventional ones.  This too shows
+some signs of partially eroding in that Franz is testing a "generation
+level" garbage collector for conventional machines.  LUCID, too,
+is reported to be nearing product introduction.  These techniques
+reduce a pause that was several seconds and scaled with the total
+data involved in the application to on the order of a second.
+However, during that interval, LISP execution is completely blocked
+while on a tagged LISP machine, LISP execution can be intersperced
+with the actual garbage collection effort.  Also, on the conventional
+machine, some price is paid in normal execution speed to perform
+the required checking.
+
+        There has also been some pressure on LISP itself as a language
+for applications delivery.  Cleverly designed C systems can get quite a
+bit of milage, appear very snappy, etc.  There have even been efforts to
+mechanically translate LISP to C (Inference).  For high end applications,
+however, there is some evidence the penduluum is swinging back.  The
+LISP to C translator has been pretty much acknowledged as a failure even
+though it operated successfully, and the VAX has been found pretty slow
+and cluckey, etc.
+
+        To reverse the trend away from tagged machines, however, it is
+clear that the price gap between comparable tagged and conventional
+machines must be drastically reduced.  Furthermore, tagged machines must
+be available in a form to take advantage of cost effective mass market
+periphals.  And still further, and most importantly new bottom line
+functionality differentiators must be introduced in market usable form.
+The prime candidate for such a differentiator is the MOBY Address
+system, for which GigaMOS Systems has been issued a notice of intention
+to grant patent application by the U.S. Government.  However, formidable
+obstacles must be overcome to achieve a successful market introduction
+of Moby Address.
+
+
+
+                        Statement of Objectives
+
+  (1)   Our primary initial objective is to provide the Falcon with a
+competitive basic software suit and operating system.  We intend to
+accomplish this in short order by porting the existing LAMBDA software
+suite, and we analyze in some detail below the effort involved in
+achieving this.
+  (2)   We must make significant headway toward productizing
+MOBY Address, and thus establishing the functionality which will underly
+the future of tagged machines.
+  (3)   We must support the standards efforts in the industry.  Beyond
+the level represented by Common Lisp, CLOS, and a new window system,
+this may extend to core-image compatiblity a la IBM PC.
+
+
+Below we consider the issues, status, options, resource requirements
+(including personnel) and schedules involved in each of objectives in turn.
+
+Inevidably, our medium term schedule revolves around the yearly AAAI show,
+which will be held August 21-26 this year.
+
+Objective 1, Falcon base software:
+
+  Issues
+
+Moby Address
+
+Current Status
+
+Path Ahead  (central issues)
+  Central core
+  "Lambda Compatibility"
+  "TI Compatibility"
+  New Standards and Systems.
+    CLOS
+    New Window System
+
+Supporting Issues
+  Networking

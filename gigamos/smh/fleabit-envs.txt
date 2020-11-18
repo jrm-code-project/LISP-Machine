@@ -1,0 +1,98 @@
+
+
+
+                     Adding Compilation Environment Support
+
+                                     to the
+
+                                Fleabit Compiler
+
+
+
+                                       smh
+                                    30 Aug 88
+
+                           = = = = = = = = = = = = = =
+
+This paper is a brief project survey for adding compilation environment support
+to the fleabit compiler.  The compilation environment mechanism already is
+implemented on the lambda cross compiler.  However, it has not yet been
+exercised.
+
+A compilation environment is a data structure that contains things like symbol
+properties and macro definitions.  The current compilation environment is stored
+in si:*compilation-environment*, and the cross compiler looks there before
+looking in the compilation world.  When a definition is made during a cross
+COMPILE or cross COMPILE-FILE, the definition is stored in the current
+compilation environment.
+
+A single compilation environment is maintained within the lambda cross-compiling
+world which stores everything that is known
+
+Compilation environments nest within one another.  One "global" compilation
+environment remembers everything that has been defined for the falcon in that
+world.  When a cross COMPILE-FILE is done, a new compilation environment is
+created for the duration of the COMPILE-FILE in which to hold definitions within
+that file.  This new environment nests within the global environment.  At the
+end of the compilation, the compilation environment is written out to a FDEF
+file, and the compialtion environment is discarded.  However, these definitions
+may be loaded into the copiling world simply by loading the FDEF file.  This
+parallels the action of loading a compiled file when doing native compilation,
+except, of course, that actual DEFUNs are not loaded.  This mechanism is similar
+to and replaces the KDEF file mechanism.
+
+These are the anticipated tasks:
+
+[1] The compilation environment support code already installed in QCDEFS and
+QCFILE is sufficient and should only require calls inserted in the top level
+fleabit compilation driver.
+
+[2] Hooks for FDEF files need to be added to MAKE-SYSTEM.  This shouldn't be a
+big deal.  It wants to be done for the cross compiler anyway.
+
+[3] The fleabit compiler needs some rather minor modifications to integrate the
+complation environment mechanism.  A cut at this can be done in a couple hours.
+The locations of the changes are surveyed in "dj:smh;places.lisp".
+
+
+
+
+
+
+[4] Freeze and checkpoint the entire K source tree and recompile it from scratch
+to verify that the sources are not somehow broken.
+
+[5] This is the big one.  All the fleabit-compiled files need to be edited.
+First, the file packages need to be changed so that each file is in one of the
+surviving packages below.  Then all the package-qualified symbols in the code
+need to be converted.  Generally these package-qualified symbols fall into two
+classes: The ones that are trying to name public lisp symbols can simply have
+their package qualifiers deleted (because the new package scheme will not
+differentiate between for example lisp:cons on the Falcon and Lambda); the ones
+which name non-public hardware constants or internal service routines (e.g.
+LI:BIND) will remain package qualified, and in some cases the package qualifier
+will change.
+
+[6] Recompile everything and debug.
+
+Tasks [1-3] can be implemented and tested by one person (estimate a couple
+days).  Then, all K development should cease for [4] (one day, assuming the
+sources are not already broken).  For [5], each developer would be assigned some
+portion of the files to edit (estimate one day).  Debugging the system [6] to
+make it run again could easily take another several days.  However, there are
+certainly risks that the debugging could take longer.
+
+After the change, the package system on the K would be rationalized thus:
+   - LISP.  This would contain and export the 775 Common Lisp symbols.
+(Actually, the Lambda has slight discrepencies with this list, which the K
+should preserve for now.)
+   - GLOBAL.  This would contain and autoexport essentially the same symbol as
+on the Lambda.
+   - SI.  This would also have analogous content and usage as on the Lambda.
+   - HW.  On both machines this would be the repository for hardware constants
+and the like.
+   - K.  On both machines this would continue to hold (mostly) symbolic names
+for K machine registers, etc.
+   - LI.  On both machines this would name the internal routines which are
+the low machine support for running K code and which are (for example) called
+directly by compiled code, e.g., LI:BIND.

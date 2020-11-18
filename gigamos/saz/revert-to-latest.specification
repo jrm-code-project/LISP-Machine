@@ -1,0 +1,114 @@
+;;; -*- Mode:LISP; Base:10; Readtable:CL -*-
+
+;;;
+;;; PROPOSED MODIFICATION TO THE META-X BUFFER EDIT COMMAND
+;;;
+
+;;;
+;;; The current implementation of Meta-X Buffer Edit (same as Meta-X Edit Buffers)
+;;; uses the command COM-EDIT-BUFFERS-REVERT and marks a buffer line with an `R'
+;;; when the user indicates that a revert is desired:
+
+            R    * BARNEY.LISP#> L.ZWEI; DJ:
+
+;;; [Other line property indicators in a Buffer Edit session are:
+;;;         S    Save current buffer into associated pathname
+;;;         W    Write buffe into a file associated with a pathname specified by the user
+;;;         ~    Set this buffer's Modified bit to nil (i.e., Set Not Modified)
+;;;         P    Attempt to print buffer
+;;;         .    Select this buffer upon exiting Buffer Edit Mode
+;;;         K    Kill this buffer]
+;;;
+;;; The following is the implementation of COM-EDIT-BUFFERS-REVERT; it immediately
+;;; suggests the template for more useful Buffer Edit startup functions.
+;;;
+;(DEFCOM COM-EDIT-BUFFERS-REVERT "Mark buffer(s) to be reverted." ()
+;  (EDIT-BUFFERS-MAP-OVER-LINES *NUMERIC-ARG*
+;                              (LAMBDA (LINE)
+;                                ;; Only buffers with files can be reverted.
+;                                (IF (BUFFER-PATHNAME (EDIT-BUFFERS-LINE-BUFFER LINE))
+;                                    (CLEAR-LINE-PATHNAME LINE #/R)))))
+
+
+;;;
+;;; I propose that upon initial invocation, Meta-X Buffer Edit poll all
+;;; buffers associated with files which were not read in with specific
+;;; version numbers.  If a later version is found for such a buffer's
+;;; associated file, then that line is marked with the symbol ">>", to
+;;; be placed between the `.' ("select me as current buffer upon quit")
+;;; and the `*' ("I have been modified") column.
+;;;
+;;; There are then four cases:
+;;;
+;;;     I.   Buffer not modified, no more recent file version extant
+;;;     II.  Buffer not modified, more recent file extant
+;;;     III. Buffer modified, no more recent file version extant
+;;;     IV.  Buffer modified, more recent file extant
+;;;
+;;; I propose that, upon invocation, all lines be marked as follows:
+
+(I)           .    FLINTSTONES.SPECIFICATION#> SAZ; DJ:
+(II)        R  >>  WILMA.LISP#> L.ZWEI; DJ:
+(III)       S    * FRED.LISP#> L.ZWEI; DJ:
+(IV)           >>* BARNEY.LISP#> L.ZWEI; DJ:
+
+;;; The last case (type IV.) is clearly the most difficult one to
+;;; establish defaults for: in this case, two users have "forked", and
+;;; it is not clear who has the "right of way" for saving.  Therefore I
+;;; propose that any files which have ">>*" (type IV.) line properties
+;;; should choose neither `R' nor `S' properties upon invocation.
+;;; However, upon exit of Buffer Edit, the user should be queried to
+;;; choose one of the following five options:
+
+;;;     1. Save the modified buffer into the current filename, as the most recent version
+;;;     2. Save the modified buffer into a new filename, to be read in from the keyboard.
+;;;     3. Revert buffer to the most recent version available, flushing current modifications
+;;;     4. Revert buffer to the version of the file originally read in, flushing current modifications
+;;;     5. Run a Source Compare comparing:
+;;;             i.   The original version of the file read in and the current buffer
+;;;             ii.  The most current version of the file written and the current buffer
+;;;             iii. The original version of the file and the most current version.
+;;;     6. Do nothing -- simply return to editing the modified buffer (this is the default).
+;;;
+;;; Clearly, two users who continue to choose option 1 will get into deep trouble after a while;
+;;; their concepts of the file in question will be utterly different, and later reconciliation
+;;; (possibly extremely time-consuming) will be required.  Clearly, Option 1 cannot be the default,
+;;; and, arguably, should be deleted from the query.
+;;;
+
+;;;
+;;; PROPOSED NEW ZMACS COMMAND -- META-X MAYBE REVERT BUFFER
+;;;
+
+;;; I propose that the function invoked by this extended command perform a two-step operation:
+;;;
+;;;     I.   Determine if the current buffer is believed by the running ZMACS environment
+;;;          to be the most recent (">") version
+;;;
+;;;     IIa.  If so, determine whether or not this belief is accurate; i.e., poll
+;;;           the file server for a more recent version than the actual version
+;;;           originally read in.
+;;;
+;;;     [IIb. If not, do nothing (i.e., determine that the user wanted to see a
+;;;           particular file version, not the latest file)]
+;;;
+;;;     III. If such a more recent version exists, query the user for confirmation, printing
+;;;          out both the (numeric) file version read in and the highest (numeric) file version
+;;;          currently in existence during the query.
+;;;
+;;;     IV.  Upon confirmation, a Meta-X Revert Buffer should be performed.
+;;;
+;;;
+
+;;;
+;;; PROPOSED EXTENSION -- META-X MAYBE REVERT ALL BUFFERS
+;;;
+
+;;;
+;;; I propose the following extension to the above command (it may be implemented either
+;;; as a separate extended command, or as a numeric argument hook to the original):
+;;;
+;;;     I. For each existing buffer (that is associated with a file), perform the function
+;;;        on the buffer that would be performed had the user selected that buffer and
+;;;        typed Meta-X Maybe Revert Buffer.
+;;;

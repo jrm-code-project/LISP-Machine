@@ -1,0 +1,34 @@
+@chapter Devices and Peripherals
+
+A uniform approach to devices must be adopted
+for all peripherals, such as Network Tables, Serial Streams,
+Tape Ports, and Raw Floppies.
+Not all such devices will be supported in the initial release.
+
+@section Tape Devices
+
+LMFL tape format should be adaptable for use with Mac files, preserving
+integrity of file and its contents:
+
+@example
+property list (most properties) stream  <-> Resource Fork
+data stream                             <-> Data Fork
+@end(example)
+
+Backups: in Release 1, bits will not be stored in a resource, but rather in backup logs.
+These ``side files'' will serve as final authority on files' statuses.
+
+Need to know: How does the Mac tape device work?  Ideally, the tape software
+could produce transportable floppies for LISP users.
+
+Need to write: OPEN-RESOURCE-FORK (OPEN needs to know which fork to act upon)
+
+@textbox
+@center Montreal notes:
+
+Last Backup date recorded as a Mac file info field.  Let's use it, make
+it an inferrable property.
+
+Montreal's structures can handle floppy disks.
+
+@end textbox

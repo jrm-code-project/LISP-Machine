@@ -1,0 +1,383 @@
+@chapter TCP/IP Applications
+@label[chapter-doc-tcp-app]
+
+This chapter documents the user interfaces to TCP/IP protocol applications.
+
+Note that many of the TCP/IP functions documented below
+which take as an argument the name of a remote host
+will also accept an Internet
+address. @cindex[host arguments]
+This permits communication with a host that is not specified in the loaded site information.
+
+@section File Transfer Protocol (FTP)
+@label[section-ftp]
+
+@csubindex[TCP][FTP]
+The FTP specification requires that a command interface
+be provided to make conventional FTP commands available at the user level.
+
+The FTP-only command interface is provided by the LISP function @l(ftp:ftp).
+Pathnames are passed without translation from @l(ftp:ftp) to the remote FTP server.
+This is useful if, for example, the normal Lambda file access functions
+are not working because of pathname parsing
+problems. @cindex[pathname problems]
+
+@defun ftp:ftp &optional host
+
+The File Transfer Protocol command.
+
+Connects to @i(host), if specified.
+@end(defun)
+
+@ref[figure-ftp] illustrates an example of an FTP session.
+
+Press ``@i(?)'' to view the help documentation for each command.
+In the on-line help listing (and below), optional arguments are enclosed in brackets, after
+any required arguments.
+If a command is entered with no arguments,
+the user is prompted for each one, in order.
+Press @return@  to skip an argument.
+
+The following list describes the most commonly used commands:
+
+@table 3
+@item @i(? [command]) -
+help information on all commands (or a specific @i(command))
+@item @i(OPEN to) -
+open a connection to a remote host.
+@item @i(CD remote-directory) -
+change remote working directory to @i(remote-directory).
+The working directory is used to apply pathname defaults
+to relative pathnames or where @i(remote-directory) is optional.
+@item @i(PWD) -
+display current working directory on remote host.
+@item @i(DIR [remote-directory] [local-file]) -
+list directory contents of current directory or @i(remote-directory);
+optionally, save listing in @i(local-file).
+@item @i(STATUS) -
+show current status of environment commands.
+@item @i(USER [username] [password] [account]) -
+login and send new user information.
+@item @i(SEND local-file [remote-file]) -
+transfer @i(local-file) from local system to @i(remote-file) on remote system.
+@item @i(RECV remote-file [local-file]) -
+transfer @i(remote-file) from remote system to local system as @i(local-file).
+@item @i(CLOSE) -
+terminate FTP session.
+@item @i(QUIT) -
+terminate FTP session and exit.
+@end(table)
+
+@figure
+@setq figure-ftp figure-page
+@smalllisp
+@include ftplog
+@end(smalllisp)
+
+@caption Example @l[FTP:FTP] session. User input is @i(in italics).
+
+@end(figure)
+
+@need 1200
+@section Terminal Network Access Protocol (Telnet)
+@label[section-telnet]
+
+@cindex[terminal access]@cindex[remote logins]@csubindex[TCP][Telnet]
+There are four different ways to access the Telnet protocol on the Lambda.
+They differ in the means of access
+and degree of special character and rubout handling provided.
+They all provide the same basic service, namely, remote login capability.
+
+@syson[T] invokes a full-screen Telnet interface.
+This is a comprehensive interface,
+including rubout-handling, for Lambda-to-Lambda remote logins.
+
+The Kermit interfaces provide H19 terminal emulation,
+which is supported by many other Telnet servers.
+
+The other Telnet and ``glass tty'' interfaces provide only basic
+``dumb terminal'' capabilities.
+
+The interface provided when you log into a Lambda via Telnet
+is a standard Lambda LISP Listener (read/eval/print loop).
+To get documentation on the supported terminal capabilities,
+execute the LISP function @l[(help)].
+
+When the Lambda Telnet server accepts a connection from a remote system,
+it causes a message to be displayed on the who-line.
+For example, when a user on the remote host ``HOST-A'' uses Telnet
+to log in on your local host (the one you are running on), you
+will see the message @t(TELNET SERVING HOST-A) on the who-line.
+
+@subsection Full-Screen Telnet
+
+Full-screen Telnet is the preferred means of remote login between Lambdas.
+The Lambda Telnet server program conducts a standard negotiation with the Lambda Telnet user program
+to determine whether the user is running on a Lambda, and
+will provide full-screen, special character, and rubout handling if appropriate.
+
+To access full-screen Telnet, press @syson[T].
+To connect to a remote host, at the prompt @l(Connect to host:),
+enter a host name or Internet address.
+Press @help@  for information on specifying remote hosts and on the use of special characters.
+
+The @network@  key is used to escape from Telnet to a set of special commands.
+Press @neton[@help] to display the list of ``escape keys'' that can be used.
+
+For example,
+since many foreign Telnet servers do not respond correctly to remote/local echo negotiations,
+the full-screen Telnet program provides a capability for toggling local echo.
+If you see duplicate characters printed in the window, press @neton[E] to toggle local echo.
+
+Another important escape sequence is @neton[L], which logs out and disconnects
+from the remote Telnet connection.
+
+@need 1000
+@subsection Kermit Telnet and Terminal Emulation
+
+Another window-based Telnet interface is available through the Kermit program.
+This interface provides H19 (VT52- and Z29-compatible) terminal emulation.
+This is the preferred interface for contacting foreign hosts such as VAX/VMS
+that support this type of full-screen terminal handling.
+
+To specify Telnet for future connections,
+select the top-level Kermit menu item @mouseditem(Review Parameters),
+and then select @mouseditem(TCP Telnet).
+Then use the @mouseditem(Connect) command to connect to the remote host's Telnet server.
+Terminal I/O takes place within the H19 terminal emulation window.
+
+As usual with Kermit, the @network@  key is used to escape from Telnet to a set of special commands.
+
+The escape sequence @neton[D] toggles between local and remote echoing.
+
+Most remote hosts will disconnect you from Telnet when you log out as a user.
+To disconnect immediately, press @neton[K].
+Note that the Kermit menu command @mouseditem[Disconnect] does @i(not) terminate the Telnet
+connection; it simply disconnects the terminal emulator window
+and allows the user to use the LISP interaction pane.
+
+@need 1000
+@subsection Accessing Telnet from LISP
+
+Kermit H19-compatible Telnet can also be executed from a LISP Listener.
+
+@defun kermit:telnet-h19 &optional to-host
+Connect to @i(to-host).
+Similar to the Kermit window interface, but can be invoked from LISP.
+@end(defun)
+
+The function @l(telnet:telnet) is another LISP function which invokes
+a Telnet user program.
+It is similar to, but not as fully-featured as, the standard full-screen interface.
+Using this function to access a remote Lambda Telnet server will not
+provide the full range of Lambda character handling.
+
+@defun telnet:telnet host
+Open a Telnet connection to the remote @i(host)
+with no special terminal emulation.
+If used to contact another Lambda, some rubout handling is provided.
+@end(defun)
+
+The following function provides only dumb terminal capability:
+
+@defun telnet:telnet-glass-tty address &optional  (port "TELNET") (HALF-DUPLEX NIL)
+@end(defun)
+
+The @l(telnet-glass-tty) function is useful for debugging.@csubindex[network][debugging problems]
+Its major purpose is to allow access to TCP ports besides Telnet.
+By specifying a @i(port),
+you can verify your host's ability to connect to TCP services
+(@l("FTP"), @l("SMTP"), etc.) on a remote host.
+
+The following example tests whether a remote host is accessible, and
+whether it provides FTP:
+
+@lisp
+(telnet:telnet-glass-tty "101.0.0.10" "FTP")
+220 gi-cam FTP server (Version 4.81 Mon Sep 26 08:36:28 PDT 1983) ready.
+@end(lisp)
+
+@need 1200
+@section Imagen Printer Driver
+@label[section-imagen]
+
+The networking and printer software provide a driver for stand-alone
+Imagen laser printers@footnote[The Imagen software has been developed and tested
+with a model 8/300, which is in the IP/II product group.]
+that are accessed remotely via TCP/IP. @cindex[Imagen printer]
+The Lambda IMAGEN server queues file transfers to the Imagen,
+but much of the actual processing is done ``in the background''.
+
+@need 1000
+@subsection Defining an Imagen Host
+
+An Imagen host is defined with system type and machine type @l(IMAGEN).
+The following @l("HOSTS.TEXT") entry defines a stand-alone Imagen printer:
+
+@lisp
+HOST OUR-IMAGEN, INTERNET 101.0.0.202,SERVER,IMAGEN,IMAGEN,[IMA]
+@end(lisp)
+
+In @l("SITE.LISP") you can define an Imagen printer with a host name or by Internet address.
+You can optionally specify a stand-alone Imagen as the default printer for text and/or graphics.
+The following entries define the Imagen printer corresponding to the host ``IMA''
+and make it the default for all printing:
+
+@lisp
+(DEFSITE ...
+ ...
+  (:PRINTER-NAMES '((("DOC-PRINTER") (:IMAGEN "IMA"))))
+  (:DEFAULT-PRINTER "DOC-PRINTER")
+  (:DEFAULT-BIT-ARRAY-PRINTER "DOC-PRINTER")
+ ...)
+@end(lisp)
+
+@need 1000
+@subsection Setting Imagen Hardcopy Options
+
+The following function allows you to set Imagen options for hardcopy requests:
+
+@defun tcpa:set-imagen-print-options &key copies form-length form-width line-wrapping forms-per-page left-margin line-numbers page-headings ok-wait ok-wait-tries notifications
+If any Imagen print option(s) is(are) specified, set it(them);
+otherwise, bring up a choose-variable-values menu for specifying options.
+@end(defun)
+
+These options set global variables which specify
+default options for Imagen hardcopy requests.
+
+You can also invoke this function as a pop-up menu
+by selecting @mouseditem[Imagen Options] from the System Menu.
+
+@need 1000
+@subsection Printing to the Imagen
+
+If the Imagen is specified as the default text printer,
+hardcopy requests generated by functions such as @l(hardcopy-file)
+will automatically be routed to the Imagen.
+If the Imagen is specified as the default bit-array printer,
+bit-array printing functions such as the @termon[Q] screen-dump program
+will be routed to the Imagen.
+
+If some other type of printer is established as the default,
+you can still specify the Imagen as the target printer to functions such as @l(hardcopy-file)
+by using an explicit printer specification or an Internet address.
+
+For example:
+
+@lisp
+(hardcopy-file "lm:keith;myfile.text" :printer "doc-printer")
+(hardcopy-file "lm:keith;myfile.text" :printer '(:imagen "ima"))
+(hardcopy-file "lm:keith;myfile.text" :printer "101.0.0.202")
+@end(lisp)
+
+The Imagen routing software also knows how to handle IMPRESS format files.@csubindex[Imagen printer][Impress format]
+To print a file that has been formatted for IMPRESS processing,
+specify the @l(:format) option to @l(hardcopy-file):
+
+@lisp
+(hardcopy-file "lm:keith;myfile.impress"
+               :printer "doc-printer"
+               :format :impress)
+@end(lisp)
+
+@need 1200
+@section Lambda DISK Protocol
+@label[section-disk]
+
+The TCP DISK protocol is provided for compatibility with Chaosnet network disk functions such as
+@l(print-disk-label) and @l(si:copy-disk-partition).
+By default, these functions will ``prefer'' to go through Chaosnet;
+to use TCP instead, call @see[net:with-tcp-favored][fun].
+
+Section @ref[section-generic-disk] documents the DISK functions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c end tcp-app2

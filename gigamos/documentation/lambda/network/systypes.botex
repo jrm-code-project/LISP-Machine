@@ -1,0 +1,216 @@
+@appendix Host/System Types
+@label appendix-systypes
+
+@section LISP Machine System Types
+
+@subsection LISPM - LISP Machine Hosts
+
+All MIT-type LISP machines -- Lambdas, CADRs, Explorers, and Symbolics --
+are defined as @l("LISPM,LISPM") in Lambda site files.
+
+@sp 1
+@settabs 3 @columns
+@< Machine types: @\  LISPM @cr
+@< Host type/file access: @\  FS::LISPM-HOST @cr
+@< Host mixin:      @\  SI:HOST-LISPM-MIXIN @cr
+@< Parsing pathnames: @\   FS::LM-PATHNAME @cr
+@< Parsing directories: @\ FS::LISPM-DIRECTORY-LINE-PARSER @cr
+@< Pathname flavor: @\        FS::LM-PATHNAME @cr
+@< Example pathname: @\       "IT: KEITH.RELEASE-4; FILE.TEXT#4" @cr
+@cleartabs
+
+@subsection LMFS  - Symbolics File-System Type
+
+For native pathname parsing,
+Symbolics hosts must be given a file-system type of @l(:LMFS) in the
+@l(:SPECIAL-FILE-HOSTS) site option.
+
+@sp 1
+@settabs 3 @columns
+@< Host type:               @\ FS::LISPM-HOST @cr
+@< Host mixin:        @\ SI:HOST-LMFS-MIXIN @cr
+@< Parsing pathnames:       @\ FS::LMFS-PATHNAME @cr
+@< Pathname flavor:         @\  FS::LMFS-PATHNAME @cr
+@< Example pathname:        @\ "REMG: >keith>release-4>file.text.4" @cr
+@cleartabs
+
+@section UNIX Hosts
+
+This host and file-system type provides pathname parsing functionality
+compatible with most Unix implementations.
+Some common extensions are not implemented.
+
+For example, Apollo pathnames cannot be constructed with references
+to other nodes on the network.
+
+Also, the standard Unix directory line parser may not function with some
+remote hosts.
+While most Unix FTP servers provide a listing from the command @l("ls -l")
+in a format that is generally accepted, some do not.
+
+See @ref[section-unix-pathnames], @nameref[section-unix-pathnames],
+for further information.
+
+@sp 1
+@settabs 3 @columns
+@< Machine types:   @\ NU (Lambda-Plus), VAX, SUN, APOLLO, @cr
+@<                         @\   SGI, MASSCOMP @cr
+@< Host type:               @\ FS::UNIX-HOST @cr
+@< Host mixin:        @\ SI:HOST-UNIX-MIXIN @cr
+@< Parsing directories: @\ FS::UNIX-DIRECTORY-LINE-PARSER @cr
+@< Pathname flavor:         @\ FS::UNIX-PATHNAME @cr
+@< Example pathname:        @\ "LURCH: //keith//release-4//file.tx" @cr
+@cleartabs
+
+@subsection UNIX-SGI File-System Type
+
+The @l(:UNIX-SGI) file-system type should be specified for
+Silicon Graphics Unix systems.
+This is provided to accomodate a known exception
+to the standard Unix directory line parsing.
+
+@sp 1
+@settabs 3 @columns
+@< Parsing directories: @\ FS::UNIX-SGI-DIRECTORY-LINE-PARSER @cr
+@cleartabs
+
+@section DEC Hosts
+
+@subsection DEC VAX/VMS Hosts
+
+VMS pathnames follow Version 4 naming conventions, but
+name length limitations are not imposed.
+Developers may need to transform filenames, since
+many characters permitted by the Lambda will not be acceptable to VMS.
+
+@sp 1
+@settabs 3 @columns
+@< Standard machine type:   @\ VAX @cr
+@< Host type:               @\ FS::VMS-HOST @cr
+@< Host mixin:        @\ SI:HOST-VMS-MIXIN @cr
+@< Parsing directories: @\ FS::EXCELAN-8040-VMS-DIRECTORY- @cr
+@<                         @\     LINE-PARSER @cr
+@< Pathname flavor:         @\ FS::VMS-PATHNAME @cr
+@< Example pathname:        @\ "VAX:DBA0:[KEITH.RELEASE4]FILE.TXT;4" @cr
+@cleartabs
+
+@subsection DEC TOPS-20 Hosts
+
+@sp 1
+@settabs 3 @columns
+@< Standard machine type:   @\ PDP-10 @cr
+@< Host mixin:        @\ SI:HOST-TOPS20-MIXIN @cr
+@< Pathname flavor:         @\ FS::TOPS20-PATHNAME @cr
+@< Example pathname:        @\ "TOPS-20:<KEITH.REL4>FILE.TEXT.4" @cr
+@cleartabs
+
+@section Miscellaneous Hosts
+
+@subsection ITS - Incompatible TimeSharing System Hosts
+
+@sp 1
+@settabs 3 @columns
+@< Standard machine type:   @\ ITS @cr
+@< Host mixin:        @\ SI:HOST-ITS-MIXIN @cr
+@< Host type/file access:   @\ FS::ITS-HOST @cr
+@< Pathname flavor:         @\ FS::ITS-PATHNAME @cr
+@< Example pathname:        @\"BI:KEITH; FILE 4" @cr
+@cleartabs
+
+@subsection MULTICS Hosts
+
+@sp 1
+@settabs 3 @columns
+@< Standard machine type:   @\ MULTICS @cr
+@< Host type:               @\ FS::MULTICS-HOST @cr
+@< Host mixin:        @\ SI:HOST-MULTICS-MIXIN @cr
+@< Pathname flavor:         @\ FS::MULTICS-PATHNAME @cr
+@< Example pathname:        @\ "B-M: >keith>release4>file.text" @cr
+@cleartabs
+
+@subsection TENEX Hosts
+
+@sp 1
+@settabs 3 @columns
+@< Standard machine type:   @\ TENEX @cr
+@< Host type:               @\ FS::TENEX-HOST @cr
+@< Host mixin:        @\ SI:HOST-TENEX-MIXIN @cr
+@< Pathname flavor:         @\ FS::TENEX-PATHNAME @cr
+@< Example pathname:        @\ "B-T:<KEITH.RELEASE4>FILE.TEXT;4" @cr
+@cleartabs
+
+@subsection LMFILE File-System Type
+
+This file system type refers to an obsolete type of LISP machine local file access.
+
+@sp 1
+@settabs 3 @columns
+@< Host type/file access: @\   FS::LMFILE-HOST @cr
+@cleartabs
+
+@subsection DEFAULT Host Type
+
+The @l(DEFAULT) host type is provided for @ii(ad-hoc) host definition
+(when nothing else will do).
+Note that you cannot create pathnames for a host with system type DEFAULT.
+
+@sp 1
+@settabs 3 @columns
+@< Standard machine type:   @\ DEFAULT @cr
+@< Host mixin:        @\ SI::DEFAULT-SYSTEM-TYPE-MIXIN @cr
+@< For defining host:       @\ SI::DEFAULT-HOST @cr
+@cleartabs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end systypes

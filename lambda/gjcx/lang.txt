@@ -1,0 +1,115 @@
+
+a language spec is eventually a losing proposition. Example:
+in CL (make-array 3) => #(0 0 0) (e.g. in VAX-NIL) or #(NIL NIL NIL)
+in at least the LISPM environments I'm aware of. The idea
+is to make the guy say (make-array <x> :initial-element <value>) if
+he is depending on the initial value. Supposed to be a big efficiency
+win. (now, I've just spent a few hours tracking down a bug in the
+DOE-MACSYMA plot package that had to do with the initial element of
+an array screw). A few days ago you had a note to the CL list about
+a similar underspecification screw in defstruct.
+
+Well, revised^n has its share of clever underspecification too.
+But, is this really a win in a language spec? Or is it just a way
+of showing (forcing down everybodies neck...) how much the
+language designers know about different implementation tricks?
+You dont see this kind of stuff in other language specs.
+
+Back to the array example. Is it reasonable to argue that in lisp
+there are good natural default values? The empty list as default
+for an array? I think it is. On the other hand, if you know that
+there might be machine dependancies in these defaults, (in fact it
+is usually operating system dependancies. VMS goes to some trouble to
+make sure pages allocated to users are filled with zero's)
+then why not have:
+ (make-array 10 :initial-element *:system-prefered-initial-array-element).
+
+I argue that clever underspecifications for the purpose of elicidating
+implementation tricks know by the language designers causes:
+ * "dating" of the language.
+ * frustration for users of the language
+ * eventual lack of portability.
+
+
+
+
+Date: Saturday, 31 May 1986, 21:32-EDT
+From: Jonathan A Rees <JAR%MX.LCS.MIT.EDU@MC.LCS.MIT.EDU>
+Subject: revised^n report
+To: GJC%MX.LCS.MIT.EDU@MC.LCS.MIT.EDU
+CC: JAR@MX.LCS.MIT.EDU
+In-reply-to: Your message
+Message-ID: <[MX.LCS.MIT.EDU].923398.860531.JAR>
+
+    Date: Sat, 31 May 86 13:16:32 EDT
+    From: George J. Carrette <GJC%MX.LCS.MIT.EDU at MC.LCS.MIT.EDU>
+    To:   JAR%MX.LCS.MIT.EDU at MC.LCS.MIT.EDU
+
+    One should be able to show that clever underspecification in
+    a language spec is eventually a losing proposition. Example:
+    in CL (make-array 3) => #(0 0 0) (e.g. in VAX-NIL) or #(NIL NIL NIL)
+    in at least the LISPM environments I'm aware of. The idea
+    is to make the guy say (make-array <x> :initial-element <value>) if
+    he is depending on the initial value. Supposed to be a big efficiency
+    win. (now, I've just spent a few hours tracking down a bug in the
+    DOE-MACSYMA plot package that had to do with the initial element of
+    an array screw). A few days ago you had a note to the CL list about
+    a similar underspecification screw in defstruct.
+
+    Well, revised^n has its share of clever underspecification too.
+    But, is this really a win in a language spec? Or is it just a way
+    of showing (forcing down everybodies neck...) how much the
+    language designers know about different implementation tricks?
+    You dont see this kind of stuff in other language specs.
+
+    Back to the array example. Is it reasonable to argue that in lisp
+    there are good natural default values? The empty list as default
+    for an array? I think it is. On the other hand, if you know that
+    there might be machine dependancies in these defaults, (in fact it
+    is usually operating system dependancies. VMS goes to some trouble to
+    make sure pages allocated to users are filled with zero's)
+    then why not have:
+     (make-array 10 :initial-element *:system-prefered-initial-array-element).
+
+    I argue that clever underspecifications for the purpose of elicidating
+    implementation tricks know by the language designers causes:
+     * "dating" of the language.
+     * frustration for users of the language
+     * eventual lack of portability.
+
+This is all too true.  I think that if I were designing another language
+now I would try to get rid of all underspecifications, since they lead
+to so much confusion.  I hope that as many underspecifications as
+possible will disappear from Common Lisp.
+
+Let me try to figure out why I think it's OK for Scheme to be
+underspecified and not for Common Lisp to be underspecified.  Scheme's
+underspecifications don't generally have anything to do with
+"implemetation tricks."  Political expediency demands that the report
+leave a lot of room for local variation.  We wouldn't be able to get
+agreement on all these little things.  Some differences between versions
+result from differing implementation demands, but mostly it's that the
+different groups have incompatible ideologies, so each group would have
+its own idea of what the "right" thing is for each situation.
+
+The goals of Revised^n Scheme differ from those of Common Lisp, I think.
+Mostly we want to be able to read each others' code when it appears in
+the literature, and relieve people from the pain of there being
+incompatible languages all calling themselves "scheme".  Portability is
+only a secondary consideration, and we're not so concerned that all
+non-erroneous programs should port, only that "well-written" programs
+should port.  I think there's the feeling that people who write in
+Scheme don't just play around until their code just happens to work
+(often the only programming technique available in some systems which
+will remain nameless) -- they actually write "clean" code which observes
+data abstractions and doesn't depend on things it shouldn't depend on
+(like the initial value of vector components).  So while it's very easy
+to write unportable code, people who do so have somehow missed the
+point, and probably ought to be programming in CLU or Ada (or the
+language I have yet to design?) instead.
+
+If we really want to aim for airtight portability then we've got to start
+making a lot of changes.
+
+Jonathan.
+

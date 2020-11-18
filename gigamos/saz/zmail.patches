@@ -1,0 +1,65 @@
+;;; -*- Mode:LISP; Package:ZWEI; Patch-File:T; Base:8; Readtable:ZL -*-
+;;; Private patches made by saz
+;;; Written 12-May-88 17:35:56 by saz (David M.J. Saslav) at site Gigamos Cambridge
+;;; while running on Fowl food from band 1
+;;; with Experimental System 123.278, Experimental Local-File 73.6,
+;;; Experimental FILE-Server 22.5, Experimental Unix-Interface 11.0,
+;;; Experimental KERMIT 34.3, Experimental ZMail 71.2, Experimental
+;;; Lambda-Diag 15.0, Experimental Tape 22.4, microcode 1756, SDU Boot Tape
+;;; 3.14, SDU ROM 103, patch/experimental.
+
+
+(DEFINE-ZMAIL-TOP-LEVEL-COMMAND COM-ZMAIL-MOUSE-POINT-PDL "Give menu of message point pdl" ()
+  (LET (*TYPEOUT-WINDOW*)
+    (IF (TV:SHEET-EXPOSED-P *SUMMARY-WINDOW*)
+        (SETQ *TYPEOUT-WINDOW* (SEND *SUMMARY-WINDOW* :TYPEOUT-WINDOW))
+        (SETQ *TYPEOUT-WINDOW* (WINDOW-TYPEOUT-WINDOW *WINDOW*))
+        (SEND *TYPEOUT-WINDOW* :LINE-OUT *SUMMARY-WINDOW-LABEL*))
+    (DOLIST (ELEM *MSG-POINT-PDL*)
+      (LET* ((MSG (CAR ELEM))
+             (STATUS (ASSURE-MSG-PARSED MSG)))
+        (SEND *TYPEOUT-WINDOW* :TRUNCATED-ITEM 'POINT-PDL-ELEMENT ELEM "~~3D~C~A~"
+;How could this have ever worked with this arg plugged in here???
+;             (EQ MSG *MSG*)
+              (INCF (msg-displayed-index msg)) (STATUS-LETTER STATUS) (MSG-SUMMARY-LINE MSG))
+        (SEND *TYPEOUT-WINDOW* :TYO #/CR)))
+    (CHECK-FOR-TYPEOUT-WINDOW-TYPEOUT))
+  DIS-ALL)
+
+
+(DEFUN CHOOSE-MAIL-FILE-OPTIONS-1 (PATHNAME FLAVOR OPTIONS &OPTIONAL (NEAR-MODE '(:MOUSE))
+                                                           &AUX VARS VALS)
+  (DECLARE (RETURN-LIST FLAVOR OPTIONS))
+  (SETQ VARS (NCONS 'FLAVOR)
+        VALS (NCONS FLAVOR))
+  (LOOP FOR POSS IN *ZMAIL-BUFFER-OPTION-ALIST*
+        AS VAR = (CAR POSS)
+        AS TEM = (NCONS VAR)
+        WITH PLIST = (LOCF OPTIONS)
+        DO (SETQ VARS (NCONC VARS TEM))
+           (SETQ VALS (NCONC VALS (NCONS (GET PLIST (CAR TEM) (GET VAR 'TV:DEFAULT-VALUE))))))
+  (LET ((*POSSIBLE-FLAVORS*
+          (LOOP FOR FLAVOR IN (SEND PATHNAME :POSSIBLE-MAIL-FILE-BUFFER-FLAVORS)
+                COLLECT (RASSQ FLAVOR *ZMAIL-BUFFER-FLAVOR-ALIST*) INTO FOO
+                FINALLY (RETURN (NCONC FOO (NCONS (RASSQ 'TEXT-MAIL-FILE-BUFFER
+                                                         *ZMAIL-BUFFER-FLAVOR-ALIST*)))))))
+    (DECLARE (SPECIAL *POSSIBLE-FLAVORS*))
+    (PROGV VARS VALS
+      (TV:CHOOSE-VARIABLE-VALUES (COMPUTE-ZMAIL-BUFFER-CHOICES FLAVOR)
+                                 :LABEL (FORMAT NIL "Options for ~A:" PATHNAME)
+                                 :NEAR-MODE '(:point 712 512)   ;'(:mouse) tended to bomb when choosing the first option!
+                                 :MARGIN-CHOICES '("Do It"
+                                                    ("Abort" (ABORT-CURRENT-COMMAND)))
+                                 :FUNCTION 'CHOOSE-MAIL-FILE-OPTIONS-FUNCTION)
+      (SETQ FLAVOR (SYMEVAL 'FLAVOR))
+      ;; Somewhat of a kludge
+      (AND (MEMQ :MAIL VARS)
+           (DO L (SYMEVAL :MAIL) (CDR L) (NULL L)
+               (LET ((FS:*ALWAYS-MERGE-TYPE-AND-VERSION* T))
+                 (SETF (CAR L) (FS:MERGE-PATHNAME-DEFAULTS (CAR L) *ZMAIL-PATHNAME-DEFAULTS*)))))
+      (SETQ OPTIONS
+            (LOOP FOR VAR IN (LET (SELF)
+                               (SEND (SI:GET-FLAVOR-HANDLER-FOR FLAVOR :POSSIBLE-OPTIONS)
+                                        :POSSIBLE-OPTIONS))
+                  NCONC `(,VAR ,(SYMEVAL VAR))))))
+  (VALUES FLAVOR OPTIONS))

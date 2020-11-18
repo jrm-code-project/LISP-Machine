@@ -1,0 +1,90 @@
+-*- Mode:Text; Package:ZWEI -*-
+
+General Bugs with Window Maker:
+
+1. Windows that have been subdivided into little tiny pieces
+become non-mouse-sensitive, thus eliminating any chance of
+killing them or expanding them (unless a neighbor happens to be
+mouse-sensitive).  Window Maker needs a better way of handling
+this.
+
+2. Window Maker needs a way to subdivide panes into
+:EVEN subpanes in groups greater than two.
+
+3. Terminal-<Clear Screen> erases everything; no way to get it
+back (short of mousing on Reset and starting all over again!)
+
+4. Window Maker HELP window uses a MENU to display text only; the
+who-line reads "Menu Choose" as you read the text, and the cursor
+changes into the menu chooser, "x", as well.  No mouse input is accepted
+at this time, of course; worse, the only way of making the help window
+go away is by moving the mouse off of it (a la dynamic menus).
+
+5. There is no way to create more than one pane in a single "Split"
+operation; Ideally, Window Maker should enforce the constraint
+(recommended in the Window System Manual) that the final pane always use
+the :EVEN constraint.  This would be implementable using the following
+algorithm: Keep querying the user for more pane split specifications
+until he clicks on the "Or (sic) let it use any remaining space" option.
+(If user attempts to indicate rightmost/lowest boundary by dragging the
+cursor all the way to the right/bottom, Window Maker should throw the
+:EVEN keyword, assuming that the user is done Splitting.)
+
+************************************************************************
+The following bugs/suggestions all deal with the splitting panes when
+the "AREAS OF ABSOLUTE SIZE" option has been selected.  Unless specified
+otherwise, all bugs/suggestions occur when specifying window split
+points either by LINES or by CHARACTERS (in other words, making vertical
+or horizontal splits):
+************************************************************************
+
+6. When attempting to specify that all remaining space be used for the
+second of the two windows (by explicitly moving the mouse to the
+furthest right or lowermost character/line location possible), Window
+Maker draws the final edge improperly.  The only way to get proper edge
+drawing is to specify the :EVEN constraint, using the "Or (sic) let it use
+any remaining space" menu option.  This is arguably the "best" way to
+achieve this goal anyway, but the user shouldn't observe incorrect
+behavior when using a supposedly equivalent mechanism for window
+splitting.
+
+7. The user is allowed to specify the furthest right or lowermost item
+as the boundary of the FIRST pane, leaving no room anywhere for the
+second one to go!  This generates an error, in a background window, when
+the user has finished "placing" the second window.
+
+8.  The semantics of specifying the :EVEN constraint (using the "Or let
+it use any remaining space") as a response to the "SPECIFY SIZE FOR
+FIRST PANE IN" menu are not clear.  It turns out that Window Maker
+interprets this response for a first pane border to mean "Start the
+second window from the right (or at the bottom) as specified, then use
+any remaining space on the left (at the top) to complete the split.
+If this is considered desirous behavior, the first pane menu should
+read, "Specify dimension of subsequent panes only, and use any remaining
+space for this left-most(/top-most) pane."  Note the use of the plural
+above, indicating a hope that the splitting command might be extended to
+allow the user to create more than three panes at a time out of a larger
+one (see next bug).
+
+9. The Absolute Size option enforces a three pane maximum on splits.
+Window Maker should continue to allow the user to specify boundaries for
+further panes until he has specified he is finished doing so by clicking
+on the "Let it use any remaining space" menu item.
+
+10. After specifying the first split point in an "Absolute Size" pane
+split sequence, Window Maker should draw a light (or dashed) line where
+the window boundary will exist after the split has been performed.  It
+is a severe inconvenience trying to figure out where to put the next
+boundary without a reference point for the previous one.
+
+************************************************************************
+
+11. Menus with titles have an annoying tendency to interpret deexposing
+mouse movements as clicks.  That is, if the mouse is moved off of a menu
+which is attempting to determine a splitting mode, a selection gets
+made.  This is obviously not what the user means when he moves off of a
+menu!
+
+12. When done splitting the panes up, the user is presented with a
+barrage of menus which suffer from major sizing and semantical problems.
+For instance, aborting from these menus is handled improperly.

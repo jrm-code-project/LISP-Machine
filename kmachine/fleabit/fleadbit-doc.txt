@@ -1,0 +1,1036 @@
+12/31/87                                                       EFH
+
+
+                              The Compiler
+
+
+   Fleabit is the Common Lisp compiler for the K machine a Lisp
+optimized RISC machine developed at Lisp Machine Inc. and GigaMOS
+Systems.  Fleabit is largely an adaptation of ORBIT [1] the Scheme
+compiler developed at Yale in the T project.  Like ORBIT it is based
+upon ideas developed by Steele in the Rabbit [2] compiler for Scheme.
+
+   The compiler is a translation of ORBIT into Common Lisp with the
+front end rewritten for Common Lisp and the back end rewritten for the K
+Machine.
+
+   The compiler operates in several passes:
+
+   Top Level Form Handling
+   Alphatization
+   CPS and Node Conversion
+   Simplification
+   Analysis
+   Code Generation
+   Assembly
+
+   Intermediate data structures and other status information can be seen
+by turning on various debugging switches with the function NC:DEBUG-ON
+which takes one or more debugging options to turn on as follows:
+
+   :ALPHA         Alphatized code
+   :UNSIMPLIFIED  After CPS and node conversion
+   :SIMP          Show individual simplifications
+   :SIMP-TREE     Show simplified tree after each simplification
+   :SIMPLIFIED    Simplified node tree
+   :STRATEGY      Node tree with strategy annotations
+   :USED          Node tree with used variables
+   :LIVE          Node tree with live variables
+   :PREF-CLASSES  Variable preference classes
+   :REGS          Variable assignments
+   :GENERATE      Generated code tree
+   :COMMENTS      Assembly comments
+   :EMIT          Emitted (non-optimized) code
+   :POST          Post processed code
+
+   :POST may be the most useful debugging switch as it shows the final
+assembly code.  Debugging information can be turned off with
+NC:DEBUG-OFF.  Debugging information is sent to NC:*DEBUG-STREAM*.
+
+
+Top Level Form Handling
+============================================================
+Files:
+   TOP
+
+   When compiling a file top level forms are processes and a KFASL file
+generated.  Declarations are made known to the compiler using
+DEF-DECLARATION or put in the compiler environment structure and recorded
+in the KFASL file.  Defuns are compiled and code and link information
+generated.  Top level forms such as EVAL-WHEN and COMPILER-LET are handled
+and unknown forms are arranged to be evaluated at load time.
+
+
+Alphatization
+============================================================
+Files:
+    TOP-DEFS
+    COMPILER-ENV
+    PRIMOP-DEFS
+    PRIMITIVES
+    HW-PRIMITIVES
+    FRONT-END;ALPHA
+
+   In the Alphatization phase all macros and rewriters are expanded,
+substs are substituted and references to primitive operations are
+replaced by PRIMOP structures.  All lambdas have an additional
+continuation argument added (see CPS Conversion).  All names (of
+variables, functions, block names, go tags, etc) are replaced by
+VARIABLE structures.  Binding of names to variable structures as well as
+local function and macro definitions are kept in a COMPILER-ENV data
+structure which is passed among alphatization functions.
+
+   The alphatization phase also knows about all Common Lisp special
+forms.  Some of these provoke special action by the alphatizer, others
+expand into internal primitives.
+
+  Here is an example of alphatized code:
+
+Source code:
+
+(defun count (n)
+  (labels ((count-1 (i n)
+            (cond ((>= i n))
+                  (t (print n)
+                     (count-1 (1- i) n)))))
+    (count-1 0 n)))
+
+Alphatized:
+
+(LAMBDA COUNT (NIL #{Variable K_0} #{Variable N_1})
+ ((PROGN
+   ((LABELS (#{Variable COUNT-1_2})
+            ((LAMBDA COUNT-1 (NIL #{Variable K_3} #{Variable I_4} #{Variable N_5})
+               (((LAMBDA "P"
+                   (NIL #{Variable K_6} #{Variable G2387_7})
+                   ((IF #{Variable G2387_7}
+                        #{Variable G2387_7}
+                        (PROGN ((PRINT #{Variable N_5})
+                                (#{Variable COUNT-1_2} (#{Primop 1- 22151342} #{Variable I_4})
+                                                       #{Variable N_5}))))))
+                 (IF (#{Primop 2-ARG->= 22141102} #{Variable I_4} #{Variable N_5}) 'T 'NIL))
+                )))
+         ((#{Variable COUNT-1_2} '0 #{Variable N_1})))))))
+
+ Information about compiling primitive operations of the language is
+kept in PRIMOP structures which are found from their names in
+*PRIMOP-TABLE*.  Each primop records information about how to compile
+the primitive.  See the section on Extending the Compiler for more
+information about PRIMOPs.
+
+ The VARIABLE structure provides a unique identifier as well as being a
+convenient place to record various information. Here are the slots of a
+VARIABLE:
+
+    NAME               Source code name for variable (for debugging only)
+    ID                 Unique numeric identifier
+    BINDER             LAMBDA node which binds this variable
+    CLOSED             location in lexical env of this variable
+    NUMBER             number in binding list
+    REFS               List of leaf nodes n for which (REFERENCE-VARIABLE n) = var.
+    TYPE               The type of the variable's value at point of binding
+    SPECIAL-P          T if declared special
+    FLAG               Useful slot, used by COPY-NODE, NODE->VECTOR, etc.
+    FLAGS              For various annotations, e.g. IGNORABLE
+    LOC                The home of this variable (a register or stack slot, IGNORE)
+    SETQS              list of places where this variable is setqed
+    OPTIONAL-P         T if an optional arg
+
+
+
+CPS and Node Conversion
+============================================================
+Files:
+  TOP-DEFS
+  FRONT-END;COMPILATORS
+  FRONT-END;NODE
+
+   This phase takes the alphatized code and produces a node tree
+in a CPS (Continuation Passing Style) format.
+
+   The essence of continuation passing style [2,3] is that each call is
+passed an additional argument, the continuation.  This is a function
+which receives the value(s) of the call as an argument and continues
+processing.  As an example the code:
+
+   (progn (foo (bar 3) 4)
+          (baz x))
+
+would be written in continuation passing style as:
+
+   (bar #'(lambda (v) (foo #'(lambda (ignore) (baz x))
+                           v
+                           4))
+        3)
+
+   The CPS code has in some sense been turned inside out, and is written
+more in the order of execution than the source code.  In CPS code there
+is no "returning" from a call or "returning a value". The continuation
+expresses the notion of control and value destination often found in
+traditional Lisp compilers in the language of function calling and
+passing values.  The thesis of Rabbit [2] was that CPS conversion,
+coupled with simplifications which turned many constructs into function
+calling, would allow a compiler to be constructed which would produce
+optimal code yet concentrate most of its effort on the compiling of
+lambda functions and calls.  As an effect of that, code which explicitly
+uses closures and calling of internal and anonymous functions for flow
+of control will also compile well.
+
+   In addition to CPS conversion, this phase also turns the list format
+code into a node tree.  All calls are turned into CALL nodes each of
+which has as children the CALL-PROC and CALL-ARGUMENTS.  All functions
+(including continuations) are turned into LAMBDA nodes.  All
+LAMBDA-NODEs (except the topmost) have as parent some CALL-NODE.  The
+body of a LAMBDA-NODE is always another CALL-NODE, CALL-NODEs and
+LAMBDA-NODEs always alternate at levels of the tree.
+
+   The CALL-PROC or CALL-ARGUMENTS of a CALL-NODE may also be LEAF
+nodes.  There are three types of LEAF-NODEs; LITERAL-NODEs which
+reference a literal or constant such as a number or NIL; REFERENCE-NODEs
+which reference a VARIABLE; and PRIMOP-NODEs which reference a PRIMOP.
+Each LEAF-NODE has as parent the CALL-NODE which refers to it.
+
+   There is a concise printed representation for a node tree.  Here is
+an example:
+
+  Source:
+
+   (defun fun (x)
+     (foo (1+ x) 4)
+     (baz 3))
+
+  Node Tree:
+
+   ((FUN_4 NIL K_0 X_1) ($OPEN-FRAME 1 ^C_8 '#{CALL-NODE FOO_5 53761554}))
+    ((C_8)            ($1+ 1 ^C_7 X_1))
+     ((C_7 NIL V_6)    (FOO_5 1 ^B_12 V_6 '4))
+      ((B_12 IGNORE_11) ($OPEN-FRAME 1 ^C_10 '#{CALL-NODE BAZ_9 53762333}))
+       ((C_10)           (BAZ_9 1 K_0 '3))
+
+   Each line represents one LAMBDA-NODE and the CALL-NODE which is its body.
+For example the line:
+
+     ((C_7 NIL V_6)    (FOO_5 1 ^B_12 V_6 '4))
+
+is the LAMBDA-NODE C_7 (continuations have generated names of the form
+C_n) which is the continuation to the call to the PRIMOP 1+ in the line
+above.  The continuation has NIL for a rest arg and has one argument V_6
+which is the value of 1+.  A continuation does not itself have a
+continuation argument.  The body of the lambda is a CALL-NODE whose
+CALL-PROC is the REFERENCE-NODE FOO_5 and whose CALL-ARGS are the
+LAMBDA-NODE ^B_12 (this is the continuation arg to FOO) which is printed
+on the next line, the REFERENCE NODE V_6 which is the first real
+argument to FOO (the value of 1+), and the LITERAL-NODE '4.
+
+   When a LAMBDA-NODE appears as a CALL-PROC or one of the
+CALL-ARGUMENTS (often the continuation argument) it is written as a ^
+followed by the variable which names the lambda.  The LAMBDA-NODE itself
+is printed below with appropriate indentation. PRIMOP-NODES are written
+as a $ followed by the name of the PRIMOP.  LITERAL-NODES are written as
+a ' followed by the LITERAL-VALUE.  REFERENCE-NODES are written as the
+variable name followed by an _ and the variable's unique numeric
+identifier.
+
+
+   Here is the node tree for the example function:
+
+     Unsimplified node:
+       ((COUNT_9 NIL K_0 N_1) ($Y 1 ^Y_12))
+        ((Y_12 NIL C_10 COUNT-1_2) (C_10 0 ^C_11 ^COUNT-1_13))
+         ((C_11 NIL NIL)   ($OPEN-FRAME 1 ^C_35 '#{CALL-NODE COUNT-1_2 20320100}))
+          ((C_35)           (COUNT-1_2 1 K_0 '0 N_1))
+         ((COUNT-1_13 NIL K_3 I_4 N_5) ($OPEN-FRAME 1 ^C_34 '#{CALL-NODE ^P_14 20314445}))
+          ((C_34)           (^P_27 0 ^C_33))
+           ((P_27 NIL J_26)  ($2-ARG->= 1 ^C_31 I_4 N_5))
+            ((C_31 NIL V_30)  ($CONDITIONAL 2 ^C_28 ^C_29 $TRUE? V_30))
+             ((C_28 NIL)       (J_26 0 'T))
+             ((C_29 NIL)       (J_26 0 'NIL))
+           ((C_33 NIL V_32)  (^P_14 1 K_3 V_32))
+            ((P_14 NIL K_6 G2387_7) (^P_16 0 K_6))
+             ((P_16 NIL J_15)  ($CONDITIONAL 2 ^C_17 ^C_18 $TRUE? G2387_7))
+              ((C_17 NIL)       (J_15 0 G2387_7))
+              ((C_18 NIL)       ($OPEN-FRAME 1 ^C_20 '#{CALL-NODE PRINT_19 20315076}))
+               ((C_20)           (PRINT_19 1 ^B_25 N_5))
+                ((B_25 IGNORE_24) ($OPEN-FRAME 1 ^C_23 '#{CALL-NODE COUNT-1_2 20315370}))
+                 ((C_23)           ($1- 1 ^C_22 I_4))
+                  ((C_22 NIL V_21)  (COUNT-1_2 1 J_15 V_21 N_5))
+
+   CONDITIONAL is the PRIMOP which implements IF.  It takes two
+continuation arguments, one to call if the predicate is T the other is
+called if it is not.  The rest of the arguments to CONDITIONAL are a
+PRIMOP which is the predicate and the arguments to the predicate itself.
+
+   Both continuations of a conditional often wind up at the same place,
+called a JOIN.  In this case a generated variable (of the form J_n) is
+bound to the single continuation and then called (or passed as a
+continuation argument) by each of the continuations of the conditional.
+
+  A lambda node can be used as a CALL-PROC, usually to bind a variable.
+Lambdas used in this way usually have generated names of form P_n.
+
+   In the fragment:
+
+          ((C_34)           (^P_27 0 ^C_33))
+           ((P_27 NIL J_26)  ($2-ARG->= 1 ^C_31 I_4 N_5))
+            ((C_31 NIL V_30)  ($CONDITIONAL 2 ^C_28 ^C_29 $TRUE? V_30))
+             ((C_28 NIL)       (J_26 0 'T))
+             ((C_29 NIL)       (J_26 0 'NIL))
+           ((C_33 NIL V_32)  ...
+
+J_26 is bound to the continuation lambda C_33 (by P_27).  It will be called by
+both continuations to the conditional with V_32 bound to either T or NIL.
+
+   During CPS conversion function calls also have a call to the primop OPEN-FRAME
+added at the point at which a call-hardware open operation must be done.  This will
+eventually turn into an OPEN or TAIL-OPEN instruction if a real function call is
+being performed.
+
+
+Simplification
+======================================================================
+
+Files:
+FRONT-END;SIMPLIFY
+FRONT-END;SIMPLIFY-CALL
+FRONT-END;SIMPLIFY-LET
+FRONT-END;NSIMPLIFY-Y
+FRONT-END;SIMPLIFIERS
+FRONT-END;PARAM
+
+   After the node tree is built it is simplified.  Simplification makes
+several passes over the tree recursively simplifying subtrees.  When any
+change is made to a subtree it is resimplified, therefore simplifications
+can trigger further simplifications.
+
+  Lambda nodes are simplified by SIMPLIFY-LAMBDA which will do the
+simplification:
+  (LAMBDA () (X)) => X
+if the node is an exit, and also simplify the call node which is the
+lambda body.
+
+  Call nodes are simplified by SIMPLIFY-CALL.  Several simplifications
+can be done:
+
+   Presimplification:
+      Primops can have presimplification code.  The only use of this at
+    the moment is in predicates which call PRESIMPLIFY-TO-CONDITIONAL
+    which substitutes a predicate in for the predicate primop of a
+    conditional as follows:
+
+        ... ($<primop-predicate> . <args>))
+       ((C_n NIL V_m) ($CONDITIONAL <exit1> <exit2> $TRUE? V_m))
+
+     => ... ($CONDITIONAL <exit1> <exit2> $<primop-predicate> . <args>))
+
+
+   Removal OPEN-FRAME:
+     Calls to OPEN-FRAME are removed for calls to primops or lambdas.
+
+   Remove Unused Call:
+     Calls to primops which have no side effects are removed if the value
+     of the call is not used.
+
+   Primop Simplifications:
+     Each primop can have a simplification method which is applied to it.
+     Generally one of the following functions is called:
+
+     SIMPLIFY-TEST removes a conditional if a known value is being tested.
+
+         ($CONDITIONAL <then> <else> $TRUE? NIL)
+         => <else>
+         ($CONDITIONAL <then> <else> $TRUE? not-NIL)
+         => <then>
+
+      the value tested may be a literal, or it may be a variable which was
+      tested earlier.   A conditional which tests a variable propagates
+      the result down the simplification of each arm of the conditional in
+      *VALUE-TABLE*.
+
+      SIMPLIFY-IF-CONSTANT-PREDICATE removes a conditional if all the
+      arguments to the predicate are literals.  This function takes an
+      argument which is a function to apply to the literal values to
+      produce the truth value.  This function is usually the same as
+      the primop.
+
+      SIMPLIFY-IF-CONSTANT-EXPRESSION replaces a call to a primop with a
+      literal value if all the arguments to the primop are literals.
+
+         ($FOO <exit> <literal1> <literal2> ...)
+         => (<exit> <exp-literal>)
+         <exp-literal> = (funcall function <literal1> <literal2> ...)
+
+      This function takes an argument which is a function to apply to the
+      literals to produce the value.
+
+      SIMPLIFY-FUNCALL simplifies a call to FUNCALL of a lambda to be an
+      ordinary call of the lambda.
+
+         ($FUNCALL-INTERNAL <exit> <lambda-node> . <args>)
+         => (<lambda-node> <exit> . <args>)
+
+   The Y primop which is used to implement LABELS is simplified by
+SIMPLIFY-Y which which does the following simplifications:
+   If a label proc is not called, remove it.
+   If a label proc is called only once, substitute it in.
+
+   If the CALL-PROC of a call is a lambda then SIMPLIFY-LET is called.
+A call to a lambda is generally only used to bind variables.
+SIMPLIFY-LET will attempt to substitute the argument values for
+variables in the body of the lambda, remove variables which are not used
+in the body, and finally remove the lambda call itself if it has no
+variables.
+
+   An interesting substitution is the substitution of lambdas for join
+variables.  The function SUBSTITUTE-JOIN-ARGUMENTS will perform the
+optimization:
+
+     (IF (IF a b c) d e) => (IF a (IF b d e) (IF c d e))
+
+if b or c is a literal by substituting copies of the continuation which
+is the outside IF into the places where the inside IF calls that
+continuation.
+
+   Here is the simplified node tree for the example function:
+
+     ((COUNT_9 NIL K_0 N_1) ($Y 1 ^Y_12))
+      ((Y_12 NIL C_10 COUNT-1_2) (C_10 0 ^C_11 ^COUNT-1_13))
+       ((C_11 NIL NIL)   ($OPEN-FRAME 1 ^C_35 '#{CALL-NODE COUNT-1_2 62667763}))
+        ((C_35)           (COUNT-1_2 1 K_0 '0 N_1))
+       ((COUNT-1_13 NIL K_3 I_4 N_5) ($CONDITIONAL 2 ^C_28 ^C_18 $2-ARG->= I_4 N_5))
+        ((C_28 NIL)       (K_3 0 'T))
+        ((C_18 NIL)       ($OPEN-FRAME 1 ^C_20 '#{CALL-NODE PRINT_19 62671335}))
+         ((C_20)           (PRINT_19 1 ^B_25 N_5))
+          ((B_25 IGNORE_24) ($OPEN-FRAME 1 ^C_23 '#{CALL-NODE COUNT-1_2 62667150}))
+           ((C_23)           ($1- 1 ^C_22 I_4))
+            ((C_22 NIL V_21)  (COUNT-1_2 1 K_3 V_21 N_5))
+
+
+
+Analysis
+======================================================================
+
+   The analysis phase makes several passes over the node tree and
+various slots of the nodes are filled in with the information gathered.
+
+   Analysis of the Node tree consists of three passes:
+
+      Strategy analysis
+      Live variable analysis
+      Environment Analysis
+
+
+Strategy Analysis
+
+   Strategy analysis determines for each lambda node the strategy which
+will be used to compile it.  There are four strategies:
+
+ OPEN  - This lambda is a simple continuation, it is called
+         from a single place and returns to a single place.
+         It will turn into a piece of straight line code.
+
+ LABEL - This lambda may be called from many places, but only has
+         one continuation, i.e. it always returns to the same place.
+         It can be a piece of inline code, but will need a label
+         which may be branched to.
+
+ PROC  - This lambda is called from more than one place with different
+         continuations.  It needs to be an actual subroutine.  It is
+         always called and never used as an argument to any call and
+         therefore does not actually have to have an actual function
+         object associated with it, or be heap closed.  STRATEGY/PROC
+         is not currently being used,  PROC lambdas are given
+         STRATEGY/HEAP and become separate heap closed functions.
+
+ HEAP  - This lambda is used as an argument to a call, and therefore
+         may persist indefinitly and be called with FUNCALL.  A function
+         object needs to be created and possibly a closure consed.
+
+   The strategy analysis phase also computes the set of variables used
+within each lambda.  The used variables are the variables referenced
+within the lexical scope of the lambda.  The used variables are needed
+for closure analysis.  Any variables used within a STRATEGY/HEAP lambda
+must be closed over.
+
+   Here is the strategy analysis and used variables of the sample node tree:
+
+  ((B_506 NIL K_505) (K_505 0 ^COUNT_9))                                           STRATEGY/HEAP  ()
+   ((COUNT_9 NIL K_0 N_1) ($Y 1 ^Y_12))                                            STRATEGY/HEAP  ()
+    ((Y_12 NIL C_10 COUNT-1_2) (C_10 0 ^C_11 ^COUNT-1_13))                         STRATEGY/LABEL (N_1)
+     ((C_11 NIL NIL)   ($OPEN-FRAME 1 ^C_35 '#{CALL-NODE COUNT-1_2}))              STRATEGY/OPEN  (N_1)
+      ((C_35)           (COUNT-1_2 1 K_0 '0 N_1))                                  STRATEGY/OPEN  (N_1)
+     ((COUNT-1_13 NIL K_3 I_4 N_5) ($CONDITIONAL 2 ^C_28 ^C_18 $2-ARG->= I_4 N_5)) STRATEGY/LABEL ()
+      ((C_28 NIL)       (K_3 0 'T))                                                STRATEGY/LABEL ()
+      ((C_18 NIL)       ($OPEN-FRAME 1 ^C_20 '#{CALL-NODE PRINT_19}))              STRATEGY/LABEL (N_5 I_4)
+       ((C_20)           (PRINT_19 1 ^B_25 N_5))                                   STRATEGY/OPEN  (N_5 I_4)
+        ((B_25 IGNORE_24) ($OPEN-FRAME 1 ^C_23 '#{CALL-NODE COUNT-1_2}))           STRATEGY/OPEN  (I_4 N_5)
+         ((C_23)           ($1- 1 ^C_22 I_4))                                      STRATEGY/OPEN  (I_4 N_5)
+          ((C_22 NIL V_21)  (COUNT-1_2 1 K_3 V_21 N_5))                            STRATEGY/OPEN  (N_5)
+
+
+Live Analysis
+
+   Live variable analysis computes the set of variables which are live
+at each lambda node.  Live variables are those variables whose values
+will still be needed.  Notice how this differs from used variables.
+Used variables are those variables which are used lexically within the
+scope of a lambda, they capture the essence of lexical scoping and are
+used to determine closure environments.  Live variables are those
+variables which are used dynamically within the extent of a lambda, they
+are used to determine when variable values are no longer needed and when
+registers holding those values may be reused.
+
+   Live variable analysis in a tree would be a simple matter of finding
+the live variables below a node, then removing those variables bound at
+the node.  However, the control structure of code trees is tangled by
+function calls (also meaning goto's and continuations) back up in the
+tree.
+
+For example in:
+
+     (defun live-y (x)
+       (labels ((f (y)
+                     (g y)
+                     (print y))
+                   (g (z)
+                     (print z)))
+          (f x)))
+
+y is live in g. (Therefore z cannot share storage with y. This could
+happen because g wants to be substituted inline into f, in fact if the
+(print y) were not there it would be a good idea.) The continuation to g
+is known to be ((B_3 IGNORE_2) (PRINT K_0 Y_1)) therefore the variable y
+is live in g by virtue of g referring to its continuation. What we get
+is a graph with a definite root and leaves but with cross links and
+cycles.
+
+  The algorithm for finding live variables is to make multiple passes
+over the graph, proceeding in a depth first manner.  Each node will be
+marked with the pass number. At each node we check the pass number to
+see if we have looped. If so, we return the nodes current list of live
+variables.  If not, we find the live variables of the children of the
+node and construct the live variables for this node.  If this list is
+different we update the node and set a flag saying there were changes on
+this pass.  We make passes over the graph until there are no changes.
+
+  This algorithm calculates the live variables for a node once for each
+pass (therefore each pass is O(n) n = number of nodes), and makes a
+number of passes equal to 2 + the length of the longest chain up.
+
+Here is the live variable analysis of the example function:
+
+  ((B_506 NIL K_505) (K_505 0 ^COUNT_9))                                           ()
+   ((COUNT_9 NIL K_0 N_1) ($Y 1 ^Y_12))                                            (PRINT_19)
+    ((Y_12 NIL C_10 COUNT-1_2) (C_10 0 ^C_11 ^COUNT-1_13))                         (PRINT_19 K_0 N_1)
+     ((C_11 NIL NIL)   ($OPEN-FRAME 1 ^C_35 '#{CALL-NODE COUNT-1_2 62667763}))     (N_1 K_0 PRINT_19 COUNT-1_2)
+      ((C_35)           (COUNT-1_2 1 K_0 '0 N_1))                                  (N_1 K_0 PRINT_19 COUNT-1_2)
+     ((COUNT-1_13 NIL K_3 I_4 N_5) ($CONDITIONAL 2 ^C_28 ^C_18 $2-ARG->= I_4 N_5)) (PRINT_19 COUNT-1_2)
+      ((C_28 NIL)       (K_3 0 'T))                                                (K_3)
+      ((C_18 NIL)       ($OPEN-FRAME 1 ^C_20 '#{CALL-NODE PRINT_19 62671335}))     (N_5 PRINT_19 I_4 K_3 COUNT-1_2)
+       ((C_20)           (PRINT_19 1 ^B_25 N_5))                                   (N_5 PRINT_19 I_4 K_3 COUNT-1_2)
+        ((B_25 IGNORE_24) ($OPEN-FRAME 1 ^C_23 '#{CALL-NODE COUNT-1_2 62667150}))  (I_4 N_5 K_3 PRINT_19 COUNT-1_2)
+         ((C_23)           ($1- 1 ^C_22 I_4))                                      (I_4 N_5 K_3 PRINT_19 COUNT-1_2)
+          ((C_22 NIL V_21)  (COUNT-1_2 1 K_3 V_21 N_5))                            (N_5 K_3 PRINT_19 COUNT-1_2)
+
+Environment Analysis
+
+ Environment analysis determines for each lambda what the closed environment
+looks like.
+
+Code Generation
+======================================================================
+
+The Code Generation phase consists of three subphases:
+   Register Allocation
+   Code Generation
+   Post Processing
+
+Register Allocation
+Files:
+  GENERATE;REG-ALLOC
+
+  The register allocator examines each variable used in the code and
+determines a home for it.
+
+  For each variable a target is determined which is the best place to
+put the variable.  The target may be a specific register, for instance
+the first argument variable of a function is always targeted to A0, or a
+variable used as the second argument to a function may be targeted to
+O1.  The target may also be * to specify any register or A* to specify
+any Active register.  The target may also be another variable which
+specifies that it would be good for the variable to be kept in the same
+place as the target variable.  This is the case when a variable is
+setqed to the value of another variable or when a LABELS function is
+called with a variable as an argument.
+
+   Each variable is also placed in a preference class.  A preference
+class consists of a target and a list of variables.  All the variables
+in a preference class will be assigned to a single location (consistent
+with the target).  When a variable is targeted to another variable,
+their preference classes are combined as long as there are no conflicts.
+A variable would conflict with another if the value of one is still live
+within the extent of the other.  If the variables in the preference
+classes do not conflict then the targets are reconciled (for example if
+one class has a target of A2 and the other has a target of A* then the
+combined class will have target of A2) and the lists of variables in the
+two classes is combined.
+
+  After all variables have been placed in preference classes any classes
+with targets of A* or * are assigned to available A registers or to
+stack slots.  All variables in a preference class then have their
+VARIABLE-LOC slots set to the location of that class.
+
+   Here is an example of preference classes and register assignments for
+the sample function:
+
+  Register preference classes:
+    (A*  N_5)
+    (*  V_21 I_4)
+    (IGNORE  K_3)
+    (IGNORE  COUNT-1_2)
+    (IGNORE  C_10)
+    (A0  N_1)
+    (IGNORE  K_0)
+
+  Register Assignments:
+    N_5:       A1
+    V_21:      A2
+    I_4:       A2
+    K_3:       IGNORE
+    COUNT-1_2: IGNORE
+    C_10:      IGNORE
+    N_1:       A0
+    K_0:       IGNORE
+
+  V_21 is the value of the call to 1- and we can see from the node tree
+that it is used as the argument to a call to COUNT-1 where its value
+will go into I_4.  We can avoid a move if V_21 and I_4 can actually be
+kept in the same register.  Since the two variables are not live at the
+same time, they can be put in the same preference class.  Eventually the
+preference class is assigned to A2 and both V_21 and I_4 are assigned to
+A2.
+
+
+Code Generation
+Files:
+  PROCESSOR-DEFS
+  PRIMITIVES
+  HW-PRIMITIVES
+  GENERATE;GENERATE
+  GENERATE;EMIT
+
+   GENERATE is the top level function to generate code.  Given an
+optimized, analyzed code tree, it returns an NCOMPILED-FUNCTION object.
+This is a structure which contains the list of machine instructions and
+the link information.
+
+   GENERATE-FUNCTION produces an NCOMPILED-FUNCTION object from a
+function (heap lambda node).  It is called with the toplevel function,
+and is also called recursively to generate any internal functions.
+During the processing of a lambda node, various other lambda nodes
+(usually STRATEGY/LABEL) may be referred to but not immediately
+generated.  These are queued on *lambda-queue*.  GENERATE-FUNCTION will
+process lambda nodes from this queue until it is empty.
+
+   GENERATE-FUNCTION calls GENERATE-LAMBDA which emits a tag and
+dispatches on the strategy of the lambda for some initializations.  Some
+global variables containing the compilers idea of the state of the
+program will be initialized or updated:
+
+   *ENVIRONMENT*   contains the current lexical environment.
+   *ENV-ACC*       contains an accessor for the current environment.
+   *DYNAMIC-STATE* contains the current dynamic state to be unwound on exit.
+                   For example: special variables bound, open frames, open
+                   catchers etc.
+   *STACK-SLOTS*   contains the number of stack slots currently in use.
+
+
+  The body of the lambda is then generated by GENERATE-CALL which
+dispatches on the type of the CALL-PROC.
+
+  Calls to primops go to GENERATE-PRIMOP-CALL which calls the primops
+generation function then calls GENERATE-CONTINUATION.
+
+  Calls to lambda nodes go to GENERATE-LET which binds the lambda's
+variables and calls GENERATE-LAMBDA to generate the body.
+
+  Calls to variables may be to known or unknown variables.  Known
+variables will be LABELS functions or bound continuations.  Unknown
+variables will be top level continuations (ie function returns) or
+unknown calls which are ordinary function calls.  A function call is
+generated by GEN-GENERAL-CALL which assigns the arguments to open
+registers and emits the call.
+
+  Instructions are emitted by the function EMIT, which is called by
+other more useful functions such as EMIT-CALL, EMIT-ALU, EMIT-MOVE, etc.
+
+  Parallel assignment of places to values is done by the function
+PARALLEL-ASSIGN.  This function uses GENERATE-MOVE which is used by many
+other functions to move a value to someplace.  GENERATE-MOVE is a
+general purpose function which can move a quantity from anywhere to
+anywhere else.
+
+  At the end of most calls, GENERATE-CONTINUATION is called with the
+place in which the call left its value, and the continuation to the
+call.  The value is moved to the correct place (although often it is in
+the right place because most things call CONTINUATION-EXPECTING to get
+their destination) and the continuation is generated.
+
+  There are many functions which generate code for specific primitives
+or situations.  Some of these are explained in the section on Extending
+the Compiler.
+
+Generating:
+  ((COUNT_9 NIL K_0 N_1) ($Y 1 ^Y_12))                                             STRATEGY/HEAP
+   ((Y_12 NIL C_10 COUNT-1_2) (C_10 0 ^C_11 ^COUNT-1_13))                          STRATEGY/LABEL
+    ((C_11 NIL NIL)   ($OPEN-FRAME 1 ^C_35 '#{CALL-NODE COUNT-1_2 62667763}))      STRATEGY/OPEN
+     ((C_35)           (COUNT-1_2 1 K_0 '0 N_1))                                   STRATEGY/OPEN
+    ((COUNT-1_13 NIL K_3 I_4 N_5) ($CONDITIONAL 2 ^C_28 ^C_18 $2-ARG->= I_4 N_5))  STRATEGY/LABEL
+     ((C_28 NIL)       (K_3 0 'T))                                                 STRATEGY/LABEL
+     ((C_18 NIL)       ($OPEN-FRAME 1 ^C_20 '#{CALL-NODE PRINT_19 62671335}))      STRATEGY/LABEL
+      ((C_20)           (PRINT_19 1 ^B_25 N_5))                                    STRATEGY/OPEN
+       ((B_25 IGNORE_24) ($OPEN-FRAME 1 ^C_23 '#{CALL-NODE COUNT-1_2 62667150}))   STRATEGY/OPEN
+        ((C_23)           ($1- 1 ^C_22 I_4))                                       STRATEGY/OPEN
+         ((C_22 NIL V_21)  (COUNT-1_2 1 K_3 V_21 N_5))                             STRATEGY/OPEN
+
+Emitted code:
+
+COUNT_9
+  (MOVE A2 (REGISTER *ZERO* 4 0) BOXED-RIGHT)
+  (MOVE A1 A0 BOXED-RIGHT)
+COUNT-1_13
+  (ALU L-R NOP A2 A1 BW-24 DT-BOTH-FIXNUM)
+  (TEST BR-NOT-GREATER-OR-EQUAL)
+  (BRANCH C_18)
+C_28
+  (MOVE RETURN (REGISTER *T* 4 4) BOXED-RIGHT)
+  (RETURN)
+C_18
+  (OPEN)
+  (MOVE O0 A1 BOXED-RIGHT)
+  (CALL (PRINT 1) IGNORE)
+  (ALU R-1 A2 A2 A2 BW-24 BOXED DT-BOTH-FIXNUM-WITH-OVERFLOW)
+  (UNCONDITIONAL-BRANCH COUNT-1_13)
+
+
+Post Processing
+
+   The Post processor is a peephole optimizer whose function is to
+combine instructions which can be executed in parallel by the various
+sections of the proccessor, ALU, call hardware, test and branch etc.
+For example, call hardware operations can be collapsed into alu
+instructions and a register to register move can be collapsed into a
+call.  In the example above the code:
+
+   (OPEN)
+   (MOVE O0 A1 BOXED-RIGHT)
+   (CALL (PRINT 1) IGNORE)
+
+can be optimized to the single instruction:
+
+   (OPEN-CALL (PRINT 1) IGNORE (O0 A1 BOXED-RIGHT))
+
+
+   Here is the post processed version of the emitted code:
+
+Post Processed:
+      COUNT_9
+   0      (MOVE A2 (REGISTER *ZERO* 4 0) BOXED-RIGHT)
+   1      (MOVE A1 A0 BOXED-RIGHT)
+      COUNT-1_13
+   2      (ALU L-R NOP A2 A1 BW-24 DT-BOTH-FIXNUM)
+   3      (TEST BR-NOT-GREATER-OR-EQUAL)
+   4      (BRANCH C_18 NIL)
+      C_28
+   5      (MOVE RETURN (REGISTER *T* 4 4) BOXED-RIGHT CH-RETURN NEXT-PC-RETURN)
+      C_18
+   6      (OPEN-CALL (PRINT 1) IGNORE (O0 A1 BOXED-RIGHT))
+   7      (UNCONDITIONAL-BRANCH COUNT-1_13
+             (ALU R-1 A2 A2 A2 BW-24 BOXED DT-BOTH-FIXNUM-WITH-OVERFLOW))
+
+
+   The function POST-PROCESS takes a list of emited instructions
+in reverse order and produces a list of optimised instructions
+suitable for the assembler.
+
+Assembly
+============================================================
+
+   The assembler takes a list of instructions, either from the post
+processor or passed to it from DEFAFUN and produces an
+NCOMPILED-FUNCTION object which contains a list of numeric K machine
+instructions, plus link information consisting of entry points, external
+references, local references, and immediates.  For more information on
+linking see the documentation on Static Linking.
+
+   Each instruction consists of an opcode symbol followed by some fixed
+fields followed by a list of optional field specifiers.  Instructions
+are defined by DEF-INST.
+
+   Optional fields that can be specified in instructions include byte width,
+datatype trap, boxedness of the result, call hardware operation etc.
+
+   The assembler has symbol tables for the values of the fields.  The
+disassembler uses automatically generated inverse tables.
+
+
+Extending the Compiler
+============================================================
+
+   The most typical way to extend the compiler is to write new PRIMOPs.
+
+   A PRIMOP is called in the source code like a normal function.  Each
+PRIMOP will have a special GENERATE function which will be called at the
+time the CALL-NODE calling the PRIMOP is generated.  The function will
+take the CALL-NODE and emit code.  It will then return a destination
+accessor telling where to find the value of the PRIMOP which is expected
+by its continuation.
+
+   PRIMOPs are defined by DEFINE-PRIMOP.  Various fields and flags may
+be specified as follows:
+
+  :CONDITIONAL?  T if this is a predicate, ie, the value
+                 is a boolean and this predicate may be
+                 an argument to IF
+
+  :SPECIAL?      T if a continuation should not be generated
+                 for this primop, usually used only for
+                 more obscure flow of control primops
+
+  :PRESIMPLIFY   Code to do some simplification before the simplification
+                 pass.  The major use of this is for predicates, which
+                 should call PRESIMPLIFY-TO-CONDITIONAL
+
+  :SIDE-EFFECTS? This should be T for any primop which has side effects.
+                 Primops without side effects may be removed by simplification
+                 if their value is not used.
+
+
+  :SIMPLIFY      code which attempts to simplify this primop
+
+  :GENERATE      Code which generates the code of this primop.
+                 Unless :special? is specified, this code
+                 must return an accessor for the return value,
+                 GENERATE-CONTINUATION will move the return value
+                 to the appropriate place.
+
+
+   Primitives used in the compilation of Common Lisp are defined in the
+file PRIMITIVES.  Primitives for using the hardware at a low level are
+defined in the file HW-PRIMITIVES.  Here is an example of a primitive
+definition:
+
+     (define-primop 1+ (n)
+       (:simplify (node)
+          (simplify-if-constant-expression node '1+))
+       (:generate (node)
+          (generate-fixnum-unop node 'K:R+1))
+       (:type (node) '((number) number)))
+
+   The most common things for simplification code to do are to either
+call SIMPLIFY-IF-CONSTANT-EXPRESSION or SIMPLIFY-IF-CONSTANT-PREDICATE.
+These should be called for PRIMOPs with no side effects whose value can
+be determined at compile time if all thier arguments are constant.
+These functions take as argument a function which will compute the value
+of the primop from the arguments.
+
+
+  Generation of code for a primop is handled by code specified in the
+:GENERATE option to DEFINE-PRIMOP.  This code is the body of a function
+which takes the CALL-NODE as an argument, emits the code, and returns an
+accessor for the value returned by the primop.
+
+  There are many useful functions that can be used in the generation
+function, here are some of them:
+
+Getting Arguments
+
+CALL-ARGS call-node
+     Returns a list of arguments including the continuation
+   argument.  Often used with DESTRUCTURE.
+
+CALL-ARG-N n call-node
+     Returns the Nth argument to the call node.  The continuation
+   argument is 1.  (0 is the call-proc).
+
+Getting Instruction Operands
+
+GET-LEFT-OPERAND ref
+      Get something into the appropriate place for being a left
+   source.  Returns a value to be used for the left source field.
+
+GET-RIGHT-OPERAND ref
+    Get something into the appropriate place for being a right
+   source.  Returns a value to be used for the right source field.
+   This is like GET-LEFT-OPERAND except functional sources can be
+   used (particularly the MD)
+
+
+GET-OPERANDS left-ref right-ref -> left right
+     Get two things into the right places to be left and right
+   operands, returning two values: the left operand field and the
+   right operand field.  It is important to use this if there will
+   be two operands so that an instruction is not generated with two
+   globals in different frames.
+
+GET-DESTINATION cont
+     Given a continuation, returns the destination field for an
+   instruction.
+
+GET-DEST-AND-RIGHT-OPERAND cont right-ref -> dest right
+     Given a continuation and a reference to something to appear as
+   a right operand, return operands for the destination and right
+   side.
+
+GET-DEST-AND-OPERANDS cont left-ref right-ref -> dest left right
+     Given a continuation and two refs, get the values into correct
+   places to be left and right operands and return three values, the
+   destination field and the left and right operand fields.  It is
+   important to use this function if the instruction needs all three
+   fields, so that no problems with multiple global variabls occur.
+
+
+Emitting Instructions
+
+EMIT op &rest operands
+  Emit an instruction.  Example:
+
+     (define-primop hw:write-map (value)
+       (:side-effects? t)
+       (:generate (node)
+         (let ((ref (get-right-operand (call-arg-n 2 node))))
+           (emit 'K:MOVE 'K:MEMORY-MAP ref 'K:UNBOXED)
+           (emit 'K:MOVE 'K:MEMORY-MAP ref 'K:UNBOXED)
+           ref)))
+
+EMIT-ALU op dest left right &optional options
+    Emits an ALU instruction.
+    OP is the alu operation ie K:L+R
+    DEST is the destination
+    LEFT is the left operand
+    RIGHT is the right operand
+    OPTIONS is a list of options ie K:BW-24, K:UNBOXED
+    Example:
+
+     (define-primop hw::signed-multiply-step (a b)
+       (:side-effects? t)
+       (:generate (node)
+         (destructure (((cont a b) (call-args node)))
+           (multiple-value-bind (dest left right)
+               (get-dest-and-operands cont a b)
+             (emit-alu 'K:SMUL-STEP dest left right '(K:BW-24 K:BOXED-RIGHT))
+             dest))))
+
+Higher Level Functions:
+
+GENERATE-BINOP node op rev-op &rest options
+     Given a node for a call to a binary operation, this function
+   does all the work to generate the code. OP is the alu operation.
+   REV-OP is the reverse alu operation which would be appropriate if
+   the left and right side were reversed (this is not currently
+   used).  OPTIONS are any options such as byte-width or boxedness.
+   For example, here is the call that is used for subtraction:
+
+      (generate-binop node 'K:L-R 'K:R-L
+                      'K:BW-24 'K:BOXED 'K:DT-BOTH-FIXNUM-WITH-OVERFLOW)
+
+GENERATE-UNOP node op &rest options
+     Like GENERATE-BINOP but for unary operations.  This puts the
+   argument to the primop on the right side.
+
+GENERATE-FIXNUM-UNOP node op
+     This is like GENERATE-UNOP but takes care of adding all the
+   appropriate options for a fixnum operation, including
+   K:DT-BOTH-FIXNUM-WITH-OVERFLOW.  It also takes care of finding
+   something appropriate for the data type trap test to find on the
+   left side.
+
+COMPARATOR node cond &rest options
+     Generates an arithmetic comparison.  A subtraction is generated
+   and GENERATE-CONDITIONAL is called with the branch condition
+   passed in COND.  Examples:
+
+     (define-primop eq (x y)
+      (:presimplify (node)
+        (presimplify-to-conditional node))
+      (:simplify (node)
+        (simplify-if-constant-predicate node 'eq))
+      (:generate (node)
+        (comparator node 'K:BR-NOT-EQUAL 'K:BW-32))
+      (:conditional? t))
+
+     (define-primop li:%char< (n1 n2)
+      (:presimplify (node)
+        (presimplify-to-conditional node))
+      (:simplify (node)
+         (simplify-if-constant-predicate node 'char<))
+      (:generate (node)
+        (comparator node 'K:BR-NOT-LESS-THAN
+                    'K:BW-24 'K:DT-BOTH-CHARACTER))
+      (:conditional? t))
+
+GENERATE-CONDITIONAL node cond
+     Generate a conditional.  The code has already been generated to
+   set the condition codes, now generate the test and flow of
+   control to the then and else continuations.  NODE is a call node
+   to the primop CONDITIONAL.  COND is a branch condition for branching
+   to the false continuation.
+   Example:
+
+     (define-primop 2-arg-= (number1 number2)
+      (:presimplify (node)
+        (presimplify-to-conditional node))
+      (:simplify (node)
+         (simplify-if-constant-predicate node '=))
+      (:generate (node)
+        (let ((left  (call-arg-n 4 node))
+              (right (call-arg-n 5 node)))
+          (multiple-value-bind (l r) (get-operands left right)
+            (emit-alu 'K:XOR 'K:NOP l r '(K:BW-24 K:DT-BOTH-FIXNUM)))
+          (generate-conditional node 'K:BR-NOT-EQUAL)))
+      (:conditional? t))
+
+   (Notice that = does not use COMPARATOR because it does not use
+   subtraction to check for equality.  This is so that the datatype
+   trap handler can tell the difference between = and < etc for
+   complex numbers.)
+
+GENERATE-ARITH-PREDICATE node cond &rest options
+     Tests a single value for a condition.  Does a MOVE then calls
+   GENERATE-CONDITIONAL with COND which is a branch condition.
+   Example:
+
+     (define-primop hw:32zerop (number)
+       (:conditional? t)
+       (:presimplify (node)
+         (presimplify-to-conditional node))
+       (:generate (node)
+         (generate-arith-predicate node 'K:BR-NOT-ZERO)))
+
+
+GENERATE-FIXNUM-ARITH-PREDICATE node cond
+     Like GENERATE-ARITH-PREDICATE but does the right thing for
+   fixnums including options and datatype trapping.
+   Example:
+
+     (define-primop minusp (number)
+       (:presimplify (node)
+         (presimplify-to-conditional node))
+       (:simplify (node)
+         (simplify-if-constant-predicate node 'minusp))
+       (:generate (node)
+         (generate-fixnum-arith-predicate node 'K:BR-NOT-NEGATIVE))
+       (:conditional? t)
+
+
+
+References
+============================================================
+
+[1] Kranz, David, Richard Kelsey, Jonathan Rees, Paul Hudak, James Philbin,
+    Norman Adams; ORBIT: An Optimizing Compiler for Scheme.
+    Proceedings of the SIGPLAN '86 Symposium on Compiler Construction
+
+[2] Steele, Guy L.; RABBIT: A Compiler for Scheme. AI Technical Report 474;
+    MIT; May 1978.
+
+[3] Steele, Guy L.    LAMBDA: The Ultimate Imperative,

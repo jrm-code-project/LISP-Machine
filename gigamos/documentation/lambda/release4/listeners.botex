@@ -1,0 +1,114 @@
+@comment -*- Mode:Text; Package:USER -*-
+
+@subsection LISP Listener Input History
+
+Two new keystrokes (commands) are implemented
+that augment the input history feature of the standard LISP Listener windows.
+
+The commands @ctrl[C] and @meta[C] allow single-stepping through the input history
+and selecting a previous command by number (e.g, @ctrl[21-C]).
+
+@cindex[LISP input history]
+With Release 4, the LISP Listener commands @ctrl[!] and @meta[!] provide the capability
+of stepping through the input history, bringing up only
+those commands entered previously which match a specified command fragment.
+(This is similar to the use of the ``!'' character in the Unix C shell.)
+
+@need 1000
+For example, suppose you have executed the following LISP commands:
+
+@lisp
+(setq foo '(a b c d))
+(A B C D)
+   :
+   :
+   :
+(setq foo (reverse (cons 'x (reverse foo))))
+(A B C D X)
+   :
+   :
+(setq foo 3)
+@end(lisp)
+
+If you wanted to reset the variable @l(foo), it would
+be most convenient to simply call up the @l(setq) in the beginning of the example.
+This can be done by typing @l["(setq"],
+pressing @ctrl[!],
+and repeatedly pressing @meta[!] to cycle back through earlier commands that match.
+In this example, typing @l["(setq"] specifies a partial command for matching;
+@ctrl[!] brings the most recent match;
+and pressing @meta[!] displays earlier matching inputs.
+
+When the desired command is displayed, you can edit it in the normal way.
+Press @endkey to execute the command.
+
+@subsection LISP/Edit Windows
+
+LISP machine users frequently want to combine the best features of LISP Listeners and the ZMacs editor.
+For example, many users want to scroll through the output from LISP commands
+they have executed.
+
+@cindex[LISP/Edit windows]
+In Release 4, substantial improvements have been made to the LISP/Edit facility.
+With this release we are able to recommend the use of LISP/Edit windows
+and document their features.
+
+Within a LISP/Edit window you can use most of the features of standard LISP Listeners,
+plus many of the features of ZMacs editor buffers.
+You can scroll through the buffer to review the output of LISP commands,
+and you can mark regions to re-evaluate.
+Some ZMacs buffer commands are also available, such as @metax[Print Region].
+
+There are several possible ways to create a LISP/Edit window.
+The most convenient method is available from the System Menu.
+Double-click right with the mouse to bring up the System Menu.
+Next, click left to select the @mouseditem(Edit Screen) option.
+You will be offered a menu of options; select @mouseditem(Create (expand)).
+Next you will be offered a menu of window types; select @mouseditem(LISP(Edit)).
+A special cursor, a circle containing a cross, is displayed.
+Click left to create and expand the new LISP/Edit window.
+Clicking with the middle mouse key instead will cancel the operation.
+
+After the new window is created, you will be returned to the @mouseditem(Edit Screen) option menu;
+click on @mouseditem(Exit) to return to normal operation.
+
+Alternatively, to create a LISP/Edit window of a specified size, use
+the @mouseditem(Create) System Menu option.
+After selecting the LISP/Edit window type, the Create interface
+will display a right-angled cursor called the
+@ii(left mouse corner), which looks like: @leftmousecorner.
+Position the left mouse corner wherever on the screen you want the top left corner
+of the new window to appear, and click left.
+The @ii(right mouse corner) is then displayed, which looks like: @rightmousecorner.
+Move this cursor down and to the right to position the lower right corner of the new
+window, and click left.
+The new LISP/Edit window will be created with the size you specified.
+
+You can access existing LISP/Edit windows like any other LISP Listeners,
+for example with the keystroke @syson(L).
+
+When a LISP/Edit window is initialized, you will see a prompt in the lower left corner
+such as @i(``Editor Top Level 1  Actively reading and evaluating'').
+This means that you can input LISP  commands.
+If you move the cursor from the current input position, the label will change to display
+@i(``Editing; insert text at end to resume reading'').
+At this point you can scroll through the window and use other LISP/Edit features.
+
+@need 1000
+For example, you can mark a region of text and print it as follows:
+
+@enumerate
+@item Position the cursor at the beginning of the text
+@item Press @ctrl[@spacekey]
+@item Move to the end of the region
+@item Type @metax[Print Region]
+@end(enumerate)
+
+After marking a region containing LISP code, you can press @endkey
+to copy the input to the end of the buffer and evaluate it.
+
+With no region marked,
+pressing @endkey positions the cursor at the end of the buffer.
+This returns you to the LISP Listener mode.
+As you begin typing the next LISP input, the window label will change to say
+@i(``Actively reading and evaluating'').

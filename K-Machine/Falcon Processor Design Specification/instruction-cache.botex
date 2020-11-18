@@ -1,0 +1,66 @@
+@c instruction-cache.botex
+@c
+@c    Apr-88, Kent Hoult
+@c 18-Apr-88, James Rauen
+
+@chapter Instruction Cache
+
+       The instruction cache is a direct access cache with two
+       distinct sections. The first 8K instructions correspond to
+       PC locations 0 to 8191. This is the low-core cache. Once it
+       has been pre-loaded and enabled, it will never miss. Its purpose
+       is to provide fast execution of commonly used functions.
+       These include the trap entry/exit functions, the CALLZ
+       functions, and whatever others are put here.
+
+       The top half of the cache is organized as 2048 lines of 4
+       instructions. When enabled, this will be the general purpose
+       cache for all code not in low core.
+
+
+@section Cache Hits
+
+          If the low-core cache is enabled, then any access to a PC in
+          the range 0 to 8191 will cause a cache hit. This range will
+          cause a miss if the low-core cache is disabled.
+
+          In the regular cache section, the high PC bits will be
+          compared against the tag memories. If they match, then
+          a cache hit occurs, and the instruction will come from the cache.
+
+          The tag RAM has a reset line that is connected to the normal
+          cache enable bit. When disabled, all of the tag bits are
+          zeroed, making them invalid. When enabled, they are
+          loaded as each line is read in.
+
+@section Cache Misses
+
+          When the cache misses, a line of data (four instructions)
+          will be read from memory. The normal timing for a cache load
+          from local memory is as follows:
+
+@group
+@example
+                _   _   _   _   _   _   _   _   _   _   _   _   _   _
+       CMEM1  _| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |
+             _                                                      _
+       CPROC1 |____________________________________________________| |
+                __________________________________________________
+       MISS   _|                                                  |___
+
+       MFIO       PC         I0L I0H I1L I1H I2L I2H I3L I3H      FS
+              __________                                    __________
+       RAS              |__________________________________|
+              ______________                                __________
+       CAS                  |______________________________|
+@end example
+@end group
+
+
+          All of the items shown for the MFIO bus occur during the
+          functional source half of the clock cycle (CMEM1 low). The PC
+          is transferred to the memory chip during the first clock of
+          the load cycle during the low half tick. This is the only
+          time data is transferred to the memory chip during this
+          portion of the clock. The other half tick is still used for
+          the functional destination data as usual.

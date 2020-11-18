@@ -1,0 +1,36 @@
+@comment -*- Mode:Text; Package:USER; Readtable:CL -*-
+
+Named-structure arrays without leaders must be one-dimensional arrays;
+if not, an appropriate error is signalled. For example:
+
+@lisp
+(make-array '(3 10) :named-structure-symbol :foo)
+>>ERROR: Keyword arg keyword :NAMED-STRUCTURE-SYMBOL unrecognized.
+  :
+@end(lisp)
+
+The function @l(DESCRIBE-FLAVOR) now prints out all the flavors directly depended upon by the argument flavor.
+
+The interactive function @l(FQUERY) has been enhanced in several ways:
+
+@itemize @bullet
+@item If a :timeout interval is specified, and no input
+is received within the specified interval, @l(FQUERY) prints out the default
+choice and the words "timed out".
+
+@item In addition, large :timeout intervals are now printed out using
+English phrases for time intervals. For example:
+
+@lisp
+(fquery `(:timeout ,(* 60. 864000)) "Do it now? ")
+Do it now? (Y or N) (Automatic default after 1 week 3 days, N)
+@end(lisp)
+
+This will be seen whenever a function making use of @l(FQUERY)'s :timeout
+feature is used (for example, @l(Y-OR-N-P-WITH-TIMEOUT)).
+
+@item If the @l(:TYPE) keyword is given @l(:TYI) as an argument, then the user
+may type @clrscrn to clear the screen and reprompt before specifying
+an answer.
+
+@end(itemize)

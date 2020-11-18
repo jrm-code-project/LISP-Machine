@@ -1,0 +1,138 @@
+-*- Mode:Text -*-
+
+                Priority Goals for the December Prototype
+
+                               (Jim O'Dell)
+
+
+
+SUMMARY:
+
+
+
+This Proposal puts forth two lists, each of which is a set of goals
+which we expect to achieve in demonstrating a discrete component
+prototype version of the Falcon Processor product.  The action items in
+the first list, entitled "First Priority Prototype Functionality", are
+scheduled to be completed on or before December 30, 1988. The action
+items in the second set of goals, called "Second Priority Prototype
+Functionality", have yet to be assigned actual completion dates; they
+currently exist as "as soon as time permits" agenda items.
+
+The prototype will represent both the appearance and performance of the
+eventual product, running a Lisp Listener on the Macintosh screen.  Both
+the interaction of the screen and the keyboard with the Macintosh, as
+well as the performance of the Falcon itself, will serve as our model
+for gauging these attributes.  The First Priority list of items in this
+Proposal constitutes those items necessary for building such a
+prototype.
+
+This prototype may be reasonably expected to respond to user interaction
+only at the hands of highly sophisticated systems programmers.  Only
+after the items in the Second Priority list have been completed is it
+reasonable to expect the system to support applications programming.
+
+The entire content of this Proposal is predicated upon the existence of
+several working K processors in the near future.
+
+
+BACKGROUND:
+
+
+
+In setting goals for demonstrating a Falcon prototype in December, it
+should be noted that considerable hardware requirements underlie this
+venture.  These may be summarized as follows:
+
+    Hardware Requirements:
+
+        A GigaMos Lambda computer with 1/2" tape drive.
+
+        A NuBus extender card for the Lambda.
+
+        A Macintosh II computer with 1 MB memory
+
+        An Apple compatible video card and monitor
+
+        A Macintosh II extended keyboard.
+
+        A 350 MB disk drive
+
+        2 NuBus coupler sets, with cabling and connectors.
+
+        Card cage and cabinet (Mac-Mate) to hold the Falcon processor.
+
+        A Falcon board set which includes processor (with Weitek floating
+        point chip), and memory card (with 16 MBytes of memory)
+
+In addition, the following software items are assumed to be available or
+to have been completed by the December Deliverable date.
+
+    Software Requirements:
+
+        A Lambda --> Falcon port of Montreal's KMAC interface software
+
+        A Lambda --> Falcon cross compiler
+
+
+
+IMPLEMENTATION:
+
+
+
+ First Priority Functionality:
+
+        A functioning screen interface, capable of accepting typein and
+        producing Falcon response typeout
+
+        A connected keyboard, capable of generating standard character
+        input to the main Falcon processor
+
+        A file system interface, capable of supporting a read-file and
+        write-file protocol
+
+        A full demonstration of the timed evaluation of the complete set
+        of Gabriel "benchmark" (speed and performance) tests.
+
+ Second Priority Prototype Functionality:
+
+        A connected mouse, capable of generating mouse clicking input to
+        the main Falcon processor
+
+        An implementation of the Lisp Machine Flavors system
+
+        A port of the Lambda cross compiler to the Falcon
+        (becoming the standard native Falcon compiler)
+
+        An implementation of stack groups
+
+        A mechanism for handling stack frame overflow
+
+        A working virtual memory implementation
+
+        A software booting switch on the Macintosh side
+
+        A real time garbage collector
+
+
+
+MECHANISM:
+
+
+
+        This Proposal, being of a somewhat different scope and nature
+than most, requires a description of what it would mean for this
+Proposal to be accepted.  In Accepting this Proposal, each member of the
+GigaMos development team agrees to undertake all reasonable efforts to
+ensure that each of the Items specified in the Top Priority Prototype
+Functionality section exists as part of the December Prototype Falcon.
+Once complete, focus will be shifted towards the completion of the
+remaining items (those in the "Second Priority" list).
+
+
+
+COMMENTS:
+
+
+
+STATUS: Open

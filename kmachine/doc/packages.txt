@@ -1,0 +1,171 @@
+
+
+
+                          K Machine Packages
+                              EFH 6/17/87
+
+
+
+   This is a description of the modularity of K machine software in
+terms of the packages it is contained in.  (In lisp a large system is
+divided into modules called packages.  The interface to a module is
+defined by the external symbols of the package).
+
+ K
+    K contains the symbols used in the assembler.  Packages in which
+   assembly code is written should use this.
+
+ HARDWARE, HW
+    This package defines the extreme low level of the interface to the
+   hardware.  If the hardware changes, this will, too.
+
+ VINCULUM,VINC
+    VINCULUM ("that which binds" or "glue") contains the software
+   definitions that are firmly based on the hardware.  It isn't that the
+   hardware determines these per se, but that the hardware was designed
+   with these in mind.  It should be possible to change these without
+   making ECO's, but it wasn't intended.
+
+ PRIMITIVES, PRIMS
+    PRIMS contains a subset of Common Lisp, both a subset of the
+   functions and a subset of the functionality for individual functions.
+   This is the subset which can be compiled directly into K Machine
+   machine code.  PRIMS defines the language in which the lowest levels
+   of the system is implemented.
+
+ GLOBAL-REGISTERS,GR
+    This package contains the names of the global registers.  These
+   symbols are not imported into any other package, the package name is
+   used explicitly to denote that a variable is contained in a global
+   register.  These symbols could probably be in PRIMS instead.
+
+ TRAP
+ (vinculum prims k)
+    This contains code to handle traps including saving the state of the
+   machine and restarting.
+
+ TIMERS
+    This contains the code to handle timer traps.  (This could probably
+   be part of TRAP).
+
+ NUBUS-STUFF
+
+ DATATYPE-RAM,DT-RAM
+   Contains code to set up the datatype RAM for data type trapping.
+
+ BOOT
+ (vinculum virtual-memory prims k)
+    BOOT contains the code which boots the machine including setting up
+   the memory system.  Functions in this package reference other
+   functions in the memory management packages below.
+
+
+   The following 11 packages contain all the code which manages the
+lowest levels of the virtual memory system, including details of
+garbage collection.  They could probably be in one or two packages.
+
+ MAP
+    Contains constants and functions for dealing with the memory map at
+   the lowest level.
+
+ GC-RAM
+  Contains functions which deal with the GC RAM.
+
+ PAGING-DEVICES
+
+ VIRTUAL-MEMORY,VMEM
+
+ PHYSICAL-CLUSTER-DATA,PCD
+ (virtual-memory vinculum prims)
+
+ QUANTUM-MAP
+ (virtual-memory vinculum prims)
+
+ MEMORY-MANAGEMENT,MEM-LOW
+
+ MAP-FAULT
+ (virtual-memory physical-cluster-data map vinculum prims)
+    Contains code which handles MAP faults (page faults, write to fresh
+   page, write to read only, etc)
+
+ GC-FAULT
+ (map vinculum prims))
+
+ MEMORY-MANAGEMENT-INTERFACE,MEM
+ (vinculum prims)
+    This just exports symbols from some other packages that define the
+   user interface to the memory system.  This seems gratuitous.
+
+ TRANSPORTER-RAM
+ (vinculum virtual-memory prims)
+
+
+  The next level of the memory system organizes the memory into areas
+and regions.
+
+ REGION-BITS
+ (memory-management virtual-memory vinculum prims)
+
+ REGION-DATA
+ (memory-management vinculum prims))
+
+ AREA-DATA
+ (region-data memory-management vinculum prims)
+
+
+   The next level of the memory system implements the lisp object and
+typed pointer model of memory.
+
+ CONS
+ (memory-management-interface vinculum prims k)
+    CONS contains functions for allocation, access and modification of
+   lisp objects.  The exported symbols of this package (MAKE-POINTER,
+   CONTENTS-OFFSET, CONS, CAR, SET-CAR, ALLOCATE-STRUCTURE etc.)
+   constitute the interface to the lisp pointer and object memory system.
+
+
+ NEW-MATH
+   NEW-MATH contains the Common Lisp mathematical functions.
+
+ ARRAY
+   ARRAY contains the Common Lisp array functions.
+
+
+ LISP-INTERNALS,LI
+ (prims k)
+      LI contains all of Common Lisp plus the internal functions used to
+   implement the Common Lisp functions.
+
+
+ SYMBOL
+ (cons vinculum prims)
+  Implementation of symbols.  This should probably be in LI.
+
+ SETF
+    SETF contains SETF and related functions.  This should probably be in
+   LI.
+
+ NLISP
+    NLISP is a temporary name for LISP, the package which contains all of
+   Common Lisp.
+
+
+
+
+   Various debugger things.
+
+ KBUG2-COMMON
+ (vinculum prims k)
+  definitions for KBUG2 and K2
+
+ K-DEBUG
+
+ KBUG-STREAMS
+ (kbug2-common vinculum prims k)
+
+ K2                                     ; KBUG2/K2 stuff
+ (kbug-streams vinculum prims k kbug2-common)
+
+
+ FASDUMP
+ (kbug2-common lisp)

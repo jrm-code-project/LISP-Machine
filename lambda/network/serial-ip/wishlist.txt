@@ -1,0 +1,43 @@
+-*- Mode:Text; Package:USER; Readtable:CL -*-
+
+---Things I need/would like from the Network software for Serial-IP:
+
+[DONE] *** A way of refusing to enable my driver when the user presses 'enable'.
+I.e., change :ENABLE s.t. the function it calls for the driver must return
+non-NIL before the protocol sets NI-ENABLED.
+
+[DONE] * On DEFSTREAM, I'd like to define a default-handler.  (For Serial-IP,
+messages not implemented for the protocol stream should go to the SDU
+serial device.) IGNORE is currently defined as the default handler.
+DEFSTREAM could parse the standard DEFSELECT syntax, s.t. if STRUCT-NAME is
+a cons, it is (STRUCT-NAME DEFAULT-HANDLER).
+
+---Miscellaneous Network problems/suggestions:
+
+[DONE]
+* Add as (NO-WINDOW-CALLS) in NETWORK-USER:
+  DIRED
+  MAIL (or better, just coerce args to force it not to use editor)
+
+[DONE]
+* When the Telnet user window can't deal with an Internet address (e.g. one
+which is not known as a host on the local net), it doesn't issue an error
+message, just a reprompt.
+
+---Things I need to do in Serial-IP:
+
+** Modem handling
+  - I need 2 phone lines dropped into the lab, and another modem.
+ ELSE:
+  - Get hi-speed modems and dedicated 3002 4-wire line from NET
+
+**** Peek controls:
+  - baud rate
+  - site names
+
+* Add SLIP, SPROTO to SYS:SYS;SYSDCL.LISP to define the new systems.
+
+* Talk to rick@seismo.ARP:
+  - is there a standard protocol for shutting down?
+  - a site I can test against?
+  - confirm protocol character values

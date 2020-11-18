@@ -1,0 +1,81 @@
+
+
+
+	 	The Multiple Package Root Feature.
+
+
+	As it stands, Common Lisp only provides for a single heirarchy
+of packages (or more precisely, a single "web" of them).  This can be a
+significant limitation.  For example, it might be desirable to provide a
+namespace fully compatible with existing software, while at the same
+time having another namespace which is unconstrained and can be tailored
+to new requirements.  Having two package roots is a clean way to
+accomplish this.  This note describes the feature and discusses some
+underlying concepts.
+
+	The idea of a package root is in effect present in Common Lisp,
+although it is not made explicit.  Since the user is free to specify
+each link in the package "web", he is not constrained to make it
+strictly "hierarchial" although it must be free of loops.  Nonetheless,
+we may assume for practical purposes that there will always exist a
+"GLOBAL" or "LISP" package which is inherited from all the others, and
+which may be viewed as the ROOT of the package system.  (Actually, this
+assumption is not critical to the implementation of the feature as
+proposed here, it just simplifies discussing and thinking about it).
+
+	Beyond simply allowing the user to specify a second completely
+independant "web", there are several things important to the usability
+of such a feature in practice.  In particular, it is important that the
+logical "position" within the package web continue to be representable
+in the value of a single variable.  In other words, binding the variable
+*package* must "preserve the state", etc.  If this were not true,
+PKG-BINDs as used in numerous places in the system would not funtion as
+intended, and the modularity of multiple processes would be seriously
+impared.  This implies that the ROOT must be implicitly contained within
+the package structure, as opposed to being held in a separate
+*PACKAGE-ROOT* variable or some such.  As long as each package is a
+member of a single root structure, there is no logical difficulty in
+having the root contained within the structure for the package.
+
+	A lessor consideration is that it is desirable that all packages
+in the system continue to be avaliable on the list *ALL-PACKAGES* and
+that the format of *ALL-PACKAGES* continue to be a simple list.  If this
+is true, certain system tools such as EDIT-CALLERs will continue to work
+without change.
+
+	The whole point of the MULTIPLE ROOT PACKAGE feature is to
+transparently allow multiple namespaces to exist.  It follows that it
+must be orthagonal to all existing package specifications, etc, and in
+particular, must allow the same identical file to be loaded into several
+package root webs without interactions.  Nonetheless, it is desirable to
+be able to specify which package roots a given file is designed to load
+into, whether it makes sense to try to compile the file in a particular
+package root, etc.  These features are provided by means of several new
+file-attribute-list keywords.
+
+	Implementation:
+
+	It was possible to implement the Multiple Package Root without
+fundamental change to the existing Lisp Machine package system by
+building upon the preexisting REFNAME-ALIST feature.  Briefly, the
+REFNAME-ALIST feature allows a <package-name-as-typed> to
+<actual-package-structure-referred-to> mapping for intern operations
+against a particular package.  Providing top level functions to
+appropriately generate the REFNAME-ALIST suffices to implement the
+Multiple Package Root feature.  This implementation is somewhat
+inelegant in that the length of these mapping lists grows with the
+square of the number of packages under a particular root.  On the other
+hand, this is philosiphically consistant with the rest of the Common
+Lisp package system which employs individually specified links as
+opposed to explicit tree structure, and the amount of storage "wasted"
+is trivial in practical cases.
+
+	Although the REFNAME-ALIST feature was pre-existing, it had not
+really been employed for such "heavy duty" service as envisioned here.
+Therefore, some cleanup and extensions were required.  A few compromises
+had to be made for the sake of compatibility with existing programs
+(particularily in the values of certain optional arguments if they are
+not supplied), but these are minor compromises.
+
+
+

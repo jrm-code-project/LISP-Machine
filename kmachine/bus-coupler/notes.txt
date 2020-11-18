@@ -1,0 +1,9 @@
+-*- Mode:Text -*-
+
+Notes on work done by Pace Willisson and Gill Pratt during the week
+ending 7/29/88.
+
+Our work was concentrated in two areas: fixing the time the transmitter
+register is loaded, and designing a solution to the illegal connections
+between the asynchronous receiver state machine, and the rest of the bus
+coupler.

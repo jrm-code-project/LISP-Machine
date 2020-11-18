@@ -1,0 +1,21 @@
+;;; -*- Mode:SCHEME; Package:SCHEME; Readtable:SCHEME; Base:10 -*-
+
+(herald dc
+        (support (make-empty-support-env 'empty)))
+
+
+(define-constant make-definer
+  (primop make-definer (support-type)
+
+    (((primop.simplify self node)
+      (simplify-parameterized-primop self node)))
+
+    ((primop.side-effects? self) t)
+    ((primop.generate self node)
+     (generate-define-var node))
+    ((primop.defines-support? self) t)
+    ((primop.uses-L-value? self) t)
+    ((primop.support-variant self) support-type)))
+
+(define-constant *define-constant
+  (make-definer 'constant))

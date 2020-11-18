@@ -1,0 +1,88 @@
+-*- Mode:Text -*-  COLDLOAD-LOSSAGE.TEXT - Keith Corbett 11/2/88
+
+This document points out some restrictions that should be observed when
+modifying system source files.  Following the suggestions below could make the
+process of building the next cold-load go more smoothly.
+
+1. MAKING COLD-LOAD BAND:
+
+The process of making the CLD (cold-load) band will be terminated by
+things COLD:COLD-FASLOAD won't handle.  For example:
+
+ - 8-bit binary format .QFASL files (not a problem yet)
+ - QFASL op-codes added to system but not added to SYM:FASL-OPS
+
+*** Changes to FASLOAD must be extended to COLD-FASLOAD and MINI-FASLOAD!
+
+I haven't seen these lose, but according to COLDLD.LISP they would:
+
+ - Initializing a displaced array.
+ - Arrays other than 1- or 2-dimensional, art-16b or numeric, strings.
+ - DEFUN function specs other than symbols or properties.
+ - Pathnames that can't be handled as phony pathname strings.
+
+2.  BUILDING THE NEW SYSTEM BAND:
+
+Both booting the CLD band and loading the inner system will terminate on
+anything that generates an error.
+
+The most common problems are caused by initializations that refer to things
+that aren't defined yet, such as DEFVARs that EVAL can't handle. Top-level
+initializations are EVAL'd in cold-load during LISP-REINITIALIZE, but (I think)
+before ADD-INITIALIZATIONS are done.  These are easy to mess up.
+
+a) Forward references in general are the most common problem.  For example,
+references to COMPILER functions at top level in QFASL.LISP caused problems
+when I built system 127.  (QFASL is a cold-loaded file, but the compiler gets
+loaded much later, in the third stage, during (MAKE-SYSTEM 'SYSTEM).)
+
+For example:
+
+ - Macros that create forward references (e.g., COMPILER:MAKE-OBSOLETE, when I
+   modified it to use FORMAT).
+
+ - Using FORMAT generally won't work.
+
+ - (DEFCONST X (BYTE 3 0)) blows up during load of an INNER-SYSTEM-FILE-ALIST
+   file - BYTE just isn't there yet.
+
+ - Anything that uses SIGNAL or error-handling other than FERROR.  For example:
+
+        (ferror "Error in cold load!") - works
+        (signal (make-condition ...))  - fails
+
+  Note that FERROR may be used, carefully, as a WARN function. Calls to FERROR
+  are automatically replaced.  REP-COLD-LOAD prints its args as strings.
+
+  - Subtle uses of EVAL. For example, defining a make-system variable that uses
+    CASE: when MAKE-SYSTEM gets evaluated in the cold load, it chokes because
+    CASE isn't present; this use of CASE is not macro-expanded, it's just data.
+
+b) Other kinds of problems:
+
+  - Any time the package structure of the cold-load band and the world that
+builds it are not equivalent, problems can occur.  For example, a patch in the
+"old world" causes a GLOBAL symbol X to be imported into package FOO.  Then,
+references to GLOBAL:X within FOO get compiled as symbols within package FOO
+(they are EQ).  But if either:
+
+  1) The cold load software does not explicitly do the IMPORT as well, or
+  2) FOO does not use the GLOBAL package,
+
+then FOO:X and GLOBAL:X will <not> be EQ in the cold world.  This happened to
+GLOBAL:ZUNDERFLOW in the system 129 cold load NETWORK package, with gruesome
+results.
+
+  - Don't use "exotic" window operations that the cold load stream doesn't
+support (most of them).  (For example, an initialization was sending the
+TV:DEFAULT-SCREEN an :INSIDE-WIDTH message to calculate line breaks within a
+string to be displayed.)  The DEFAULT-SCREEN in the cold load world is the
+SI:COLD-LOAD-STREAM, which advertises only the following operations:
+
+  (:ANY-TYI :ANY-TYI-NO-HANG :BEEP
+   :CLEAR-EOL :CLEAR-INPUT :CLEAR-REST-OF-LINE :CLEAR-SCREEN :CLEAR-WINDOW
+   :DESCRIBE :FRESH-LINE :HANDLE-EXCEPTIONS
+   :HOME-CURSOR :INIT :LINE-IN :LINE-OUT :LISTEN :PRINT-SELF
+   :READ-CHAR :READ-CHAR-NO-HANG
+   :READ-CURSORPOS :RUBOUT-HANDLER :SET-CURSORPOS :STRING-OUT
+   :TYI :TYI-NO-HANG :TYO :UNREAD-CHAR :UNTYI :WRITE-CHAR)

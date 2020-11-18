@@ -1,0 +1,31 @@
+@comment -*- Mode:Text; Package:USER; Readtable:CL -*-
+
+Typing @terminal-@resume, which permits deexposed typeout for a window
+that wants to type out, now clears that window's Output Hold flag as
+well.
+
+Windows which employ the @l[zwei:*stream-comtab*],
+such as Lisp/Edit windows and Lisp Listeners,
+now provide @ctrl[c] and @meta[c] as
+synonyms for @cm[y] (which redisplays the last entry on the input
+history) and @meta[y] (which cycles backwards through the input history).
+
+@cindex[gauges]
+The function @l(tv:fancy-landscape) changes the screen layout
+to include a column of ``gauges'' -- analog dials --
+that maintain a readout of various meters of system activity.
+In particular, disk, processor, and network activity can be monitored.
+
+@defun tv:fancy-landscape &optional (enable t)
+
+Set up landscape monitor with gauges.  T to enable, NIL to disable.
+@end(defun)
+
+The System Menu has been modified to include an entry called
+@mouseditem[Imagen Options].  Clicking on this entry presents the user
+with a menu for modifying default Imagen Printer settings.
+
+The function @l[tv:add-system-key] has been changed to prevent
+adding a redundant system key definition
+(one that is @l(EQUAL) to an existing entry in @l(tv:*system-keys*)).
+

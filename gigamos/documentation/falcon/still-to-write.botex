@@ -1,0 +1,39 @@
+@c still-to-write.botex
+@c
+@c 24-May-88, James Rauen
+
+@chapter Unwritten
+
+@section Major sections
+
+@itemize @bullet
+@item
+ALU chapter
+
+@item
+Spy hardware chapter
+
+@item
+GC RAM/virtual memory map chapter
+@end itemize
+
+
+@section Miscellaneous
+
+How long must the processor wait after a memory write before it can
+perform another memory system operation?
+
+What does the low bit of VMA and MD functional destinations mean?
+
+What registers can return-new-open and return-new-tail-open write in to?
+How do the RETURN and RETURN-MV functional destinations work?  Just how
+does this all work?
+
+What use is the VMA box bit?
+
+Differences between chip & board set.  Do PCR, PSR, MCR, and MSR all
+change?
+
+ALU opcodes.  Sign extend, macro link bit.  See AMD manual.
+
+Write VMA/MD box bit stuff.

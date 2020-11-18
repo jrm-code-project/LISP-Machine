@@ -1,0 +1,53 @@
+To:  Jean-Pierre Lamarche
+
+From:  Steve Haflich
+       GigaMos Cambridge
+
+Subject:  Agenda for visit -- Oct 26-27 1988
+
+     I'll have our "usual" travel arrangements except that the visit will span
+two days: arrival at SilicArt 10:30-11:00 Thursday and departure around 17:00
+Friday.
+
+     I view this as a technical working visit so we can have time not only to
+exchange views but to grapple with actual design issues in a relaxed manner.
+However, since I can't pretend to represent the entire Cambridge development
+group, I don't propose we make any "final" decisions.  Rather, we'll work out
+what we can and I'll communicate the results and any newly-discovered issues
+back to the group.
+
+     Here are the issues which I see as currently active.  These are not in any
+particular order, and we may not need to create a firm schedule in advance.
+However, if you think its appropriate, feel free to work out a tentative
+schedule according to the availablities of your staff.  Also, please distribute
+this agenda to the others.
+
+
+                              * * *  Agenda  * * *
+
+- Consideration of Unix/C support.
+  - Review and interpretation of Pace Willisson's report.  (I'll bring a copy.)
+  - Additional issues.
+  - The position (importance) of Unix within the project.
+  - We should study SPARC and MC88000 towards developing a comparitive analysis
+    paper.  (This issue transcends Unix/C, of course.)
+
+- Review of call hardware design.  (Is there a revised document?)  We feel we
+  are probably nearing preliminary approval on this.
+
+- Datatype-checking architecture.
+  Pierre and I have been considering alternatives, but still haven't come
+  to closure.  I want to present some additional software considerations on
+  what the processor has to perform to avoid software bottlenecks.
+
+- Memory Architecture
+  - How much physical memory does this processor *really* need to perform
+    adequately?  How do we determine a trustworthy estimate?
+  - Is that amount of memory achievable?  At what cost?
+  - If the machine requires more memory than can be achieved with the proposed
+    static ram design, what should we do?  This is neither a hardware nor a
+    software problem:  We need to take a "total system" design approach.
+
+- Transporter RAM changes (removal?).
+  Pierre and I had a brief preliminary discussion.  We should continue at least
+  to the point that I can present the proposal to the others in Cambridge.

@@ -1,0 +1,35 @@
+% kdoc.lib
+%
+
+
+% Macros for displaying fragmentized machine words
+%
+% Accumulates the "boxes" in box register 10; accumulates the
+% bit numbers in box register 11.  Box register 12 is used as
+% a temporary.
+
+\def\startbyf{
+  \setbox10=\hbox{}
+  \setbox11=\hbox{}
+  }
+\def\byf#1#2#3{
+  \dimen10=#1pt
+  \dimen11=#2pt
+  \advance\dimen10 by -\dimen11
+  \multiply\dimen10 by 12
+%  \showthe\dimen10
+  \setbox12=\hbox to \dimen10{\hfil{#3}\hfil}
+  \setbox10=\hbox{\box10\vrule\box12}
+  \setbox12=\hbox to \dimen10{\kern3pt$#1$\hfil$#2$\kern3pt}
+  \setbox11=\hbox{\box11\box12}
+  }
+\def\endbyf{
+  \setbox10=\hbox{\box10\vrule}
+  \centerline{\vbox{\hrule\box10\hrule\box11}}
+  }
+
+% \startbyf
+% \byf{31}{26}{DTP}
+% \byf{25}{ 0}{Pointer}
+% \endbyf
+

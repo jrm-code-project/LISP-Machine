@@ -1,0 +1,159 @@
+@chapter Other Software Issues
+
+@section Toolbox Calls
+
+A proposed K-to-Mac major command, CALL-ROUTINE,
+would load a `MacR' resource by name, and optionally pass shared-memory compatible arguments.
+These routines may be normal Macintosh routines.
+They could be available to the user from the K/Mac application menu.
+
+Upon invocation, the K/Mac could open a specified set of such `MacR' resources.
+This could be used to implement convenient ``patches'' to the application.
+
+As another example, the LISP Machine's @l(initialize-timebase) return value
+could be provided by the K/Mac via a `MacR' CALL-ROUTINE.
+
+You can trivially create a Mac interface routine to load and open an
+additional resource file.  Then a KFSL file can, when loading, call this
+routine to open itself as a resource file, and have its own Mac-side
+interface routines as well as Lisp side, all in one file.
+
+This supersedes an earlier proposal using general purpose entry
+vectors (simple #'s) to gain access to subroutines with mainline
+calls.
+
+
+@section Interlocks
+
+The proposed interlocking of commands and buffers between the K and Macintosh
+is done with a flag word or byte.
+The values of the proposed flags are as follows:
+
+@itemize @bullet
+@item
+0 = NULL-STATE == thing is available,
+action is not required
+@item
+1 = BUSY-STATE == action is underway,
+waiting
+@item
+-1 = DONE-STATE == action is completed
+@end(itemize)
+
+For some flags, values other than 1, 0, and -1 may be used to indicate
+error or status codes.
+
+It must be clearly established in each context
+which of the two processors is exclusively
+responsible for manipulating a flag.
+
+[Has a better scheme been proposed? RWK: YES, in MTL. We need a single
+interlock scheme for buffers and command blocks!
+
+@section Areas for Future Discussion
+
+The following are areas for research and future projects:
+
+@itemize @bullet
+@item "KFSL" MacFiletype
+
+Possible extensions to K/Mac application.
+For example, clicking on an executable .KFSL file
+could boot the K/Mac with initializations to
+run the selected program.
+
+@item Integrating KFASL
+
+Integrating QFASL and KFASL formats -- within ZMacs,
+8-bit bytes, with the compiler.
+@itemize -
+@item Integrate Jim's 8-bit QFASL change
+@item Integrate KFASL with RG's "target processor"
+in Lambda compiler/ZMacs code
+@end(itemize)
+
+[Deferred until future meeting among Peter, Jim, Keith, and Bob.]
+
+@item How much work will be required to check out
+and, if needed, clean up canonical types and
+generic pathnames?
+
+@item Conditionalizations
+
+There will be a wide variety of configurations (per processor, software, bus links).
+We need to support  read- and run-time conditionalizations for each case.
+This must wait until the migration and integration plans have been written.
+[GSI needs to generate a separate specification.]
+
+@item Cambridge / Montreal communications
+
+We would like to ensure that the Macintosh group can
+reliably use UUCP mail for intersite communications.
+
+@item Lambda microcode
+
+Sources have been provided to Montreal to facilitate first-pass interface designs.
+
+@item Lambda/Macintosh configuration
+
+Montreal is working with a facility for Lambda/Macintosh
+communications that allows for simulation of the interface.
+We would like to have the means to do this as well.
+This will facilitate testing procedures before the K has been completed.
+
+Test areas: Replace kbd, mouse with Mac's [paging should be a last
+resort].
+Incrementally design and test interface and communications area,
+moving gradually away from microcode.
+Use Lambda programs as simulators.
+
+@item Soft deletion issues
+
+As a future enhancement, we might consider a file command
+to view contents of trash folders (deleted files).
+See section @ref[section-softdelete] for proposed scheme.
+
+@item An inter-filesystem consistency-maintenance mechanism
+(counters, ticks, semaphores, locks?)
+
+@item Documentation, validation, and test code
+
+If possible, we would like to review any test software
+used for validation of the K/Mac software developed in Montreal.
+Integration with the LISP sources will be done by GSI,
+and some (re-)testing will be required.
+Also, design (theory of operation) documentation for the Macintosh application code
+will be very helpful.
+
+@item Keyboard redesign
+
+The keyboard re-layout project, including the
+character set mapping, is still pending.
+
+@item BYTE layout (LDB)
+
+Suggestion: If the new, K-specific byte-specifier formats
+can be changed to be compatible with the Lambda,
+some extensive LISP software modifications could be avoided.
+
+@item Apple licenses and registration issues
+
+Registering filetypes, application names, etc. with
+Apple?  What is required?
+
+@item Nubus issues
+
+Find out whether Macintosh NuBus behavior affects the ability
+of other processors to become the bus master.
+If so, what impact does this have?
+
+Issue: Are K-to-Mac interrupts ``guaranteed''? ...Mac-to-K interrupts?
+
+Question: How is data provided to the Mac on an interrupt?
+
+@end(itemize)
+
+@textbox
+@center Montreal notes:
+Login handled from the K side.
+@end textbox

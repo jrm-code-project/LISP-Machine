@@ -1,0 +1,9 @@
+;;; -*- Mode:LISP; Package:USER; Readtable:ZL; Base:10 -*-
+
+;;;DVI.TRANSLATIONS
+
+(fs:set-logical-pathname-host
+  "TEX"
+  :physical-host "CAP"
+  :translations '(("TEXFONTS" "//usr//lib//tex//fonts//")
+                  ("*" "*")))

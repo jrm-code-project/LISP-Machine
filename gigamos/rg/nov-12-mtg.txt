@@ -1,0 +1,82 @@
+
+
+marketing discussion --
+
+  understanding:
+     we face two independant decisions:
+        what we do on hardware
+     we might possibly have an option.
+        what we do on software
+          No option.  We must get to the marketplace immediately, if not sooner.
+
+  competive situation:
+    Hardware prices are crashing.  We just ordered 8 MACII's, 3 with 19 inch
+       high res color, 3 Laserwriter Pluses, with ethernet cards, all for 51.3K
+      (developer prices)
+
+   TI etc.  We have been aware of this for four and a half weeks.
+        TI is about 3 months ahead of where we earlier assumed they were.
+    There is no doubt that TI is making a major market moving announcement
+         which will affect all segments of the Lisp Machine market.  Can we
+         survive in this market environment?
+
+    two possible strategies:
+        (1) try to find a "secure" niche away from TI
+        (2) try to carve out a niche at the top of TI's market.
+
+        ---------
+    RG:  path 1 is hopeless in the long run as well as being uninteresting.
+       There is no real security of medimum or long term differentation in a
+        attempted Niche such as VME bus systems.
+     (1) People wont buy VME unless it is reasonably competitive with
+         other options.
+     (2) TI and others will put their frob on the VME if it represents a
+          significant market.
+     (3) VME is "old" technology at this point, and is not one of the two
+         primary viable boxes.  [SUN, arguably, represents a third viable box,
+         but their new, cheap stuff is not suitable for the K].
+
+    path 2 is also difficult.  We face a number of obstacles to acceptance:
+     (1)  TI is a big company with service, etc etc
+     (2)  TI's is contained within the MACII box, etc
+          estimating roughly, TI has a 2K versus 5.5K cost advantage.
+     (3)  TI has been doing things right in that they have been building
+          compatability with their installed base, evolving their software,
+          We should have been doing this too, but that's water under the bridge
+          now. TI is actively involved with COMMONLISP standards and has a
+          effective human wave which is toiling away polishing, reorganized,
+          documenting, etc.
+     (4)  Market Timing.  TI has demonstrated their machine to a few customers.
+          On the other hand, TI moves slowly and we may be able to match their
+          eventual announcement with a demonstratable prototype of our own in
+          the same time frame if we do things right and work extremely hard.
+     (5)  TI has a network of third party agreements and industry contacts.
+
+    We have some assets which give us a chance:
+     (1)  Processor speed.  This is extremely critical to our chances.
+          we need a sizable factor.
+     (2)  Some remaining advantage in software structure, in some respects.
+
+    We are down to our last chance.  We have to stop doing stupid things
+immediately.  We are up against a large, well financed company which is
+basically doing intelligent things.  If we cannot achieve "war-time"
+type unity and work intensity levels, we have no chance and should quit
+now.
+
+
+
+technical discussion --
+
+   what has to get done
+
+   Our only chance to produce a salable software environment in a resonable
+        time is to port the Lambda stuff.  (side note: it is highly compatible
+        with TI, which is a plus).
+
+   Making various goals compatible.
+         -old discussion- -NEW software versus Lambda Compatible, etc-
+    Technical means at hand to do this, namely the package root feature.
+    RG will explain this here and now to the satisfaction of all concerned.
+    Then, we must go off and implement it without further hassle.  Actually,
+    its already implemented, the only thing that needs real work in the regard
+    is the K loader.

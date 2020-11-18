@@ -1,0 +1,137 @@
+
+Meetings in Cambridge:
+
+NOTE:  lines beginning with *** are unclear or not agreed to.  mostly disregard.
+
+Administrative
+
+        Biweekly international visits, starting May 18th ---> Montreal
+
+        Bus Coupler two weeks late; use the four PCB's for prototype phase,
+                but don't make more until bus coupler is complete.  It
+                should be debugged fully by May 12th.
+
+        Bagley and Roth should maximize their interactions.
+
+        Serial IP project to Keith (~ 2 weeks)
+
+        Coordination of modules: biweekly phone calls (interleaved with
+                international trips)
+
+        Within two weeks: Three Mac II's in Montreal, One in Lowell
+
+Technical
+
+        Full documentation needed in MTL; ADA must be contacted; Chris
+        should be useful in following up on contacts at Apple for docu-
+        mentation
+
+        Mac OS uses 24 bits address, plus eight flag bits =32.
+
+        currently have direct access, Video Cards <----> Disk, with 32-bit
+                addresses (for files only)
+
+***     Screen Interface w/ Mac?  Should be direct.
+***             Lispm bitmap ---> Mac (no buffering scheme in memory)
+***             No fakery inside the Mac needed to drive disk; no need to
+***             rewrite the driver, either.  Direct disk control of screen.
+
+        Hard Limits: Max size of files? Max # of open files at one time?
+                (for latter, it should be possible to increase the apparent
+                limit through clever memory management on the Montreal side.
+
+(the following idea should be considered, but it looks like files plus RWK's scheme
+is better provided it can be big enuf)
+***     Provide our own swapping space disk partitions (256 Meg)
+
+        Provide UUCP for various intersite transactions within 3 weeks
+
+        Tape backups: deal with them at the end of the project cycle.
+                8 mm VCR tapes can store 2 Gigabytes, and would make
+                for highly effective AAAI demoing
+
+        Mac software needed from Montreal to convert complete LISPM pathnames
+                into unambiguous Mac filenames. Use Mac resources to simulate
+                (<pathname> :characters [T/NIL] :length-in-bytes (#)
+                            :byte-size (#) ... )
+                although :characters and :byte-size seem redundant
+
+        Additions to Keith's document ("MAC-K-AREA.TEXT#4")
+                Page 2: [HOW-MANY-K-MACHINES]
+                        Major-Command-Areas (One per extant K Machine)
+                Page 3: Add *** RETURN-TO-MAC, *** RETURN-TO-K to list of
+                        Major Commands
+
+        Lambda microcode Sources to Montreal to facilitate first-pass interface designs.
+
+        We might consider a facility for running a Lambda before the K has been completed. Replace
+        kbd, mouse with Mac's [paging should be a last resort]; interface to
+        communications area, staying away from microcode; use Lambda programs
+        to build simulators.
+
+        Cambridge will generate complete conditionalizations document(s).
+
+        KBD I/O:
+
+                Need a single, fixed Buffer for mouse and kbd, with two pointers (I and O);
+                pointers = means buffer empty; Mac advances pointer upon
+                encountering keystrokes.  USe the Mac File System char set as first-
+                order approximation.
+                Montreal to propose full character set mapping.
+
+        FILE I/O:
+
+                Read-ahead; write-behind; setup-input-buffers scheme allows
+                Mac to serve as feeder.  MTL should make a MAC-FAMILY-PATHNAME
+                flavor mixin (patterned after the one for UNIX).  Scratch
+                IOPB, replace it with a new block containing relevant info,
+                a la sys:cold;qcom.lisp, in which Request Blocks (RQB's)
+                are used; command is in a leader, data follows. CCW =
+                command and control word.  Mac does not have a multibus map;
+                therefore, build a gather/scatter memory scheme.  Swapping
+                should use RQB, block offsets.  LIMITS: Largest Mac file/
+                Paging band/Paging file size.  Do not assume contiguous block
+                file memory allocation; Use Mac files, and find out at boot
+                time where all blocks are located for file, do a sort/merge
+                on these blocks, leave files open, so we need deal only in
+                physical addresses.
+
+        MOUSE ISSUES:
+          note stuff above under keyboard.
+                Records size > word size; handling transitions vs. handling
+                clicks; use a mouse-x and mouse-y, encode-kbd-clicks hack
+                printed file UC-TRACK-MOUSE.LISP, in which it was observed
+                single 32-bit register, 2 coords of 16 bits each, with three
+                separate registers for the buttons; Mac has speed-dependent
+                scaling as an option; Five char mouse message: buttons, dx1,
+                dy1, dx2, dy2; each d being an 8-bit signed number; process
+                is: figure out where you are in the five characters, simulate
+                serial action of mouse, or simulate fake mouse using a click
+                decoding scheme; if all are unchanged, do nothing.  [Start with
+                the serial action scheme in MTL]  Tailor Mac's event manager
+                to conform to MOUSE.LISP for clicks (already create events,
+                post them for LispM to read)
+
+        CURSORS:
+
+                Use the Lispm's. Make Mac's go away. LispM writes directly
+                to the screen.
+                When in bit-array-in-memory-option, provide for K to
+                Tell Mac where to look for it using an interface
+                to open- and set- blinker, and an array in memory. Copy just
+                enough bits to make it work. Add mouse-x and mouse-y registers
+                to Keith's scheme.
+
+                Use One Buffer (synchronize mouse events)
+                Interrupts vs. Lossage of characters when clicking
+
+
+        TOOLBOX CALLS:
+
+                Time: Use Lisp Machine's initialize-timebase, build an
+                interface for the Mac to use this information. In general,
+                use general purpose entry vector scheme (simple #'s) to
+                gain access to all of them eventually with mainline calls.
+                Linked-in Libraries, consisting of one vector plus an index
+                to the right place. Do enough of this in MTL to ensure successful
+                Mac calls for those that already work now.

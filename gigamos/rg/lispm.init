@@ -1,0 +1,5 @@
+;;; -*- Mode:LISP; Readtable:CL -*-
+
+(login-setq zwei:*history-buffer-lists-per-window* nil)
+
+(setq si:user-id "rg")

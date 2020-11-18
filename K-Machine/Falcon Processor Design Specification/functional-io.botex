@@ -1,0 +1,334 @@
+@c functional-io.botex
+@c
+@c 18-Dec-87, Kent Hoult
+@c 11-Apr-88, James Rauen
+
+@appendix Functional I/O
+
+This appendix contains tables and descriptions of functional sources and destinations.
+
+@section Table of Functional Sources
+
+@settabs 8 @columns
+@sp 1
+@< @i[Value] @\ @i[Abbreviation]    @\ @\ @i[Meaning] @cr
+@sp 1
+@< 110100X @\ VMA                   @\ @\ @\ VMA Register @cr
+@< 110101X @\ MD                    @\ @\ @\ MD Register @cr
+@sp 1
+@< 1100000 @\ MEMORY-MAP            @\ @\ @\ Memory Maps @cr
+@< 1100001 @\ GC-RAM                @\ @\ @\ GC Ram @cr
+@< 1100010 @\ MEMORY-CONTROL        @\ @\ @\ Memory Board Control Register @cr
+@< 1100011 @\ MICROSECOND-CLOCK     @\ @\ @\ Microsecond Clock @cr
+@< 1100100 @\ ???                   @\ @\ @\ Statistics Counter @cr
+@< 1100101 @\ TRAP-REGISTER         @\ @\ @\ Trap Register @cr
+@< 1100110 @\ MEMORY-STATUS         @\ @\ @\ Memory Board Status Register @cr
+@sp 1
+@< 1001000 @\ PROCESSOR-STATUS      @\ @\ @\ Processor Board Status Register @cr
+@< 1001001 @\ PROCESSOR-CONTROL     @\ @\ @\ Processor Board Control Register @cr
+@< 1001010 @\ OPEN-ACTIVE-RETURN    @\ @\ @\ Call Hardware: O, A, and R Registers @cr
+@< 1001011 @\ RETURN-PC-RETURN-DEST @\ @\ @\ Call Stack (RPC, and Return Dest) @cr
+@< 1001100 @\ CALL-HP-SP            @\ @\ @\ Call Hardware: HP and CSP @cr
+@< 1001101 @\ TRAP-PC               @\ @\ @\ Trap PC  - (PC Two Clocks Earlier) @cr
+@< 1001110 @\ TRAP-PC+              @\ @\ @\ Trap PC Plus - (PC One Clock Earlier) @cr
+@sp 1
+@< 1000111 @\ ICACHE-A-HI           @\ @\ @\ Read Cache A - Hi Data @cr
+@< 1000110 @\ ICACHE-B-HI           @\ @\ @\ Read Cache B - Hi Data @cr
+@< 1000101 @\ ICACHE-A-LO           @\ @\ @\ Read Cache A - Lo Data @cr
+@< 1000100 @\ ICACHE-B-LO           @\ @\ @\ Read Cache B - Lo Data @cr
+@< 1000011 @\ TRAP-OFF              @\ @\ @\ Read Trap Enable and Disable @cr
+
+
+@page
+@section Table of Functional Destinations
+@sp 1
+@< @i[Value] @\ @i[Abbreviation] @cr
+@sp 1
+@< 1000000 @\ NOP, GUARANTEED TO DO NOTHING @cr
+@< 1000001 @\ RETURN-DESTINATION @cr
+@< 1000010 @\ NOP, WITH NO OVERFLOW TRAP (FOR COMPARES) @cr
+
+@< ??????? @\ RETURN                     @\ @\ @cr
+@< ??????? @\ RETURN-MV @cr
+
+@< 1111000 @\ VMA-START-READ-EARLY-NO-TRANSPORT  @cr
+@< 1111001 @\ VMA-START-READ-EARLY  @cr
+@< 1111010 @\ VMA-START-READ-EARLY-VISIBLE-EVCP @cr
+@< 1111011 @\ VMA-START-READ-EARLY-WILL-WRITE @cr
+@< 1111100 @\ VMA-START-READ-EARLY-CDR-NO-TRANSPORT @cr
+@< 1111101 @\ VMA-START-READ-EARLY-CDR @cr
+@< 1111110 @\ VMA-START-READ-EARLY-CDR-VISIBLE-EVCP @cr
+@< 1111111 @\ VMA-START-READ-EARLY-CDR-WILL-WRITE @cr
+@sp 1
+@< 1110000 @\ VMA-START-READ-NO-TRANSPORT @cr
+@< 1110001 @\ VMA-START-READ @cr
+@< 1110010 @\ VMA-START-READ-VISIBLE-EVCP @cr
+@< 1110011 @\ VMA-START-READ-WILL-WRITE @cr
+@< 1110100 @\ VMA-START-READ-CDR-NO-TRANSPORT @cr
+@< 1110101 @\ VMA-START-READ-CDR @cr
+@< 1110110 @\ VMA-START-READ-CDR-VISIBLE-EVCP @cr
+@< 1110111 @\ VMA-START-READ-CDR-WILL-WRITE @cr
+@sp 1
+@< 1101100 @\ VMA-START-WRITE-NO-GC-TRAP @cr
+@< 1101101 @\ VMA-START-WRITE @cr
+@< 1101110 @\ MD-START-WRITE-NO-GC-TRAP @cr
+@< 1101111 @\ MD-START-WRITE @cr
+@sp 1
+@< 110100X @\ VMA @cr
+@< 110101X @\ MD @i[(write)] @cr
+@sp 1
+@< 1100000 @\ MEMORY-MAP @cr
+@< 1100001 @\ GC-RAM @cr
+@< 1100010 @\ MEMORY-CONTROL @cr
+@< 1100011 @\ MICROSECOND-CLOCK @cr
+@< 1100100 @\ STATISTICS-COUNTER @cr
+@< 1100101 @\ TRANSPORTER-RAM @cr
+@sp 1
+@< 1001000 @\ DATATYPE-RAM-WRITE-PULSE @cr
+@< 1001001 @\ PROCESSOR-CONTROL @cr
+@< 1001010 @\ OPEN-ACTIVE-RETURN @cr
+@< 1001011 @\ RETURN-PC-RETURN-DEST @cr
+@< 1001100 @\ CALL-HP-SP @cr
+
+@section Functional I/O Encodings
+
+@subsection Processor Status Register
+
+The PSR is read-only. 
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 31:19 @\ Undefined @cr
+@< 18 @\ Processor ALU_BOXED bit @cr
+@< 17 @\ Processor D_JUMP bit (active low) @cr
+@< 16 @\ Processor JUMP bit (active low) @cr
+@< 15:13 @\ Undefined @cr
+@< 12:9 @\ Return Destination Immediate @cr
+@< 8:4 @\ FPU Status Outputs @cr
+@< 3:0 @\ ECO jumper number @cr
+
+
+@subsection Processor Control Register
+
+The PCR may be read or written to.  All bits are zeroed by reset.  
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 31:24 @\ Unimplemented @cr
+@< 23:20 @\ Undefined @cr
+@< 19 @\ Floating Point Trap Enable (0 = disabled, 1 = enabled) @cr
+@< 18 @\ Call Hardware Stack Overflow Trap Enable (0 = disabled, 1 = enabled) @cr
+@< 17 @\ Call Stack Load Control (0 = normal, 1 = call stack special load sources) @cr
+@< 16:13 @\ Stack Group Number (selects one of 16 call hardware heap/stack groups) @cr
+@< 12:9 @\ PCTL_MISC, 4-bit field used for random things @cr
+@< 8 @\ PCTL_DATA bit, 1-bit data source for some special functions @cr
+@< 7 @\ HALT bit (0 = run, 1 = halt processor) @cr
+@< 6 @\ Box Mux Mode (0 = normal, 1 = register reload mode) @cr
+@< 5 @\ Floating Point Status RAM Write Enable (0 = read, 1 = write) @cr
+@< 4 @\ J_INDIR, indirect jump bit selectable by jump condition @cr
+@< 3 @\ Spare @cr
+@< 2 @\ ICACHE_ZENBL, low core cache set (0 = reset/disable, 1 = enable) @cr
+@< 1 @\ ICACHE_BENBL, B cache set (0 = reset/disable, 1 = enable) @cr
+@< 0 @\ ICACHE_AENBL, A cache set (0 = reset/disable, 1 = enable) @cr
+
+
+@subsection Memory Status Register
+
+The MSR is read-only.  
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 31:24 @\ Undefined @cr
+@< 23 @\ Amount of memory installed (0 = 32 Mbytes, 1 = 16 Mbytes) @cr
+@< 22 @\ Autoboot jumper (0 = mastership external, 1 = boot automatically) @cr
+@< 21 @\ Memory Parity Error (0 = error, 1 = no error) @cr
+@< 20:19 @\ Undefined @cr
+@< 18 @\ MD Transport Trap (1 = MD read will cause transporter trap) @cr
+@< 17 @\ MD Page Trap (1 = MD read will cause read fault trap) @cr
+@< 16 @\ VMA Boxedness (0 = boxed, 1 = unboxed) @cr
+@< 15 @\ MD Boxedness (0 = boxed, 1 = unboxed) @cr
+@< 14:13 @\ Last Memory Cycle Type (see below) @cr
+@< 12 @\ Last Memory Cycle Type (0 = write, 1 = read) @cr
+@< 11 @\ Undefined @cr
+@< 10:8 @\ Nubus Bootstrap Mode (0 = normal, 1 = short reset, 2:7 = software) @cr
+@< 7:4 @\ ECO Jumper Number @cr
+@< 3:0 @\ Nubus Slot ID @cr
+
+Bits 14:13 ---- 00 = will write, 01 = no evcp, 10 = transport, 11 = no
+transport.  See the Transporter RAM chapter for details.
+
+
+@subsection Memory Control Register
+
+The MCR is read-write.  All bits are zeroed by a reset.  
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 31 @\ Master Trap Disable (0 = no trapping, 1 = trap under other masks) See below. @cr
+@< 30 @\ Asynchronous Trap Enable (0 = disable, 1 = enable) @cr
+@< 29 @\ Overflow Trap Enable (0 = disable, 1 = enable) @cr
+@< 28 @\ Data Type Trap Enable (0 = disable, 1 = enable) @cr
+@< 27 @\ Synchronous Trap Enable (0 = disable, 1 = enable) @cr
+@< 26 @\ Single step on trap exit (0 = disabled, 1 = enabled) @cr
+@< 25 @\ Spare @cr
+@< 24 @\ Reset Trap Bit (0 = reset trap bit on, 1 = normal) @cr
+@< 23:20 @\ Undefined @cr
+@< 19 @\ DRAM Parity Error Flagging (0 = disable, 1 = enable) @cr
+@< 18 @\ Boot PROM (0 = enabled, 1 = disabled) @cr
+@< 17:16 @\ Transporter RAM Mode Select @cr
+@< 15 @\ Use L or C valid/write-enable bits in map (0 = C bits, 1 = L bits) @cr
+@< 14 @\ Write Wrong Parity to DRAM (0 = normal parity, 1 = wrong parity) @cr
+@< 13 @\ 16384 microsecond interrupt (0 = disable/reset request, 1 = enable) @cr
+@< 12 @\ 1024 microsecond interrupt (0 = disable/reset request, 1 = enable) @cr
+@< 11 @\ I-Cache error clear (0 = disable/reset icache error traps, 1 = enable) @cr
+@< 10:9 @\ NuBus AD(1:0) bits for transfers @cr
+@< 8 @\ NuBus TM0 bit for transfers @cr
+@< 7 @\ LED 2 (0 = lit, 1 = unlit) @cr
+@< 6 @\ LED 1 (0 = lit, 1 = unlit) @cr
+@< 5 @\ LED 0 (0 = lit, 1 = unlit) @cr
+@< 4 @\ Statistics Source Polarity (0 = true, 1 = invert) @cr
+@< 3:1 @\ Statistics Counter Source (options listed below) @cr
+@< 0 @\ Statistics Counter Mode (0 = edge trigger, 1 = duration) @cr
+
+Bit 31 (Master Trap Disable) also sets/resets during trap
+exit/entry
+
+Bits 3:1 determine the statistics counter source:
+
+@settabs 6 @columns
+@sp 1
+@< @i[Value] @\ @i[Source] @cr
+@sp 1
+@< 000 @\ I-cache hit @cr
+@< 001 @\ Processor memory cycle @cr
+@< 010 @\ Instruction Status Bit @cr
+@< 011 @\ Undefined @cr
+@< 100 @\ PC in high core @cr
+@< 101 @\ Undefined @cr
+@< 110 @\ Undefined @cr
+@< 111 @\ Undefined @cr
+
+
+@subsection GC/Transporter RAM
+
+This functional destination is read/write.  
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 7 @\ Transporter: Box Error @cr
+@< 6 @\ Transporter: Trap if not Oldspace @cr
+@< 5 @\ Transporter: Trap if Oldspace @cr
+@< 4 @\ Transporter: Trappable Pointer @cr
+@< 3 @\ GC: Quantum is in oldspace @cr
+@< 2:0 @\ GC: Quantum volatility @cr
+
+
+@subsection Trap Register
+
+The trap register is read-only.  It is loaded either on a trap or on a
+write to the Memory Control Register.
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 31 @\ Reset @cr
+@< 30 @\ Single step trace trap @cr
+@< 29 @\ Instruction Cache - Parity Error @cr
+@< 28 @\ Instruction Cache - NuBus Error @cr
+@< 27 @\ Instruction Cache - NuBus Timeout @cr
+@< 26 @\ Instruction Cache - Map Fault @cr
+@< 25 @\ Processor Memory Read - Parity Error @cr
+@< 24 @\ Processor Memory Read - NuBus Error @cr
+@< 23 @\ Processor Memory Read - NuBus Timeout @cr
+@< 22 @\ Processor Memory Read - Map Fault @cr
+@< 21 @\ Processor Memory Read - Transport @cr
+@< 20 @\ Processor Memory Write - NuBus Error @cr
+@< 19 @\ Processor Memory Write - NuBus Timeout @cr
+@< 18 @\ Processor Memory Write - GC RAM @cr
+@< 17 @\ Processor Memory Write - Map Fault @cr
+@< 16 @\ Floating Point @cr
+@< 15 @\ Call Stack Overflow @cr
+@< 14 @\ Spare (zero) @cr
+@< 13 @\ Data Type @cr
+@< 12 @\ 29332 ALU Overflow @cr
+@< 11 @\ Spare (zero) @cr
+@< 10 @\ NuBus Interrupt 7 @cr
+@< 9 @\ NuBus Interrupt 6 @cr
+@< 8 @\ NuBus Interrupt 5 @cr
+@< 7 @\ NuBus Interrupt 4 @cr
+@< 6 @\ NuBus Interrupt 3 @cr
+@< 5 @\ NuBus Interrupt 2 @cr
+@< 4 @\ NuBus Interrupt 1 @cr
+@< 3 @\ NuBus Interrupt 0 @cr
+@< 2 @\ 1024 Microsecond trap @cr
+@< 1 @\ 16384 Microsecond trap @cr
+@< 0 @\ Always zero @cr
+
+
+@subsection Memory Map
+
+May be read or written.    The Map RAM address is bits 25:10 of VMA.
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 31:12 @\ Physical Address @cr
+@< 11:8 @\ Software Definable @cr
+@< 7 @\ Page in on-board memory @cr
+@< 6:4 @\ Page Volatility @cr
+@< 3 @\ Write Enable (C) @cr
+@< 2 @\ Valid (C) @cr
+@< 1 @\ Write Enable (L) @cr
+@< 0 @\ Valid (L) @cr
+
+
+@subsection Call Hardware (Open/Active/Return)
+
+May be read or written.  
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 31:24 @\ Unimplemented @cr
+@< 23:16 @\ Open Register @cr
+@< 15:8 @\ Active Register @cr
+@< 7:0 @\ Return Register @cr
+
+
+@subsection Call Hardware (Return PC, Return Destination)
+
+Read-only.  
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 31 @\ Spare @cr
+@< 30:24 @\ Return Destination @cr
+@< 23:0 @\ Return PC @cr
+
+
+@subsection Call Hardware Pointers (CSP, HP)
+
+Read-write.  
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 31:16 @\ Unimplemented @cr
+@< 15:8 @\ Heap Pointer (HP) @cr
+@< 7:0 @\ Call Stack Pointer (CSP) @cr

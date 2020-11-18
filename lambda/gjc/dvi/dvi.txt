@@ -1,0 +1,37 @@
+Compilation log started at 4-Sep-87 12:29:51 by "keith" for
+ INPUT: #FS::LM-PATHNAME "EXP1: GJC.DVI; DVI.LISP#22"
+ OUTPUT: #FS::LM-PATHNAME "EXP1: GJC.DVI; DVI.QFASL#1"
+
+
+
+
+Compilation complete at 4-Sep-87 12:31:37
+106.02 seconds realtime 5.84 seconds disk wait
+
+The automatic garbage collector is enabled.
+
+There are 14,121,833 words of dynamic space, 1,590,877 words of static space, and
+12,041,761 words of free space.  Free space consists of 9,404,416 words of unallocated
+storage plus 1/2 of the 5,274,688 words of storage already allocated to specific
+regions but not yet used.
+
+Dynamic space storage distribution:
+
+      Level      Current Size     Threshold      Mode
+        3              91,023       139,810      Flips when size exceeds threshold.
+        2             132,844       349,525      Flips when size exceeds threshold.
+        1           7,364,221          None      Automatic flipping disabled.
+        0           6,533,745        Passed      Automatic flipping disabled.
+
+  Total:  Level 0:  Level 1:  Level 2:  Level 3:
+Flips:  9  0  0  0  9
+Words condemned:  1,274,414  0  0  0  1,274,414
+Words reclaimed:  1,191,903  0  0  0  1,191,903
+Reclamation ratio:  93.5%  0.0%  0.0%  0.0%  93.5%
+Transporter CPU time:  1.5  0.0  0.0  0.0  1.5
+Transporter disk time:  0.5  0.0  0.0  0.0  0.5
+Scavenger CPU time:  5.2  0.0  0.0  0.0  5.2
+Scavenger disk time:  0.2  0.0  0.0  0.0  0.2
+Cost per word reclaimed:  6.2  NIL  NIL  NIL  6.2
+Active processor utilization:  19.3%  0.0%  0.0%  0.0%  19.3%
+Total processor utilization:  0.0%  0.0%  0.0%  0.0%  0.0%

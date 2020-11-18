@@ -1,0 +1,65 @@
+          ALU            BYTE           JUMP          DISPATCH
+ 0   Q           byte rot            jump cond
+ 1   .           .                   .
+ 2   carry       .                   .
+ 3   ALUF        .                   .
+ 4   .           .                   .
+ 5   .           .                   .
+ 6   .           byte length - 1     jump on condition or bit
+ 7   .           .                   jump invert cond
+ 8   .           .                   N-bit
+ 9   OB          .                   P-bit
+10   .           .                   R-bit
+11   .           .                   "jump lc increment"
+12   "misc function???"
+13    .
+14   DEST   m adr                       jump addr    disp I-ARG
+15    .     .                           .            .
+16    .     .                           .            .
+17    .     .                           .            .
+18    .     .                           .            .
+19    .     .                           .            .
+20    .     func                        .            .
+21    .     .                           .            .
+22    .     .                           .            .
+23    .     .                           .            .
+24    .     .                           .            .
+25    .     .                           .            .
+26   A-MEM-DEST-FLAG                    .            disp push own address
+27                                      .            disp write VMA
+28                    ldb/dpb/sd        .            enable disp gc write test
+29                    .                 .            enable disp oldspace test
+30     OPCODE
+31     OPCODE
+32    M-SRC
+33     .
+34     .
+35     .
+36     .
+37    m-src
+38    M-FUNC-SRC-INDICATOR
+39    A-SRC / disp addr
+40     .
+41     .
+42     .
+43     .
+44     .
+45     .
+46     .
+47     .
+48     .
+49     .
+50    a-src
+51   POPJ-AFTER-NEXT
+52   MACRO-IR-DISPATCH
+53   SOURCE-TO-MACRO-IR
+54   MACRO-STREAM-ADVANCE
+55   SLOW-DEST
+56   ILONG
+57   STAT-BIT
+58   CLOBBERS-MEM-SUBR
+59   HALT
+60
+61
+62
+63

@@ -1,0 +1,88 @@
+;;; -*- Mode:LISP; Readtable:CL; Package: USER -*-
+
+(login-setq
+  si:user-id                             "CStacy"
+  fs:user-personal-name                  "Stacy, Christopher C."
+  fs:user-personal-name-first-name-first "Christopher C. Stacy"
+  zwei:*from-user-id* "cstacy"
+  zwei:*from-host* (si:parse-host "GSI-CAM"))
+
+(gc:gc-on :degree 2)
+
+(let ((fs:this-is-a-patch-file nil))
+  (when (fquery (list :timeout (* 15 60) :default-value t) "Load patches? ")
+    (load-patches :noselective))
+  (when (fquery (list :timeout (* 15 60) :default-value t) "Hun la? ")
+    (make-system 'hun-la :noconfirm)))
+
+(login-setq
+  *package* si:pkg-user-package
+  *read-base* 10.
+  *print-base* 10.
+  tv:mouse-double-click-time 125000.
+  tv:beep-duration 20000
+  tv:beep-wavelength 35
+  format:*allow-fquery-timeouts* nil
+  zwei:*notify-on-new-mail-in-background* nil
+  zwei:*inhibit-background-mail-checks* t)
+
+(hl:set-default-process-quanta 6)
+
+(login-setq tv:*show-readtable-in-who-line* t)
+(tv:set-who-line-clock-style ':new)
+(tv:who-line-clobbered)
+(send tv:who-line-documentation-window :set-font-map '(hl12b))
+(send tv:who-line-documentation-window :refresh)
+
+(fs:file-host-user-id "cstacy" (si:parse-host "ANGEL"))
+(fs:reset-file-access '("ANGEL") 'fs:ftp-access)
+
+ZWEI:
+(login-setq
+  *point-pdl-max* 30
+    *check-unbalanced-parentheses-when-saving* t
+    *file-versions-kept* 1
+    *hack-buffers-requires-confirmation-p* nil
+    *read-only-pathnames* '("SYS:" "FALCON:" "JB:PROPOSALS;"))
+
+(zwei:initialize-stream-comtab)
+
+ZWEI:
+(login-forms
+  (set-comtab
+    *standard-comtab*
+    '(#\control-C      com-prefix-control-meta
+      #\control-M      (0 #\CR)
+      #\control-J      (0 #\LF)
+      #\control-I      (0 #\TAB)
+      #\control-]      (0 #\ABORT)
+      #\Clear-input    com-beep
+      #\control-S      com-char-search
+      #\control-R      com-reverse-char-search
+      #\control-\\     com-just-one-space
+      #\c-mouse-m      com-mouse-copy-thing
+      #\hyper-Space    com-hyperspace
+      #\control-\'     com-describe-symbol-at-point
+      #\meta-\|        com-draw-vertical-line))
+
+  (set-comtab
+    *standard-control-x-comtab*
+    '(#\U              com-quick-undo
+      #\control-K      com-kill-region
+      #\control-Y      com-insert-file
+      #\control-N      com-beep))
+
+  (set-comtab
+    *zmacs-comtab*
+    '(#\c-m-sh-L       com-rotate-three-buffers))
+
+  (set-comtab
+    *zmacs-control-x-comtab*
+    `(#\control-B      com-hack-buffers))
+
+  (set-comtab
+    *stream-comtab*
+    '(#\Clear-input    com-clear
+      #\c-mouse-m      com-mouse-copy-thing)))
+
+(common-lisp t t)

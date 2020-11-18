@@ -1,0 +1,64 @@
+1) Compilation environments.  There is no distinction being made between
+the local environment and the foreign one.  This will cause problems as
+more and more code is compiled on the lambda side.  The three ways to deal
+with this are:
+
+  a)  Fix the compiler to maintain a distinction between the two environments.
+      Exactly the right distinction to draw is a research issue; fortunately
+      it's not critical to get it right, but just to solve the worst screw cases.
+      Constant values, macro definitions, and special declarations are most
+      common in my experience.  Flavors too, but they probably wouldn't be an
+      issue, at least until things get far enough along they can be compiled on
+      the K anyway.
+
+  b)  Copy the package hierarchy.  My experience is that this is a lot of work
+      and rapidly gets confusing.  It is, however effective.
+
+  c)  Get the compiler hosted on the K machine as rapdily as possible, so the
+      minimum amount of cross-compilation is needed.
+
+I think it's obvious that C is the biggest win.  B, or A+B, are definitely needed
+for trying to do software development before you have the hardware, but that doesn't
+apply here.
+
+A should still be done, for the sake of ongoing software development.
+(This means after the porting is pretty well done, at the earliest) .
+
+2)  Constants seem to not be evaluated at compile time.  Possibly this was
+done to ensure they have the right value on the K side.  This should be fixed
+after the compiler is moved to the K.
+
+3)  OK, how do we clean up the pending OPEN frames on a branch?  Instead of
+PDLLVL hair, we should have OPEN-counting, and invoke a routine to clean up
+the stack on a branch.
+
+4)  There's no way to patch the cold load.
+
+5)  The debugger gives no indication that you're in KBUG instead of KBUG2.
+
+6)  There's no clean way to boot once you're in KBUG from KBUG2.  c-Abort
+will leave you back in KBUG.
+
+7)  Loading files is slower than it should be because of the lack of buffering.
+Jim O'Dell is considering fixing this.
+
+8) The Lambda compiler doesn't handle lambda!
+
+(defun foo (x l)
+  (del (lambda (ignore x) (eq x 'foo)) nil l))
+
+This recurses infinitely, regardless of whether you use #' or not.
+
+I fixed this by giving LAMBDA a kludge P1 property.  My fix works, and it's even
+clean, except it is very weird having an anonymous LAMBDA rewrite into a FLET,
+instead of the other way around!
+
+9)  There's no patch system for K changes.  If you change a file, everybody has
+to recompile that file every time they reboot.  Very inefficient.
+
+10)  I don't know how multiple-values are *really* supposed to compile.  Where does
+value 0 go?  R0?  *RETURN-0*?
+
+11)  What is the DEST when *M-V-TARGET* is MULTIPLE-VALUE-LIST?  Does it assume
+D-PDL for this?  If so, it will need some massaging.  If it's the destination for
+the list, then my changes to P2ANDOR should work fine.

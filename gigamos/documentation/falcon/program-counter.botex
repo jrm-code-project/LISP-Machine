@@ -1,0 +1,79 @@
+@c program-counter.botex
+@c
+@c 18-Apr-88, James Rauen
+
+@chapter Program Counter
+
+@section Introduction
+
+The Program Counter is a 24-bit quantity.  It addresses the current
+instruction being executed.  There is no explicit PC register; instead,
+the PC appears at the output of a 4-way multiplexer.  The details are
+described in the Hardware section below.
+
+
+@section Relation of PC to Virtual Addresses
+
+@tex
+The 24 bits of PC allow an address space of $2^{24}$
+64-bit instructions.  This works out to $2^{25}$ 32-bit words, exactly
+half of virtual memory space.  Instructions are only stored in the high
+half of virtual memory.
+
+Since there are 32 bits at each virtual address, and an instruction is 64 bits
+wide, each value of the PC must correspond to two virtual addresses.  A PC is
+converted into a pair of virtual addresses by these formulas:  Address of
+low word = $2PC+2^{25}$; Address of high word = $2PC + 2^{25} + 1$.
+@end tex
+
+@group
+@tex
+\startbyf
+\bif{25}{1}
+\byf{24}{1}{24-bit Program Counter}
+\bif{0}{0}
+\endbyf
+\line{\hfil\byfnumbers}
+\line{Address of low word:\hfil\byfbox}
+\startbyf
+\bif{25}{1}
+\byf{24}{1}{24-bit Program Counter}
+\bif{0}{1}
+\endbyf
+\line{Address of high word:\hfil\byfbox}
+@end tex
+@end group
+
+
+@section Hardware
+
+This section describes the hardware associated with the Program Counter.
+
+
+@subsection PC Mux
+
+The PC itself appears as the output of this 4-way, 24-bit multiplexer.
+
+The four sources for the multiplexer are as follows.  (0) PCINC, the
+output of the PC incrementer.  (1) The Return PC register from the call
+hardware.  (2) OUTREG, the ALU's output register.  (3) Bits 23:0 of the
+Instruction Register.
+
+
+@subsection PC Incrementer (PCINC)
+@label[PCINC]
+
+This is a registered 24-bit incrementer.
+
+
+@subsection Delayed PC Incrementer
+
+This is a 24-bit register.  Its input lines are connected to PCINC; this
+effectively delays PCINC for one clock tick.
+
+
+@subsection Old PC Registers
+
+The last two PC's are kept in a pair of registers.  These PC's are
+needed to correctly save and restore the machine state during trap
+entry/exit.

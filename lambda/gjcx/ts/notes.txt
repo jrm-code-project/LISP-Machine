@@ -1,0 +1,251 @@
+
+13-Nov-86 17:38:44
+places that do binding that may need to be fixed.
+The first one we did was bind-fef-offset, but then had to do more in uc-call-return
+  QBSPCL, but:
+
+ones left in UC-CALL-RETURN
+
+CALL-INSTANCE-1                         ;Bind them up
+        ((VMA-START-READ) M-T)          ;Get locative to location to bind
+        (CHECK-PAGE-READ)
+        (DISPATCH TRANSPORT READ-MEMORY-DATA)
+        (JUMP-DATA-TYPE-EQUAL MD (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-FIX)) CALL-INSTANCE-4)
+        ((VMA-START-READ M-B) READ-MEMORY-DATA) ;Get current binding
+        (CHECK-PAGE-READ)
+       ((M-D) ADD M-D (A-CONSTANT 1))   ;Points to next value slot
+        (DISPATCH TRANSPORT-NO-EVCP READ-MEMORY-DATA)
+        ((M-TEM) Q-TYPED-POINTER READ-MEMORY-DATA)
+        (JUMP-EQUAL M-D A-TEM CALL-INSTANCE-2)  ;Already there, avoid re-binding
+        (CALL QBND4-CLOSURE)                    ;Bind it up
+        ((WRITE-MEMORY-DATA-START-WRITE) Q-TYPED-POINTER M-D A-E)
+        (CHECK-PAGE-WRITE-BIND)
+        (gc-write-test) ;850503
+
+
+;M-T has a list of bindings (alternating cell-to-bind and cell-containing-binding).
+;Perform the bindings.  Clobbers M-A, M-B, M-TEM, M-E.
+QCLS1 (declare (args a-t) (clobbers a-a a-b a-tem a-e))
+        (POPJ-EQUAL M-T A-V-NIL)        ;Return if no bindings to do
+        (open-carcdr-xct-next m-t)
+       (no-op)
+        (JUMP-EQUAL M-T A-V-NIL QCLS1-LEXICAL-ENVIRONMENT)
+        (open-carcdr-xct-next m-t)
+;M-B has locn to bind.
+       ((M-B) M-A)
+;M-A has value to bind it to.
+;Normally only M-A's pointer field matters and it is changed to an EVCP below.
+        ((VMA-START-READ) M-B)          ;Get current binding
+        (CHECK-PAGE-READ)
+        ((M-A) DPB M-A Q-POINTER        ;SWITCH DATA TYPE.. (DOING IT THIS WAY AVOIDS PROBLEMS
+                                        ;WITH CAR ABOVE AS WELL AS GENERALLY REDUCING
+                                        ;PROFUSION OF FUNNY DATA TYPES)
+                (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-EXTERNAL-VALUE-CELL-POINTER)))
+        (DISPATCH TRANSPORT-NO-EVCP-READ-WRITE MD)
+        ((M-TEM) Q-TYPED-POINTER MD)
+        (JUMP-EQUAL M-A A-TEM QCLS1)    ;Already there, avoid re-binding.  This saves on
+                                        ;special-pdl overflows in recursive message passing.
+        (CALL QBND4-CLOSURE)            ;Bind it up
+        ((WRITE-MEMORY-DATA-START-WRITE) Q-TYPED-POINTER M-A A-E)
+        (CHECK-PAGE-WRITE-BIND)
+        (gc-write-test) ;850503
+        (JUMP QCLS1)
+
+
+;POP A BINDING (MUSTN'T BASH M-T, M-J, M-R, M-D, M-C, M-A)
+QUNBND  ((M-ZR) A-ZERO)
+BBLKP1  ((VMA-START-READ) A-QLBNDP)             ;Get pntr to bound cell
+        (CHECK-PAGE-READ)
+        ((A-QLBNDP) ADD A-QLBNDP (M-CONSTANT -1))
+        ((A-QLBNDP) ADD A-QLBNDP (M-CONSTANT -1))
+        (DISPATCH TRANSPORT-NO-EVCP READ-MEMORY-DATA)
+        ((M-Q) READ-MEMORY-DATA)
+        ((VMA-START-READ) M+A+1 M-ZERO A-QLBNDP)        ;Previous contents
+        (CHECK-PAGE-READ)
+        (CALL-DATA-TYPE-NOT-EQUAL M-Q (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-LOCATIVE)) ILLOP)
+        (DISPATCH TRANSPORT-NO-EVCP READ-MEMORY-DATA)
+        ((M-B) READ-MEMORY-DATA)
+        ((VMA-START-READ) Q-POINTER M-Q)                        ;Access bound cell
+        (CALL-CONDITIONAL PG-FAULT BBLKP-PG-FAULT)
+        (CHECK-PAGE-READ)                       ;This is only to preserve cdr code.
+        (dispatch transport-no-evcp md)                ;KHS 860602.
+        ((WRITE-MEMORY-DATA-START-WRITE) SELECTIVE-DEPOSIT
+                READ-MEMORY-DATA Q-ALL-BUT-TYPED-POINTER A-B)
+        (CHECK-PAGE-WRITE-BIND)
+        (gc-write-test) ;850503
+BBLKP3  (JUMP-IF-BIT-SET (LISP-BYTE %%SPECPDL-BLOCK-START-FLAG) M-B BBLKP2)     ;Jump if last binding in block
+        (JUMP-NOT-EQUAL M-ZR A-ZERO BBLKP1)     ;Loop if BBLKP
+        (POPJ-IF-BIT-CLEAR-XCT-NEXT M-DEFERRED-SEQUENCE-BREAK-FLAG)     ;Exit if QUNBND
+       ((M-B) (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-FIX)))  ;Dont leave a DTP-E-V-C-P in M-B
+        (JUMP SB-REINSTATE)                     ; (If SB, this might make SG switch bomb).
+
+BBLKP2  ((M-B) (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-FIX))) ;Dont leave a DTP-E-V-P in M-B
+        (POPJ-IF-BIT-CLEAR-XCT-NEXT M-DEFERRED-SEQUENCE-BREAK-FLAG)
+       ((M-QBBFL) DPB M-ZERO A-FLAGS)           ;NO MORE B.B.
+SB-REINSTATE            ;SB deferred.  Take it now?
+        (declare (clobbers m-tem))
+        ((M-TEM) DPB M-ZERO Q-ALL-BUT-TYPED-POINTER A-INHIBIT-SCHEDULING-FLAG)
+        (POPJ-NOT-EQUAL M-TEM A-V-NIL)
+        ((LOCATION-COUNTER) LOCATION-COUNTER)   ;write LC (assuring fetch of PC)
+#+LAMBDA(POPJ-AFTER-NEXT
+          (RG-MODE) ANDCA RG-MODE (A-CONSTANT 1_26.))  ;sense opposite on LAMBDA.
+#+exp   (popj-after-next
+          (mcr) ior mcr (a-constant 1_14.))
+       ((M-DEFERRED-SEQUENCE-BREAK-FLAG) DPB M-ZERO A-FLAGS)
+
+
+in
+
+   (MISC-INST-ENTRY CLOSURE)    ;(CLOSURE <CLOSURE-LIST> <FCTN>)
+XCLOS   ((M-J) Q-TYPED-POINTER PDL-POP)   ;FCTN
+        (CALL-XCT-NEXT XTLENG)
+       ((M-T) Q-TYPED-POINTER PDL-TOP)
+        ((M-B) ADD M-T A-T ALU-CARRY-IN-ONE)    ;TWO CELLS FOR EACH VAR PLUS ONE FOR FCTN
+        ((M-B) Q-POINTER M-B)
+        (CALL-XCT-NEXT LIST-OF-NILS)            ;ALLOCATE CLOSURE OUT OF LIST SPACE
+       ((M-S) DPB M-ZERO Q-ALL-BUT-TYPED-POINTER A-CNSADF)  ;LIST OF NILS SETS UP CDR CODES
+        ((PDL-PUSH)     ;EVENTUAL VALUE
+                Q-POINTER M-T (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-CLOSURE)))
+        ((M-S) Q-POINTER M-T (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-LIST)))
+        (CALL-XCT-NEXT QRAR1)                   ;(RPLACA <CLOSURE-BLOCK> <FCTN>)
+       ((M-T) M-J)                              ;FCTN
+        ((PDL-PUSH) ADD M-T A-ZERO ALU-CARRY-IN-ONE)    ;STEP FILLING POINTER
+XBINS1  ((PDL-BUFFER-INDEX) SUB PDL-BUFFER-POINTER (A-CONSTANT 2))
+        ((M-T) Q-TYPED-POINTER C-PDL-BUFFER-INDEX)
+;0(IP) - POINTER TO BINDING INSTANCE BLOCK BEING FILLED IN
+;-1(IP)- VALUE TO RETURN EVENTUALLY.
+;-2(IP)- LIST OF VARS TO CLOSE OVER.
+XCLOS4  (JUMP-EQUAL M-T A-V-NIL XCLOSX)         ;LIST OF SYMS TO CLOSE IN M-T
+        (open-qcar m-t)
+        (call-data-type-not-equal m-t (a-constant (byte-value q-data-type dtp-symbol)) trap)
+   (ERROR-TABLE ARGTYP SYMBOL M-T NIL)
+        ((M-S) PDL-POP) ;FILLING POINTER  (IN POSITION FOR RPLACA)
+        ((M-T) DPB M-T Q-POINTER
+                (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-LOCATIVE)))
+        (CALL-XCT-NEXT QRAR1)
+       ((M-T PDL-PUSH) ADD M-T A-ZERO ALU-CARRY-IN-ONE)
+                                        ;POINTER TO INTERNAL VALUE CELL
+                                        ;M-T GETS LOCATION FILLED.
+        ((VMA-START-READ) Q-POINTER PDL-POP)    ;READ INTERNAL VALUE CELL
+        (CALL-CONDITIONAL PG-FAULT XCLOS-PG-FAULT)
+        ;(CHECK-PAGE-READ)
+        ((PDL-PUSH) ADD M-T A-ZERO ALU-CARRY-IN-ONE) ;BUMP FILLING POINTER
+        (DISPATCH TRANSPORT-NO-EVCP MD)
+     ;; Jump if already EVCP.
+        (JUMP-DATA-TYPE-EQUAL MD
+                (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-EXTERNAL-VALUE-CELL-POINTER)) XCLOS3A)
+        ((PDL-PUSH) VMA)        ;SAVE POINTER TO INTERNAL VALUE CELL
+        ((PDL-PUSH) MD) ;SAVE INTERNAL VALUE CELL CONTENTS
+        (call-xct-next allocate-list-storage-default)
+       ((m-b) (a-constant 1))
+        ((VMA M-T) Q-POINTER M-T                ;ADDRESS OF NEW EXTERNAL V-C
+                (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-EXTERNAL-VALUE-CELL-POINTER)))
+        ((MD-START-WRITE)
+                DPB PDL-TOP Q-TYPED-POINTER  ;V-C CONTENTS
+                (A-CONSTANT (BYTE-VALUE Q-CDR-CODE CDR-NIL)))
+        (CHECK-PAGE-WRITE)
+        (gc-write-test)                         ;***??
+        ((MD) SELECTIVE-DEPOSIT PDL-POP
+                Q-ALL-BUT-TYPED-POINTER A-T)
+        ((VMA-START-WRITE) PDL-POP)     ;WRITE INTO INTERNAL V-C
+        (CHECK-PAGE-WRITE)
+        (gc-write-test)                         ;***??
+XCLOS3  ((M-T) DPB M-T Q-POINTER       ;TO AVOID PROFUSION OF RANDOM D.T.S.  AVOIDS LOSSAGE
+                (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-LOCATIVE))) ;WITH CAR IN QCLS1
+                                        ;QCLS1 CHANGES BACK TO DTP-EXT-V-C EVENTUALLY
+        (CALL-XCT-NEXT QRAR1)                           ;FORWARDING PNTR IN M-T
+       ((M-S) PDL-POP)                  ;GET BACK FILL POINTER
+        ((PDL-PUSH) ADD M-T A-ZERO ALU-CARRY-IN-ONE)   ;BUMP FILL POINTER
+
+In uc-closure
+
+copy-cdr-coded-list-loop
+     ;Read the old value.  Use transport-no-evcp because this is primarily used
+     ;for copying lexical frames which are full of evcps.  Using this funny
+     ;transport causes them not to be snapped.
+  ((vma-start-read m-s) add m-s (a-constant 1))
+  (check-page-read)
+  (dispatch transport-no-evcp md)
+     ;Write it into the new location.
+  ((vma-start-write m-t) add m-t (a-constant 1))
+  (check-page-write)
+  (gc-write-test)
+     ;Loop until done.
+  (jump-not-equal-xct-next m-b a-zero copy-cdr-coded-list-loop)
+ ((m-b) sub m-b (a-constant 1))
+
+     ;Result goes in M-T.
+  (popj-after-next
+    (m-t) add pdl-pop (a-constant 1))
+ ((m-t) dpb m-t q-pointer (a-constant (byte-value q-data-type dtp-list)))
+
+
+   (macro-ir-decode (qind4-b closure-unshare *))
+CLOSURE-UNSHARE
+     ;Unshare a local variable in all copies (made by
+     ;CLOSURE-DISCONNECT) of this frame's lexical frame.  The address
+     ;field of the instruction is a 9-bit number which is this
+     ;variable's index in the lexical frame.  We do this as follows: It
+     ;is assumed that we have made a copy of the stack-consed lexical
+     ;frame and pushed it onto the list of lexical frame copies.  In the
+     ;list of frame copies, the slots in the frame point with evcps to
+     ;the locals and args of the frame.  In order to unshare a variable,
+     ;we snap the evcp on the first frame in the list and then walk down
+     ;the list and change the evcp's in their slots to point to the copy
+     ;in the first slot.  If we find something already snapped in one of
+     ;the lexical frames on the list, we do not want to share with it,
+     ;so we quit.
+
+     ; This instruction is never used in a frame whose lexical frame is
+     ; T (empty).
+
+     ;Find the list of copies, if it is nil, nothing to unshare.
+  (call find-list-of-lexical-frame-copies)
+  (popj-equal-xct-next c-pdl-buffer-index a-v-nil)
+ ((m-t) c-pdl-buffer-index)
+
+     ;M-B gets the number of the slot.
+  ((m-b) macro-ir-adr)
+
+     ;Read evcp from current lexical frame.
+  ((pdl-index) sub pdl-index (a-constant 1))
+  ((vma-start-read) add c-pdl-buffer-index a-b)
+  (check-page-read)
+  (dispatch transport-no-evcp md)
+
+     ;M-K gets the evcp, M-C gets the value at the end of the evcp.
+  (call-xct-next pdl-fetch)
+ ((vma m-k) q-typed-pointer md)
+; (check-page-read)
+  (dispatch transport md)
+  ((m-c) q-typed-pointer md)
+
+     ;M-1 will hold flag telling if we have unshared once.
+  ((M-1) M-ZERO)
+
+lots more...
+
+uc-lambda-page-fault
+
+PB-TRANS(call-not-equal vma a-lam illop)
+        ((M-TEM) SUB m-lam A-PDL-BUFFER-VIRTUAL-ADDRESS)        ;Minus number of Q's moved
+        ((M-PDL-BUFFER-ACTIVE-QS) SUB M-PDL-BUFFER-ACTIVE-QS A-TEM)     ;Increase this
+        ((A-PDL-BUFFER-VIRTUAL-ADDRESS) m-lam)
+        ((A-PDL-BUFFER-HEAD) PDL-BUFFER-INDEX)
+        ((C-PDL-BUFFER-POINTER-PUSH) A-PDLB-TEM);Save stuff momentarily
+#-exp(begin-comment)
+        ((C-PDL-BUFFER-POINTER-PUSH) MD)
+        ((MD) VMA)                              ;Address the map
+        (no-op)
+        ((vma-write-l2-map-control) M-PGF-TEM)          ;Restore the map
+        ((VMA) MD)                              ;Restore VMA
+        ((MD) C-PDL-BUFFER-POINTER-POP)         ;Restore MD
+#-exp(end-comment)
+  ;This used to be just TRANSPORT.  Changed to allow EVCPs on PDL.  There is some loss of
+  ;error checking (for DTP-NULL, etc) involved in this, so we may eventually want another
+  ;dispatch table.
+        (DISPATCH TRANSPORT-NO-EVCP-FOR-PDL-RELOAD MD)          ;Now invoke the transporter
+        ((A-PDLB-TEM) C-PDL-BUFFER-POINTER-POP) ;Restore A-PDLB-TEM, lost by transporter
+        ((PDL-BUFFER-INDEX) A-PDL-BUFFER-HEAD)
+        (JUMP-XCT-NEXT P-R-0)                   ;Now re-start fast loop for next word
+       ((C-PDL-BUFFER-INDEX) MD)                ;Put the transported datum on the pdl

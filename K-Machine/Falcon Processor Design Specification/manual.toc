@@ -1,0 +1,219 @@
+\chapentry {Introduction}{1}{1}
+\chapentry {Notation Conventions}{2}{2}
+\secentry {Numbers}{2}{1}{2}
+\secentry {Bit Fields}{2}{2}{2}
+\chapentry {Overview of the K Architecture}{3}{3}
+\secentry {History}{3}{1}{3}
+\secentry {Board Set vs. Chip Set}{3}{2}{3}
+\secentry {Processor Board}{3}{3}{3}
+\secentry {Memory Board}{3}{4}{4}
+\majorentry {Processor Board Hardware}{1}{5}
+\chapentry {Timing}{4}{6}
+\secentry {Clocks}{4}{1}{6}
+\secentry {Pipeline}{4}{2}{7}
+\subsecentry {Straight Line Execution}{4}{2}{1}{7}
+\subsecentry {Unconditional Branches and Jumps}{4}{2}{2}{7}
+\subsecentry {Conditional Branches and Jumps}{4}{2}{3}{7}
+\subsecentry {Dispatches}{4}{2}{4}{8}
+\subsecentry {Subroutine Calls}{4}{2}{5}{8}
+\subsecentry {Subroutine Returns}{4}{2}{6}{8}
+\secentry {Functional I/O}{4}{3}{8}
+\subsecentry {Functional Destinations}{4}{3}{1}{9}
+\subsubsecentry {VMA (with and without memory start)}{4}{3}{1}{1}{9}
+\subsubsecentry {RAMs}{4}{3}{1}{2}{9}
+\subsubsecentry {The OPEN-ACTIVE-RETURN Destination}{4}{3}{1}{3}{9}
+\subsecentry {Functional Sources}{4}{3}{2}{10}
+\chapentry {Instruction Set}{5}{11}
+\secentry {Introduction}{5}{1}{11}
+\secentry {Instruction Register (IR)}{5}{2}{11}
+\secentry {Bit Fields}{5}{3}{11}
+\subsecentry {Status Bit (Bit 63)}{5}{3}{1}{11}
+\subsecentry {Instruction Trap Bit (Bit 62)}{5}{3}{2}{12}
+\subsecentry {X-16 Bit (Bit 61)}{5}{3}{3}{12}
+\subsecentry {Opcode (Bits 60 to 58)}{5}{3}{4}{12}
+\subsecentry {Next PC (Bits 57 to 56)}{5}{3}{5}{12}
+\subsecentry {Boxedness of ALU Output (Bits 55 to 54)}{5}{3}{6}{13}
+\subsubsecentry {Register Destinations - Normal Mode}{5}{3}{6}{1}{13}
+\subsubsecentry {Register Destinations - Reload Mode}{5}{3}{6}{2}{13}
+\subsubsecentry {Memory System Destinations}{5}{3}{6}{3}{14}
+\subsecentry {Data Type Check (Bits 53 to 51)}{5}{3}{7}{14}
+\subsecentry {Call Hardware Operation (Bits 50 to 48)}{5}{3}{8}{15}
+\subsecentry {Destination (Bits 47 to 41)}{5}{3}{9}{15}
+\subsecentry {Global Frame Number (Bits 40 to 37)}{5}{3}{10}{15}
+\subsecentry {Jump Condition (Bits 36 to 34)}{5}{3}{11}{16}
+\subsecentry {Byte Width (Bits 33 to 32)}{5}{3}{12}{16}
+\subsubsecentry {ALU Byte Instructions}{5}{3}{12}{1}{16}
+\subsubsecentry {ALU Bit Instructions}{5}{3}{12}{2}{17}
+\subsecentry {Right Source (Bits 31 to 25)}{5}{3}{13}{17}
+\subsecentry {Left Source (Bits 24 to 19)}{5}{3}{14}{18}
+\subsecentry {ALU Opcode (Bits 18 to 12, or 31 to 25)}{5}{3}{15}{18}
+\subsecentry {ALU Shift Field (Bits 10 to 5)}{5}{3}{16}{18}
+\subsecentry {ALU Mask Field (Bits 4 to 0)}{5}{3}{17}{18}
+\subsecentry {Return Destination (Scattered)}{5}{3}{18}{18}
+\secentry {Instructions}{5}{4}{19}
+\subsecentry {ALU Instruction}{5}{4}{1}{19}
+\subsecentry {32-Bit Immediate Instruction}{5}{4}{2}{19}
+\subsecentry {Floating Point ALU Instruction}{5}{4}{3}{20}
+\subsecentry {Floating Point Multiplier Instruction}{5}{4}{4}{20}
+\subsecentry {Conditional Branch Instruction}{5}{4}{5}{20}
+\subsecentry {Call-Z Instruction}{5}{4}{6}{21}
+\subsecentry {Jump Instruction}{5}{4}{7}{21}
+\subsecentry {Call Instruction}{5}{4}{8}{22}
+\subsecentry {Call-Dispatch Instruction}{5}{4}{9}{22}
+\chapentry {Program Counter}{6}{24}
+\secentry {Introduction}{6}{1}{24}
+\secentry {Relation of PC to Virtual Addresses}{6}{2}{24}
+\secentry {Hardware}{6}{3}{24}
+\subsecentry {PC Mux}{6}{3}{1}{24}
+\subsecentry {PC Incrementer (PCINC)}{6}{3}{2}{25}
+\subsecentry {Delayed PC Incrementer}{6}{3}{3}{25}
+\subsecentry {Old PC Registers}{6}{3}{4}{25}
+\chapentry {Register Memory}{7}{26}
+\secentry {Register Frames}{7}{1}{26}
+\secentry {Open, Active, and Return Frame Registers}{7}{2}{26}
+\secentry {Global Registers}{7}{3}{26}
+\secentry {Differences in Chip Set}{7}{4}{27}
+\chapentry {Call Hardware}{8}{28}
+\secentry {Organization}{8}{1}{28}
+\secentry {Registers and Memory}{8}{2}{28}
+\subsecentry {Call Stack}{8}{2}{1}{28}
+\subsubsecentry {Call Stack Pointer (CSP)}{8}{2}{1}{1}{28}
+\subsubsecentry {Call Stack Open RAM}{8}{2}{1}{2}{29}
+\subsubsecentry {Call Stack Active RAM}{8}{2}{1}{3}{29}
+\subsubsecentry {Call Stack Return Destination RAM}{8}{2}{1}{4}{29}
+\subsubsecentry {Call Stack Global Frame Number RAM}{8}{2}{1}{5}{29}
+\subsubsecentry {Call Stack Return PC RAM}{8}{2}{1}{6}{30}
+\subsecentry {Free Frame Heap}{8}{2}{2}{30}
+\subsubsecentry {Heap Pointer (HP)}{8}{2}{2}{1}{31}
+\subsecentry {Open, Active, and Return}{8}{2}{3}{31}
+\subsubsecentry {Open Frame Register (OF)}{8}{2}{3}{1}{31}
+\subsubsecentry {Active Frame Register (AF)}{8}{2}{3}{2}{31}
+\subsubsecentry {Return Frame Register (RF)}{8}{2}{3}{3}{32}
+\secentry {Call Hardware Operations}{8}{3}{32}
+\subsecentry {NO-OP}{8}{3}{1}{32}
+\subsecentry {OPEN}{8}{3}{2}{33}
+\subsecentry {CALL}{8}{3}{3}{33}
+\subsecentry {OPEN-CALL}{8}{3}{4}{33}
+\subsecentry {RETURN}{8}{3}{5}{34}
+\subsubsecentry {RETURN (NORMAL)}{8}{3}{5}{1}{34}
+\subsubsecentry {RETURN-NEW-OPEN}{8}{3}{5}{2}{35}
+\subsubsecentry {RETURN-NEW-TAIL-OPEN}{8}{3}{5}{3}{35}
+\subsecentry {TAIL-OPEN}{8}{3}{6}{35}
+\subsecentry {TAIL-CALL}{8}{3}{7}{36}
+\subsecentry {TAIL-OPEN-CALL}{8}{3}{8}{36}
+\chapentry {Instruction Cache}{9}{37}
+\secentry {Cache Hits}{9}{1}{37}
+\secentry {Cache Misses}{9}{2}{37}
+\chapentry {ALUs}{10}{39}
+\chapentry {Datatype RAM}{11}{40}
+\chapentry {ALU Opcodes}{12}{41}
+\majorentry {Memory Board Hardware}{2}{45}
+\chapentry {Memory Board}{13}{46}
+\secentry {Overview}{13}{1}{46}
+\secentry {Memory Control Register}{13}{2}{46}
+\secentry {Memory Status Register}{13}{3}{47}
+\secentry {Memory Board Hardware}{13}{4}{47}
+\chapentry {Main Memory Access}{14}{49}
+\secentry {Registers}{14}{1}{49}
+\secentry {Reading a Word from Memory}{14}{2}{49}
+\secentry {Writing a Word to Memory}{14}{3}{50}
+\chapentry {Traps}{15}{52}
+\secentry {The Commit Point}{15}{1}{52}
+\secentry {Trap Entry}{15}{2}{52}
+\secentry {Trap State Machine (TSM)}{15}{3}{52}
+\secentry {Trap Entry Sequence}{15}{4}{53}
+\secentry {Normal Trap Exits (Non-modifying)}{15}{5}{54}
+\secentry {Modifying Trap Exits}{15}{6}{54}
+\secentry {Diagnostic Trap Exits}{15}{7}{55}
+\secentry {Trace Trapping}{15}{8}{56}
+\secentry {Trap Vector Table}{15}{9}{56}
+\chapentry {Transporter RAM}{16}{59}
+\secentry {Introduction}{16}{1}{59}
+\secentry {Input Lines}{16}{2}{59}
+\secentry {Address Lines}{16}{3}{59}
+\subsecentry {Boxedness (Bits 11 and 10)}{16}{3}{1}{59}
+\subsecentry {Memory Cycle Type (Bits 9 and 8)}{16}{3}{2}{60}
+\subsecentry {MCR Bits (Bits 7 and 6)}{16}{3}{3}{60}
+\subsecentry {Data Type (Bits 5 to 0)}{16}{3}{4}{60}
+\secentry {Output Lines}{16}{4}{60}
+\subsecentry {Trappable Pointer}{16}{4}{1}{61}
+\subsecentry {Trap if Old}{16}{4}{2}{61}
+\subsecentry {Trap if New}{16}{4}{3}{61}
+\subsecentry {Box Error}{16}{4}{4}{61}
+\secentry {Trap Logic}{16}{5}{61}
+\secentry {Contents of the Transporter RAM}{16}{6}{61}
+\subsecentry {Read Operations}{16}{6}{1}{62}
+\subsecentry {Write Operations}{16}{6}{2}{62}
+\subsecentry {Patterns}{16}{6}{3}{63}
+\secentry {Setting up the Transporter RAM}{16}{7}{63}
+\chapentry {Garbage Collector (GC) RAM}{17}{65}
+\chapentry {Spy Hardware}{18}{66}
+\majorentry {Lisp Software}{3}{67}
+\chapentry {Storage Conventions}{19}{68}
+\secentry {Structure of Data Words}{19}{1}{68}
+\secentry {Tables of Data Types}{19}{2}{68}
+\subsecentry {Visible Data Types}{19}{2}{1}{69}
+\subsecentry {Invisible Data Types}{19}{2}{2}{70}
+\secentry {Numbers}{19}{3}{70}
+\subsecentry {Fixnums}{19}{3}{1}{70}
+\subsecentry {Bignums}{19}{3}{2}{70}
+\subsecentry {Rationals}{19}{3}{3}{71}
+\subsecentry {Complex}{19}{3}{4}{71}
+\subsecentry {Short Floating Point}{19}{3}{5}{72}
+\subsecentry {Single Precision Floating Point}{19}{3}{6}{72}
+\subsecentry {Double Precision Floating Point}{19}{3}{7}{72}
+\secentry {Unboxed Structures}{19}{4}{72}
+\secentry {Characters}{19}{5}{73}
+\secentry {Conses}{19}{6}{73}
+\secentry {Arrays}{19}{7}{73}
+\subsecentry {Array Element Types}{19}{7}{1}{74}
+\subsubsecentry {ART-Q}{19}{7}{1}{1}{74}
+\subsubsecentry {Bit array types}{19}{7}{1}{2}{75}
+\subsubsecentry {Strings}{19}{7}{1}{3}{75}
+\subsubsecentry {Floating point}{19}{7}{1}{4}{75}
+\subsecentry {Format of Array Data}{19}{7}{2}{75}
+\subsecentry {Simple Arrays}{19}{7}{3}{76}
+\subsecentry {Hard Arrays}{19}{7}{4}{76}
+\subsubsecentry {Extension Header Format}{19}{7}{4}{1}{77}
+\subsubsecentry {Fill Pointer}{19}{7}{4}{2}{77}
+\subsubsecentry {Displaced Arrays}{19}{7}{4}{3}{78}
+\subsubsecentry {Leaders}{19}{7}{4}{4}{78}
+\secentry {Compiled Functions}{19}{8}{78}
+\subsecentry {Compiled Function Name}{19}{8}{1}{78}
+\subsecentry {Compiled Function Entry Points}{19}{8}{2}{79}
+\subsecentry {Compiled Function Local Refs}{19}{8}{3}{79}
+\subsecentry {Compiled Function Refs}{19}{8}{4}{79}
+\subsecentry {Compiled Function Length}{19}{8}{5}{79}
+\subsecentry {Compiled Function Code Pointer}{19}{8}{6}{80}
+\subsecentry {Instruction Back Pointer}{19}{8}{7}{80}
+\subsecentry {Changes to Format}{19}{8}{8}{80}
+\secentry {Symbols}{19}{9}{80}
+\subsecentry {Symbol Header}{19}{9}{1}{81}
+\subsecentry {Symbol Value}{19}{9}{2}{81}
+\subsecentry {Symbol Function}{19}{9}{3}{81}
+\subsubsecentry {Unbound}{19}{9}{3}{1}{81}
+\subsubsecentry {Compiled Function}{19}{9}{3}{2}{81}
+\subsubsecentry {Interpreted Function}{19}{9}{3}{3}{81}
+\subsubsecentry {Compiled Macro}{19}{9}{3}{4}{81}
+\subsubsecentry {Interpreted Macro}{19}{9}{3}{5}{82}
+\subsecentry {Symbol Package}{19}{9}{4}{82}
+\subsecentry {Symbol Property List}{19}{9}{5}{82}
+\secentry {NIL}{19}{10}{82}
+\secentry {T}{19}{11}{82}
+\secentry {Defstruct Structure Instances}{19}{12}{82}
+\secentry {Undocumented So Far}{19}{13}{83}
+\chapentry {List of Registers and Signals}{Appendix \char 65}{84}
+\chapentry {Functional I/O}{Appendix \char 66}{85}
+\secentry {Table of Functional Sources}{\char 66}{1}{85}
+\secentry {Table of Functional Destinations}{\char 66}{2}{86}
+\secentry {Functional I/O Encodings}{\char 66}{3}{87}
+\subsecentry {Processor Status Register}{\char 66}{3}{1}{87}
+\subsecentry {Processor Control Register}{\char 66}{3}{2}{87}
+\subsecentry {Memory Status Register}{\char 66}{3}{3}{87}
+\subsecentry {Memory Control Register}{\char 66}{3}{4}{88}
+\subsecentry {GC/Transporter RAM}{\char 66}{3}{5}{89}
+\subsecentry {Trap Register}{\char 66}{3}{6}{89}
+\subsecentry {Memory Map}{\char 66}{3}{7}{90}
+\subsecentry {Call Hardware (Open/Active/Return)}{\char 66}{3}{8}{90}
+\subsecentry {Call Hardware (Return PC, Return Destination)}{\char 66}{3}{9}{91}
+\subsecentry {Call Hardware Pointers (CSP, HP)}{\char 66}{3}{10}{91}

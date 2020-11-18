@@ -1,0 +1,332 @@
+;Reading at top level in Lisp Listener 1.
+;Reading in base 10 in package LAMBDA with standard Zetalisp readtable.
+
+(print-herald)
+LMI Lambda Release 3.0 (Alpha Test), band 4 of moe larry curly.
+1375K physical memory, 17500K virtual memory, NuBus slot 8.
+ System Revision Level      3.31
+ Experimental DOE-Macsyma   1.0
+ Microcode               1524
+LMI Curley, with associated machine MOE.
+
+NIL
+(gc:status)
+The automatic garbage collector is enabled.
+
+There are 7,230,029 words of dynamic space, 544,853 words of static space, and
+7,442,095 words of free space.  Free space consists of 5,275,648 words of unallocated
+storage plus 1/2 of the 4,332,834 words of storage already allocated to specific
+regions but not yet used.
+
+Dynamic space storage distribution:
+
+      Level      Current Size     Threshold      Mode
+        3              76,170        93,883      Flips when size exceeds threshold.
+        2              21,767       234,709      Flips when size exceeds threshold.
+        1             558,764          None      Automatic flipping disabled.
+        0           6,573,328        Passed      Automatic flipping disabled.
+
+(pkg-goto'user)
+#<Package USER 3265334>
+(dotimes (j 5) (result-garbage-batch (make-garbage-batch 1)))
+Summary for 10 processes, each consing 1\10 megawords, 1 megawords total.
+Elapsed (non-sleep) time:
+Average: 1.519999999
+ Median: 1.141666666
+Minimum: 0.6333333333
+Maximum: 3.416666666
+Sum: 15.199999996
+Sleep time:
+Average: 5.16166667
+ Median: 4.799999997
+Minimum: 3.983333332
+Maximum: 6.4
+Sum: 51.6166667
+Summary for 10 processes, each consing 1\10 megawords, 1 megawords total.
+Elapsed (non-sleep) time:
+Average: 0.7016666667
+ Median: 0.6499999994
+Minimum: 0.4833333334
+Maximum: 1.233333333
+Sum: 7.016666666
+Sleep time:
+Average: 4.406666666
+ Median: 3.858333334
+Minimum: 3.116666667
+Maximum: 9.45
+Sum: 44.0666667
+Summary for 10 processes, each consing 1\10 megawords, 1 megawords total.
+Elapsed (non-sleep) time:
+Average: 1.458333333
+ Median: 0.8583333334
+Minimum: 0.5833333335
+Maximum: 4.116666667
+Sum: 14.583333336
+Sleep time:
+Average: 5.05833333
+ Median: 4.03333333
+Minimum: 3.433333334
+Maximum: 11.25
+Sum: 50.5833333
+Summary for 10 processes, each consing 1\10 megawords, 1 megawords total.
+Elapsed (non-sleep) time:
+Average: 0.8266666667
+ Median: 0.666666666
+Minimum: 0.4833333334
+Maximum: 1.933333334
+Sum: 8.266666666
+Sleep time:
+Average: 4.92833333
+ Median: 4.84166667
+Minimum: 3.766666668
+Maximum: 8.166666664
+Sum: 49.28333333
+Summary for 10 processes, each consing 1\10 megawords, 1 megawords total.
+Elapsed (non-sleep) time:
+Average: 0.6316666664
+ Median: 0.5583333336
+Minimum: 0.5
+Maximum: 1.05
+Sum: 6.316666666
+Sleep time:
+Average: 3.794999998
+ Median: 3.566666666
+Minimum: 3.216666667
+Maximum: 5.3
+Sum: 37.95
+
+NIL
+(dotimes (j 5) (result-garbage-batch (make-garbage-batch 2)))
+Summary for 10 processes, each consing 1\5 megawords, 2 megawords total.
+Elapsed (non-sleep) time:
+Average: 2.481666666
+ Median: 1.458333334
+Minimum: 1.083333333
+Maximum: 9.233333334
+Sum: 24.81666666
+Sleep time:
+Average: 8.815
+ Median: 8.96666667
+Minimum: 6.416666668
+Maximum: 10.166666664
+Sum: 88.15000004
+Summary for 10 processes, each consing 1\5 megawords, 2 megawords total.
+Elapsed (non-sleep) time:
+Average: 1.351666667
+ Median: 1.275
+Minimum: 1.1
+Maximum: 1.966666667
+Sum: 13.516666666
+Sleep time:
+Average: 9.23833333
+ Median: 9.358333334
+Minimum: 8.233333334
+Maximum: 10.53333333
+Sum: 92.3833333
+Summary for 10 processes, each consing 1\5 megawords, 2 megawords total.
+Elapsed (non-sleep) time:
+Average: 1.943333333
+ Median: 1.666666666
+Minimum: 1.166666667
+Maximum: 4.383333333
+Sum: 19.43333334
+Sleep time:
+Average: 11.58999999
+ Median: 10.91666667
+Minimum: 7.966666665
+Maximum: 19.71666667
+Sum: 115.8999999
+Summary for 10 processes, each consing 1\5 megawords, 2 megawords total.
+Elapsed (non-sleep) time:
+Average: 1.643333334
+ Median: 1.291666666
+Minimum: 1.066666666
+Maximum: 4.116666667
+Sum: 16.43333334
+Sleep time:
+Average: 9.089999996
+ Median: 8.44166666
+Minimum: 6.516666666
+Maximum: 15.95
+Sum: 90.90000004
+Summary for 10 processes, each consing 1\5 megawords, 2 megawords total.
+Elapsed (non-sleep) time:
+Average: 4.071666665
+ Median: 3.341666665
+Minimum: 2.266666668
+Maximum: 8.483333334
+Sum: 40.71666664
+Sleep time:
+Average: 21.85499999
+ Median: 21.15833333
+Minimum: 17.68333334
+Maximum: 27.8
+Sum: 218.5500001
+
+NIL
+(dotimes (j 5) (result-garbage-batch (make-garbage-batch 5)))
+Summary for 10 processes, each consing 1\2 megawords, 5 megawords total.
+Elapsed (non-sleep) time:
+Average: 32.53999996
+ Median: 35.10833335
+Minimum: 11.416666664
+Maximum: 46.56666666
+Sum: 325.3999999
+Sleep time:
+Average: 78.075
+ Median: 69.3166666
+Minimum: 58.36666667
+Maximum: 125.05
+Sum: 780.75
+Summary for 10 processes, each consing 1\2 megawords, 5 megawords total.
+Elapsed (non-sleep) time:
+Average: 5.846666664
+ Median: 5.225
+Minimum: 3.783333333
+Maximum: 9.45
+Sum: 58.46666664
+Sleep time:
+Average: 32.28666663
+ Median: 30.24166667
+Minimum: 25.38333334
+Maximum: 42.23333332
+Sum: 322.8666666
+Summary for 10 processes, each consing 1\2 megawords, 5 megawords total.
+Elapsed (non-sleep) time:
+Average: 6.08833333
+ Median: 7.416666664
+Minimum: 3.65
+Maximum: 7.766666666
+Sum: 60.88333333
+Sleep time:
+Average: 27.43666668
+ Median: 24.53333333
+Minimum: 19.71666667
+Maximum: 38.76666668
+Sum: 274.3666668
+Summary for 10 processes, each consing 1\2 megawords, 5 megawords total.
+Elapsed (non-sleep) time:
+Average: 4.809999995
+ Median: 4.09166667
+Minimum: 2.75
+Maximum: 8.86666667
+Sum: 48.1
+Sleep time:
+Average: 27.71833332
+ Median: 27.24166667
+Minimum: 21.66666667
+Maximum: 38.08333334
+Sum: 277.1833332
+Summary for 10 processes, each consing 1\2 megawords, 5 megawords total.
+Elapsed (non-sleep) time:
+Average: 15.20166667
+ Median: 13.86666666
+Minimum: 5.866666667
+Maximum: 27.2
+Sum: 152.0166667
+Sleep time:
+Average: 45.11999997
+ Median: 37.68333334
+Minimum: 26.91666667
+Maximum: 77.3833333
+Sum: 451.1999998
+
+NIL
+(dotimes (j 5) (result-garbage-batch (make-garbage-batch 10)))
+Summary for 10 processes, each consing 1 megawords, 10 megawords total.
+Elapsed (non-sleep) time:
+Average: 24.95333333
+ Median: 23.69999999
+Minimum: 8.733333334
+Maximum: 41.58333334
+Sum: 249.5333333
+Sleep time:
+Average: 96.1166667
+ Median: 93.1916667
+Minimum: 68.51666665
+Maximum: 131.2
+Sum: 961.166667
+Summary for 10 processes, each consing 1 megawords, 10 megawords total.
+Elapsed (non-sleep) time:
+Average: 12.22499999
+ Median: 12.02499999
+Minimum: 7.433333334
+Maximum: 18.5
+Sum: 122.24999994
+Sleep time:
+Average: 81.14
+ Median: 74.7583333
+Minimum: 63.5
+Maximum: 109.65
+Sum: 811.4
+Summary for 10 processes, each consing 1 megawords, 10 megawords total.
+Elapsed (non-sleep) time:
+Average: 109.6966666
+ Median: 113.5749999
+Minimum: 28.93333334
+Maximum: 181.8333334
+Sum: 1096.966666
+Sleep time:
+Average: 214.5449998
+ Median: 208.075
+Minimum: 144.6166667
+Maximum: 317.9
+Sum: 2145.449999
+Summary for 10 processes, each consing 1 megawords, 10 megawords total.
+Elapsed (non-sleep) time:
+Average: 43.40333334
+ Median: 38.86666667
+Minimum: 24.43333334
+Maximum: 73.6666667
+Sum: 434.0333335
+Sleep time:
+Average: 136.0533333
+ Median: 124.225
+Minimum: 96.43333334
+Maximum: 197.3833333
+Sum: 1360.533333
+Summary for 10 processes, each consing 1 megawords, 10 megawords total.
+Elapsed (non-sleep) time:
+Average: 46.715
+ Median: 43.48333335
+Minimum: 26.41666667
+Maximum: 76.9166667
+Sum: 467.15
+Sleep time:
+Average: 140.1433332
+ Median: 129.1333334
+Minimum: 99.5833333
+Maximum: 187.55
+Sum: 1401.433332
+
+NIL
+(gc:print-statistics)
+                                Total:      Level 0:    Level 1:    Level 2:    Level 3:
+Flips:                          310         0           0           229         81
+Words condemned:                114,678,217 0           0           101,351,110 13,327,107
+Words reclaimed:                111,669,150 0           0           99,286,559  12,382,591
+Reclamation ratio:              97.4%       0.0%        0.0%        98.0%       92.9%
+Transporter CPU time:           90.5        0.0         0.0         48.1        42.4
+Transporter disk time:          4.3         0.0         0.0         4.0         0.3
+Scavenger CPU time:             45.4        0.0         0.0         34.6        10.8
+Scavenger disk time:            8.2         0.0         0.0         8.0         0.2
+Cost per word reclaimed:        1.3         NIL         NIL         1.0         4.3
+Active processor utilization:   28.6%       0.0%        0.0%        27.9%       29.9%
+Total processor utilization:    1.8%        0.0%        0.0%        1.2%        0.7%
+(gc:status)
+The automatic garbage collector is enabled.
+
+There are 7,341,962 words of dynamic space, 544,853 words of static space, and
+7,255,056 words of free space.  Free space consists of 5,013,504 words of unallocated
+storage plus 1/2 of the 4,483,044 words of storage already allocated to specific
+regions but not yet used.
+
+Dynamic space storage distribution:
+
+      Level      Current Size     Threshold      Mode
+        3              72,486        93,883      Flips when size exceeds threshold.
+        2               2,346       234,709      Flips when size exceeds threshold.
+        1             693,786          None      Automatic flipping disabled.
+        0           6,573,344        Passed      Automatic flipping disabled.
+
+(dribble)

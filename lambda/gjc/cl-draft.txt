@@ -1,0 +1,45 @@
+To: mitccc!common-lisp%su-ai%mc@cap
+Subject: lisp listings
+
+I'll send this directly to the whole mailing list to give
+people a chance to point out anything I've left out.
+Here are two listings:
+
+(1) MIT-LISPMACHINE SYSTEM, or MIT-ZETALISP, MIT-SYSTEM 99
+(2) implemented at MIT AI LAB
+(3) MIT-CADR, LMI-CADR, SYMBOLICS-LM2
+(4) now
+(5) full
+(6) in fact a couple numerical functions such as complex ACOS seem to be missing.
+(7) no commercial support.
+(8) Systemic: Flavors, ZMACS editor, chaosnet protocols on chaos or ethernet hardware.
+    File-System.
+    Applications: check through the AI LAB memos.
+
+(1) ZETALISP-PLUS(tm)
+(2) Lisp Machine Inc.
+(3) LMI-LAMBDA(tm), LMI-LAMBDA-E(tm), TI-EXPLORER(tm).
+(4) now.
+(5) full.
+(7) Lisp Machine Inc
+    6 Tech Drive
+    Andover MA 01810
+    671-689-3554, or 1-800-USA-LISP for customer service.
+(8)  Systemic: Flavors, ZMACS editor, chaosnet and tcp-ip protocols on ethernet hardware.
+     File-System. ObjectLisp(tm) alternative object oriented programming system.
+     Applications:
+     PICON(tm) Industrial Process Control System.
+     DOE-MACSYMA, symbolic algebra system.
+     VISTA(tm) 3-D generic graphics system and window-system extensions
+     implemented in ObjectLisp(tm).
+     KEE(tm), ART(tm).
+
+
+The applications are of course mainly in the Zetalisp we all know and
+loved, so even though one could come up with an impressively long list
+of lispmachine software applications that could be misleading, in that
+that not all those applications were in fact in "Common-Lisp." The
+ObjectLisp(tm) package is the closest (Objectlisp(tm) uses LOOP at this time)
+to being common lisp, running on the Symbolics, LMI, and MIT VAX-NIL
+implementations.
+

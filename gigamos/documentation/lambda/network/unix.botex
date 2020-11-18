@@ -1,0 +1,268 @@
+@appendix Unix Communications
+@label appendix-unix
+
+@section Lambda-Plus Unix Networking Architecture
+
+@cindex[Lambda-Plus]
+The Lambda-Plus System 5 Unix software includes an implementation of Chaosnet.
+Normally, Lambda-Plus Unix uses a connected LISP processor as a front-end Chaosnet server.
+However, it is possible for Unix to control the 3COM hardware interface,
+and thus access the physical network directly;
+but this is not recommended, since it prevents the LISP processor(s)
+from using the 3COM.
+
+The Unix utilities @l(hostat)@findex[hostat][Unix]
+and @l(cftp)@findex[cftp]
+(Chaosnet File Transfer Program)
+provide functionality similar to their LISP program counterparts.
+
+@cindex[Unix access to TCP/IP]@csubindex[TCP][from Unix]
+Note that Lambda-Plus Unix
+does not support the Excelan interface,
+and does not provide any TCP/IP access.
+However, there is a way for Lambda-Plus Unix hosts to access TCP/IP indirectly,
+using the front-end service of a Lambda LISP host.
+A user can run @l(cftp) to
+issue file transfer requests to a remote Chaosnet host,
+specifying a remote TCP pathname,
+and the remote Chaosnet host will forward the file via Chaosnet.
+See below for an example.
+
+@need 1200
+@section Unix Chaosnet Configuration
+
+The process of reconfiguring Chaosnet on a Lambda-Plus Unix  host
+is documented in the @i(Release 3.0 Lambda Operations Manual).
+This section is intended to provide additional background material.
+
+@need 1200
+@subsection Unix Chaosnet Startup
+
+The file @l("/etc/inittab") distributed with System 5
+defines multi-user initializations for Chaosnet, as follows:
+
+@display
+chi1::sysinit:/etc/chinit >/dev/syscon 2>&1
+chi2::sysinit:/etc/chserver >/dev/null 2>&1
+@end(display)
+
+These may be commented out, or the desired run-level for Chaosnet may be established
+(for example, @l("chi1:2a:...") would initialize Chaosnet when going to run-level 2,
+which is the recommended run-level).
+
+The startup script @l(/etc/rc2) distributed with System 5
+also makes a provision for initializing Chaosnet.
+It includes the following commands:
+
+@lisp
+# start the CHAOSnet server, if it's not already running...
+if grep " chserver$" <$ps >/dev/null 2>&1; then :; else
+        /etc/chserver >/dev/null 2>&1; echo "chserver \c"
+fi
+@end(lisp)
+
+Thus when Unix is booted multi-user,
+the @l(chserver) server program will
+enable file transfer, inter-processor communications, and other Chaosnet services.
+
+It may be necessary to reset Chaosnet and re-initialize the server programs
+if, for example, the host table has been modified.
+The following script is not provided with System 5, but it can
+be created and run to reset Chaosnet:
+
+@lisp
+#!/bin/sh
+## /etc/chreset
+### Reset Chaosnet
+
+# Read in process status info
+
+ps=/tmp/chreset-ps
+ps -e | grep " chserver$" >$ps
+
+# kill the Chaosnet server, if it's running...
+
+if grep " chserver$" <$ps >/dev/null 2>&1; then
+        (awk '{print "kill ",$1}' <$ps ) | tee | sh
+else
+        echo "Chaos servers not running."
+fi
+
+sleep 5
+
+ps -e | grep " chserver$" >$ps
+if grep " chserver$" <$ps >/dev/null 2>&1; then
+        echo "Chaos servers refused to die."
+else
+        /etc/chinit; echo "chinit \c"
+        /etc/chserver >/dev/null 2>&1; echo "chserver \c"
+        echo "\n Chaosnet reset `date` \n"
+fi
+
+rm $ps
+@end(lisp)
+
+@subsection Allocating the Ethernet Interface
+
+As noted previously, normal Chaosnet operations involve a connected LISP processor
+acting as an intermediary or front-end server.
+But if a 3COM Ethernet board is available when Unix boots,
+the Lambda-Plus processor will allocate it directly.
+
+Unix can also allocate the 3COM on request;
+this may be necessary, for example, if
+the LISP processor is shut down for an extended time.
+Device allocation is controlled with the utility program @l(/etc/ck), which displays or modifies
+the status of devices shared between LISP and Unix processors.
+
+For example, the command @l(/etc/ck -a) displays the status of each shared device.
+The device ``Ethernet'' refers to the 3COM board, which is normally listed as
+``owned by lambda in slot 0''.
+
+The command @l(/etc/ck -f ethernet) @i(frees) the 3COM board for use by
+another processor.
+
+The command @l(/etc/ck -t ethernet)  @i(steals) the 3COM board away from its owner
+so that Unix may allocate it.
+At this point, resetting the Chaosnet software (see above) will cause Chaosnet to use the hardware
+directly, thus accessing remote Chaosnet hosts on the physical network.
+
+The correct procedure to pass the 3COM board from LISP to Unix is as follows:
+
+@lisp
+@t(In LISP -)
+
+ (setq si:dont-use-3com t)
+ (si:set-processor-owning-ethernet :give-up :3com)
+ (net:configure)
+
+@t(In Unix -)
+ /etc/ck -t ethernet
+@end(lisp)
+
+@b(Warning:) this should never be done when a LISP processor is
+operating with the 3COM interface.
+
+@need 1200
+@section Unix Networking Operations
+
+The information in this section is taken from manual pages in the Unix documentation set.
+
+@subsection Hostat
+@label[section-hostat]
+
+Synopsis:
+
+@lisp
+hostat [ hosts ]
+@end(lisp)
+
+Description:
+
+Hostat reports on the  status of Chaosnet hosts.  Zero or
+more host names may be supplied on the command line.  If no
+host names are supplied, all hosts present in the binary
+host-table @l(/etc/hostbin) are polled for status.
+
+The following items are reported (numbers are
+decimal unless indicated otherwise): hostname, octal host
+address, octal subnet number, number of packets received and
+transmitted, number of packets aborted and lost, number of
+packets having invalid checksums, number of packets having
+an invalid length, and number of packets rejected for lack
+of system buffer space.
+
+If a host does not respond within a timeout period (about 15
+seconds), hostat skips it and goes on to the next host.  The
+user may cause a host to be skipped before the timeout
+period expires by typing the interrupt character on the
+terminal.  Two interrupt characters typed in rapid
+succession will abort hostat entirely.
+
+Example:
+
+@smalllisp
+% hostat it
+LMI-COUSIN-IT (03741): Cousin It
+subnet rcvd       xmtd       abrt    lost    crc1    crc2    leng    rej
+7      224615     228555     33      0       0       0       0       0
+%
+@end(smalllisp)
+
+@subsection CFTP - Chaosnet File Transfer Program
+@label[section-cftp]
+
+The Unix @l(cftp) program provides functionality analogous to the TCP/FTP
+command @see[ftp:ftp][fun].
+This is the only standard method in Unix for copying, for example, files from a Lambda LISP system
+into a Unix file system.
+(In LISP, many methods for copying LISP files over to a Unix system are
+available: @l(fs:copy-file), ZMacs, etc.)
+
+The procedure for using @l(cftp) involves opening a connection to a remote Chaosnet host
+and sending it file transfer and/or status requests.
+The remote host normally parses the pathnames it receives with respect to its own
+parsing schemes.
+This provides one useful feature: a Unix user can transfer files from remote TCP hosts
+via a Chaosnet host.
+
+For example, if the connected LISP machine host is @l(MYHOST), and there is a
+remote TCP/IP VAX host @l(MY-VAX), the following procedure could be used to transfer
+a file from the VAX to the local Unix host:
+
+@lisp
+% @i(cftp myhost)
+cftp>@i(get my-vax:[keith]login.com)
+Login ID: @i(keith)
+Password:
+To local file: @i(/tmp/login.com)
+OPEN 25 05/07/88 11:52:00 1536 NIL
+VAX:USER_DISK:[USERS.KEITH]LOGIN.COM;25
+
+1213 bytes in 1 seconds = 1.18457 Kbits per second
+cftp>@i(quit)
+%
+@end(lisp)
+
+To review the documentation on each command, execute @l(man cftp).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end unix

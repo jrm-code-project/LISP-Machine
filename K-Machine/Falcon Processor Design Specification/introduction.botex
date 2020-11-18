@@ -1,0 +1,29 @@
+@c introduction.botex
+@c
+@c James Rauen, 10-May-88
+
+@chapter Introduction
+
+This is a preliminary draft of the K processor technical manual.  It is
+intended to describe the K processor from a system software programmer's
+perspective.  It does not dwell on details of the various hardware
+implementations.
+
+For a full hardware specification of the processor, consult the
+@i[Falcon Processor Design Specification] by Kent Hoult and the actual
+board and chip schematics.
+
+Please observe that any documentation or information about the K
+processor (including this manual) is proprietary information belonging
+to GigaMos Systems, Inc.
+
+@c If there are any questions or suggestions regarding this manual, I can
+@c be contacted at GSI Cambridge, (617) 876-6819.  After June 1, 1988, I
+@c can be contacted at Xerox PARC, (415) 494-4000.
+
+@format
+James Rauen
+Consultant
+GigaMos Systems, Inc.
+@end format
+

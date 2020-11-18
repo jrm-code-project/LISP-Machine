@@ -1,0 +1,87 @@
+Babyl Options:
+Version:5
+Append:1
+
+0,,
+*** EOOH ***
+Date: Tuesday, 14 June 1988, 15:44-EDT
+From: Steve Haflich <smh@GSI-CAM>
+Subject: new distribution list
+To: bug-falcon-compiler@GSI-CAM
+Message-ID: <[GSI-ALEX].14-Jun-88 15:44:11.smh>
+
+There is a new mail distribution list for bug reports (etc.)
+about the Falcon compiler:  bug-falcon-compiler
+
+You,
+
+0,,
+*** EOOH ***
+Date: Thursday, 16 June 1988, 11:00-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: How to add the destination for Falcon "bug" mail to ZMail
+To: BUG-LISPM@GSI-CAM, bug-falcon@gsi-cam
+Message-ID: <[GSI-GLASS].16-Jun-88 11:00:48.keith>
+
+In LMI Experimental System 124.61, Experimental Local-File 74.2,
+Experimental File-Server 23.1, Experimental Unix-Interface 12.0,
+Experimental ZMail 72.0, Experimental Tape 23.6,
+Experimental Lambda-Diag 16.2, microcode 1759, SDU Boot Tape 3.14,
+SDU ROM 103, on Breaking Glass (LAMBDA):
+
+You can add new, non-standard bug mailing list names to ZMail.  For
+example, to add the destination for Falcon "bug" mail, I do this in my
+ZMAIL.INIT file:
+
+
+(pushnew '("FALCON"
+            :value "FALCON"
+            :documentation "Report an issue for the Falcon development group")
+         zwei:*zmail-bug-list*
+         :key #'car
+         :test #'string-equal)
+
+This adds "FALCON" as a choice on the bug mail destination list in
+ZMail.  Other BUG-FALCON users may want to do the same.
+
+ -Keith
+
+
+
+
+0,,
+*** EOOH ***
+Date: Friday, 4 November 1988, 15:39-EST
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: State of log files
+To: TECHNICAL-STAFF@GSI-CAM
+CC: INFO-LISPM@GSI-CAM, INFO-FALCON@GSI-CAM
+In-reply-to: <[GSI-DEATH].4-Nov-88 11:52:09.wkf>
+Message-ID: <[GSI-AMADEUS].4-Nov-88 15:39:31.saz>
+
+In response to a query from one of our readers, we poked around in
+/usr/lib/aliases to see which mailing lists point to "log" files
+and which do not.  The following list summarizes our findings:
+
+MAILING-LIST            LOG FILE STATUS
+---------------------------------------------------------
+info-falcon:            (none)
+bug-falcon:             kept in /lmi/bugs/bug-falcon
+bug-falcon-compiler:    kept in /lmi/bugs/bug-falcon-compiler
+bug-fleabit-compiler:   kept in /lmi/bugs/bug-falcon-compiler
+
+info-lispm              (none)
+bug-lispm:              kept in /lmi/bugs/bug-lispm
+doc-changes:            kept in /lmi/doc/mail/doc-changes
+technical-staff:        kept in /lmi/doc/technical-staff
+---------------------------------------------------------
+
+Our experts tell us that the "info-" style lists are
+not archived intentionally, for reasons of disk space
+conservation.
+
+Saz
+
+
+
+

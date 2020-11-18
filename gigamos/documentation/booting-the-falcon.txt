@@ -1,0 +1,102 @@
+-*- Mode:Text -*-
+
+;;; BOOTING THE FALCON FROM A LAMBDA
+
+;;; NB: The expressions "Falcon" and "K" are still reasonably
+;;; interchangeable.
+
+;;; First, find a working FALCON band (one whose partition
+;;; comment includes the word "KCOLD") or else evaluate the
+;;; following form:
+
+(make-system 'falcon :noconfirm)
+ :
+ :
+ :
+
+;;; Once the Falcon system has been made on your machine,
+;;; evaluate the form:
+
+(update-k-system)
+ :
+ :
+ :
+
+;;; Next we cal LAM:K-LOCAL-SETUP with the number of the slot
+;;; which has been allocated to the Falcon Memory board.  We
+;;; obtain this number by visiting the machine room and counting
+;;; slots from the right of our machine's backplane, until we
+;;; come to the double-boarded Falcon slot pair.  One of the two
+;;; boards is the Falcon Processor board; the other is the K
+;;; Memory board.  The Falcon Memory board has two distinguish-
+;;; ing characteristics: 1) It has a number of SIMS (memory
+;;; chips) protruding from its right side, and 2) the slot to
+;;; its right is empty, to make room for the protruding SIMS.
+
+;;; If evaluation of this form returns anything other than the
+;;; fixnum 2, something is out of order.  Seek human assistance.
+
+(lam:k-local-setup 13)
+2
+
+
+;;; This step initializes the Falcon and leaves it running
+;;; in a debugger loop.
+
+(k-kbug:mega-boot)
+ :
+ :
+ :
+n = 57 physical = 15 virtual = 32768
+Mapping 8000 to F
+Mapping 8001 to 10
+Mapping 8002 to 11
+Mapping 8003 to 12
+ :
+ :
+ :
+Mapping 8037 to 46
+Mapping 8038 to 47
+Physical memory (megabyte) bit-map = 1111
+
+Falcon stopped, PC=#x22C0
+
+Cold load finished!
+ you're not going to see the countdown ..
+
+ Begining Hot files.
+
+ :
+ :
+ :
+
+;;; The line printed out at this point is the currently
+;;; executing instruction in the Falcon debugger loop; this serves
+;;; as an indication that the Falcon is now ready to accept
+;;; debugger commands.
+
+LI:WARM-BOOT-COMPLETE+#x6       (UNCONDITIONAL-BRANCH LI:WARM-BOOT-COMPLETE+#x6  (DA4A) (ALU PASS-STATUS NOP R0 R0) UNBOXED BOXED-MD UNBOXED-VMA DT-NONE)
+
+;;; Once having reached this debugger loop, the booting process
+;;; is complete.  Once you have reached the debugger, you can
+;;; press the [Help] key to obtain a listing of the available
+;;; commands for controlling the Falcon.  The end of each Falcon
+;;; command is identifiable by the printing of the microcode
+;;; instruction, like the one above.
+
+[Help]
+
+You are typing at the K debugger MARK-II.
+
+ABORT to exit.
+SPACE to single-step.
+C-P   to proceed K, remaning in debugger.
+C-F   to view register-frames.
+C-M-F to view register-frames with datatypes and values.
+C-L   to clear-screen.
+C-Z   to stop machine.
+M-S   to display the K call stack
+M-F   to flush the K call stack
+M-R   to run a read-eval-print loop on the K
+M-L   to run mini-lisp-listener on the K
+M-E   to display an error message

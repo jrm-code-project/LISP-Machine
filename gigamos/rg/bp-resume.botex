@@ -1,0 +1,91 @@
+@subsubheading Richard David Greenblatt
+
+@b(PROFESSIONAL EXPERIENCE)
+
+  Richard D. Greenblatt is a recognized pioneer in Artificial
+Intelligence. He has been President of GigaMOS Systems Inc.
+since its founding in June, 1987.   Previous to that he
+served as Vice president and Technical Director
+of Lisp Machine Inc. since its founding in 1980.  Prior to that,
+he was a Principal Research Scientist working at the
+Artificial Intelligence Laboratory at the Massachusetts
+Institute of Technology, having been a principle figure at
+the lab during the period 1966 to 1981.
+
+  Mr Greenblatt has originated and carried forward a number of
+notable projects including the following:
+
+  The Moby Address Scheme, which allows the implementation of
+extraordinarily large address spaces, and underlies a set of
+solutions to a wide variety of management problems for very
+large databases.  This scheme is the subject of a currently
+pending patent application.
+
+  Designer of the Lambda processor.   Extensive responsibility
+supervising design and implementation of hardware and software.
+
+  Originator and head  of LISP Machine project at the MIT AI Lab.
+Started project in 1973 and was the only person working on it for
+a year thereafter.
+
+  Author of the Greenblatt chess program.  This was the first computer
+chess program to achieve a level of play beyond that of a rank
+beginner.  It was the first chess program to play in a human
+tournament and the first to win a tournament chess game.  This program
+beat Hubert Dryfus, a prominent critic of AI, in a publicized chess
+game in 1967.
+
+Some other projects with which he as been associated include the
+following, in chronological order, starting with work initiated in the
+1960s:
+
+  The MIDAS Symbolic Assembler.  He designed and implemented the MIDAS
+symbolic assembler for the PDP-10.
+
+  PDP-6 TECO.  He was an implementor of the original PDP-6 TECO editor.
+This system has been developed by others into the EMACS editor which is
+currently in use in the Artificial Intelligence Laboratory, the
+Laboratory for Computer Science (LCS) and in many other sites.
+
+  The ITS Timesharing System. He was a principle author of the
+timesharing system that formed the nucleus of the computational
+facilities for the Artificial Intelligence Laboratory and the Laboratory
+for Computer Science during the period 1966 to 1982.  It is still in use
+at the lab today.
+
+  The PDP-10 MACLISP System.  He was co-author of the original PDP-10
+MACLISP compiler, which pioneered many new techniques in LISP compilers.
+
+   The CHEOPS Chess Processor.  He supervised the design and
+construction of the CHEOPS special-purpose chess processor, which can
+examine more than 100,000 chess positions per second.  He wrote all the
+software for CHEOPS, including the microassembler and debugger as well
+as the actual chess-playing software itself.
+
+   The Convolution Box.  He wrote the initial software for the
+convolution box, a special-purpose attachment to the LISP
+Machine for performing the convolution of images used in
+computer vision research.  This was the earliest special purpose
+hardware used by Marr's vision group at MIT.
+
+   Principal consultant to the LOGO project at the MIT Artificial Intelligence
+Labortory during the late sixties and early seventies.  This project was headed
+by Seymour Papert and developed the LOGO computer language for elementary school
+children, which is widely available today.
+
+@b(CURRENT RESEARCH)
+
+   Mr. Greenblatt has active research interests in a number of areas.
+His active projects include a semantic memory and concept forming
+system, and system for learning coordination of multiple joints in a
+computer controlled robotic system.
+
+@b(PERSONAL)
+
+     Richard D. Greenblatt, born December 25, 1944, graduated from
+Hickman High School in Columbia, Missouri, in 1962.  He attended the
+Massachusetts Institute of Technology as an undergraduate from September
+1962 to December 1965 and from December 1966 to June 1967.
+Subsequently, he was admitted as a graduate student, and attended from
+January 1970 to June 1971.  He did not, however, receive any degrees,
+choosing instead to concentrate on his research.

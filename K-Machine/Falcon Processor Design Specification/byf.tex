@@ -1,0 +1,62 @@
+% byf.tex/byf1.lib
+% superset of kdoc.lib
+
+
+% Macros for displaying fragmentized machine words
+%
+% Accumulates the "boxes" in box register 10; accumulates the
+% bit numbers in box register 11.  Box register 12 is used as
+% a temporary.
+
+\font\bitnumfont=cmr7
+\def\startbyf{
+  \setbox10=\hbox{\vrule height12pt depth4pt}
+  \setbox11=\hbox{}
+  }
+\def\byf#1#2#3{
+  \dimen10=#1pt
+  \dimen11=#2pt
+  \advance\dimen10 by -\dimen11
+  \advance\dimen10 by 1pt
+  \multiply\dimen10 by 12
+%  \showthe\dimen10
+  \setbox12=\hbox to \dimen10{\hfil{#3}\hfil}
+  \setbox10=\hbox{\box10\vrule\box12}
+  \setbox12=\hbox to \dimen10{\bitnumfont\kern1pt{#1}\hfil{#2}\kern1pt}
+  \setbox11=\hbox{\box11\kern0.4pt\box12}
+  }
+\def\bif#1#2{
+  \setbox12=\hbox to 12pt{\hfil{#2}\hfil}
+  \setbox10=\hbox{\box10\vrule\box12}
+  \setbox12=\hbox to 12pt{\bitnumfont\hfil{#1}\hfil}
+  \setbox11=\hbox{\box11\box12}
+  }
+\def\endbyf{
+  \setbox10=\hbox{\box10\vrule}
+  \setbox11=\hbox{\box11\kern0.4pt}
+  \setbox10=\vbox{\hrule\box10\hrule}
+  }
+\def\byfbox{
+  \copy10
+  }
+\def\byfnumbers{
+  \copy11
+  }
+
+% \startbyf
+% \bif{32}    {1}
+% \byf{31}{26}{Data Type}
+% \byf{25}{24}{00}
+% \byf{23}{ 0}{24-bit Two's Complement Value}
+% \endbyf
+% \line{\hfil\byfbox}
+% \line{\byfnumbers\hfil}
+% \line{\byfbox\hfil}
+% \line{\hfil\byfbox\hfil}
+% \line{\hfil\byfnumbers\hfil}
+% \vskip 1in
+% \line{\hfil\vbox{\byfbox\byfnumbers}}
+% \vskip 1in
+% \line{\hfil\vbox{\byfnumbers\byfbox}}
+% \end
+

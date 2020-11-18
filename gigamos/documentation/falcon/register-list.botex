@@ -1,0 +1,23 @@
+@c register-list.botex
+@c
+@c 22-Apr-88, James Rauen
+
+@appendix List of Registers and Signals
+
+@settabs 6 @columns
+
+@sp 1
+@< @i[Abbreviation] @\ @i[Size (bits)] @\ @i[Name/Function] @\ @\ @\ @i[Section] @cr
+@sp 1
+@< AF     @\ 8  @\ Active Frame                 @\ @\ @\ @ref[AF] @cr
+@< HP     @\ 8  @\ Heap Pointer                 @\ @\ @\ @ref[HP] @cr
+@< IR     @\ 64 @\ Instruction Register         @\ @\ @\ @ref[IR] @cr
+@< MCR    @\ 32 @\ Memory Control Register      @\ @\ @\ @ref[MCR] @cr
+@< MD     @\ 32 @\ Memory Data                  @\ @\ @\ @ref[MD] @cr
+@< MSR    @\ 32 @\ Memory Status Register       @\ @\ @\ @ref[MSR] @cr
+@< OF     @\ 8  @\ Open Frame                   @\ @\ @\ @ref[OF] @cr
+@< OREG   @\ 33 @\ ALU Output                   @\ @\ @\ @ref[OREG] @cr
+@< PCINC  @\ 24 @\ Incremented Program Counter  @\ @\ @\ @ref[PCINC] @cr
+@< RF     @\ 8  @\ Return Frame                 @\ @\ @\ @ref[RF] @cr
+@< VMA    @\ 32 @\ Virtual Memory Address       @\ @\ @\ @ref[VMA] @cr
+

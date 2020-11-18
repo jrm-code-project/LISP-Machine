@@ -1,0 +1,19 @@
+iller.pa@XEROX.ARPA, Common-lisp@SU-AI.ARPA
+In-reply-to: <860529-212115-1390@Xerox>
+Message-ID: <860610114524.0.DLW@CHICOPEE.SCRC.Symbolics.COM>
+
+    Date: 29 May 86 21:21 PDT
+    From: miller.pa@Xerox.COM
+
+    How happy are you with packages?
+    In particular, for those familiar T's reified lexical environments (aka
+    LOCALEs), can you think of any reason for preferring packages?
+    Can T's LOCALEs be added to the language in an upwards compatible way?
+
+I'd like to point out, again, that packages get you thinks that locales
+don't (if I understand locales properly -- someone correct me if I'm
+wrong).  Packages provide name scoping for symbols themselves, not for
+values.  Therefore, if symbolics are being used for virtue of their
+identity rather than their value, packages provide name scoping and
+locales do not.  For example, suppose one subsystem uses the A:FOO
+property of symbols, and another subsystem uses the B:FOO property.

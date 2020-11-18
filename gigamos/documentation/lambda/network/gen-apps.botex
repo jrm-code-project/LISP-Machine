@@ -1,0 +1,397 @@
+@chapter Generic Networking Applications
+@label[chapter-doc-generic-applications]
+
+This chapter documents the ``generic'' networking software --
+those functions and applications
+that are not restricted to a particular network interface.
+These applications work with both Chaosnet or TCP/IP,
+making them available to the widest possible range of remote host types.
+
+@section File Access
+@label[section-file-access]
+
+The transparent file access provided by the Lambda software is an important
+feature of the networking software.
+This distinguishes Lambda networking from
+some systems that require special command interfaces for each specialized protocol.
+On the Lambda, standard utilities and interfaces
+(@l[listf], @l[copy-file], @l[viewf], @l[ZMacs], @l[Dired], etc.)
+will use Chaosnet or TCP/FTP as required.
+
+The @b(pathname) scheme on the Lambda allows the specification of both physical and logical hosts.
+With properly configured network information,
+files may be accessed using standard pathname mechanisms
+on remote systems via either Chaosnet or TCP/IP.
+
+This section is intended as an overview of file access and pathnames
+with respect to networking considerations.
+The primary references on the pathname system are the @LMM@  and @i(Common LISP - The Language).
+CommonLISP and ZetaLISP define a pathname scheme that is sufficiently flexible
+to encompass a wide variety of pathname conventions.
+
+Briefly, a pathname may be specified as either a string or as a pathname object.
+Most user interface routines will accept either form where a pathname argument is expected.
+
+Pathname objects can be @ii(made) -- constructed from components --
+by the function @l(make-pathname). @findex[make-pathname]
+
+But when a pathname is presented ``out of context'', especially when it
+is represented by a string, it must be @i(parsed) to
+determine its individual components.
+A pathname is always parsed and constructed with respect to the type of computer system indicated
+by the host portion of the pathname.
+The parsing rules approximate, as well as possible, the native pathname syntax
+that applies on the remote host.
+
+The valid network hosts are specified in the site files;
+see Section @ref[section-host-types], @nameref[section-host-types].
+Valid host types are implemented as flavors built upon the primary @l(si:host) type.
+
+Almost all Lambda software interfaces parse pathnames,
+and most do not impose any restrictions on the valid host or file system types.@footnote(An important exception is
+@see[ftp:ftp][fun].)
+To provide continuity among commands
+and to afford some economy of expression,
+utilities may parse pathnames with respect to a current set of
+pathname defaults (such as the most recently specified host)
+that are appropriate to the current environment.
+
+Pathnames are generally specified with the host name first, followed by
+the directory and file specifications.
+Components may be separated by space characters.
+The only standard delimiter, which works for all pathname types, is the colon @b(":").
+A host name is always  followed by a colon
+to distinguish it from other components of the pathname.
+
+@need 1000
+@subsection Pathname Types
+
+The following sections discuss the most commonly used pathname types,
+with comments on parsing and representation issues.
+
+@need 1000
+@subsubsection LISPM Pathnames
+@label[section-lispm-pathnames]
+
+LISP machine pathnames support a hierarchical directory structure
+and incremental numeric version numbers.
+
+This section describe the Lambda and Explorer LISP machine pathname syntax.
+Where noted, the syntax of @l(:LMFS) (Symbolics) pathnames differs slightly.
+
+@enumerate
+
+@item
+When a LISPM pathname is parsed, the string components are coerced to upper case.
+However, when a LISPM pathname is constructed (e.g., by @l(make-pathname)), it is
+possible to create distinct pathnames with mixed case.
+This is not recommended, however.
+
+@item
+The name and type components of a LISPM pathname string are separated either by a period,
+or (where ambiguity will not result) by whitespace (blanks).
+For example, the following filename specifications both indicate
+a file with the name "TEST2" of type "LISP":
+
+@lisp
+"TEST2.LISP"
+"TEST2 LISP"
+@end(lisp)
+
+
+@item
+The directory component of a LISPM  pathname string is distinguished by a trailing semi-colon.
+Subdirectories are separated by periods.
+For example, the following directory specifications are valid:
+@lisp
+"PROGRAMS;"
+"PROGRAMS.CODE;"
+"PROGRAMS.TEST-FILES;"
+@end(lisp)
+
+Symbolics pathname directories are enclosed by @b(">") characters; for example,
+@l(">PROGRAMS>CODE>").
+
+@item
+The version component of a LISPM pathname string is preceded by a pound sign @b("#").
+Symbolics version numbers are preceded by a period,
+and therefore must immediately follow the name and type.
+
+Pathnames can refer explicitly to version numbers;
+each succeeding version number generally indicates a newer version of a file.
+
+The character @b(">") is parsed to indicate the ``newest'', or highest, version of a file.
+To construct a pathname indicating the highest version, specify the keywords
+@l(:version :newest) to @l(make-pathname).
+Similarly, the character @b("<") indicates the ``oldest'', or lowest, version of a file;
+the corresponding keyword @l(:oldest) can be used when constructing a pathname.
+
+@item
+The only supported wild-card character is @b("*"), which matches a single component:
+a file name, type, version, directory, or subdirectory.
+Note that most file operations do not support Lambda pathnames with wild-carded directory components.
+
+In some contexts, particularly in commands that expect a directory as a minimal specification,
+omitted components are considered to be wild-carded.
+
+@item
+The character @b("~") is parsed to indicate the @i(root) (top-level) directory.
+For Lambdas, this works in situations where wild-carding the top-level
+directory name will not.
+
+@end(enumerate)
+
+@need 1000
+The following examples illustrate these basic conventions of LISPM pathnames:
+
+@smalllisp
+@group
+(pathname "MYHOST: PROGRAMS; TEST2.LISP")   ;File TEST2, a LISP source,
+                                            ; unspecified version
+(pathname "MYHOST: PROGRAMS; TEST2 .LISP")  ;Same as above
+(pathname "myhost: programs; test2 .lisp")  ;Same as above, gets converted
+                                            ; to upper-case
+(pathname "myhost: programs; test2.lisp#3") ;Specifically, version 3
+(pathname "myhost: programs; test2.lisp#>") ;Highest version that exists
+@end(group)
+
+@group
+(listf "myhost: programs; test.*")          ;List all files with
+                                            ; name TEST in PROGRAMS
+(listf "myhost: programs; *.LISP")          ;List all files of
+                                            ; type LISP in PROGRAMS
+@end(group)
+
+@group
+(listf "myhost: programs; *.*#*")           ;List all files of any
+                                            ; type/version in PROGRAMS
+(listf "myhost: programs; *.*")             ;Same as above
+(listf "myhost: programs; *")               ;Same as above
+(listf "myhost: programs;")                 ;Same as above
+@end(group)
+
+@group
+(listf "myhost: ~;")                        ;List all top-level directories
+(listf "myhost:*;")                         ;This doesn't work
+@end(group)
+
+@end(smalllisp)
+
+@need 1000
+@subsubsection Unix Pathnames
+@label[section-unix-pathnames]
+
+@enumerate
+
+@item
+LISP has some knowledge of Unix file types, and does not require
+Unix files to have extensions.
+Be careful, however: when current pathname defaults include a file extension,
+it  will be assumed by default for a Unix filename.
+For example, some editor commands will append a @l(".l") extension when
+displaying a default pathname for a command.
+
+@item
+The Unix wild-cards @b("*") and @b("?") are supported.
+The ``directory up'' token @l("..") also works.
+Other characters which have special meanings in Unix shells,
+such as @b("~"), are not understood as such by LISP.
+
+@item
+In ZetaLISP syntax,  the @i(slash character) @b("/") is used as the ``character quote''.
+As a result, it is necessary to specify the @b("/") twice where Unix requires it once.
+In CommonLISP syntax this double-quoting is not necessary.
+For example:
+
+@lisp
+In ZetaLISP:     "unix-a: //etc//rc2"
+In CommonLISP:   "unix-a: /etc/rc2"
+@end(lisp)
+
+@item
+Unix pathname specifications that are intended to apply to a directory,
+but not to the directory @i(as a file),
+must generally have a @b("/") character appended.
+For example, @l((listf "unix-a:/usr/keith")) will list the presence of
+the directory file @l("keith"), but will not list the files contained in
+that directory.
+The correct specification in this instance would be @l("unix-a:/usr/keith/"), which
+LISP parses into the wild-carded specification @l("unix-a:/usr/keith/*").
+
+@item
+Unix pathnames are not parsed on the Lambda with respect to a current
+``working directory'', as in the Unix shells.
+Instead, the current pathname defaults are applied as needed, and they
+may change from one context to another.
+You should specify directories completely (from the @l("/") file-system level)
+unless you are certain of the current pathname defaults.
+
+@end(enumerate)
+
+@need 1000
+@subsubsection VMS Pathnames
+
+VMS pathnames are parsed in accordance with VMS Version 4 rules.
+
+Just like the host name component, the disk/device portion of a VMS pathname must be followed by a colon.
+This creates a potential for ambiguity;
+when specifying a VMS disk device, always specify the host, and keep them in proper order,
+that is, @l(host: device:).
+
+It is possible to specify, in  the site files,  a default device for each VMS system;
+this will save some typing and possibly prevent confusion.
+The default device for a foreign host is specified by the site option
+@l[:HOST-DEFAULT-DEVICE-ALIST] (see @ref[option-host-device]).
+
+For example:
+
+@lisp
+  :
+(:HOST-DEFAULT-DEVICE-ALIST '(("LMI-VAX" . "USER_DISK")))
+  :
+@end(lisp)
+
+Given this site entry,
+pathnames on ``LMI-VAX'' will, by default, include the (logical) device ``USER_DISK''.
+Here are two examples of VMS pathnames, first with defaulted and second with explicit devices:
+
+@group
+@lisp
+(pathname "lmi-vax:[keith]foo.com;")
+#<FS::VMS-PATHNAME "VAX:USER_DISK:[KEITH]FOO.COM">
+
+(pathname "lmi-vax:dba0:[system]sysexe.exe;*")
+#<FS::VMS-PATHNAME "VAX:DBA0:[SYSTEM]SYSEXE.EXE;*">
+@end(lisp)
+@end(group)
+
+@need 1000
+@subsection Specifying an Unknown Host
+@label[unknown-hosts]
+
+Unknown hosts are handled very differently
+when @i(parsing), as opposed to @i(making), a pathname.
+
+As one might expect,
+@l(make-pathame) signals an error when it is passed an unknown host component.
+
+On the other hand, parsing functions such as @l(fs:parse-pathname)
+interpret invalid host names as device specifications.
+In this case, a parsed pathname is returned which includes a host taken from the current defaults,
+and a device specification taken from the intended host.
+
+For example:
+
+@lisp
+;;Making a pathname with an unknown host:
+
+(make-pathname :host "bogus-host"
+               :directory "TEMP" :name :wild :type :lisp)
+>>ERROR: "bogus-host" is not the name of a known file host ...
+
+;;Parsing an unknown host:
+
+(pathname "bogus-host:temp;*.lisp")
+#<FS::LM-PATHNAME "OPUS: TEMP; BOGUS-HOST: *.LISP">
+@end(lisp)
+
+Since programs should be written so as to prevent this kind of confusion,
+programmers should keep host names separate from filename specifications.
+Then, @l(make-pathname) can be called to construct each desired pathname,
+and an error will be signalled in the event of an unknown host.
+
+@need 1000
+@section DISK Functions
+@label[section-generic-disk]
+
+The DISK protocols of Chaosnet and TCP are provided to support remote disk access
+through functions such as
+@l(print-disk-label) and @l(si:copy-disk-partition).
+This protocol is supported only between Lambdas.
+
+The @i(unit) argument(s) taken by these functions allows the user to specify
+a particular disk unit on the local system or a remote host.
+A disk unit can be specified as either a number or a string.@cindex[disk unit]
+A number (0 or 1) is interpreted as a disk unit on the local system;
+a string specifies a host name and, optionally, a disk unit on the
+remote system.
+
+Local disk unit 0 is the main disk; this is the default in most cases.
+On systems with dual-disk configurations the second disk is considered unit 1.
+
+The following functions provide remote DISK access:
+
+@defun si:copy-disk-partition from-unit from-part to-unit to-part &optional &key (pages-at-a-time (min page-rqb-size 85)) (verbose t) (starting-hundred 0) whole-thing-p delay
+
+Copy partition FROM-PART on FROM-UNIT to partition TO-PART on TO-UNIT.
+
+Here are some examples:
+
+@lisp
+;Copy on main disk
+
+(si:copy-disk-partition 0 'lod1 0 'lod3)
+
+;Copy to 2nd disk
+
+(si:copy-disk-partition 0 'lod1 1 'sav1)
+
+;Copy to OTHER-HOST
+
+(si:copy-disk-partition 0 'lod1 "other-host" 'lod3)
+@end(lisp)
+@end(defun)
+
+@defun print-disk-label &optional (unit nil) (stream standard-output)
+
+Display the disk label for UNIT, with output to STREAM.
+
+For example:
+
+@lisp
+(print-disk-label)            ;print local main disk
+(print-disk-label 1)          ;print local auxiliary disk
+(print-disk-label "lama")     ;print LAMA's main disk
+(print-disk-label "lamc 1")   ;print LAMC's auxiliary disk
+@end(lisp)
+
+@end(defun)
+
+@defun si:edit-disk-label &optional le-unit init-p
+
+Edit the label of a disk pack.
+@i(le-unit) is the disk drive number, or a name of a machine (Chaosnet is used).
+If @l(init-p) is non-NIL, a default label is displayed instead of the actual one that is stored.
+(This is not recommended, unless the goal is to start from scratch; indeed, saving
+a default label would ``scratch'' all software on the disk).
+
+Press @help@  for documentation on the interface.
+@end(defun)
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c end gen-apps
+

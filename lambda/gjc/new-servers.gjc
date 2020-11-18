@@ -1,0 +1,255 @@
+#|| -*- Mode:LISP; Package:(NEWSRV GLOBAL); Fonts:(CPTFONTB); Base:10 -*-
+
+  Copyright LISP Machine, Inc. 1985
+   See filename "Copyright.Text" for
+  licensing and release information.
+
+Some new chaosnet servers:
+ (OPEN-REMOTE-SERIAL-STREAM "<hostname>" &optional (baud 9600))
+ (REMOTE-SERIAL-STREAM-STATUS "<hostname>")
+
+If the remote stream is stuck in serial finish then that is probably
+because the data-set-ready line is not enabled or jumpered and there
+is pending output, xmit buffer not empty.
+
+ (REMOTE-MAGTAPE "<hostname>")
+ (FREE-MAGTAPE-FOR-REMOTE) ; use on host if needed.
+
+||#
+
+
+;; GENERIC CHAOSNET FUNCTIONS.
+
+(DEFUN VANILLA-CHAOS-SERVER-FUNCTION (CONTACT FUNCTION REJECTP)
+  (WITH-OPEN-STREAM (STREAM (CHAOS:OPEN-STREAM NIL CONTACT))
+    (LET ((CONN (SEND STREAM :CONNECTION)))
+      (LET ((ST (SUBSTRING (CHAOS:PKT-STRING (CHAOS:CONN-READ-PKTS CONN))
+                           (STRING-LENGTH CONTACT))))
+        (LET ((REJECT? (AND REJECTP (FUNCALL REJECTP ST))))
+          (IF REJECT?
+              (RETURN-FROM VANILLA-CHAOS-SERVER-FUNCTION
+                (CHAOS:REJECT CONN REJECT?))))
+        (CHAOS:ACCEPT CONN)
+        (SEND TV:WHO-LINE-FILE-STATE-SHEET :ADD-SERVER CONN CONTACT)
+        (CONDITION-CASE ()
+            (FUNCALL FUNCTION STREAM ST)
+          (SYS:REMOTE-NETWORK-ERROR NIL))))))
+
+
+(DEFUN ADD-VANILLA-CHAOS-SERVER (CONTACT FUNCTION &KEY REJECTP)
+  (check-arg-type contact string)
+  (ADD-INITIALIZATION CONTACT
+                      `(PROCESS-RUN-FUNCTION ,(FORMAT NIL
+                                                      "~A server"
+                                                      contact)
+                                             'vanilla-chaos-server-function
+                                             ,contact
+                                             ',function
+                                             ',REJECTP)
+                      nil
+                      'CHAOS:SERVER-ALIST))
+
+
+;; REMOTE SERIAL STREAM SUPPORT
+
+(defun open-remote-serial-stream (host &optional (baud 9600))
+  (make-auto-force-output-stream
+    (chaos:open-stream host
+                       (format nil "SDU-SERIAL-B ~D"
+                               baud))))
+
+(add-vanilla-chaos-server "SDU-SERIAL-B"
+                          'sdu-serial-b-server
+                          :REJECTP 'SDU-SERIAL-B-IN-USE)
+
+(DEFUN SDU-SERIAL-B-IN-USE (IGNORE)
+  (LET ((DEVICE (SEND (FS:PARSE-PATHNAME "SDU-SERIAL-B:") :HOST)))
+    (COND ((NOT (SEND DEVICE :ALLOCATE-IF-EASY))
+           "device not available")
+          ((SEND device :GET-LOCK NIL)
+           NIL)
+          ('else
+           "Serial port B in use by on host"))))
+
+
+(defvar *serial-b-buffer* (make-string 1000))
+
+(defun sdu-serial-b-server (remote extra)
+  (with-open-file (local "SDU-SERIAL-B:")
+    (let ((baud (parse-integer extra :junk-allowed t)))
+      (if baud
+          (send local :set-baud-rate baud)))
+    (let ((proc)
+          (name "serial b remote -> local"))
+      (unwind-protect
+          (*catch 'remote-closed
+            (setq proc (process-run-function name
+                                             #'serial-b-remote->local
+                                             remote local
+                                             current-process))
+            (do-forever
+              (send remote :tyo (send local :tyi))
+              (do ((n (send local :INPUT-CHARACTERS-AVAILABLE))
+                   (j 0 (1+ j)))
+                  ((= j n)
+                   (OR (ZEROP J)
+                       (send remote :string-out *serial-b-buffer* 0 J)))
+                (setf (aref *serial-b-buffer* j) (send local :tyi)))
+              (send remote :force-output)))
+        (and proc (eq (si:process-name proc) name)
+             (send proc :kill))))))
+
+(defun serial-b-remote->local (remote local superior)
+  (CONDITION-CASE ()
+      (DO ((C))
+          ((null (setq c (send remote :tyi))))
+        (send local :tyo c))
+    (SYS:REMOTE-NETWORK-ERROR NIL))
+  (send superior :interrupt #'(lambda ()
+                                (*throw 'remote-closed nil)))
+  (si:process-wait-forever))
+
+
+(add-vanilla-chaos-server "SDU-SERIAL-B-STATUS"
+                          'sdu-serial-b-status-server)
+
+
+(DEFUN REMOTE-SERIAL-STREAM-STATUS (host)
+  (format t "~&Getting status of SDU-SERIAL-B on ~S~%" host)
+  (with-open-stream (s (chaos:open-stream host "SDU-SERIAL-B-STATUS"))
+    (stream-copy-until-eof s standard-output)))
+
+
+(defun sdu-serial-b-status-server (standard-output ignore)
+  (let ((dev (send (fs:parse-pathname "sdu-serial-b:") :host))
+        (p))
+    (format t "Device: ~S,~%" dev)
+    (cond ((setq p (car (send dev :lock)))
+           (format t "Locked by ~S state: ~A~%"
+                   p (send p :whostate))))
+    (si:sdu-serial-status)))
+
+(defun make-auto-force-output-stream (substream)
+  #'(lambda (op &optional arg1 &rest args)
+      (multiple-value-prog1 (apply substream op arg1 args)
+                            (if (memq op '(:tyo :string-out))
+                                (send substream :force-output)))))
+
+;; magnetic tape
+
+(add-vanilla-chaos-server "MAGTAPE-FUNCTIONS"
+                          'MAGTAPE-FUNCTIONS-SERVER
+                          :REJECTP 'MAGTAPE-FUNCTIONS-IN-USE)
+
+(DEFUN MAGTAPE-FUNCTIONS-IN-USE (IGNORE)
+  (LET ((DEVICE (SEND (FS:PARSE-PATHNAME "HALF-INCH-TAPE:") :HOST)))
+    (COND ((NOT (SEND DEVICE :ALLOCATE-IF-EASY))
+           "device not available")
+          ((SEND device :GET-LOCK NIL)
+           (FS:TM-INIT)
+           NIL)
+          ('else
+           "magtape in use on host"))))
+
+
+(defun FREE-MAGTAPE-FOR-REMOTE ()
+  (with-open-file (s "HALF-INCH-TAPE:")
+    s
+    "half inch tape now free"))
+
+
+(DEFUN REMOTE-MAGTAPE (HOST)
+  (WITH-OPEN-STREAM (S (CHAOS:OPEN-STREAM HOST "MAGTAPE-FUNCTIONS"))
+    (DO ((COMMAND))
+        ((NULL (EXECUTE-REMOTE-MAGTAPE-COMMAND
+                 S
+                 (PROMPT-AND-READ :READ "~&Magtape Function on ~A:"
+                                  (send (send (send s :connection) :foreign-host)
+                                        :name))))))))
+
+
+(DEFUN EXECUTE-REMOTE-MAGTAPE-COMMAND (S C)
+  (COND ((SYMBOLP C)
+         (COND ((STRING-EQUAL "HELP" C)
+                (FORMAT T "~&Magtape functions allowed:~
+                           ~%(FS:MT-REWIND) (FS:MT-WRITE-EOF) (FS:RESTORE-MAGTAPE)~
+                           ~%(FS:COPY-DIRECTORY), and the atoms HELP and EXIT~%"))
+               ((STRING-EQUAL "EXIT" C)
+                (RETURN-FROM EXECUTE-REMOTE-MAGTAPE-COMMAND NIL))
+               ('ELSE
+                (FORMAT T "~&Unknown magtape command, try HELP: ~S~%" C))))
+        ((OR (ATOM C) (NOT (SYMBOLP (CAR C))))
+         (FORMAT T "~&Illegal magtape command, try HELP: ~S~%" C))
+        ((NOT (MEMQ (CAR C) '(FS:MT-REWIND FS:MT-WRITE-EOF FS:RESTORE-MAGTAPE
+                                           FS:COPY-DIRECTORY)))
+         (FORMAT T "~&Unknown magtape command, try HELP: ~S~%" C))
+        ('ELSE
+         (LET ((*PACKAGE* (FIND-PACKAGE "NEWSRV"))
+               (*READTABLE* SI:INITIAL-READTABLE)
+               (BASE 10)
+               (IBASE 10))
+           (PRINT C S))
+         (DISPLAY-REMOTE-RESULT S)))
+  T)
+
+(DEFUN DISPLAY-REMOTE-RESULT (S)
+  (DO ((C))
+      ((NULL (SETQ C (SEND S :TYI))))
+    (COND ((AND (= C #\NETWORK) (NOT (= (SETQ C (SEND S :TYI))
+                                        #\NETWORK)))
+           (COND ((= C #\BREAK)
+                  (RETURN))
+                 ('ELSE
+                  (FUNCALL
+                    (LET ((READTABLE SI:INITIAL-READTABLE)
+                          (PACKAGE (FIND-PACKAGE "NEWSRV")))
+                      (READ S))
+                    S))))
+          ('ELSE
+           (SEND STANDARD-OUTPUT :TYO C)))))
+
+
+(DEFUN MAGTAPE-FUNCTIONS-SERVER (STREAM IGNORE)
+  (LET ((REMOTE-HACKING-STREAM (MAKE-REMOTE-HACKING-STREAM STREAM)))
+    (LET ((*PACKAGE* (PKG-FIND-PACKAGE "NEWSRV"))
+          (*STANDARD-INPUT* REMOTE-HACKING-STREAM)
+          (*STANDARD-OUTPUT* REMOTE-HACKING-STREAM)
+          (*ERROR-OUTPUT* REMOTE-HACKING-STREAM)
+          (*QUERY-IO* REMOTE-HACKING-STREAM)
+          (BASE 10)
+          (IBASE 10))
+      (DO-FOREVER
+        (CONDITION-CASE (ERR)
+            (EVAL (READ STREAM))
+          (SYS:REMOTE-NETWORK-ERROR
+           (RETURN))
+          (ERROR
+           (SEND ERR :REPORT *ERROR-OUTPUT*)))
+        (SEND STREAM :TYO #\NETWORK)
+        (SEND STREAM :TYO #\BREAK)
+        (SEND STREAM :FORCE-OUTPUT)))))
+
+
+
+(defvar *serial-b-buffer* (make-string 1000))
+
+(defun sdu-serial-b-server (remote ignore)
+  (with-open-file (local "SDU-SERIAL-B:")
+    (let ((proc)
+          (name "serial b remote -> local"))
+      (unwind-protect
+          (*catch 'remote-closed
+            (setq proc (process-run-function name
+                                             #'serial-b-remote->local
+                                             remote local
+                                             current-process))
+            (do-forever
+              (send remote :tyo (send local :tyi))
+              (do ((n (send local :INPUT-CHARACTERS-AVAILABLE))
+                   (j 0 (1+ j)))
+                  ((= j n)
+                   (send remote :string-out *serial-b-buffer* 0 n))
+                (setf (aref *serial-b-buffer* j) (send local :tyi)))
+              (send remote :force-output)))
+        (and proc (eq (si:process-name proc) name)
+             (send proc :kill))))))

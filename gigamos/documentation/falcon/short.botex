@@ -1,0 +1,15 @@
+@c K Machine Technical Manual - the short form
+@c
+@c Created 31-Mar-88, James Rauen
+
+@parindent 0in
+@parskip .25in
+@c library(lisp)
+@library(patbo)
+@library(byf1)
+@begin document
+
+@include title-page
+@include copyright-page
+
+@end document

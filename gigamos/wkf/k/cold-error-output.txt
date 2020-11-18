@@ -1,0 +1,7 @@
+
+;Reading at top level in Lisp Listener 1.
+;Reading in base 10 in package USER with standard Zetalisp readtable.
+
+(mega-boot :compile-type :recompile)
+Compiling FALCON: COLD; TRAP LISP >
+Compiling FALCON: COLD; TRAP-HANDLERS LISP >

@@ -1,0 +1,29 @@
+
+
+
+foo:
+
+        (OPEN (DEST (ACTIVE 2)))
+
+        (ALU (OPEN 0) <- (ACTIVE 0))
+
+        (ALU (OPEN 1) <- (ACTIVE 1))
+
+        (CALL USER-PLUS)
+
+
+user-plus:
+
+        (ALU (FUNC RETURN) <- (ACTIVE 0) ADD-24 (ACTIVE 1)
+              CHECK-BOTH-FIXNUMS TRAP-IF-OVERFLOW)
+
+        (RETURN)
+
+
+
+        Lambda:   98 instructions * 200 ns = 19,600 ns
+
+        K:         6 instructions *  75 ns =    450 ns
+
+
+               Speed ratio: 19,600 / 450 = 43.5

@@ -1,0 +1,23 @@
+To: BUG-ZMAIL@GSI-CAM
+Subject: Profile editing
+CC: SAZ at angel
+FCC: DJ: SAZ; ALL-MAIL.TXT#>
+ ***********************************************************
+In LMI ZMAIL in Experimental System 123.278,
+Experimental Local-File 73.6, Experimental FILE-Server 22.5,
+Experimental Unix-Interface 11.0, Experimental KERMIT 34.3,
+Experimental ZMail 71.2, Experimental Lambda-Diag 15.0,
+Experimental Tape 22.4, microcode 1756, SDU Boot Tape 3.14, SDU ROM 103,
+patch/experimental, on Fowl food (LAMBDA):
+
+After clicking on EDIT in zmail's profile editor,...
+
+While profile editing from the zwei buffer (bottom pane, as opposed to
+scrolling menu), clicking on small command boxes (exit, universes, etc.)
+surrounding the main scrolling menu not only has no effect, but also
+causes these boxes to invert their video.  These ineffectual
+video-inversions remain even after user has typed #/End to finish edit.
+
+Clicking on one of those boxes during an EDIT should either force an
+#/End to the zwei edit session (and then execute the command clicked
+on), or else these boxes should not even be mouse-sensitive.

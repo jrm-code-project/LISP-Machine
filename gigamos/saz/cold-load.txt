@@ -1,0 +1,149 @@
+                  MAKING COLD LOAD BANDS FOR THE LAMBDA
+
+"Deep down within the warm exterior of the Lisp Machine lurks a cold
+load stream."                             --pld (possibly misquoted)
+
+Prerequisites:
+
+        1) A 2x2 processor'ed Lambda with two monitors.
+
+        2) An available partition on the Lambda for which
+           the new band is being made.  This partition should
+           be no smaller than 12000 pages of virtual memory.
+
+        3) Approximately three hours.
+
+Procedure:
+
+        The first part of this exercise requires typein to the first
+monitor.
+
+************************************************************************
+FROM MONITOR 1:
+************************************************************************
+
+Instructions:                           Notes:
+
+1. Fix all bugs, add
+     desired patches,
+     recompile any
+     systems that need
+     recompiling
+
+2. Do a full garbage collection.
+
+3. (si:describe-partitions)             Find a partition
+                                        of proper size in
+                                        the typeout from
+                                        (si:describe-partitions).
+                                        Call it "LODx" (x will
+                                        be an integer, though).
+
+4. (make-system 'cold :noconfirm)
+                                        Makes a bootable band
+                                        from which to create
+                                        a new world.  The file
+                                        "sys:sys;sysdcl" contains
+                                        the names of all files
+                                        which will be loaded at
+                                        this time. Changing any
+                                        of these files (or any of
+                                        the files in
+                                        INNER-SYSTEM-FILE-ALIST)
+                                        would necessitate the
+                                        creation of a new cold load
+                                        band.  Commenting any of
+                                        these files out (as has been
+                                        done to a good number of
+                                        them already) causes them
+                                        not to be included in the
+                                        initialized world.  Know the
+                                        ramifications of excluding all
+                                        basic systems before
+                                        commenting out anything in
+                                        this sysdcl list.
+
+5. (cold:make-cold "LODx")
+                                        Requires confirmation.
+                                        Calls, among many other
+                                        things, LISP-REINITIALIZE.
+                                        The function QLD (also
+                                        called here) loads all of
+                                        INNER-SYSTEM-FILE-ALIST,
+                                        which reinitializes the error
+                                        and trap handlers, format
+                                        and other basic I/O systems,
+                                        networks, and prepares for a
+                                        disk-save. (Note: check out
+                                        the functionality of
+                                        ANALYZE-FILE in L.SYS2.)
+                                        Make-cold also gets the time
+                                        from the primary server, or,
+                                        failing there, queries the
+                                        user for a valid time.  Entire
+                                        evaluation should take
+                                        approximately 25 minutes.
+
+6. Run a cold load server by typing <System>-7.
+
+                                        The first monitor will divide
+                                        into two windows, one called
+                                        "LAM" and one called "Mini
+                                        Server Window". LAM
+                                        checks the virtual address
+                                        space of the other processor,
+                                        and the Mini Server will run
+                                        a process that listens to the
+                                        backplane.
+
+7. In the Mini Server Window, type (mini-server-process).
+
+The remainder of this exercise requires typein to the second monitor.
+
+************************************************************************
+FROM MONITOR 2:
+************************************************************************
+
+8. Type c-m-c-m-<LINE>                  Going to the cold load stream.
+
+9.  COMMAND: set-band LODx
+
+10. COMMAND: boot                       Boots from the new cold load
+                                        band, coming up containing
+                                        only a cold load stream.
+
+11. Wait.  If the second monitor's run bar stops blinking for an exten-
+    ded period, continue to wait.
+
+12. Evaluate (si:qld)                   Very carefully. Typing
+                                        anything other than these 8
+                                        tokens will cause massive
+                                        destruction of all work done
+                                        to this point, as the new cold
+                                        load band contains NO error
+                                        handling or microcode
+                                        trap handling capabilities
+                                        whatsoever.
+
+13. Wait some more (approximately 1 hour this time).
+
+************************************************************************
+Tools For Use In A Typical Crash
+************************************************************************
+
+A typical crash will usually occur because of the inability of the
+bare-bones cold-load stream to cope with an unbound variable it has
+encountered.  In this case, the following is a list of tools usable from
+the place where you wind up.
+
+Input Command                   Functionality
+
+:stkp                           shows stack, pointer
+:relpc                          FEF and relative offset
+:md/                            DTP null, shows the thing trapped upon
+:md/ _s                         prints it as a lisp object
+usp/                            microcode stack pointer
+:atom *foo*                     (*foo* a symbol) Calls (describe *foo*)
+                                   in otherworld
+opu                             top of stack
+lpu                             next call

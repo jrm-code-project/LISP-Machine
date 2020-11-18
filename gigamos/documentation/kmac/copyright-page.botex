@@ -1,0 +1,24 @@
+@copyrightpage
+
+@sp 2
+@center @b[THIS DOCUMENT IS CONFIDENTIAL AND PROPRIETARY]
+
+This is a draft requirements specification for
+the proposed K-machine / Macintosh interface.
+The interface is referred to within as ``K/Mac''.
+The program that implements the Macintosh-resident portion of the interface
+is referred to within as ``the application''.
+
+The contents of this document are the result of
+meetings held in Cambridge and Montreal during May and June, 1988.
+
+@sp 2
+Comments on this document should be addressed to David Saslav (saz@@gsi-cam),
+Bob Kerns (rwk@@gsi-cam), or Keith Corbett (keith@@gsi-cam).
+
+@setchapternewpage odd
+@headings on
+@evenheading @thispage@|@|@thistitle
+@oddheading @thistitle@|@|@thispage
+
+@end(copyrightpage)

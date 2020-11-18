@@ -1,0 +1,27 @@
+
+
+
+
+
+
+
+
+what is "COMMON lisp"?
+  procedural stuff
+
+
+what is ZETA lisp?
+  (very slightly) different procedural stuff.
+  flavors
+  window system
+  ZWEI
+
+Do we "have" common lisp now?  YES of course.
+
+
+
+what is minimum software to be deliverable?
+
+
+major machine independant modules:
+   editor

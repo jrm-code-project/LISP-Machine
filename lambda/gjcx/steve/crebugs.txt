@@ -1,0 +1,18 @@
+-*- Text -*-
+
+(19) Redisplay advice.
+(33) Tab, tab should change the indentation.
+(34) Undo. (in what respect?)
+(39) Could the reverse-video feature of search be integrated with the
+        redisplay, so it occurs sooner?
+        (Define a way to run interupts when displaying line X)
+     Also we might want the cursor-position to be underlined when written
+     So it would be visible even when the cursor is in the mode area.
+(46) Init-tty-for-editor should be responsible for clearing the screen?
+        Should it also set the device mode?
+(47) C-X = should also give # of lines.
+(48) Append-To-Buffer variants with separate default buffer name
+        set in some reasonable manner.
+(53) ? when typed in meta-x arguments. Help in mx-prompter?
+        (A keyword argument to mx-prompter.)
+(62) C-X C-B does not give version or length. [Version in source]

@@ -1,0 +1,31 @@
+Pierre:
+
+     At this point we have all tentatively agreed that trapping to handle inline
+datatype test failure will be a bottleneck and that test failures should be
+handled in some way either by a jump or a call.  there are any number of ways
+this could be set up.  What I want to do here is outline what the software
+*needs* to do to handle a datatype failure, and what hardware support would
+enhance code speed.  We need to find a mechanism that is both efficient and
+which is implementable in the hardware.
+
+     Let us consider the following sample instruction which does a 32-bit
+"fixnum" add of the lisp values in A5 and A9, leaving the result in A3.  (Since
+we do not yet have a definite assembler syntax for the Phoenix -- and indeed,
+since we are still discussing exactly what the instructions are supposed to do
+-- all code samples below sbould be considered "pseudo-code."  Where there is
+ambiguity the instruction syntax and semantics will be explained in text.)
+
+        (ADD-32 A3 A5 A9 DT-FIXNUM DT-BOTH)
+
+In the current Falcon board hardware, the 24-bit analogue of this instruction
+simply traps if either datum is not a fixnum, or if the sum overflows.  In the
+alternative schemes we are considering, a branch or call if done to some other
+sort handler.  Regardless, let us consider what the handler has to do: By
+examination of the original instruction it must somehow locate the two arguments
+(here A5 and A9) as well as the destination (A3), perform the appropriate
+generic operation based on the real types of the arguments, leave the result in
+the destinatoin, and finally return to the mainline instruction stream.  All
+this needs to be done efficiently.  At least for datatypes that can be operated
+upon at high speed by the hardware -- i.e. fixnums and some kinds of floats --
+we desire that generic operation overhead not take significantly longer time
+than the operation itself.  (This is the definition of a bottleneck.)

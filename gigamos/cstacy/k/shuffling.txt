@@ -1,0 +1,8 @@
+This came from SYS;COLD but is not used there, and contrary to the
+comment below, it's not used in SYS2;PROCES either.
+
+;;; Call this when the state of a process may have changed.
+;;; In the cold-load because called by process stuff, loaded before window stuff.
+(DEFUN TV::WHO-LINE-PROCESS-CHANGE (PROC)
+  (AND (FBOUNDP 'TV::WHO-LINE-RUN-STATE-UPDATE) (EQ PROC TV::LAST-WHO-LINE-PROCESS)
+       (TV::WHO-LINE-RUN-STATE-UPDATE)))

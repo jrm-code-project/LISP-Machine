@@ -1,0 +1,61 @@
+To: mitccc!AALevy%MIT-MULTICS.ARPA%mit-mc@cap
+cc:  mitcc!info-vax%SRI-KL.ARPA%mit-mc@cap
+Subject: editor/text formatter/printer for VAX/VMS
+--Text Follows This Line--
+Editor: 1. Gnu Emacs. RMS, who developed and maintained the orginal
+Emacs for a number of years finally came out with an Emacs implemented
+in the "C" language. It is the best engineered Emacs I've used, and in
+some ways (such as ease of user extensibility) is even superior to the
+Lispmachines Emacs editor ZMACS. Contact RMS@MIT-MC about availability under
+VMS. The extension language of the editor is a real lisp, it has CONS
+and a garbage collector.  2. Steve. This editor is a subsystem of the
+MIT-Common-Lisp VAX-NIL.  Later versions have very good VMS terminal
+handling, using the SYS$QIOW system call to read multiple characters
+whenever possible. Extensive use of the native VMS instruction set
+provided by NIL gives Steve an efficiency advantage over purely "C" based
+editors. The start-up overhead of running a lisp-based editor like Steve
+may be greater than that of a C-based editor, but the superior terminal
+handling may allow it to win out over other editors in a CPU-bound
+enviroment where there is sufficient physical memory to support
+everybody. You never know until you try it, but for $100 for the
+tape and 400 pages of documentation you cant go wrong.
+
+Both these editors come with full sources and unrestricted full-source
+redistribution/pass-along capability. So you can be sure that all your
+friends can use it.
+
+Text Formatter: TEX. The one and only super-hairy macro assembler for
+documents.  By all means get a macro package such as Botex (for manual
+production) and/or LaTex on top of TeX for day-to-day usage. TeX also
+comes with full sources and no debilitating restrictions.
+
+Printer: With the street-availability of a bitmapped terminal finally
+upon us, somebody is bound to come out with a DVITYPE program for the
+MacIntosh, that allows TeX-formatted documents to be previewed in lower
+resolution before going to hardcopy. A few people at MIT (and probably a few
+other places) have been doing this for years, first with a previewer for
+XGP documents and then with a PRESS-file preview program for the Dover.
+Unfortunately for everybody the presence of these incompatible white
+elephants, the PRESS-file based DOVER's at MIT, STANFORD, CMU ... has
+had a kind of CHILLING EFFECT on these hotbeds of development,
+preventing the generation of generally useful technology for everybody.
+The Athena project, with its base in outmoded usage style of VAX and
+IBM-PC's has had a similar CHILLING EFFECT on groups at MIT who would
+want to work with more forward-looking, economical, and generally
+available competing technologies.  I think it was a famous frenchman who
+called this effect the "Tyranny of the Majority"
+
+For laserprinter hardcopy I can mention from usage:
+ * Talaris. I've used one of these at Boston University,
+   they were running TeX, and had a maintenence contract
+   on the device from Xerox.
+ * Imagen. I first used one at Yale, and have 4 in use at Lisp Machine Inc.
+   The notable thing about these devices is the operator-console,
+   the TCP/IP ethernet interface, and the support code in "C" you get
+   from Imagen.
+
+These are just two of the many around, and is the area where you
+would be spending real money for purchase and maintainence
+(that is, if you dont blow all your money needlessly on the software).
+
+-gjc

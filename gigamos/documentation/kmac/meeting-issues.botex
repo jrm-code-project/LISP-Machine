@@ -1,0 +1,96 @@
+
+@library(gsi-patbo)
+@library(lisp)
+@library(gsi)
+
+@tolerance 300
+@overfullrule 0in
+@setpagewidth  6.25in
+@textbodyindent = 0.5in
+@baselineskip 13pt
+@parskip = 0.2in
+@parindent = 0in
+@secheadingskip .25in
+@everyfooting @| CONFIDENTIAL - @datestamp @|
+@begin(document)
+@center @b[Unresolved Issues and Requirements in the K/Mac Communications Project]
+@flushleft
+
+@i[The following is an itemized list of impressions gleaned from the meeting
+between Cambridge and Montreal team members currently working on the
+K/Mac Interface Project, held June 17, 1988, in Montreal:]
+
+@end flushleft
+
+@enumerate
+
+@item
+It became apparent that Montreal was having difficulty understanding our
+statements regarding the workings of shared memory.  We believe most of
+the confusion was cleared up, but it may be the case that their recovery
+in these areas will generate additional work in Montreal.  There is also
+no guarantee that future misunderstandings can be avoided in the absence
+of a Montreal-based team member (dedicated to the interface project) who
+is fluent both in French and in English.
+
+@item
+Montreal had been working under an original assumption (since revised)
+that the Falcon would draw directly to the Macintosh screen.  For
+reasons discussed at the meeting, Bob and Keith consider it necessary that
+the Macintosh be copying bits from a pre-specified Falcon
+screen array.  (Resolution of this misunderstanding resulted in
+the immediate resolution of several other points on the agenda.)
+
+@item
+The above screen I/O issue is just one of the K/Mac communications
+topics which still require detailed discussion.  Others pertain to
+paging I/O, disk interactions, and the OPEN command.
+
+@item
+The developers in Montreal expressed their concern over the impact of
+having only two Macintoshes dedicated to the project (one of which
+appeared to be the personal property of a developer).  The lack of
+sufficient Macintosh computers in Montreal may be impeding their coding
+efforts.
+
+@item
+Montreal could not give us a demo of their current code (due to
+insufficient available Macintoshes), and they have yet to provide us
+either with the current code or its documentation.  They agreed to send
+code on a Lambda tape but did not make any provisions for code
+demonstrations, simulation environments, or required documentation.
+Cambridge still urgently needs full documentation describing the current
+code and the simulation environment in order to meet our
+goal of setting up the simulator in Cambridge for LISP work during the
+Montreal team's hiatus from the Communications Project.
+
+@page
+@item
+Montreal has programmed many of the needed file server capabilities in detail, but it
+became apparent that they will require the assistance of
+a Cambridge developer to perform low-level LISP code integration.  This
+requirement could be satisfied in either of two ways:
+@itemize @bullet
+@item
+Prior to resuming work in Montreal on K/Mac communications, one or more
+members of the Montreal development team could spend a day in Cambridge:
+@itemize -
+@item
+Setting up the simulator (in the absence of a bus coupler);
+@item
+Reproducing the simulator (in the absence of a bus coupler);
+@item
+Assisting the Cambridge developers in the integration and testing of code written in Montreal;
+@item
+Working on any needed revisions or refinements of the existing screen, keyboard,
+and mouse implementations.
+@end(itemize)
+@item
+Alternatively, Keith (and/or Bob) could spend a week in Montreal becoming knowledgeable
+on issues of code integration (and/or architecture redesign).  This
+would appear to be the less satisfactory option, given the vast amount
+of work remaining to be done in Cambridge and the critical role both
+Keith and Bob play in its timely completion.
+@end(itemize)
+@end(enumerate)
+@end(document)

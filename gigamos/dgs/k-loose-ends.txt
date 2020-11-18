@@ -1,0 +1,28 @@
+This file constitutes a "to-do" and current status list for someone seeking
+to support the K processor/memory boards as a software development vehicle,
+should this K/FALCON/PHOENIX project ever re-start.  The items of the list
+are framed within the context of the progress and achievements of my last five
+months' work at GigaMos Systems, and so might not be entirely self-evident
+to an outsider.  Nonetheless, this is what there is ---
+
+1. Synchronization flipflop needs to be added to the Asynchronous Trap
+    input to the Trap Request (TRAPR) PAL.
+
+2. Synchronization flipflop needs to be added to the D input to the
+    LM-NUREQ flipflop (memory cycle request from Nubus slave interface).
+
+3. Spy mode still needs to disable writes to the instruction caches.
+
+4. The timing of the WRITE pulse to the register memory array in the
+    processor needs to be tweaked better than it has been.  The pulse
+    is frequently too skinny.  That etch should also be terminated to
+    reduce undershoot and reflection.
+
+5. Most of the critical pull-down resistors on the PC boards have been
+    changed from 100 ohms to 22 ohms, but check the board status file,
+    angel:/lmi/dgs/k-bd-stat.txt.  This file also reflects the most
+    recently stored board statuses for those boards that have been in
+    service.
+
+6. The most recent engineering changes are discussed in text files in
+    the directory DJ:DGS:*.text.

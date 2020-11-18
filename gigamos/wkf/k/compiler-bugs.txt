@@ -1,0 +1,14 @@
+jb:k.benchmarks;*.lisp.>
+TRAVERSE -- DEFSTRUCT
+DERIV -- MAPCAR
+TAK (CTAK) -- Catch/Throw
+
+(hw:read-microsecond-clock)  does not compile
+(hw:write-microsecond-clock (hw:unboxed-constant 0)) does not compile
+
+(defvar foo 23) is leaving foo unbound
+(defconstant foo 3) is not compiled into coded unless (1+ foo)
+changes to QCOPT
+couldn't find ref for puzzle on setq of *foo* see dj:wkf.k;start-kbug-stack.lisp
+won't compile defstruct without error on parents in traverse.
+couldn't find ref for try on ar-1 in traing test.

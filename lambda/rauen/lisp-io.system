@@ -1,0 +1,33 @@
+;;; -*- Mode:LISP; Package:USER; Base:10; Readtable:CL -*-
+;;;
+;;; LISP-IO
+;;;
+;;; This file defines the LISP-IO system.  The LISP-IO system implements
+;;; readtables, the reader, the printer, streams, and the format interpreter.
+;;; All of its code is in the LISP-IO package.  The symbols implemented by
+;;; LISP-IO may be found in the LISP-IO-IMPORTS file.
+;;;
+;;; Before making a LISP-IO system, the K-LISP file should be loaded.  It
+;;; currently lives in JB:K;K-LISP.LISP
+
+
+(defsystem lisp-io
+  (:name "LISP-IO")
+  (:pathname-default "dj:rauen;")
+  (:module imports     "lisp-io-imports")
+  (:module readtables  "readtable")
+  (:module indentation "indentation")
+  (:module streams     "streams")
+  (:module reader      "reader")
+  (:module printer     "printer")
+  (:module grinder     "grinder")
+  (:module format      "format")
+  (:readfile imports)
+  (:compile-load streams     ((:readfile imports)))
+  (:compile-load reader      ((:readfile imports) (:fasload streams)))
+  (:compile-load readtables  ((:readfile imports) (:fasload streams)))
+  (:compile-load indentation ((:readfile imports) (:fasload streams)))
+  (:compile-load printer     ((:readfile imports) (:fasload streams)))
+  (:compile-load grinder     ((:readfile imports) (:fasload streams)))
+  (:compile-load format      ((:readfile imports) (:fasload streams)))
+  )

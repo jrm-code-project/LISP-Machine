@@ -1,0 +1,38 @@
+
+This is the UNLISP file for LAM6: GJC; AMORT.MC#2.
+
+Translating: "*"
+Bad argument list for a function to translate->[RATE,(RATE+1)^TIME,1/((RATE+1)^TIME-1),
+ STARTING_VALUE]
+"*" failed to Translate.  Continuing...
+Translating: MONTHLY_PAYMENT
+Translating: "+"
+Bad argument list for a function to translate->[RATE_APPROX,
+ -((RATE_APPROX+1)^TIME*STARTING_VALUE
+  -PAYMENT*((RATE_APPROX+1)^TIME-1)/RATE_APPROX)
+  /((RATE_APPROX+1)^(TIME-1)*STARTING_VALUE*TIME
+   -PAYMENT*(RATE_APPROX+1)^(TIME-1)*TIME
+    /RATE_APPROX
+   +PAYMENT*((RATE_APPROX+1)^TIME-1)
+    /RATE_APPROX^2)]
+"+" failed to Translate.  Continuing...
+Translating: APR
+Translating: RUN_LOOP
+APR
+in the form APR(MA,PNTS,PAY,YPR,YRS)
+has been used as a function, yet is a bound variable
+in this context. This code being translated as :APPLY(APR,[MA,PNTS,PAY,YPR,YRS])
+/* Variable settings were */
+
+PACKAGEFILE:TRUE;
+TRANSCOMPILE:TRUE;
+TR_SEMICOMPILE:FALSE;
+TR_NUMER:FALSE;
+TR_WARN_UNDECLARED:COMPILE;
+TR_WARN_MEVAL:COMPFILE;
+TR_WARN_FEXPR:COMPFILE;
+TR_WARN_MODE:ALL;
+TR_WARN_UNDEFINED_VARIABLE:ALL;
+TR_FUNCTION_CALL_DEFAULT:GENERAL;
+TR_ARRAY_AS_REF:TRUE;
+DEFINE_VARIABLE:FALSE;

@@ -1,0 +1,266 @@
+;;; -*- Mode:Text -*-
+
+             A Mechanism for Generating Technical Proposals
+
+                                 (David Saslav)
+
+Goals:
+
+1. To expedite the specification, design, implementation, and
+documentation of technical projects.
+
+2. To assure that all projects are the product of a sound technical
+process, based to the greatest extent possible upon general consensus
+amongst the designers.
+
+3. To provide an uncontroversial record of technical discussion, thus
+guarding against and helping to quickly rectify any technical
+miscommunication, misinterpretation, or misunderstanding which may
+occur.
+
+4. To assure that input by each member of the technical staff is given
+fair, professional consideration.
+
+
+Mechanism:
+
+This section describes the steps involved in generating, announcing,
+commenting upon, distributing, and voting upon proposals.
+
+  1. WHEN TO WRITE A PROPOSAL
+
+The Proposal process is meant to serve as a means of fostering
+discussion and achieving consensus on controversial technical issues,
+and should not be used as a substitute for interpersonal discussion.  In
+fact, informal discussion amongst staff members should be the primary
+means of eliminating controversy.
+
+  2. HOW TO TYPE IN A PROPOSAL OR RESPONSE TO A PROPOSAL
+
+Proposals should be named with a slightly condensed version of the
+proposal Title, and saved in the directory "JB:PROPOSALS;".
+
+The proposal format should be similar to that of this file, consisting
+of a Title and Author, centered on the first and third lines of the
+file.  There should be sections for each Proposal's Technical
+Background, its Purpose/Goals, its Mechanism/Implementation, any
+Comments, and its Status.
+
+The mechanism/implementation section should outline a general plan for
+accomplishing the purpose/goals of the proposal, and should be fully
+consistent with the technical background laid out in the Technical
+Background section.
+
+The directory "JB:PROPOSALS.BACKGROUND;" exists for those cases in which
+the technical background required for presenting a proposal is extensive
+enough to warrant separate containment.  In this case, the proposal
+Author should leave in the Technical Background section a full pointer
+to the file in which the text resides.  A template example of a
+recently-completed proposal may be found at the end of this file.
+
+If entering a response to an existing proposal, do so in the Comments
+section at the end of the proposal file.  Include the response date and
+your initials or name at the beginning of your response, and then write
+out a new version of the file.
+
+The last section of each proposal will be the Status section.  The
+original Status of a Proposal is always "OPEN". For more details on
+Proposal Status, see sections 5. Voting on a Distributed Proposal and 6.
+Recording a Proposal's Status.
+
+  3. SEND A BRIEF ANNOUNCEMENT TO THE DESIGN TEAM
+
+Once you have entered the initial proposal, send an announcement
+including the Title, Author, and a brief summary of the proposal to all
+relevant mailing lists.  This alerts other technical designers to the
+existence of the proposal, and enables them to read and comment upon it.
+
+  4. INTEGRATE TECHNICAL RESPONSE INTO THE PROPOSAL
+
+After entering a comment to an existing proposal file, mail a complete
+copy of all added text to the Proposal Author.  At this point, it
+becomes the Author's responsibility to respond to the comment by mail,
+and also to update the Proposal to reflect the results of the ensuing
+discussion.  The Responder's original comment text should be left
+intact, and a phrase inserted next to the commenter's name indicating
+the comment's disposition.
+
+  5. DISTRIBUTE THE PROPOSAL TO THE DESIGN TEAM
+
+The proposal, once submitted, will remain an active document.  The
+Status section will contain a phrase describing the current state of the
+idea under consideration.  When a proposal's Author believes that the
+proposal file contains sufficient information to serve as the basis of a
+decision, he may Distribute the Proposal.  Distributing a Proposal
+consists of the following three steps, in order:
+
+  A. Notating the proposal file's Status section to read, "DISTRIBUTED";
+  B. Notating the entry in the file
+     "JB:PROPOSALS;TABLE-OF-CONTENTS.TEXT" such that the Status field
+     for the proposal in question reads, "DISTRIBUTED";
+  C. Distributing a hardcopy of the entire proposal file to all members
+     of the technical design staff on the day before a Proposal Meeting
+     has been scheduled.
+
+Proposal Meetings must be announced in writing by means of a ZMail
+message to the relevant mailing lists no later than 24 hours before the
+scheduled meeting time.
+
+  6. VOTE ON THE PROPOSAL
+
+Each project member will have a chance to record his vote during the
+Proposal Meeting.  In the case of an excused absence, a staff member may
+cast his vote in absentia.  A 2/3 majority of the entire technical staff
+of GigaMos Cambridge constitutes a decisive Vote.  The calling of a Vote
+is done by the Project Manager, unless he is also the Proposal's Author,
+in which case, the Vote will be called by the Company President.
+
+The possible results of a Proposal Vote are:
+
+   1. Acceptance of the Proposal
+   2. Rejection of the Proposal
+   3. Deferment of the Proposal for further modification and a future
+      voting
+
+The result of all Proposal Votes is Deferment, unless a 2/3 majority
+Vote is achieved either Accepting or Rejecting the Proposal.  The
+Proposal Administrator is responsible for electronically mailing the
+results of all majority Votes taken at Proposal Meetings, during the
+same day that the majority Vote was achieved.
+
+Once a Proposal has been Accepted or Rejected, and the Vote results have
+been distributed to the staff, the president has 24 hours in which to
+Overrule that verdict, either from "Accepted" status to "Rejected"
+status, or from "Rejected" status to "Accepted" status.  To do this, a
+written explanation must be entered into the Status field at the end of
+the Proposal file, immediately after the record of the Overruled Vote
+(see the next section for details on recording Proposal Vote Status).
+
+Once a Proposal has been accepted without Overruling, it then becomes
+the responsibility of management to make any necessary modifications to
+the project plan, and inform staff members of the plans for
+implementation and the timetable of the change in a timely manner,
+
+  7. RECORDING A PROPOSAL'S STATUS
+
+Proposals which have been Accepted or Rejected will be considered
+closed; Proposals which are neither Accepted nor Rejected will remain
+open.  All proposals remaining open remain the responsibility of the
+Author, until such time as sufficient new modifications exist to warrant
+another Proposal Distribution.
+
+Files containing Proposals which have been either Accepted or Rejected
+should have their Status fields modified by the Project Manager to read
+
+ "CLOSED -- [decision]"
+
+ where [decision] summarizes the intent and count of the majority Vote
+ (either "Accepted" or "Rejected").
+
+  8. STORING, FINDING, AND MOVING PROPOSALS
+
+There is one relevant top-level directory, and three relevant
+subdirectories beneath it:
+
+   Directory "JB:PROPOSALS;"
+     Subdirectory "JB:PROPOSALS.ACCEPTED"
+     Subdirectory "JB:PROPOSALS.ARCHIVE"
+     Subdirectory "JB:PROPOSALS.BACKGROUND"
+
+While being fleshed out, Proposals are kept at the top level of the
+directory "JB:PROPOSALS;", with mnemonic names.
+
+Proposals that have been Rejected are deleted from the top level
+directory and placed in the subdirectory "JB:PROPOSALS.ARCHIVE;",
+retaining the same filename from before, while being kept in the top
+level directory.
+
+Proposals that have been Accepted are deleted from "JB:PROPOSALS;" and
+placed in the subdirectory "JB:PROPOSALS.ACCEPTED;" for further
+processing.  Accepted Proposals become the input for a new process, the
+goal of which is to generate Project Specifications for imminent
+distribution.
+
+As discussed above, the subdirectory "JB:PROPOSALS.BACKGROUND" is to be
+used for extensive discussions of technical details used as background
+for a proposal's more formally action-oriented content.
+
+All versions of a proposal are kept together in the relevant directory
+at all times.
+
+To assist in finding a given proposal, the Proposal Administrator will
+be responsible for maintaining the file,
+
+ "JB:PROPOSALS;TABLE-OF-CONTENTS.TEXT"
+
+This file will contain relevant information about each proposal [Title,
+Author, Proposal Filename, Status, and Last Proposal File Modifier].
+
+Comments:
+
+-------- [K. Corbett 20-oct-88]
+I would/will vote in favor of the revised proposal mechanism, in its
+current form.
+
+One suggestion: make a TECHNICAL-INFO (or equivalent) mailing list.  I
+don't think any one mailing list consists of only the internal (GigaMos
+Cambridge) technical staff.  There should be one, and the proposal
+mechanism should specify it as the appropriate list for proposal mail.
+
+
+
+From the fictitious file "JB:PROPOSALS;END-ALL-WAR":
+
+;;; -*- Mode:Text; Fonts:(HL12 HL12B HL12I) -*-
+
+                               Ending War
+
+                (Draft Last Revised 2/31/88 -- John Doe)
+
+Background:
+
+See the file "JB:PROPOSALS.BACKGROUND;HISTORY-OF-WAR.TEXT" for a
+detailed account of all wars throughout history.
+
+Goals:
+
+To construct a mechanism which ensures that no war ever take place
+again.
+
+Mechanism:
+
+  1. Kill all the lawyers.
+
+        :
+        :
+        :
+
+
+Comments:
+
+-------- [Jane Doe 24-Oct-88:] [Proposal modified to reflect this -JD]
+
+"Kill all the lawyers" should come before step 7.  In fact, it should be
+the first thing you do.
+
+
+Status:
+
+CLOSED,
+ACCEPTED BY 7-1 (C.O.M.P. sole dissenter) -- P. R. Oject-Manager
+_______________________________________________________________________
+|DECISION OVERRULED: PROPOSAL REJECTED
+|
+|      First of all,...
+|       :
+|       :
+|      Secondly,...
+|       :
+|       :
+|      On the other hand,
+|       :
+|       :
+|      Last, but not least, I overruled this Proposal because I am a
+| lawyer in my spare time.
+|                                              --C. O.  Mpany-President
+-----------------------------------------------------------------------

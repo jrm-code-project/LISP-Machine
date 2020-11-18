@@ -1,0 +1,36 @@
+@chapter Configuration Record File
+
+A Macintosh file will hold certain information
+to be managed by the K/Mac application and passed to
+the K processor(s) at boot time.
+The configuration record data items include:
+
+@enumerate
+@item Processor(s) (serial #) to run within the application;
+@item Mac's (host) name;
+@item Memory enabled/disabled sections; and
+@item Volume and File-ID of default world load file.
+@end(enumerate)
+
+There is no uniform standard for where to look for the host name on the Mac.
+For example, TOPS (one popular network software package) stores it as the "User Name" 'STR ' resource.
+It puts this in the file "Tops Prep", which does not exist if some other network software is
+being used.
+
+The ``world load file''  is the K/Mac equivalent of the Lambda ``load band''.
+
+
+@textbox
+
+@center Montreal notes:
+
+Configuration Proms w/ the bus coupler, the Mac slot manager
+will not understand declarations on the other (K?) side.  The Montreal
+team will have to hardwire bus coupler declarations.  The Cambridge team
+will provide (Pascal?) code once we have received information on the NuBus'
+K registers.
+
+Configuration files (and any other files needed by the Mac application
+itself) will have to be covered by a separate filetype, called "KMac".
+
+@end textbox

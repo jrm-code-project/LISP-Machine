@@ -1,0 +1,211 @@
+                     Lambda Machine Console Program
+
+Documentation:
+
+It's like DDT
+ie <register>/  "opens" the register and prints it out.
+   <new value><cr>  when a register is open modifies the register and closes it.
+   <lf>  opens the next higher register and prints it.
+   ^     opens the next lower register and prints it.
+   <space> or +  act as arithmetic +.
+   <tab> open quantity addressed by pointer field of last quantity typed.
+   <page>  refreshes display
+   =   types numeric value of last value typed (by you or it)
+
+Further Documentation:
+
+^R      reset
+^N      step
+n^N     step n times, n < 40000
+adr^N   step until about to execute micro instr at adr
+:AUTO-STEP  step in loop until character typed.
+^P      run until char typed
+^L      clear screen
+^S     stop machine
+^T     start machine and enter remote console mode.
+105 FOOBAR  start machine
+<arg>:G  (arg a control-mem register address).  set PC of machine preparitory to starting.
+
+:MODIFY prints uinsts in OPC buffer which modify arg (an A or M location). if no arg,
+           print those which modify open location (which should be in A or M memory).
+:AFFECT prints uinsts which "affect" this uinst (modify register addressed by A or M address
+          of this guy).
+:DESCRIBE-AREAS  give information about areas
+:AREA   prints area that last value typed points to.
+:REGION prints region that last value typed points to.
+:DESCRIBE-REGION give information about region <arg>.
+:system-communication-area  print entire contents of system-communication-area
+:scratch-pad-init-area      similar.
+:MAPS   prints maps (1st and 2nd level) addressed by last value typed.
+:STKP   give backtrace of info on stack. Preceeding numeric arg is number of
+          frames worth.  All are printed if arg is absent.  If arg negative,
+          print (abs arg) frames direct from PDL-BUFFER (bypassing memory mapping, etc).
+          Any character typed during printout will abort rest of printout.
+:TRACE  like :STKP except that if the last value examined is a stack group
+          that stack group will be traced instead of the current one.
+:TRACEN like TRACE, but doesnt print args.
+:ATOM foo  tell about atomic symbol foo
+:FUNCTION foo  tell about foo's function cell
+:PROPERTY foo  tell about foo's property list.
+:BACTRACE
+:BACKTRACE
+:MEMSTAT tell all about all pages that are swapped in
+:RELPC  types out what M-AP points to, and if thats a FEF, prints out what
+          LC is relative to that.
+:CODE   disassembles the macrocoded function being executed.
+:DISASSEMBLE-FEF  disassembles last quantity typed.  Asks for center-PC or NIL.
+:CHECK-MAP  checks contents of hardware map against PAGE-HASH-TABLE.
+        (takes quite a long time)
+:CHECK-MAP-BULK  similar, but doesnt take quite as long.
+:CHECK-REVERSE-LEVEL-2-MAP-BULK
+
+:PF    Interprets open register as LP-FEF Q of a PDL-FRAME, and prints
+          the entire frame.
+:previous-active-frame  if the FEF word of a frame is open, open the previous active frame.
+:previous-open-frame    likewise, the previous open frame.
+:FLAGS  Decode M-FLAGS
+:INTOFF disable machine interrupts
+:INTON  Turn machine interrupts on.
+:tvintoff  turn off interrupts from TV.
+:tvinton   turn on interrupts from TV.
+arg :PHYS-MEM-WORD-SEARCH   Searches real core for arg  **CROCK** FOR NOW IT ONLY
+                                SEARCHES 128K.  FIX WHEN LAM KNOWS ABOUT REAL MEM.
+:DESCRIBE  if last quantity typed is a closure or entity, prints CLOSURE-ALIST sort
+            of thing.  if a stack-group, prints info from stack group header.
+:DESCRIBE-LEXICAL-ENVIRONMENT
+:PCHECK    Use this to track down problems with hardware parity checkers.
+           Types what the parity generator chips for the last quantity examined
+           should put out.  Works for C-MEM ..add others.. .
+
+newer stuff:
+:with-output-to-file {filename colon-cmd}
+        after specifing the filename as a string, specify a colon command
+        as usual, and the any output printed will be sent both to the file and
+        to the screen.
+:select-speed  put up menu for selecting TRAM speed.
+:lam-iopb  print disk command block used by main ucode
+:debug-iopb  command block used by lam program itself
+:sdu-iopb
+:prom-iopb   used by prom
+:csm    print symbolic address of csm-adr
+:print-active-mapping-regs   print lambda-iopb, and mapping registers it addresses
+:eagle-initialize, initialize-disk-control
+:rg or :rg-mode, :dp or :dp-mode   prints respective mode registers.
+:mid   print symbols contents of mid addressed by last quan typed or arg.
+:select-symbols  put up a menu with various options.
+:dump-original-symbols
+:macro-break  insert a breakpoint into macrocode by smashing an instruction
+:macro-unbreak  remove macrocode breakpoint.  Seems to lose, look at this! RG
+:macro-restore  replace smashed instruction
+<arg>:macro-single-step  set (1) or clear (0) hardware single step mode flag.
+<n>:force-macro-return.  attempt to force n levels of macrocode subroutine return.
+:cold-boot  cold boot machine (after ucode loaded).  Writes memory configuration info.
+:cold-boot-and-load-symbols  load symbols while its cold-booting
+:cold-boot-setup    as in cold boot, but dont really start machine.  Does set up memory
+                configuration.
+:start-prom  transfer to PROM at location 36000 (or maybe 36001 in share mode).
+:chaos-meters  print out chaos meters of debugged machine
+:ether-meters  print out ethernet meters of debugged machine.
+:opc-search  search OPCs for a symbol you type.
+:summerize-opcs  (spelling due to PACE)
+:cache-on       turn on cache (hardware enable it, and set bit in a-l2-map-control-bits)
+:cache-on     turn off cache.  inverse of above.
+:print-unibus-channels
+:foothold  ??
+:int-level (explorer only)
+
+in CADRD:
+
+:START -  adr :START,   start machine, let it run
+:LOWLEVEL -  :LOWLEVEL T turns on low-level mode, in which reading most registers
+   gets what is currently in the machine rather than what is saved,
+   writing is unaffacted.  Makes the display at the bottom of the screen useful with :EX
+   :LOWLEVEL VERY enters a mode where LAM tries not to "spontaneously" affect the
+   hardware in any way.  This means only the "passive" machine state is available,
+   ie no saving - frobbing - restoring is permitted.  If random things not part of
+   the passive state are examined, etc, ideally the saving, etc should be done
+   at that time.  BE VERY CAREFUL
+:MODE - Decodes the mode register symbolically
+:CHMODE - Edits the mode register
+:RESTORE -  does a full-restore, getting software state into hardware,
+:sm-step -  call SM-STEP program (minor cycle stepper)
+:select-test - call SELECT-TEST program (menu interfact to simple loop tests)
+:EX - Execute .IR once.
+:SCOPE causes the machine to execute whatever is in DEBUG-IR
+         repeatedly at full speed.  Deposit in .IR just before doing this.
+
+
+Breakpoints:
+:B      set breakpoint at prefix arg or open location
+:UB     unset breakpoint at ..
+:LISTB  list breakpoints
+:UAB    unset all breakpoints
+:RB     reset all breakpoints (useful if they have been loaded over)
+:P      proceed
+:G    do 1@G and :P
+:TB     set temporary breakpoint at .. (temp bkpt goes away when reached)
+:TBP    set temporary breakpoint and proceed
+:RETURN-BREAK  Set breakpoint where current CALL instruction will return
+:US-BREAK  Set breakpoint at current open US stack locn, to top of US if no reg open.
+
+Initial Symbols
+RESET VMA MWD RAIDR PSV FSV RUNNING TRYING-TO-RUN MODE
+LLMOD NOOPF FDEST FSRC .IR IR PC USP Q DC PP PI CIB OPC
+
+  Since there are many different memories in the machine, each having
+addresses running from 0 to some power of 2, a large space of register addresses
+is defined, and the various memories are assigned parts of it.
+A register address can be referred to either by specifying which memory
+and the address within the memory, as in 200@C for location 200 in control memory,
+or by specifying the register address, which would be 200+RACMO for that location.
+
+-400000<n<0      register address space, various memories etc.
+(minus 400000+n) physical main memory location n ("concatenated" locns)
+positive number n  virtual memory location n
+
+n@C     control memory
+n@D     dispatch memory
+n@P     PDL buffer
+n@1     map 1
+n@2C    map level 2 control bits
+n@2P   map level 2 physical page
+n@A     A memory
+n@U     micro return stack
+n@M     M memory
+FS n    functional sources
+FD n    functional destinations
+LAM n   "special" registers, e.g. PC, USP
+CSW n   CCONS control switches
+RAIDR n  Raid registers
+CIB n   Console inst buffers
+OPC n  Old PCs
+
+n@G     set PC
+@Q      last frob typed (like Q in DDT)
+
+_nn     rotate left nn places (32 bits).  follow by space or equals to type out.
+
+_A      type out as array header
+_B      type out as bytes (right to left)
+_D      type out as header
+_H      type out as halfwords LH,,RH
+_I      type out as macro instruction
+_Q      type out as lisp Q
+_S      type out as lisp machine S expression (ie do PRINT, sort of)
+          LAM-SEXP-PRINLEVEL and LAM-SEXP-PRINLENGTH control how deep and
+          how long things will go, respectively.
+_U      type out as micro instruction
+_V      type out as micro instruction, old style.
+_X      type out as hex
+__      type out as register address
+_#     type out as bit numbers of set bits.
+` (left slant) instead of _ causes type-in mode
+In type-in mode,  completes what has been typed so far
+as much as possible, ? lists possible completions, space
+terminates the syllable.  You can type just a space and
+if there is one possibility that types nothing in
+type-out mode, (i.e. a default) it will get used.
+
+' (right slant) is similar except typing just a space leaves
+the field set to its previous value.
+In the MODE register, bit 1.1=run slow, bit 1.2=disable error halts

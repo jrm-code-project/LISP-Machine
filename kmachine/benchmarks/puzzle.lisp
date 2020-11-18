@@ -1,0 +1,152 @@
+;;; -*- Mode:LISP; Package:user; Base:10; Readtable:ZL -*-
+
+;;Compile on lambda???
+(defconstant size 511.)
+(defconstant classmax 3.)
+(defconstant typemax 12.)
+
+
+
+(defvar *iii*)
+(defvar *kount*)
+(defvar *d*)
+(defvar piececount)
+(defvar class)
+(defvar piecemax)
+(defvar puzzle)
+(defvar puzzle-p)
+
+(defun fit (i j)
+  (let ((end (aref piecemax i)))
+    (do ((k 0 (1+ k)))
+        ((> k end) t)
+      (cond ((aref puzzle-p i k)
+             (cond ((aref puzzle (+ j k))
+                    (return nil))))))))
+
+(defun place (i j)
+  (let ((end (aref piecemax i)))
+    (do ((k 0 (1+ k)))
+        ((> k end))
+      (cond ((aref puzzle-p i k)
+             (setf (aref puzzle (+ j k)) t))))
+    (setf (aref piececount (aref class i)) (- (aref piececount (aref class i)) 1))
+    (do ((k j (1+ k)))
+        (( k (1+ size))
+
+;                (terpri)
+;                (princ "Puzzle filled")
+
+         0)
+      (cond ((not (aref puzzle k))
+             (return k))))))
+
+(defun puzzle-remove (i j)
+  (let ((end (aref piecemax i)))
+    (do ((k 0 (1+ k)))
+        ((> k end))
+      (cond ((aref puzzle-p i k) (setf (aref puzzle (+ j k)) nil))))
+    (setf (aref piececount (aref class i)) (+ (aref piececount (aref class i)) 1))))
+
+(defun trial (j)
+  (let ((k 0))
+    (do ((i 0 (1+ i)))
+        (( i (1+ typemax)) (setq *kount* (1+ *kount*))
+         nil)
+      (cond ((not (= (aref piececount (aref class i)) 0))
+             (cond ((fit i j)
+                    (setq k (place i j))
+                    (cond ((or (trial k)
+                               (= k 0))
+
+;                                    (terpri)
+;                                    (princ "Piece") (tab)
+;                                    (princ (+ i 1)) (tab)
+;                                    (princ "at")(tab)(princ (+ k 1))
+
+                           (setq *kount* (+ *kount* 1))
+                           (return t))
+                          (t (puzzle-remove i j))))))))))
+
+(defun definepiece (iclass ii jj kk)
+  (let ((index 0))
+    (do ((i 0 (1+ i)))
+        ((> i ii))
+      (do ((j 0 (1+ j)))
+          ((> j jj))
+        (do ((k 0 (1+ k)))
+            ((> k kk))
+          (setq index  (+ i (* *d* (+ j (* *d* k)))))
+          (setf (aref puzzle-p *iii* index) t))))
+    (setf (aref class *iii*) iclass)
+    (setf (aref piecemax *iii*) index)
+    (cond ((not (= *iii* 12))
+           (setq *iii* (+ *iii* 1))))))
+
+(defun start ()
+  (do ((m 0 (1+ m)))
+      (( m (1+ size)))
+    (setf (aref puzzle m) t))
+  (do ((i 1 (1+ i)))
+      ((> i 5))
+    (do ((j 1 (1+ j)))
+        ((> j 5))
+      (do ((k 1 (1+ k)))
+          ((> k 5))
+        (setf (aref puzzle (+ i (* *d* (+ j (* *d* k))))) nil))))
+  (do ((i 0 (1+ i)))
+      (( i (1+ typemax)))
+    (do ((m 0 (1+ m)))
+        (( m (1+ size)))
+      (setf (aref puzzle-p i m) nil)))
+  (setq *iii* 0)
+  (definePiece 0 3 1 0)
+  (definePiece 0 1 0 3)
+  (definePiece 0 0 3 1)
+  (definePiece 0 1 3 0)
+  (definePiece 0 3 0 1)
+  (definePiece 0 0 1 3)
+
+  (definePiece 1 2 0 0)
+  (definePiece 1 0 2 0)
+  (definePiece 1 0 0 2)
+
+  (definePiece 2 1 1 0)
+  (definePiece 2 1 0 1)
+  (definePiece 2 0 1 1)
+
+  (definePiece 3 1 1 1)
+
+  (setf (aref pieceCount 0) 13.)
+  (setf (aref pieceCount 1) 3)
+  (setf (aref pieceCount 2) 1)
+  (setf (aref pieceCount 3) 1)
+  (let ((m (+ 1 (* *d* (+ 1 *d*))))
+        (n 0)(*kount* 0))
+    (cond ((fit 0 m) (setq n (place 0 m)))
+          (t ))    ;; (terpri)(princ "Error")))
+    (cond ((trial n) )  ;;  (terpri)(princ "success in ")(princ *kount*) (princ " trials"))
+          (t)) ;;(terpri)(princ "failure")))
+    ))  ;;(terpri)))
+
+(defun setup-puzzle ()
+  (setq *iii* 0)
+  (setq *kount* 0)
+  (setq *d* 8.)
+  (setq piececount (make-array (1+ classmax)))
+  (dotimes (i (1+ classmax)) (setf (aref piececount i) 0))
+  (setq class (make-array (1+ typemax)))
+  (dotimes (i (1+ typemax)) (setf (aref class i) 0))
+  (setq piecemax (make-array (1+ typemax)))
+  (dotimes (i (1+ typemax)) (setf (aref piecemax i) 0))
+  (setq puzzle (make-array (1+ size)))
+  (setq puzzle-p (make-array (list (1+ typemax) (1+ size)))))
+
+
+
+;;;;THIS MUST BE COMPILED WITH HARDEBECK COMPILER!!!!!
+(defun test-puzzle ()
+  (setup-puzzle)
+  (hw:write-microsecond-clock (hw:unboxed-constant 0))
+  (li:error "PUZZLE complete." (start) (hw:read-microsecond-clock))
+  (loop))

@@ -1,0 +1,44 @@
+@comment -*- Mode:CommonLISP; Package:USER -*-
+
+@lisp
+
+(defun big-endian-bytes (array &rest bytes)
+  "Combine bytes into an integer, most significant come first"
+  (do ((number 0 (+ (* number 256) (aref array (car l))))
+       (l bytes (cdr l)))
+      ((null l) number)))
+
+(defvar *last-bogus-buffer* nil)
+
+(defun get-imagen-status (&optional (printer si:*default-printer*) &aux address)
+  (assert (setq address (ip:parse-internet-address printer))
+          (printer)
+          "~A is not a valid Internet host name or address" printer)
+  (with-open-file (stream (format nil "UDP-HOST:~A.IMAGEN" address))
+
+    (let ((buff (udp:get-udp-buffer)))
+      (fillarray buff '(0.))
+      (funcall stream :write-packet buff)
+      (send stream :force-output)
+      (dotimes (j 12.)
+        (if (and (funcall stream :listen)
+                 (funcall stream :read-packet buff)
+                 (not (zerop (array-active-length buff))))
+            (return)
+          (process-sleep 60. "Waiting for Imagen")))
+      (cond
+        ((null buff)
+         (format t "Imagen status not available"))
+        ((zerop (array-active-length buff))
+         (warn "Null UDP packet received")
+         ;;Help for debugging:
+         (setq *last-bogus-buffer* buff)
+         nil)
+        (:else
+           (format t "~&~A"
+                   (substring buff
+                              (big-endian-bytes buff 16 1)
+                              (+ (big-endian-bytes buff 16 1)
+                                 (big-endian-bytes buff 18 19)))))))))
+
+@end(lisp)

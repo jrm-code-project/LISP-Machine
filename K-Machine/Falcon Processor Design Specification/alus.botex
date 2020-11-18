@@ -1,0 +1,23 @@
+@c alus.botex
+@c
+@c 21-May-88, James Rauen
+
+@chapter ALUs
+@label[OREG]
+
+The processor's main ALU is Advanced Micro Devices' Am29332 Arithmetic
+Logic Unit.  For a complete specification of its behavior, consult the
+29332's documentation.  A summary of the ALU's opcodes appears in the
+ALU Opcodes chapter.
+
+An ALU operation is determined by the ALU Opcode and Byte Width fields
+of an instruction.  Bit operations might also require the Shift and Mask
+fields.
+
+The board set is also designed to use Weitek floating point hardware.
+However, this design had to be abandoned because the state of the Weitek
+hardware cannot be saved and restored during trap entry/exit.
+
+The left and right inputs to the ALUs are determined by the Left Source and
+Right Source fields of an instruction.  The ALU output is registered in OREG,
+the ALU output register.

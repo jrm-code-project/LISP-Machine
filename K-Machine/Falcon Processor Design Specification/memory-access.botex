@@ -1,0 +1,167 @@
+@c memory-access.botex
+@c
+@c 16-May-88, James Rauen
+
+@chapter Main Memory Access
+
+This chapter describes how the processor interacts with the virtual
+memory system.
+
+
+@section Registers
+@label[VMA]
+@label[MD]
+
+The processor communicates with main memory via two 32-bit registers,
+the Virtual Memory Address (VMA) and the Memory Data (MD).  When the 
+processor wants to read or write data to main memory, it writes the
+appropriate address into the VMA, and it reads or writes the data
+in the MD.
+
+Like the registers in register memory, both the VMA and the MD have box
+bits.  However, these box bits do not behave like they do in register
+memory.  When the processor writes a word from register memory into the
+VMA or MD, the box bit of that word is not loaded into the VMA/MD.
+Instead, the VMA/MD box bit is taken from bit 54 of the
+instruction.  (See the Instruction Set chapter).
+
+However, their box bits are registered separately 
+registered separately.  They are described in the Transporter RAM
+chapter.
+
+
+@section Reading a Word from Memory
+
+Reading a word from memory requires three instructions:
+
+@itemize @bullet
+@item
+Write the word's address to one of the eight VMA-START-READ functional
+destinations.  The eight options allow the processor to choose one of
+four transporter modes (discussed below) and to optionally set the low
+bit of the address.  
+
+@item
+Wait.  This instruction can simply be a NOP, or it can do something else
+useful that doesn't read or write to the memory system.
+
+@item 
+This instruction (and subsequent instructions, until the next
+memory system operation) can read the desired word from the MD
+functional source.
+@end itemize
+
+Before the processor sees the data in the MD, the Transporter RAM gets
+to look at it.  Depending on which transporter mode was selected, the
+Transporter RAM will cause a trap if there is something wrong with the
+data in the MD.  Here are the four transporter modes:
+
+@itemize @bullet 
+@item 
+@b[No Transport:] This mode should only be used
+when transporting unboxed data.  No transporter trap will ever occur.
+(As a safety measure, if the MD is boxed, using no-transport mode will
+cause a trap).
+
+@item
+@b[Transport:] This is the normal way to transport boxed data.  A transporter
+trap will occur if the MD includes a pointer into oldspace, if the MD is
+a forwarding pointer, if the MD has an invalid data type, or if the MD has
+data type $$DTP-UNBOUND.
+
+@item
+@b[Visible EVCP:] This mode is identical to Transport mode, except that
+forwarding pointers are not trapped.  Instead, the data containing the forwarding
+pointer is left in the MD.
+
+@item
+@b[Will Write:] This mode is identical to Transport mode, except that
+unbounds are not trapped.  Instead, the data with data type $$DTP-UNBOUND
+is left in the MD.
+@end itemize
+
+Note that the actual behavior of the Transporter RAM is not ingrained in
+the hardware.  It depends on the contents of the RAM, which are downloaded
+at boot time.  See the Transporter RAM chapter for more details.
+
+The processor can force the low bit of the VMA to be 1 by using one of
+the VMA-START-READ-CDR functional destinations instead of the
+corresponding VMA-START-READ destination.  When the processor knows that
+a pair of words are stored at an even address in virtual memory, and it
+knows the address of the first word, this option spares the processor
+the trouble of incrementing that address.  This operation is useful when
+reading CONS and COMPLEX cells.
+
+Here are the eight relevant functional destinations:
+
+@settabs 8 @columns
+@sp 1
+@< @i[Value] @\ @i[Abbreviation] @cr
+@sp 1
+@< 1110000 @\ VMA-START-READ-NO-TRANSPORT @cr
+@< 1110001 @\ VMA-START-READ @cr
+@< 1110010 @\ VMA-START-READ-VISIBLE-EVCP @cr
+@< 1110011 @\ VMA-START-READ-WILL-WRITE @cr
+@< 1110100 @\ VMA-START-READ-CDR-NO-TRANSPORT @cr
+@< 1110101 @\ VMA-START-READ-CDR @cr
+@< 1110110 @\ VMA-START-READ-CDR-VISIBLE-EVCP @cr
+@< 1110111 @\ VMA-START-READ-CDR-WILL-WRITE @cr
+
+
+@section Writing a Word to Memory
+
+To write a word to memory, the processor has to write an address into
+the VMA and the actual data into the MD.  It can perform these
+operations in either order.  For example, here is how the processor
+would write a word, writing the VMA first.
+
+@itemize @bullet
+@item
+Write the desired address to the VMA functional destination.
+
+@item
+Write the data to the MD-START-WRITE-NO-GC-TRAP or MD-START-WRITE functional
+destination.
+
+@item
+(& how long does the processor have to wait before starting another
+memory operation?)
+@end itemize
+
+The alternative method is this:
+
+@itemize @bullet
+@item
+Write the data to the MD functional destination.
+
+@item
+Write the desired address to the VMA-START-WRITE-NO-GC-TRAP or VMA-START-WRITE
+functional destination.
+@end itemize
+
+Here are the six relevant functional destinations:
+
+@settabs 8 @columns
+@sp 1
+@< @i[Value] @\ @i[Abbreviation] @cr
+@sp 1
+@< 1101100 @\ VMA-START-WRITE-NO-GC-TRAP @cr
+@< 1101101 @\ VMA-START-WRITE @cr
+@< 1101110 @\ MD-START-WRITE-NO-GC-TRAP @cr
+@< 1101111 @\ MD-START-WRITE @cr
+@< 110100X @\ VMA @cr
+@< 110101X @\ MD @cr
+
+There are two transporter modes for write operations, one which suppresses
+traps and one which enables them.
+
+@itemize @bullet
+@item
+@b[No GC Trap:] This transporter mode should be used for writing unboxed data.
+
+@item
+@b[Transport:] This transporter mode should be used for writing boxed data.
+@end itemize
+
+Again, note that the behavior of these modes depends on the contents of
+the Transporter RAM.

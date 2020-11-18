@@ -1,0 +1,54 @@
+Advantages to running the compiler and core system in SCHEME:
+
+1.  Much easier to track Yale changes.
+
+2.  We can use other front and back ends from Yale.
+        - They are working on Common Lisp - we could collaborate.
+        - They designed it to be the middle of many compilers,
+          so we can pick up other languages if they become availabe.
+
+3.  A SCHEME system is easier to cold load.
+    The language that is running during a Lambda cold load is very
+    ill-defined and ad hoc and causes many bugs.  We could try to
+    improve the situation by defining a subset of the language
+    and making the compiler refuse to compile forms that are not
+    in that subset.  In a SCHEME system, the language is small
+    enough to be included entirely in the cold load, and the compiler
+    is already prepared to use enviornments to restrict the
+    primitives available to a program.
+
+4.  We do not risk introducing subtle bugs in the compiler during the
+      translation.
+    The especially scary part is removing tail recursion from the
+    compiler so it can compile large programs on the non-tail recrusive
+    Lambda.
+
+5.  Expertise from Yale is available, should we want it.
+
+Disadvantages:
+
+1.  SCHEME is an extra language to support.
+    However, the data structures are the same.  We have to be able
+    to support both Zetalisp and Common Lisp, so the capability to
+    have more than one language must be present in the machine.
+    As stated above, there will have to be a third language for the
+    cold load anyway.
+
+2.  SCHEME is another language that the system software people will have
+      to know.
+    However, it is very much like Lisp.  The major difference is that
+    some primitives have different names.  At any rate, anyone
+    graduating from MIT these days has had a year of SCHEME experience.
+    (In fact it is very likely that they will have had more SCHEME
+    experience than Lisp experience.)
+
+3.  We have to develop debugging tools for running SCHEME in the Lambda.
+    This amounts to programs to print SCHEME data structures.  We do not
+    believe that this will amount to a major amount of additional work.
+
+Neturals:
+
+1.  The system will run SCHEME anyway.
+    Even if the system does not run SCHEME at the low levels, it will be
+    easy to add SCHEME as an additional user language.  This is mostly
+    because our Lisp will support tail recursion.

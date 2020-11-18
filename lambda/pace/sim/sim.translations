@@ -1,0 +1,4 @@
+
+(fs:set-logical-pathname-host "SIM"
+  :physical-host "DJ"
+  :translations '(("sim;" "<pace.sim>")))

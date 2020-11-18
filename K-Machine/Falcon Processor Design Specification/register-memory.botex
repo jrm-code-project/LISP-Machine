@@ -1,0 +1,65 @@
+@c register-memory.botex
+@c
+@c 24-May-88, James Rauen
+
+@chapter Register Memory
+
+This chapter describes the organization of the K processor's
+general-purpose registers.
+
+
+@section Register Frames
+
+The processor's general purpose registers are organized into 256
+@i[register frames], each of which contains sixteen 33-bit registers.
+The contents of each register are arranged according to the formats
+outlined in the Storage Conventions chapter.
+
+Sixteen of the register frames (those numbered from #x00 to #x0F) are
+reserved as @i[global frames].  These frames are not affected by the
+various function call operations performed by the call hardware.
+The other 240 @i[local frames] provide fast storage for local variables,
+function arguments, and returned values.
+
+
+@section Open, Active, and Return Frame Registers
+
+At any particular time, the processor has access to three of the local
+frames.  These three frames are determined by the contents of three
+special-purpose 8-bit registers: the Open Frame, Active Frame, and
+Return Frame registers.  The registers in these three frames may be used
+as sources or destinations for any ALU operation.  (See the Instruction
+Set chapter).
+
+Normally, the contents of the Open Frame, Active Frame, and Return Frame
+registers are manipulated only by the call hardware.  It is possible to
+directly read and write their contents by accessing functional
+destination 1001010 (OPEN-ACTIVE-RETURN).  The only code which should
+write this destination is the system software which sets up, dumps, and
+restores the call hardware.
+
+The assembler provides a shorthand for referring to registers in the
+current Open, Active, and Return frames.  The sixteen registers in the
+frame addressed by the Open Frame register are labeled O0, O1, and so on
+up to O15.  Likewise, the sixteen registers in the current active frame
+are labeled A0 through A15.  The sixteen registers in the current return
+frame are labeled R0 through R15.
+
+
+@section Global Registers
+
+The processor always has access to the sixteen global frames.  Each instruction
+contains a Global Frame Number field which designates which global frame
+the instruction wants to use.  The registers in this global frame may
+be used as sources or destinations for any ALU operation.
+
+
+@section Differences in Chip Set
+
+Due to space limitations, there are only 64 register frames on the
+processor chip.  The high two bits of the Open Frame, Active Frame, and
+Return Frame registers are ignored.  There are still 16 global frames,
+leaving 48 frames for locals.
+
+
+

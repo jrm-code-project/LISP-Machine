@@ -1,0 +1,619 @@
+           <<<<<<<< Welcome to the STEVE tutorial. >>>>>>>>
+
+STEVE commands generally involve the CONTROL key (sometimes labeled
+CTRL or CTL) and the META key (sometimes labeled EDIT or PAUSE).
+Rather than write out META or CONTROL each time we want you to prefix
+a character, we'll use the following abbreviations:
+
+ c-<chr>   means hold the CONTROL key while typing the character <chr>
+            Thus, c-F would mean hold the CONTROL key and type F.
+ m-<chr>   means hold the META key down while typing <chr>.  If there
+            is no META key, type <ALT>, release it, then type the
+            character <chr>.  "<ALT>" stands for the key labeled
+            ALT, ALTMODE, ESC, or ESCAPE.
+ c-m-<chr> means hold both the CONTROL and META keys down while typing
+            <chr>.  If there is no META key type c-Z followed by <chr>.
+
+NOTE:  If you need to exit at some point, type c-m-Z (or c-Z Z)
+       The characters ">>" at the left margin indicate directions for
+       you to try using a command, so...
+>>  Now type c-V (View next screen) to move to the next screen.
+
+From now on, you'll be expected to do this whenever you finish reading
+the screen.  Note that there is an overlap when going from screen to
+screen; this provides some continuity when moving through the file.
+
+The first thing that you need to know is how to move around from
+place to place in the file.  You already know how to move forward a
+screen, with c-V.  To move backwards a screen, type m-V (depress the
+META key and type V, or type <ALT>V if you don't have a META key).
+
+>>  Try typing m-V and then c-V to move back and forth a few times.
+
+
+SUMMARY
+-------
+
+The following commands are useful for viewing screenfuls:
+
+        c-V     Move forward one screenful
+        m-V     Move backward one screenful
+        c-L     Clear screen and redisplay everything
+                 putting the text near the cursor at the center.
+
+>> Find the cursor and remember what text is near it.
+   Then type a c-L.   Now notice what text it is near.
+
+BASIC CURSOR CONTROL
+--------------------
+
+Getting from screenful to screenful is useful, but how do you
+reposition yourself within a given screen to a specific place?  There
+are several ways you can do this.  One way (not the best, but the most
+basic) is to use the commands previous, backward, forward and next.  As
+you can imagine these commands (which are given to STEVE as c-P, c-B,
+c-F, and c-N respectively) move the cursor from where it currently is
+to a new place in the given direction.  Here, in a more graphical form
+are the commands:
+                          Previous line, c-P
+                                  :
+                                  :
+   Backward, c-B .... Current cursor position .... Forward, c-F
+                                  :
+                                  :
+                          Next line, c-N
+
+You'll probably find it easy to think of these by letter.  P for
+previous, N for next, B for backward and F for forward.  These are
+the basic cursor positioning commands and you'll be using them ALL
+the time so it would be of great benefit if you learn them now.
+
+>> Do a few c-N's to bring the cursor down to this line.
+
+>> Move into the line with some c-F's and then up with a few c-P's.
+   See what c-P does when the cursor is in the middle of the line?
+
+In text files, lines are separated by a pair of characters, a Return
+and a Linefeed, but STEVE makes them look like one character.  You can
+think of it as a single "Newline" character.
+
+>> Try to c-B at the beginning of a line.  Do a few more c-B's.
+   Then do c-F's back to the end of the line and beyond.
+
+When you go off the top or bottom of the screen, the text beyond
+the end is shifted onto the screen so that your instructions can
+be carried out while keeping the cursor on the screen.
+
+>> Try to move the cursor off the bottom of the screen with c-N and
+   see what happens.
+
+If moving by characters is too slow, you can move by words.
+m-F (Meta-F) moves forward a word and m-B moves back a word.
+
+>> Type a few m-F's and m-B's.  Intersperse them with c-F's and c-B's.
+
+Notice the parallel between c-F and c-B on the one hand, and m-F and
+m-B on the other hand.  Very often Meta characters are used for
+operations related to English text whereas Control characters operate
+on the basic textual units that are independent of what you are
+editing (characters, lines, etc).  There is a similar parallel between
+lines and sentences: c-A and c-E move to the beginning or end of a
+line, and m-A and m-E move to the beginning or end of a sentence.
+
+>> Type a couple of c-A's, and then a couple of c-E's.
+   Type a couple of m-A's, and then a couple of m-E's.
+
+See how repeated c-A's do nothing, but repeated m-A's keep moving
+farther back.  Do you think that this is right?
+
+Two other simple cursor motion commands are m-< (Meta Less-than), which
+moves to the beginning of the file, and m-> (Meta Greater-than), which
+moves to the end of the file.  You probably shouldn't try them now,
+since finding this spot again would be tedious.  If you need the shift
+key to type a "<", then you must also use the shift key to type m-<.
+Otherwise, you would be typing m-, (Meta Comma) rather than m-<.
+
+The location of the cursor in the text is also called "point".  To
+paraphrase, the cursor shows on the screen where point is located in
+the text.
+
+Here is a summary of simple moving operations including the word and
+sentence moving commands:
+
+        c-F     Move forward a character
+        c-B     Move backward a character
+
+        m-F     Move forward a word
+        m-B     Move backward a word
+
+        c-N     Move to next line
+        c-P     Move to previous line
+
+        c-A     Move to beginning of line
+        c-E     Move to end of line
+
+        m-A     Move back to beginning of sentence
+        m-E     Move forward to end of sentence
+
+        m-<     Go to beginning of file
+        m->     Go to end of file
+
+>> Try all of these commands now a few times for practice.
+   The last two will take you away from this screen, but
+   you can come back here with m-V's and c-V's.
+
+LISP S-EXPRESSION COMMANDS
+--------------------------
+
+Since you are presumably using STEVE to edit Lisp code, here are some
+commands that are useful for moving over s-expressions.  They work a
+something like the sentence commands.
+
+        c-m-F   Move forward one s-expression
+        c-m-B   Move backward one s-expression
+
+>> Try them.  Move down to the following sample function and move
+   around with c-m-F and c-m-B.  Also try the character and word
+   commands you have learned.
+
+;;; Given two ordered list of numbers representing sets,
+;;; return their intersection
+
+(defun set-intersection (set1 set2)
+  (if (or (null set1) (null set2))    ;For the trivial case
+      nil                             ;return the empty set
+    (let ((n1 (car set1))
+          (n2 (car set2)))
+      (cond ((= n1 n2)
+               (cons n1 (set-intersection (cdr set1) (cdr set2))))
+            ((< n1 n2)
+               (set-intersection (cdr set1) set2))
+            (:else
+               (set-intersection set1 (cdr set2)))))))
+
+ARGUMENTS
+---------
+
+Like all other commands in STEVE, these commands can be given arguments
+which cause them to be executed repeatedly.  The way you give a command
+a repeat count is by typing c-U and then the digits before you type the
+command.  If you have a META key, you can omit the c-U if you hold down
+the META key while you type the digits.  This is easier, but we will
+demonstrate the c-U method because it works on any terminal.
+
+For instance, c-U 8 c-F moves forward eight characters.
+
+>> Try giving a suitable argument to c-N or c-P to come as close
+   as you can to this line in one jump.
+
+The only apparent exception to this rule of thumb is the screen moving
+commands, c-V and m-V.  When given an argument, they scroll the screen
+up or down by that many lines, rather than screenfuls.  This proves to
+be much more useful.
+
+>> Try typing c-U 8 c-V now.
+
+Did it scroll the screen up by 8 lines?  If you would like to
+scroll it down you can give an argument to m-V.
+
+By itself, c-U is called the "universal argument."  It is a shortcut
+for giving an argument of four, just as though you had typed c-U 4.
+Each susequent c-U multiplies the argument by four.  For instance,
+c-U c-U c-N would move the cursor down 16 lines.
+
+
+CANCELLING COMMANDS
+-------------------
+
+In EMACS, c-G is an interrupt character which aborts the current
+command.  In STEVE, you can only use c-G to discard a numeric argument
+or the beginning of a command that you don't want to finish typing.
+If you type an <ALT> by mistake, you can get rid of it with a c-G too.
+
+>> Type c-U 100 to make a numeric arg of 100, then type c-G.
+   Now type c-F.  How many characters does it move?
+
+If you type <ALT> <ALT>, you get into something known as a
+"minibuffer".  That is an advanced feature of STEVE.  We mention it
+now only to say that you can get out of it by typing the Lisp
+expression, (RETURN).
+
+NOTE:  Because STEVE must run with "passall" mode enabled, c-C and c-Y
+       interrupts are disabled, so it is currently not possible to
+       recover if STEVE is in an infinite loop.
+
+INSERTING AND DELETING
+----------------------
+
+If you want to type text, just do it.  Characters which you can see,
+such as A, 7, *, etc. are taken by STEVE as text and inserted
+immediately.  Pressing the <Return> key inserts the "Newline" character
+that we mentioned above.
+
+You can delete the last character you typed by typing <Rubout>.
+<Rubout> is a key on the keyboard, which may be labeled "Delete"
+instead of "Rubout" on some terminals.  More generally, <Rubout>
+deletes the character immediately before the current cursor position.
+
+>> Do this now, type a few characters and then delete them
+   by typing <Rubout> a few times.  Don't worry about this file
+   being changed; you won't affect the master tutorial.  This is just
+   a copy of it.
+
+>> Now start typing text until you reach the right margin, and keep
+   typing.  When a line of text gets too big for one line on the
+   screen, the line of text is "continued" onto a second screen line.
+   The exclamation mark at the right margin indicates a line which has
+   been continued.
+
+>> Use <Rubout>s to delete the text until the line fits on one screen
+   line again.  The continuation line goes away.
+
+>> Move the cursor to the beginning of a line and type <Rubout>.  This
+   deletes the line separator before the line and merges the line onto
+   the previous line.  The resulting line may be too long to fit, in
+   which case it has a continuation line.
+
+>> Type <Return> to insert a "Newline" again.
+
+Remember that most STEVE commands can be given a repeat count;  Note
+that this includes characters which insert themselves.
+
+>>  Try that now -- type c-U 8 * and see what happens.
+
+You've now learned the most basic way of typing something in
+STEVE and correcting errors.  You can delete by words or lines
+as well.  Here is a summary of the delete operations:
+
+        <Rubout>     delete the character just before the cursor
+        c-D          delete the next character after the cursor
+
+        m-<Rubout>   kill the word immediately before the cursor
+        m-D          kill the next word after the cursor
+
+        c-K          kill from the cursor position to end of line
+        m-K          kill to the end of the current sentence
+
+Notice that <Rubout> and c-D, and m-<Rubout> and m-D extend the parallel
+started by c-F and m-F (well, <Rubout> isn't really a control
+character, but let's not worry about that).  Similarly, we can draw a
+parallel between c-K and m-K like we did with c-E and m-E.
+
+Now suppose you kill something, and then you decide that you want to
+get it back?  Well, whenever you kill something bigger than a
+character, STEVE saves it for you.  To "yank" it back, use c-Y.  Note
+that you don't have to be in the same place to do c-Y.  This is a good
+way to move text around.  Generally, the commands that can destroy a lot
+of text save it, while the ones that attack only one character, or
+nothing but blank spaces, do not save anything.
+
+Note that a single c-K kills the contents of the line, and a second
+c-K kills the line itself, and make all the other lines move up.  If
+you give c-K a repeat count, it kills that many lines AND their
+contents.  So, c-U 1 c-K is like typing c-K c-K; c-U 2 c-K is like
+typing c-K four times, etc.
+
+>> Type c-N a couple times to move the cursor down to some line you
+   don't like, and then kill that line with c-K.
+
+The text that has just disappeared is saved so that you can
+retrieve it.  To retrieve the last killed text and put it where
+the cursor currently is, type c-Y.
+
+>> Try it; type c-Y to yank the text back.
+
+You could think of c-Y as if you were yanking something back that
+someone took away from you.  Notice that if you do several c-K's
+in a row the text that is killed is all saved together so that one
+c-Y will yank all of the lines.
+
+>> Do this now, type c-K several times.
+
+Now retrieve that killed text:
+
+>> Type c-Y.  Then move the cursor down a few lines and type c-Y
+   again.  You now see how you can copy some text to another place.
+
+What do you do if you have some text you want to yank back, and then
+you kill something else?  c-Y would yank the more recent kill.  But
+fortunately the previous text is not lost.  You can get back to it
+using the m-Y command.  After you have done c-Y to get the most recent
+kill, typing m-Y replaces that yanked text with the previous kill.
+Typing m-Y again and again brings in earlier and earlier kills.  When
+you have reached the text you are looking for, you can just go away
+and leave it there.  If you m-Y enough times, you come back to the
+starting point (the most recent kill).  This is because the kills are
+saved in a circular list called the "kill ring."
+
+>> Kill a line, move around, kill another line.
+   Then do c-Y to get back the second killed line.
+   Then do m-Y and it will be replaced by the first killed line.
+   Do more m-Y's and see what you get.  Keep doing them until
+   the second kill line comes back, and then a few more.
+
+FILES
+-----
+
+In order to make the text you edit permanent, you must put it in a
+file.  Otherwise, it will go away when your NIL is terminated (by
+typing (QUIT) to the Lisp listener, for instance).  To select a file
+for editing, you "find" the file.  What this means is that you
+load the contents of the file in your STEVE.  Loosely speaking, what
+you are editing is the file itself.  However, the changes still don't
+become permanent until you "save" the file.  This is so you can have
+control to avoid leaving a half-changed file around when you don't
+want to.  Even then, STEVE really makes a new version of the file and
+doesn't change the old version at all (so that you can verify or throw
+away your changes later if you like).
+
+If you look near the botton of the screen you will see a line that
+begins with "STEVE TEACH (TEXT) TEACH.TXT" followed by your home
+directory and the name of your machine.  This is the name of your own
+temporary copy of the text of the STEVE tutorial; the file you are now
+visiting.  Whatever file you edit, that file's name will appear in
+that precise spot.  The word "TEACH" between "STEVE" and "(TEXT)" is
+the name of the current buffer.
+
+The commands for loading and saving files are unlike the other
+commands you have learned in that they consist of two characters.
+They both start with the character Control-X.  There is a whole series
+of commands that start with Control-X; many of them have to do with
+files, buffers, and related things, and all of them consist of
+Control-X followed by some other character.  To start editing a file
+you would type
+
+        c-X c-F   Find a file (i.e. load it into STEVE)
+
+STEVE will then ask you for the file name.  You should end the name
+with the <Return> key.  After this command, you will see the contents
+of the file in your STEVE.  You can edit the contents.  When you wish
+to make the changes permanent, issue the command
+
+        c-X c-S   Save the file
+
+A new version of the file will be created.  When the operation is
+finished, STEVE prints the name and version saved.  You should save
+fairly often, so that you will not lose very much work if the system
+should crash.
+
+MULTIPLE BUFFERS
+----------------
+
+Most editors only let you edit one file at a time, but STEVE lets you
+edit any number of files simultaneously.  Each has its own "buffer"
+which you can refer to by name.  You can see a list of all the buffers
+by typing
+
+        c-X c-B   List loaded buffers
+
+>> Do this now.  When you have finished looking at the list, type a
+   <Space> to make the list go away.
+
+As you saw, there are currenly two buffers in your STEVE, "TEACH", the
+one you are now editing, and "Main".  You can select another buffer
+by typing
+
+        c-X B     Select buffer
+
+It will then ask you for the name of the buffer to select, showing the
+default in parenthesis.  If this is the buffer you want to can simply
+press <return> to select it.
+
+>> Try selecting the "Main" buffer by typing c-X B followed by <return>
+   Then return to this tutorial the same way.  See how the default
+   changes?  It assumes that you want to return the most recently
+   selected buffer.
+
+To make a new file, just load (find) it "as if" it already existed.
+Then start typing in the text.  When you ask to "save" the file, STEVE
+will really create the file with the text that you have inserted.  So
+you can think of this as editing an already existing file.
+
+>>  Try this.  "Find" a (new) file named FOO.  Type some text into it
+    and save it.  Then return to this tutorial using c-X B.  (Later,
+    when you are back at the VMS command level, you can verify that
+    the file is actually there)
+
+EXTENDING THE COMMAND SET
+-------------------------
+
+There are many, many more STEVE commands than could possibly be put
+on all the control and meta characters.  STEVE gets around this with
+the X (eXtend) command.  This comes in two flavors:
+
+        c-X     Character eXtend.  Followed by one character.
+        m-X     Named command eXtend.  Followed by a long name.
+
+These are commands that are generally useful but used less than the
+commands you have already learned about.  You have already seen two
+of them: the file commands c-X c-V to Visit and c-X c-S to Save.
+Another example is the command to tell STEVE that you'd
+like to stop editing.  The command to do this is c-X c-Z.
+
+There are many c-X commands.  The ones you need immediately are:
+
+        c-X c-F         Find file.
+        c-X c-S         Save file.
+        c-X c-B         List buffers
+        c-X B           Select buffer
+        c-X c-Z         Quit to VMS.  This does NOT save your file.
+                        If you don't plan on returning to NIL, save
+                        your file first by typing c-X c-S.
+
+You probably want to go back to a Lisp Listener rather than VMS, so
+
+        c-m-Z           Quit to Lisp
+
+is preferable to c-X c-Z.
+
+Named eXtend commands are commands which are used even less
+frequently, or commands which are used only in certain modes.  These
+commands are usually called "functions".  An example the function
+Replace String which globally replaces one string with another.  When
+you type m-X, STEVE prompts you at the bottom of the screen with
+m-X and you should type the name of the function you wish to call; in
+this case, "Replace".  Just type "repl<ALT>" and STEVE will complete
+the name.  Then you type the string that you want to replace,
+an <ALT>, the string you want to replace it with, and a return.
+When the <ALT> is echoed, it looks like this: $
+
+>> Move the cursor to the blank line two lines below this one.
+   Then type m-X repl<ALT>changed<ALT>altered<Return>.
+
+   Notice how this line has changed: you've replaced
+   the word C H A N G E D with "altered" wherever it occurs
+   after the cursor.
+
+
+THE MODE LINE
+-------------
+
+The "echo area" contains the bottom three lines of the screen.  The
+line immediately above them is called the MODE LINE.  The mode line
+might say something like
+
+   STEVE MAIN (LISP) MAIN.LSP[YOURNAME]USRD$:YOURMACHINE:: (1) *
+
+This is a very useful "information" line.
+
+The star means that you have made changes to the text.  Right after
+you find or save a file, there is no star.
+
+The part of the mode line inside the parentheses is to tell you what
+modes you are in.  The default mode is LISP (of course).  It is an
+example of a "major mode".  There are several major modes in STEVE for
+editing other languages and text, such as BLISS mode, Text mode, etc.
+At any time one and only one major mode is active, and its name can
+always be found in the mode line just where "TEXT" is now.  Each major
+mode makes a few commands behave differently.  For example, there are
+commands for creating comments in a program, and since each
+programming language has a different idea of what a comment should
+look like, each major mode has to insert comments differently.  Each
+major mode is the name of an extended command, which is how you get
+into the mode.  For example, m-X Fundamental Mode is how to get into
+Fundamental mode.
+
+If you are going to be Lisp code should probably use Lisp Mode.
+
+>> Type m-X Lisp Mode<Return>.
+
+Don't worry, none of the commands you have learned changes in any
+great way.  But you can now observe that periods are now part of words
+when you do m-F or m-B, and <tab> behaves differently.  You might want
+to go back to the sample Lisp function above and notice how <tab>
+indents lines to make the code look "pretty printed."  Major modes are
+usually like that:  commands don't change into completely unrelated
+things, but they work a little bit differently.
+
+
+SEARCHING
+---------
+
+STEVE can do searches for strings (these are groups of contiguous
+characters or words) either forward through the file or backward
+through it.  To search for the string means that you are trying to
+locate it somewhere in the file and have STEVE show you where the
+occurrences of the string exist.  This type of search is somewhat
+different from what you may be familiar with.  It is a search that is
+performed as you type in the thing to search for.  The command to
+initiate a search is c-S for forward search, and c-R for reverse
+search.  BUT WAIT!  Don't do them now.  When you type c-S you'll
+notice that the string "I-search" appears as a prompt in the echo
+area.  This tells you that STEVE is in what is called an incremental
+search waiting for you to type the thing that you want to search for.
+A search is terminated by <ALT>.
+
+>> Now type c-S to start a search.  SLOWLY, one letter at a time,
+   type the word 'cursor', pausing after you type each
+   character to notice what happens to the cursor.
+>> Type c-S to find the next occurrence of "cursor".
+>> Now type <Rubout> four times and see how the cursor moves.
+>> Type <ALT> to terminate the search.
+
+Did you see what happened?  STEVE, in an incremental search, tries to
+go to the occurrence of the string that you've typed out so far.  To go
+to the next occurrence of 'cursor' just type c-S again.  If no such
+occurrence exists STEVE beeps and tells you that it is a failing
+search.  c-G would also terminate the search.
+
+If you are in the middle of an incremental search and type <Rubout>,
+you'll notice that the last character in the search string is erased
+and the search backs up to the last place of the search.  For
+instance, suppose you currently have typed 'cu' and you see that your
+cursor is at the first occurrence of 'cu'.  If you now type <Rubout>,
+the 'u' on the search line is erased and you'll be repositioned in the
+text to the occurrence of 'c' where the search took you before you
+typed the 'u'.  This provides a useful means for backing up while you
+are searching.
+
+If you are in the middle of a search and happen to type a control
+character (other than a c-S or c-R, which tell STEVE to search for the
+next occurrence of the string), the search is terminated.
+
+The c-S starts a search that looks for any occurrence of the search
+string AFTER the current cursor position.  But what if you want to
+search for something earlier in the text?  To do this one should
+type c-R for Reverse search.  Everything that applies to c-S applies
+to c-R except that the direction of the search is reversed.
+
+
+GETTING MORE HELP
+-----------------
+
+In this tutorial we have tried to supply just enough information to
+get you started using STEVE.  There is so much available in STEVE that
+it would be difficult to explain it all here.  However, you may want
+to learn more about STEVE since it has numerous desirable features
+that you don't know about yet.  STEVE has a great deal of internal
+documentation.  All of these commands can be accessed through the HELP
+character
+
+        c-m-?   Help command
+
+To use the HELP features, type c-m-?, and then a character saying what
+kind of help you want.  If you are REALLY lost, type c-m-? followed by
+a ? character, and STEVE will tell you what kinds of help it can give.
+If you have typed c-m-Z and decide you don't want any help, just type
+c-G to abort.
+
+The most basic HELP feature is c-m-? C.  Type c-m-?, a C, and a
+command character, and STEVE prints a description of the command.
+When you are finished reading it, type a <Space> to bring your text
+back on the screen.
+
+>> Type c-m-? C followed by c-S.  (Don't be alarmed when it says
+   "Reading File..."  It is only loading the help file.)  When you
+   are finished reading the output, type a <Space>.  The message should
+   be something like
+
+Control-S (Incremental Search)
+                Control-S searches for a string, terminated by Altmode.
+                It seaches as you type.  *Note Control-S: Search
+Done.
+
+Multi-character commands such as c-X c-Z and (if you have no META or key)
+<ALT>V are also allowed after c-m-? C.
+
+Here are some other useful HELP options:
+
+   c-m-? D      Describe a function.  You type in the name of the
+                function.  (To see your text again when it is done,
+                type a <Space>)
+
+   c-m-? A      Apropos.  Type in a keyword and STEVE will (try to) list
+                all the functions containing that keyword.  For some
+                functions it will also list a one or two character
+                command which has the same effect.
+
+NOTE:  The help facility facility in STEVE is not yet complete.
+       c-m-? C is the only option that works half-way reliably.
+       We apologize for this.  Please consult the NIL Manual for
+       further documentation.
+
+
+CONCLUSION
+----------
+
+This tutorial is meant to be understandable to new users, so if
+you found something unclear, don't sit and blame yourself--send us
+a letter telling us what you found troublesome.

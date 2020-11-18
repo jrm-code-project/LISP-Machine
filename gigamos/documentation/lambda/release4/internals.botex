@@ -1,0 +1,111 @@
+@comment -*- Mode:Text; Package:USER; Readtable:CL -*-
+
+@subsection Region Table Expanded
+
+The region table has been expanded.
+While it was possible to run out of memory in Release 3
+due to a limitation on region pointer entries,
+this is far less likely to occur in Release 4.
+In Release 3, the region table was limited to 256 entries; the limit has been expanded to 1536.
+
+@subsection Garbage Collector
+
+The function @l[gc:gc-off] now waits for ongoing garbage collection to
+finish before turning off the garbage collector.
+
+@subsection Disk Partition Functions
+
+@l[si:service-disk-partition] has two new keyword arguments, :subset-start and
+:subset-n-blocks.  @l[si:copy-disk-partition], @l[si:compare-disk-partition],
+and @l[si:copy-disk-partition-background] make use of these keywords.  As a
+result, parts of disk partitions may be compared and transmitted
+between machines in a protocol-independent fashion.
+
+@subsection Synonym Streams
+
+The new function @l[si:follow-all-syn-streams] extends the functionality of
+@l[si:follow-syn-stream], following the synonym stream or streams of the
+argument stream to the end of all indirection.  @l[FORMAT] now uses this new
+functionality to avoid cases in which microcode loops could occur.
+
+@subsection Special Forms
+
+The following special forms now have the :source-file-name property
+(and therefore, they can be edited with @meta[.]):
+@itemize @bullet
+@item
+DEF
+@item
+DEFF
+@item
+DEFUN
+@item
+DEFSUBST
+@item
+MACRO
+@item
+SIGNP
+@end(itemize)
+
+@subsection Calling LOAD Within a Patch File
+
+Attempting to call LOAD from within a patch file no longer
+causes a fatal error.
+Instead, a continuable error is generated, from which
+the user may proceed.
+
+@subsection Disk Save
+
+The function @l(DISK-SAVE) now makes additional preparations for preserving
+the current Lambda state onto the disk:
+
+@itemize @bullet
+@item
+The Zwei histories *KILL-HISTORY*, *DEFINITION-NAME-HISTORY*, and
+*PATHNAME-ARGUMENT-HISTORY* are erased;
+@item
+The Chaosnet software is reset;
+@item
+Garbage collection is re-enabled (but only if it was enabled at the time of the
+call to @l[disk-save] -- @l[disk-save] must turn off the garbage collector
+to perform certain parts of its duties).
+@end(itemize)
+
+@subsection Serial Ports
+
+The @l(:FLAVOR-AND-INIT-OPTIONS) keyword argument to @l(OPEN)
+was not being handled correctly when opening a stream to a serial port.
+Using this keyword is the correct way to open a serial port stream
+of the desired flavor.
+
+The serial port stream flavors are:
+
+@table 3
+
+@item si:sdu-serial-stream @findex[si:sdu-serial-stream]
+
+@item si:sdu-serial-ascii-stream -
+
+Converts LISP machine characters to ASCII characters (on output),
+and ASCII characters to LISP machine characters (on input).
+
+@item sdu-serial-xon-xoff-stream -
+
+Provides software (Xon/Xoff) flow control on the serial port.
+
+@item si:sdu-serial-ascii-xon-xoff-stream -
+
+Combines ASCII translation and software flow control.
+@end(table)
+
+@group
+For example, the following example opens a stream on serial port B
+at 9600 baud with ASCII character translation and software flow control:
+
+@lisp
+(open "SDU-SERIAL-B:"
+      :flavor-and-init-options
+      `(si:sdu-serial-ascii-xon-xoff-stream
+        :baud-rate 9600.))
+@end(lisp)
+@end(group)

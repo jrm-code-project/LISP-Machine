@@ -1,0 +1,64 @@
+;;; -*- Mode:LISP; Package:TAPE; Base:10 -*-
+
+
+
+
+**  LMI STANDARD LAYERED-PRODUCT DISTRIBUTION **
+
+ ** FORMAT **
+
+
+1/2-INCH tape in standard LMFL format, can be made with COPY-DIRECTORY or other tape utilities.
+
+The first file on the tape should be a character file of type "DISTRIBUTION"
+
+A lisp form is read from the file using READ with
+ *PACKAGE*   = TAPE
+ *BASE*      = 10
+ *READTABLE* = Common Lisp
+
+The CAR of the form should be the symbol DISTRIBUTION-INSTALLATION-FORMS.
+
+
+ ** PROCEDURE **
+
+- The USER will be in the "LMI Tape Utility Frame" program (<SYSTEM>-B) and have physically mounted
+  the specific layered-product medium in the tape drive.
+
+- The command [INSTALL-DISTRIBUTION-TAPE] is invoked from the [RETREIVE] menu.
+
+- A form is read from first file from the tape is describe above, and evaluated with EVAL.
+
+- At this point the procedure is arbitrary, depending on the product. In most cases
+  a menu will come up asking where and how to load files, what options to apply,
+  etc.
+
+
+ ** EXAMPLE **
+
+ - TCP-IP in RELEASE 3.0
+
+
+(DISTRIBUTION-INSTALLATION-FORMS
+  (LET ((*HOST* (SEND (FS:GET-PATHNAME-HOST "SYS") :HOST))
+        (*SOURCEP* T))
+    (declare (special *host* *sourcep*))
+    (DO ()
+        (NIL)
+      (TV:CHOOSE-VARIABLE-VALUES '((*HOST* "host to restore sources onto")
+                                   (*sourcep* "Restore source files" :boolean))
+                                 :label "Choose TCP-IP installation parameters")
+      (COND ((NOT *SOURCEP*)
+             (RETURN T))
+            ((SI:PARSE-HOST *HOST* T)
+             (RETURN T))
+            ('ELSE
+             (BEEP)
+             (FORMAT T "~&Unknown host specified ~S~%" *HOST*))))
+    (WHEN *SOURCEP*
+      (format t "~&Restoring TCP sources to host ~A~%" *HOST*)
+      (restore-files :transform #'(lambda (plist)
+                                    (send (car plist) :new-pathname :host *host*))))
+    (format t "~&Loading network front-end data~%")
+    (tcp:crypt-download-data "the RAIN in Spain is MAINLY just A pain" "REL-3-1")
+    (format t "~&Installation Complete. Now switch to lisp-listener and DISK-SAVE~%")))

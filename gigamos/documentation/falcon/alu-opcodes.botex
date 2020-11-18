@@ -1,0 +1,179 @@
+@c alu-opcodes.botex
+@c
+@c 11-Apr-88, James Rauen
+
+@chapter ALU Opcodes
+
+This chapter describes each of the 128 opcodes available on the ALU.  (Ref
+AMD manual?)
+
+Several abbreviations are used in the following chart.  "L" represents
+the left source of the ALU.  "R" represents the right source of the ALU.
+"Status" refers to the ALU's internal status register.  "Q" refers to
+the ALU's internal Q register.  "Foo:Bar" means the 64-bit quantity
+whose high 32 bits come from Foo and whose low 32 bits come from Bar.
+All shift instructions which use the Q register use it as the low word.
+
+A more detailed description of the stranger opcodes appears after the
+chart.
+
+@sp 1
+@settabs 8 @columns
+@< @i[Value] @\ @i[Abbreviation] @\ @\ @\ @i[Description] @cr
+@sp 1
+@< #x00 @\ SETL                     @\ @\ @\ Zero extend left source @cr
+@< #x01 @\ SETR                     @\ @\ @\ Zero extend right source @cr
+@< #x02 @\ SEX-R                    @\ @\ @\ Sign extend left source @cr
+@< #x03 @\ SEX-R                    @\ @\ @\ Sign extend right source @cr
+@< #x04 @\ PASS-STATUS              @\ @\ @\ Contents of Status register @cr
+@< #x05 @\ PASS-Q                   @\ @\ @\ Contents of Q register @cr
+@< #x06 @\ LOAD-Q-L                 @\ @\ @\ Load Q register from left source @cr
+@< #x07 @\ LOAD-Q-R                 @\ @\ @\ Load Q register from right source @cr
+@sp 1
+@< #x08 @\ NOT-L                    @\ @\ @\ One's complement left source @cr
+@< #x09 @\ NOT-R                    @\ @\ @\ One's complement right source @cr
+@< #x0A @\ NEG-L                    @\ @\ @\ Two's complement left source @cr
+@< #x0B @\ NEG-R                    @\ @\ @\ Two's complement right source @cr
+@< #x0C @\ PRIORITIZE-L             @\ @\ @\ Prioritize left source @cr
+@< #x0D @\ PRIORITIZE-R             @\ @\ @\ Prioritize right source @cr
+@< #x0E @\ MERGE-L                  @\ @\ @\ Merge byte left into right @cr
+@< #x0F @\ MERGE-R                  @\ @\ @\ Merge byte right into left @cr
+@sp 1
+@< #x10 @\ L-1                      @\ @\ @\ Decrement left source by 1 @cr
+@< #x11 @\ R-1                      @\ @\ @\ Decrement right source by 1 @cr
+@< #x12 @\ L+1                      @\ @\ @\ Increment left source by 1 @cr
+@< #x13 @\ R+1                      @\ @\ @\ Increment right source by 1 @cr
+@< #x14 @\ L-2                      @\ @\ @\ Decrement left source by 2 @cr
+@< #x15 @\ R-2                      @\ @\ @\ Decrement right source by 2 @cr
+@< #x16 @\ L+2                      @\ @\ @\ Increment left source by 2 @cr
+@< #x17 @\ R+2                      @\ @\ @\ Increment right source by 2 @cr
+@sp 1
+@< #x18 @\ L-4                      @\ @\ @\ Decrement left source by 4 @cr
+@< #x19 @\ R-4                      @\ @\ @\ Decrement right source by 4 @cr
+@< #x1A @\ L+4                      @\ @\ @\ Increment left source by 4 @cr
+@< #x1B @\ R+4                      @\ @\ @\ Increment right source by 4 @cr
+@< #x1C @\ LOAD-STATUS-L            @\ @\ @\ Load Status register from left source @cr
+@< #x1D @\ LOAD-STATUS-R            @\ @\ @\ Load Status register from right source @cr
+@< #x1E @\                          @\ @\ @\ @i[Reserved] @cr
+@< #x1F @\                          @\ @\ @\ @i[Reserved] @cr
+@sp 1
+@< #x20 @\ SHIFT-DN-0F-L            @\ @\ @\ Right-shift L one bit, inserting 0 @cr
+@< #x21 @\ SHIFT-DN-0F-R            @\ @\ @\ Right-shift R one bit, inserting 0 @cr
+@< #x22 @\                          @\ @\ @\ Right-shift L:Q one bit, inserting 0 @cr
+@< #x23 @\                          @\ @\ @\ Right-shift R:Q one bit, inserting 0 @cr
+@< #x24 @\                          @\ @\ @\ Right-shift L one bit, inserting 1 @cr
+@< #x25 @\                          @\ @\ @\ Right-shift R one bit, inserting 1 @cr
+@< #x26 @\                          @\ @\ @\ Right-shift L:Q one bit, inserting 1 @cr
+@< #x27 @\                          @\ @\ @\ Right-shift R:Q one bit, inserting 1 @cr
+@sp 1
+@< #x28 @\ SHIFT-DN-LF-L            @\ @\ @\ Right-shift L one bit, inserting link @cr
+@< #x29 @\ SHIFT-DN-LF-R            @\ @\ @\ Right-shift R one bit, inserting link @cr
+@< #x2A @\                          @\ @\ @\ Right-shift L:Q one bit, inserting link @cr
+@< #x2B @\                          @\ @\ @\ Right-shift R:Q one bit, inserting link @cr
+@< #x2C @\ SHIFT-DN-AR-L            @\ @\ @\ Right-shift L one bit, inserting sign @cr
+@< #x2D @\ SHIFT-DN-AR-R            @\ @\ @\ Right-shift R one bit, inserting sign @cr
+@< #x2E @\                          @\ @\ @\ Right-shift L:Q one bit, inserting sign @cr
+@< #x2F @\ SHIFT-DN-AR-RQ           @\ @\ @\ Right-shift R:Q one bit, inserting sign @cr
+@sp 1
+@< #x30 @\ SHIFT-UP-0F-L            @\ @\ @\ Left-shift L one bit, inserting 0 @cr
+@< #x31 @\ SHIFT-UP-0F-R            @\ @\ @\ Left-shift R one bit, inserting 0 @cr
+@< #x32 @\ SHIFT-UP-0F-LQ           @\ @\ @\ Left-shift L:Q one bit, inserting 0 @cr
+@< #x33 @\ SHIFT-UP-0F-RQ           @\ @\ @\ Left-shift R:Q one bit, inserting 0 @cr
+@< #x34 @\                          @\ @\ @\ Left-shift L one bit, inserting 1 @cr
+@< #x35 @\                          @\ @\ @\ Left-shift R one bit, inserting 1 @cr
+@< #x36 @\                          @\ @\ @\ Left-shift L:Q one bit, inserting 1 @cr
+@< #x37 @\                          @\ @\ @\ Left-shift R:Q one bit, inserting 1 @cr
+@sp 1
+@< #x38 @\ SHIFT-UP-LF-L            @\ @\ @\ Left-shift L one bit, inserting link @cr
+@< #x39 @\ SHIFT-UP-LF-R            @\ @\ @\ Left-shift R one bit, inserting link @cr
+@< #x3A @\                          @\ @\ @\ Left-shift L:Q one bit, inserting link @cr
+@< #x3B @\                          @\ @\ @\ Left-shift R:Q one bit, inserting link @cr
+@< #x3C @\ ZERO                     @\ @\ @\ Zero @cr
+@< #x3D @\ SIGN                     @\ @\ @\ Sign (-1 if n=1; 0 otherwise) @cr
+@< #x3E @\ OR                       @\ @\ @\ Logical OR @cr
+@< #x3F @\ XOR                      @\ @\ @\ Logical XOR @cr
+@sp 1
+@< #x40 @\ AND                      @\ @\ @\ Logical AND @cr
+@< #x41 @\ XNOR                     @\ @\ @\ Logical Negated XOR @cr
+@< #x42 @\ L+R @i[or] R+L           @\ @\ @\ Add @cr
+@< #x43 @\ L+R+C                    @\ @\ @\ Add with carry @cr
+@< #x44 @\ L-R                      @\ @\ @\ Subtract right source from left source @cr
+@< #x45 @\ L-R-C                    @\ @\ @\ Subtract right from left with carry @cr
+@< #x46 @\ R-L                      @\ @\ @\ Subtract left source from right source @cr
+@< #x47 @\ R-L-C                    @\ @\ @\ Subtract left from right with carry @cr
+@sp 1
+@< #x48 @\                          @\ @\ @\ BCD correct L for partial sum @cr
+@< #x49 @\                          @\ @\ @\ BCD correct R for partial sum @cr
+@< #x4A @\                          @\ @\ @\ BCD correct L for partial difference @cr
+@< #x4B @\                          @\ @\ @\ BCD correct R for partial difference @cr
+@< #x4C @\                          @\ @\ @\ @i[Reserved] @cr
+@< #x4D @\                          @\ @\ @\ @i[Reserved] @cr
+@< #x4E @\ SDIV-FIRST               @\ @\ @\ Signed divide, first step @cr
+@< #x4F @\                          @\ @\ @\ Unsigned divide, first step @cr
+@sp 1
+@< #x50 @\ SDIV-STEP                @\ @\ @\ Signed divide, intermediate step @cr
+@< #x51 @\ SDIV-LAST1               @\ @\ @\ Signed divide, last step 1 @cr
+@< #x52 @\ MP-DIV-STEP1             @\ @\ @\ Multiprecision divide, inner loop first step @cr
+@< #x53 @\ MP-SDIV-STEP3            @\ @\ @\ Signed multiprecision divide, inner loop last step @cr
+@< #x54 @\                          @\ @\ @\ Unsigned divide, intermediate step @cr
+@< #x55 @\                          @\ @\ @\ Unsigned divide, last step 1 @cr
+@< #x56 @\ MP-DIV-STEP2             @\ @\ @\ Multiprecision divide, inner loop interm. step @cr
+@< #x57 @\ MP-UDIV-STEP3            @\ @\ @\ Unsigned multiprecision divide, inner loop last step @cr
+@sp 1
+@< #x58 @\ REM-CORR                 @\ @\ @\ Signed and unsigned remainder correction @cr
+@< #x59 @\ QUO-CORR                 @\ @\ @\ Signed quotient correction @cr
+@< #x5A @\ SDIV-LAST2               @\ @\ @\ Signed divide, last step 2 @cr
+@< #x5B @\ UMUL-FIRST               @\ @\ @\ Unsigned multiply, first step @cr
+@< #x5C @\ UMUL-STEP                @\ @\ @\ Unsigned multiply, intermediate step @cr
+@< #x5D @\ UMUL-LAST                @\ @\ @\ Unsigned multiply, last step @cr
+@< #x5E @\ SMUL-STEP                @\ @\ @\ Signed multiply, intermediate step @cr
+@< #x5F @\ SMUL-FIRST               @\ @\ @\ Signed multiply, first step @cr
+@sp 1
+@< #x60 @\ NB-SHIFT-AR-L            @\ @\ @\ N bit shift left source with sign fill @cr
+@< #x61 @\ NB-SHIFT-AR-R            @\ @\ @\ N bit shift right source with sign fill @cr
+@< #x62 @\ NB-SHIFT-0F-L            @\ @\ @\ N bit shift left source with zero fill @cr
+@< #x63 @\ NB-SHIFT-0F-R            @\ @\ @\ N bit shift right source with zero fill @cr
+@< #x64 @\ ROTATE-L                 @\ @\ @\ N bit rotate left source @cr
+@< #x65 @\ ROTATE-R                 @\ @\ @\ N bit rotate right source @cr
+@< #x66 @\ EXTRACT-BIT-LEFT         @\ @\ @\ Extract bit from left source @cr
+@< #x67 @\ EXTRACT-BIT-RIGHT        @\ @\ @\ Extract bit from right source @cr
+@sp 1
+@< #x68 @\ SET-BIT-LEFT             @\ @\ @\ Set bit in left source @cr
+@< #x69 @\ SET-BIT-RIGHT            @\ @\ @\ Set bit in right source @cr
+@< #x6A @\ RESET-BIT-LEFT           @\ @\ @\ Reset bit in left source @cr
+@< #x6B @\ RESET-BIT-RIGHT          @\ @\ @\ Reset bit in right source @cr
+@< #x6C @\ SET-BIT-STAT             @\ @\ @\ Set bit in Status register @cr
+@< #x6D @\ RESET-BIT-STAT           @\ @\ @\ Reset bit in Status register @cr
+@< #x6E @\ ALIGNED-FIELD-NOT-RIGHT  @\ @\ @\ Invert field of right source @cr
+@< #x6F @\ ALIGNED-FIELD-PASS-RIGHT @\ @\ @\ Test a field of the right source @cr
+@sp 1
+@< #x70 @\ FIELD-NOT                @\ @\ @\ Insert non-aligned not-left into right @cr
+@< #x71 @\ ALIGNED-FIELD-NOT-LEFT   @\ @\ @\ Insert aligned not-left into right @cr
+@< #x72 @\ FIELD-PASS               @\ @\ @\ Insert non-aligned left into right @cr
+@< #x73 @\ ALIGNED-FIELD-PASS-LEFT  @\ @\ @\ Insert aligned left into right @cr
+@< #x74 @\ FIELD-OR                 @\ @\ @\ Logical OR of non-aligned field of left into right @cr
+@< #x75 @\ ALIGNED-FIELD-IOR        @\ @\ @\ Logical OR of aligned field of left into right @cr
+@< #x76 @\ FIELD-XOR                @\ @\ @\ Logical XOR of non-aligned field of left into right @cr
+@< #x77 @\ ALIGNED-FIELD-XOR        @\ @\ @\ Logical XOR of aligned field of left into right @cr
+@sp 1
+@< #x78 @\ FIELD-AND                @\ @\ @\ Logical AND of non-aligned field of left into right @cr
+@< #x79 @\ ALIGNED-FIELD-AND        @\ @\ @\ Logical AND of aligned field of left into right @cr
+@< #x7A @\ FIELD-EXTRACT-L          @\ @\ @\ Extract field from left source @cr
+@< #x7B @\ FIELD-EXTRACT-R          @\ @\ @\ Extract field from right source @cr
+@< #x7C @\ FIELD-EXTRACT-LR         @\ @\ @\ Extract field from L:R @cr
+@< #x7D @\ FIELD-EXTRACT-RL         @\ @\ @\ Extract field from R:L @cr
+@< #x7E @\ EXTRACT-BIT-STATUS       @\ @\ @\ Extract bit from Status register @cr
+@< #x7F @\                          @\ @\ @\ Pass mask @cr
+@sp 1
+
+@section Notes and Caveats
+
+1. Not all of the opcodes are implemented in the assembler.  The
+relevant files are ORSON: FLEABIT.GENERATE; ASSEM LISP and K-SYS: K;
+ALU-OPCODES LISP.
+
+2. There is something funny about the order of the signed multiply
+instructions.
+
+3. There is no last-step-signed-multiply instruction.  Consulting the AMD manual would
+probably be enlightening.

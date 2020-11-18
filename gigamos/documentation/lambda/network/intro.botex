@@ -1,0 +1,123 @@
+
+@chapter Introduction
+
+This manual documents the Lambda LISP machine networking software
+that is distributed with Release 4.0
+of the ZetaLISP-Plus@tm@ system software.@footnote[Hereafter referred to simply as @ii(Release 4)]
+
+Before reading this manual, review the @i(Lambda 4.0 LISP Release Notes),
+which documents new features of the Release 4 software.
+That manual also documents the procedure for installing Release 4.
+
+@section Networking Release Notes
+
+Part I of this manual, entitled @b(Networking Release Notes),
+describes changes to the networking software
+in terms of @ii(functionality), @ii(installation), @ii(configuration), and @ii(operating procedures).
+The following chapters are included:
+
+@itemize @bullet
+@item @nameref[chapter-architecture]  [Chapter @i(@ref[chapter-architecture])]
+@item @nameref[chapter-installation]  [Chapter @i(@ref[chapter-installation])]
+@item @nameref[chapter-configuration] [Chapter @i(@ref[chapter-configuration])]
+@item @nameref[chapter-operating]     [Chapter @i(@ref[chapter-operating])]
+@item @nameref[chapter-tcp-app]       [Chapter @i(@ref[chapter-tcp-app])]
+@item @nameref[chapter-limitations]   [Chapter @i(@ref[chapter-limitations])]
+@end(itemize)
+
+Prior to installing Release 4,
+the Lambda system manager should review the information contained in this section.
+
+@sp 1
+
+@textbox @b(Note:)
+To provide properly functioning networking software,
+you (or the Lambda system manager at your site)
+@i(must) read this manual carefully and
+perform the required site file configuration and installation.
+
+The phrase ``site files,'' used frequently in this manual,
+refers to the static network configuration information that is entered in files
+located in your @l("SYS:SITE;") directory.
+@end(textbox)
+
+@section Networking Guide
+
+Part II of this manual, entitled @b(Networking Guide),
+provides comprehensive documentation on LISP networking software.
+The chapters in Part II include new information
+as well as information gathered from earlier manuals:
+
+@itemize @bullet
+@item @nameref[chapter-doc-architecture]  [Chapter @i(@ref[chapter-doc-architecture])]
+@item @nameref[chapter-doc-configuration] [Chapter @i(@ref[chapter-doc-configuration])]
+@item @nameref[chapter-doc-operating]     [Chapter @i(@ref[chapter-doc-operating])]
+@item @nameref[chapter-doc-generic-applications] [Chapter @i(@ref[chapter-doc-generic-applications])]
+@item @nameref[chapter-doc-tcp-app]       [Chapter @i(@ref[chapter-doc-tcp-app])]
+@item @nameref[chapter-doc-chaos-app]     [Chapter @i(@ref[chapter-doc-chaos-app])]
+@item @nameref[chapter-doc-programs]      [Chapter @i(@ref[chapter-doc-programs])]
+@end(itemize)
+
+Experienced Lambda system managers may be able to make the necessary
+configuration changes after reading
+the release notes.
+Others (including system managers with new Lambda systems) should read
+Chapter @ref[chapter-doc-configuration], @b(@nameref[chapter-doc-configuration]),
+which documents the configuration process.
+
+Users of previous releases should read
+Chapter @ref[chapter-operating], @b[@nameref(chapter-operating)]
+for information on functionality that has changed.
+Complete operating information is provided in
+Chapter @ref[chapter-doc-operating], @b(@nameref[chapter-doc-operating]),
+and subsequent chapters.
+
+@section Appendices
+
+Part III of this manual contains supplementary material on various topics.
+
+Appendix @ref[appendix-systypes], @b(@nameref[appendix-systypes]),
+documents the currently supported network host types.
+Each host flavor is listed, along with its related attributes
+(such as the keywords that determine a host's machine and system type).
+
+Appendix @ref[appendix-unix], @b(@nameref[appendix-unix]),
+documents selected features of the LMI System 5 Unix Chaosnet software,
+which is provided with Lambda-Plus systems.
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end intro

@@ -1,0 +1,104 @@
+
+
+To load the system (make-system'dvi)
+
+
+You can preview a document with (dvi:show-dvi "angel://lmi//foo//foobar.dvi")
+
+
+  Then the equivalent of the angel command "iptex"
+  is two commands on the lispmachine,
+
+Command 1: You can create an impress file with:
+
+  (dvi:process-dvi "angel://lmi//foo//foobar.dvi" "imagen"
+                   :output-file "lam3:foobar;foobar.impress")
+
+This creates foobar.impress. It is better to keep the impress files on a
+lispmachine since there is usually more disk space, and it gets around a
+bug in hardcopy-file.
+
+Command 2: Then to send it to the imagen:
+
+  (hardcopy-file "foobar.impress" :format :impress)
+
+
+Integrating text and graphics (screen dumps).
+
+
+Screen dumps can be made in impress format by setting
+
+  (setq si:*default-bit-array-printer* :impress-bitmap-file)
+
+    or
+
+  (setq si:*default-bit-array-printer*
+     '(:impress-bitmap-file "lam3:foobar;bitmap.bits"))
+
+The first case causes the lispm to prompt you in a background window for
+the filename every time you do a TERMINAL-Q. The second cases writes out
+new versions of "bitmap.bits" on every TERMINAL-Q.
+
+Then to integrate the screen dump into your botex document, use this
+sequence in your botex document source:
+
+@tex
+     \special{impress-bitmap "lam3:foobar;bitmap.bits"
+                              :magnfication 1
+                              :h-offset 600
+                              :v-offset 600
+             }
+@end tex
+
+
+Magnification is given as a power of 2. So 0 means no magnification. 1
+means 2, 2 means 4.  The default is 0. The offsets are given in dots,
+and the imagen has 300 dots per inch.  The figure will set on the pages
+according to H-OFFSET and V-OFFSET, which are ABSOLUTE page coordinates.
+The state of the text processing at the time doesnt matter. Usually one
+will reserve space with vskip so as to avoid the overlap of text and
+graphics.
+
+Also the file "lam3:foobar;bitmap.defaults" may contain default values,
+instead of specifying them in the impress-bitmap command:
+
+  (:magnification 1 :h-offset 600 :v-offset 600)
+
+This allows you to change the placement of the bitmap without having to
+rerun the lengthy botex command.
+
+
+Example:
+
+
+@chapter Diag Window Interface
+
+The window system interface to LAMBDA-DIAG. This is on the key
+SYSTEM-GREEK-D. It looks like this in its default configuration:
+@figure
+@tex \special{impress-bitmap "dj:gjcx;diag-frame-1.bits"} @end(tex)
+@vskip 7.5in
+@end(figure)
+
+
+
+  The file diag-frame-1.defaults contains:
+
+     (:magnification 1
+      :h-offset 300.
+      :v-offset (+ :pixel-v 150)
+      )
+
+The :v-offset is given in terms of the last pixel-v that was in effect
+the last time output happened.
+
+
+Another option is to use images saved form the paint program. That is, using the SAVE
+command, *not* the hardcopy command.
+
+@tex
+     \special{:saved-paint-image "lam3:foobar;mypaint-1.qfasl"}
+@end tex
+
+
+And "MYPAINT-1.DEFAULTS" would follow the usual rules.

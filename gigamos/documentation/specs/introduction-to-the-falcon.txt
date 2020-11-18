@@ -1,0 +1,33 @@
+
+Name:   Introduction to the Falcon document
+
+Date:   9/19/88
+
+Participants:   K. Corbett, D. Saslav, all Falcon programmers
+
+Est. Work:      Four weeks
+
+Project status: Under review
+
+Purpose: This document will serve as the primary introductory volume for
+new Falcon customers.  By analogy with the Lambda, it will comprise the
+equivalent of the Introduction to the Lambda and the Lambda Operations
+Manual.
+
+Description: This document will contain information required by new
+Falcon users for understanding these basic Falcon concepts:
+
+        LISP machine introduction;
+        Description of the keyboard layout and mouse functions;
+        Booting and restarting the Falcon;
+        Online help facilities;
+        The File System;
+        The Window System;
+        The Editor;
+        Maintenance programs (Peek, Inspector, etc.)
+
+        A significant body of text exists for the equivalent topics for
+the Lambda; with the exception of the keyboard layout, it is conceivable
+that none of the topics in the second group will have to be written
+entirely from scratch; revision and reformatting of existing
+documentation may be a viable approach to this manual.

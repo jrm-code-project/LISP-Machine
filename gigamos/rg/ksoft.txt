@@ -1,0 +1,1117 @@
+ISSUE FILE:
+   This file has various sections:
+  (1) POINT-COUNTERPOINT relevant to particular issues (indexed by issue),
+  (2) THINGS THAT NEED TO GET DONE,
+  (3) official current assignments of people to projects, etc
+  (4) toy acquisition list and related issues.
+  (5) longer term projects
+  (6) general wish list
+  (7) personal sections indexed by person (containing anything that person wishes).
+
+   Anyone can add a new point to the POINT-COUNTERPOINT section, however, the management
+reserves the right to order this section of the file.   Generally, we will try to have the
+most important issues at the head of the file.
+   Anyone can contribute to either the POINT OR COUNTERPOINT section of an item.  Normally
+contributions should be signed, although that is optional.  It is probably best to
+summarize central points in the POINT-COUNTERPOINT section; supporting information should
+be included by reference to the person's section or other on-line files or documents
+(off line documents can of course be referenced, but try to include enuf info so someone
+reading this file can understand whats going on).
+   A word on mechanics:  several people can be updating this file.  if the file has changed
+since the last time your lisp machine referenced it, you will get a message "THE FILE DJ:RG;KSOFT has
+changed since the last time you read or wrote it, etc, do you want to write it out anyway"
+when you try to write out the file.  --Type NO--.  Then use <meta-x>SOURCE COMPARE MERGE to
+combine things, then write it out.  SOURCE COMPARE MERGE should be fairly self explanatory.
+If you walk up to a machine with this file in a buffer, it is probably a good idea to do a
+<meta-x> REVERT BUFFER before beginning to save yourself work later.
+
+
+point:
+(rg):   We can implement a namespace fully compatible with the current LISPM while at the
+        same time having another (or several other) namespaces which can do some new thing
+        by means of the package-root feature.  [see the discussion in the file RG;multi-roots >.]
+        We should proceed immediately to implement this.
+        Primarily, this will involve a bit of work on the K-machine end of the loader.
+
+
+POINT:
+(efh):  It is desirable to have the core of the system implemented cleanly in COMMON LISP.
+        any compatiblity packages (such as ZETALISP, old FLAVORs, etc) should be implemented on top of
+        this core.
+
+(khh):
+    Most developers use only common lisp functions since they
+    want to be portable to as many systems as possible. If the
+    base software is this, then the optimized routines are the
+    common lisp ones, and the zeta-lisp stuff is an add-on that
+    can be removed easily to help developers ensure common lisp
+    compatibility.
+
+    Requires much smaller set of software to be written and/or
+    ported for initial product ship (See KHH development plan
+    Phase-I near the end of this file).
+
+    Permits fastest introduction of a new product to the field,
+    with future enhancements directly on the same development
+    path.
+
+    Opens up a new market area for a very fast end-user system
+    for applications that don't require lisp programs to be
+    re-written into C or similar kludges.
+
+    VME system avoids hardware problems in NU machine, and helps
+    prevent the K from being associated with problems in the
+    lambda.
+
+
+
+COUNTERPOINT:
+(rg):  True, this is desirable.  However, we can reach this goal by evolutionary means
+       replacing one file at a time etc.  Since this relates to an internal implementation detail
+       it is not of primary importance to the customer.  From the company's point of view,
+       attempting this objective directly may well subject us to an unacceptable transient
+       period where we have no usable software whatever.  We should attempt to quantify
+       how large this transient would be in any way we can.  Cogent arguments should also
+       be advanced relevant to the difficulties of an incremental approach.
+       Also, it is not clear what problems might be encountered with implementing
+       a fully compatible flavors system without special hooks and what type of special hooks
+       might be required.  One possibility is to reimplement old flavors in COMMON Loops,
+       but the problems involved in that are not clear and COMMON Loops doesnt really exist yet.
+       One thing we dont want to do is spend too much time rewriting the details of messy old
+       flavors.
+
+(rg):  Saying the Common Lisp frob is "on top" on the Zeta Lisp frob is really
+       a figure of speech.  There is no necessary efficiency implication.  It is not true that
+       everything "COMMON LISP"  "goes thru" anything Zeta Lisp, etc.
+
+       Re speed of product introduction, that is a very important consideration which
+       we should attempt to quantify one way or the other.  In particular, estimates of
+       the size in source characters of new stuff which would have to be written are relevant.
+
+       Re association with Lambda, we can do both and call it different things if you want.
+       Symbolics and DEC both purposely generate confusion as to exactly which internal processor is
+       is in which box, sometimes fooling their customers, usually fooling the media, and
+       almost always fooling themselves.  Everybody's happy ha ha.
+
+       Estimates of development times in KHHs personal section are interesting
+       but need to be supported with breakdowns and details.
+
+       The VME bus (any or all of KHH's three possibilities) may well represent a good alternative.
+       However, even KHH's development path step 1 puts us at least 6 months away from having
+       ANYTHING due to lack of core system software.  Anything having to do with external things
+       (which configuration of VME bus, VME bus or NUBUS, etc) can be resolved in a maximum of
+       three months (I believe).  Thus, we have a minimum of three months to concentrate
+       on the core system software before it will be necessary to commit ourselves to
+       one or more of the possibilities.
+
+ANSWER:
+(gjc)  The special hooks required to port FLAVOR.LISP to VAX-NIL were
+       SI:MAKE-EXTEND <size> <class-or-flavor-object>
+       hook in FUNCALL and APPLY
+       hook in compiler and interpreter for an ATOMIC-MACRO kind of thing,
+       (si:atomic-macrolet ((x (aref self (aref self-mapping 0)))
+                            (y (aref self (aref self-mapping 1))))
+         ... body ...)
+
+       The "core" of the system should be in a subset of common lisp. Not heavily dependant
+       on hairy aspects of the type system and generic functions. The core also needs to
+       have error handling and debugging aspects that are not defined in common lisp.
+
+
+POINT:
+(khh):  We should NOT put the K into the Lambda.
+
+        The Lambdas have picked up a reputation as unreliable. This perception
+    would get carried over onto the K. Also there are still serious problems in
+    the SDU and multibus boards. To put the K into it would require
+    considerable work to fix these problems.
+
+        Another reason that the K should not be retrofit in the lambdas is that
+    there is no real marketing demand for it. Bill Wise called up about 70 of
+    our customers and asked them what kind of a system they would be interested
+    and suggested several of the possibilities under consideration. The result
+    was that about 10% of these were interested in a retrofit option.
+    Assuming that there are 250 systems installed, half of the systems are 2x2,
+    and that only half the the people that acually indicated interest would
+    actually buy, means a total market of about 15 processors. This is clearly
+    not worth the development work.
+
+    (NOTE- I've heard the results of this survey second hand, so it should be
+     checked for accuracy. I did a estimate of the number of the processors
+     that could be retrofitted using considerably more optimistic assumtions
+     and the potential market still didn't justify the work.)
+
+       Over the past week four different customers were asked what sort of a
+    next generation system they would be interested in. The result was that 3 of these
+    customers preferred some standard box such as the SUN (they listed several, the SUN
+    was always one those mentioned). One customer had no preference between the two
+    but thought that the sun would probably be cheaper and therefor preferable.
+
+
+counterpoint:
+(rg):   We should put the K (possibly with a different name if you really want) into the
+        Lambda.
+
+        Our customers have them and are doing fairly well in most cases.  I propose that
+        NO work be done on any of the other boards such as SDU or any of the multibus boards.
+
+        The basic reasons for doing it are:
+        (1)  we are going to do it internally anyway.
+             as our discussion has developed, we are not going to get our internal software done
+             for at least 6 months (quite possibly a lot more for the path of redoing everything).
+             Thus, our critical path is core system SOFTWARE SOFTWARE SOFTWARE.  Obviously
+             we should proceed to do work on this using the environment currently available.
+             When we begin to see light at the end of the development tunnel for the central system
+             (I estimate maybe 3 months) then we should make our decision(s) about which box and bus.
+             Until then, anything box or bus related is secondary, although some background work
+             should continue.  In particular, sending out a VME processor layout (and making a couple)
+             coincident with an updated NUBUS layout sounds like a reasonable idea.
+
+        (2)  this may well enable us to sell a few lambda's on the promise they can eventually be
+             upgraded.  However, we should clearly understand that future Lambda production
+             represents a bridging mechanism to our future products which must be much cheaper,
+             more reliable, easier to manufacture, etc etc.
+
+        (3)  we owe it to our customers to provide them this option even if they dont take it.
+
+        (4)  there is no argument whatsoever that standard boxes are preferable to kludgy special
+             ones.  I agree completely and totally.  The question is which standard box (or maybe all,
+             etc.)  As a point of relavent information, someone should find out which SUN box(es)
+             would be suitable for a K upgrade.  The MAC-II is the box I really thing would be a super
+             win, with IBM compatible and SUN following.  However, we should really be serious about
+             looking at and (quite possibly) doing all of them.
+POINT:
+(rg)   We are going to have to move!  I like this neighborhood.
+       One issue is whether we consolidate the company in one location.  If so, it would be
+       in Cambridge.  However, right now it looks like Lowell will stay in Lowell for one year.
+       If so, we probably need about 6000 sq ft, 18,000 if they move.
+
+POINT:
+(hlc)  If we do not consolidate the company's operations now, we will miss the chance to undo a serious error of
+       the past. The continuing costs of maintaining two facilities include:
+       -lack of one cohesive team
+          -divergence into competing departments and special interests
+       -communication inefficiencies
+          -reduced ability to see how one's work supports company goals
+          -reduced ability to discover how one's work might be helped by (or affect) what someone else is working on
+          -extra effort to locate someone, which is a problem both for customers and employees
+          -difficulty and cost of explaining over the phone or by fax what could be easily done in person
+       -duplication of effort and resources
+          -two receptionists, or, more likely, none in Cambridge
+          -two purchasing, shipping & receiving functions
+          -two kitchen, exercise, common room facilities
+          -two phone systems to keep operational
+          -two copiers, which cannot be alternated between if one is in use
+       The main reason for not consolidating is that most Lowell employees are believed to strongly prefer
+       remaining in that area. In addition,the quantifiable costs of consolidating include:
+       -moving expenses (probably about $5000)
+       -about a week of lost time per person (total about $50,000)
+       -yearly rental differential ($10 per sq. ft. times 15,000 sq. ft. = $150,000 per year)
+
+COUNTERPOINT:
+(rg)   Quite right, but we have to convince the folks in Lowell.
+
+POINT:
+(hlc)  Now that a lease has been signed for space in Lowell, the Cambridge location can be selected primarily on
+       the requirements of the K-machine and PICON groups.
+       One preliminary proposal (submitted for costing only) for building out the second floor space at 1030 Mass
+       includes the following items:
+        -1350 sq. ft. computer room
+        -combined kitchen/common room
+        -shower
+        -two small project areas surrounded by offices
+        -one conference room
+
+The following places have been suggested:  (feel free to add places or fill in information or comments about them)
+
+1030 Mass ave  above Barsamian's (third floor probably, although there is a tag end on the second)
+      new buildout.  would take several months to move in.
+      Parking available, but cost $100 per month per space.
+     -16,000 usable sq. ft. on third floor
+     -5846 usable sq. ft. on the  second floor.
+     -asking $24 per sq. ft., might agree to about $20
+     -at least a 3 year lease
+
+Symbolic's old space above Legal Seafood
+     -17,000 sq. ft.
+     -completely built out, available within 60 days
+     -1800 sq. ft. computer room plus 1100 sq. ft. associated space includes 2 20-ton air conditioners, halon system
+      patch panel with cables to most offices, temperature monitor, raised floor
+     -probably not too expensive (under $20 per sq. ft.)
+     -parking: 2 spaces per 1000 sq.ft., $105 per month indoors, $70 outdoors (across from Legal Seafood)
+     -short term sublease (about one year) or optionally longer lease
+
+University Park
+        cheap, but frequently in lee of NECCO candy factory.
+        does not appear to be ready.
+
+Central Square Building (at prospect)
+     -675 Mass Ave.
+3 different possibilities:
+    a floor in the tower:
+        8000 sq ft.
+        great views in all directions.
+        would need fresh buildout.
+
+    a floor in the "five-story" (probably the fifth, former executive offices for new england gas)
+        8000 sq ft (? is this right henry?) (about 7500 usable sq. ft. -hlc)
+        somewhat crufty, but probably sort of suitable for immediate movin without new buildout.
+        a medium number of quite large rooms.  Probably eventually would subdivide most of them.
+        has a couple of nice balconies.
+
+    the "garden view".
+        cheapest
+        4000 sq ft with possible more cheap space in basement
+        very high ceilings.  hard to divide into offices (unless some brilliant concept, etc)
+        fairly close to computer room with UPS and diseal generator!
+
+    some parking available under 5 story (before it gets taken, etc)
+        otherwise across street, either on former Fisherman Bill's or in lot across Prospect st from that.
+
+     -up to about 100,000 sq. ft. available. Floors in the tower portion have 8,000 to 9,000 sq. ft., great views
+     -available now "as is", though repainting and new carpets would be helpful
+     -approximately 1500 sq. ft. computer room available on second floor, includes raised floor, halon system,
+      4 air conditioners (15 or 20 ton), temperature monitor
+     -asking $23 per sq. ft. including extensive rebuildout, negotiably less "as is"
+     -parking is in nearby outdoor lots, could be a problem
+     -renovation of Central Square might cause noise and traffic problems
+
+Orion research
+        mumble
+
+POINT:
+(bob):  As far as I can see, the new LMI has five different products.
+        These are:
+
+        1. lambda-support
+        2. lambda-manufacturing
+        3. the K-machine project
+        4. PICON
+        5. IKE
+
+        Each product needs to have money spent on it if it is to be sold.
+        However, we have only a finite amount of money;  this means
+        that money spent on one product must be taken away from
+        another.  For example, $20,000 spent on IKE is $20,000 taken
+        away from the K-machine project.
+
+        I am looking to get some sense of how best to spend the money
+        we have.  Should we cancel PICON, for example, and put the
+        money into the K-machine; or should we cancel IKE?  Or should
+        we take $60,000 from the K-machine project to bring IKE up to
+        snuff?  Could we expect, thereby, to sell 12 copies of IKE and
+        double our money within a year?
+
+        I think the best way to get some sense of how to allocate
+        people's time and Guy's money is to draw up a series of
+        business plans, one for each product.  I know full well that
+        business plans have a bad reputation at LMI.  In the past,
+        around here, business plans have been fantasies, and have been
+        used to mislead rather than inform.  However, we do not have
+        to produce fantasies if we choose not to.  We do not need to
+        be unnumerate fools who claim that they can make predictions
+        to six significant figures when they are just guessing.
+        Instead, we can try to be sensible.
+
+        A plan is a sketch map of the territory we expect to enter.
+        It is a way of looking ahead at problems and prospects.  In
+        addition, a business plan should contain milestones that we
+        can use to determine whether a product is succeeding or
+        failing.  It is evident that the old LMI never had milestones
+        that anyone took seriously (there were lots of pretend
+        milestones that were part of the $40 million fantasy
+        extravaganza).  When you don't have milestones to take
+        seriously, you are like the operator of a nuclear power plant
+        who does not have instruments.  You don't know how you are
+        doing, until it is too late.
+
+        Take PICON as an example: the critical milestone that RG has
+        suggested is that the PICON project should begin to pay for
+        itself on the first of January 1988.  This means we would have
+        to sell copies of PICON at a faster rate than we have ever
+        sold them before--and sell them in a market where PICON is not
+        the only real-time expert system.
+
+        Is the January milestone realistic or is it a fantasy?  What
+        do we need to find out to make a judgement?  If we think that
+        January is a good date to break even, what do we have to do to
+        make a success of it?  Do we need to find customers or will
+        they come to us?  Do our old customers tell us that they will
+        buy second and third copies of PICON in sufficient quantity to
+        break even?  What do they tell us we need to do for them to
+        buy copies of PICON?  Once we have told them of the new PICON
+        and the new LMI, how long does it take before they send in the
+        orders?
+
+        It is generally agreed that PICON needs to be ported to a
+        non-Lisp Machine in order to sell; this will cost.  In
+        addition, PICON will probably need several enhancements.  The
+        list includes generic rules, multiple component moves, an icon
+        editor, automatic rule generation, sequential timed actions,
+        help facilities, rapid redisplay of large knowledge bases, and
+        industry standard icon libraries (including dashed lines for
+        wire connections).  How important are these different
+        enhancements and how difficult are they?  Which really are
+        necessary and what resources are needed to implement them?
+
+        Let me put these questions another way: should we take
+        one-half million dollars out of the K-machine project and put
+        it into PICON development; or should we put the money into
+        Lamda manufacturing instead?  Or should the money all go to
+        K-machine development?
+
+COUNTERPOINT:
+(rg):   We are not in a position to consider these questions in detail now
+        since we have too many other things to worry about.  Our working
+        assumption is that we will take 6 months to rebuild the company, etc.
+        Of course, over the long haul each company activity will have to justify
+        itself.  In particular, my general feeling is that after 6 months it should
+        more or less be "sink or swim."  That is, all projects should either be
+        visibly swimming (i.e. making money) or CLEARLY financable (i.e. product is
+        in beta test, shipments will start soon, etc).
+
+(COUNTER^2)POINT:
+(bob):  If "we have too many other things to worry about" we don't have
+        the time or the ability to spend a half million dollars in the
+        next 6 months.  What I am afraid is that we will waste money
+        when we don't need to.
+
+        RG says that his "...general feeling is that after 6 months it
+        should more or less be `sink or swim.'"  One possiblilty is to
+        port PICON to the VAX and RTIME to the AT.  This, in itself,
+        is a good idea.  However, PICON will, in this plan, be very
+        similar to the PICON that Lowell Hawkinson left behind last
+        September.  You will still have to buy a Lisp machine from
+        some company to use PICON (only the run time version will go
+        on the VAX).  In the summer of 1986 we used to say that PICON
+        was a year ahead of the competition.  I think that was true.
+        A good portion of that year has now been lost.  In the next
+        few months we have to build PICON so that it can sell against
+        the competition of 1988.  I don't think we can do it with the
+        PICON of 1986.
+
+        RG says that "Our working assumption is that we will take 6
+        months to rebuild the company, etc."  What I am talking about
+        *is* rebuilding the company.  A company has to do several
+        things to survive.  In our case, we not only have to produce
+        hardware and software, we have to tell people about it and
+        persuade some people to buy it.  Just creating hardware and
+        software is not enough.  It is not `rebuilding the company';
+        it is half-building the company, walls without a roof.
+
+        Based on conversations I have had with customers, I do not
+        think that we will be able to sell PICONs at a rate of 36 per
+        year starting in January 1988 unless we pursue a vigorous
+        development policy and have the infrastructure needed to
+        support the product.  Otherwise, I think that OEMs (our
+        preferred customers) will see us as slow moving
+        might-have-beens.  Against that fate, this time around, I would
+        like to see us be a success.
+
+
+(COUNTER^3)POINT:
+(rg):   (Counter^2) point is not to the point!  If you are saying we should
+        seriously consider cancelling picon, say that directly.  At the moment,
+        I perceive enough interest in the customer base to definitively rule
+        out that possibility for the short term.  If all our customers go away,
+        then that is something else, etc.  The key for PICON is repeat sales.
+        We have several customers who could potentially put us in gravy for years
+        all by themselves (TEXACO, Proctor and Gamble, etc).  Our challenge is
+        to turn them into ACTUAL repeat customers.  I would prefer to see us
+        concentrate directly on what is required to achieve this rather than
+        the more nebulous considerations brought forth in (POINT:).
+
+(COUNTER^4)POINT:
+(bob):  I do not understand what you mean when you say that
+
+        "(Counter^2) point is not to the point!  If you are saying we
+        should seriously consider cancelling picon, say that
+        directly."
+
+        I have already said that directly, in the third paragraph of
+        (POINT).  I think that if we put insufficient resources into
+        PICON, the Process Systems will not generate enough revenue to
+        break even on 1 January 1988.  If we expect PICON to fail,
+        then I think we should cancel the project.
+
+        Perhaps we expect PICON to succeed.  In that case, we will
+        want to attempt to select the amount of funding for PICON that
+        will maximize the rate of return for PICON.  Obviously, we
+        cannot make exact predictions--we all know that "it is very
+        difficult to make predictions, especially about the future".
+        However, every action we take, whether to cancel PICON or give
+        it one level of funding or another level of funding, is based
+        on either an implicit prediction or an explicit prediction.
+
+        My argument is that since we are going to act according to
+        some prediction, we should make it explicit and examine it
+        rather than leave it implicit and unexamined.  This applies
+        not only to PICON but to the four other products we have, too.
+
+        I have seen claims, but have not seen any arguments or
+        evidence justifying the claim, that we will be able to make
+        repeat sales to Texaco and P&G at a rate of 36 copies of PICON
+        per year if we offer them the following package:
+
+            -- current version of PICON running on a Lambda, Explorer or 3600
+            -- improved RTIME running on the AT
+            -- runtime only version of PICON on the VAX
+
+        I am making the claim (but am not offering evidence) that to
+        make repeat sales at that rate, we will have to offer all that
+        and that in addition we will have to offer:
+
+            --> evidence of very high reliability for the hardware
+            --> evidence of very high reliability for the software
+            --> a scheduled, believeable enhancement path including
+                at least some of the following features:
+
+                a. generic rules
+                b. multiple component moves
+                c. an icon editor
+                d. automatic rule generation
+                e. sequential timed actions
+                f. help facilities
+                g. rapid redisplay of large knowledge bases
+                h. industry standard icon libraries
+                   (including dashed lines for wire connections).
+                i. model based inferencing
+                j. easy to use explanation facilities
+                k. schematic based diagnostics (Mark Kramer)
+                l. dynamically created icons
+                m. operator query and answer
+
+            (This list is just for the example; I have a longer list on line.)
+
+        In brief, I am arguing that we will be taking positions on all
+        the points I have just mentioned (as well as similar points
+        regarding Lambda manufacturing, Lambda support, K-machine
+        development and the IKE project).  The positions we take can
+        either be implicit or explicit, unexamined or examined.  I am
+        proposing that we examine our positions; and am looking to get
+        some sense of how best to spend the money we have.
+
+        Here are a few other specific items that I think we should
+        consider now rather than six months from now:
+
+        1. Should we take $60k from the K-machine project and use the
+        money to further IKE development in the next 6 months?
+
+        2. How many potential customers really will want a full scale
+        Zetalisp development environment on the K-machine.
+
+        3. How many will not buy the K-machine unless it has Zetalisp?
+
+(counter^5)pointer:
+rg:     I see no evidence that the 60K would make the difference between a viable
+        and a non-viable picon group 6 months from now.  Furthermore, I cannot imagine
+        how such evidence could possibly be convincing.  The charter of the
+        Process Systems Group is to take the given resources (ie 9 slots, etc)
+        and have a viable group in 6 months.   (Of course, more slots can be
+        had if they are specifically funded by contracts with customers, etc)
+
+---Things that need to get done   ----
+This section is intended to keep track of (relatively short) odd jobs and things that need to happen.
+When one of them happens, the guy who did it gets to sign his name to it and leave it around for a while.
+Please note dates.
+
+date-in  person-in  person(s)-assigned person(s)-who-did-it  date-out
+6/13/87  CP         CP                  CP                   6/18/87    the ethernet needs to run to the first floor.
+
+6/13/87  RG         Henry                                               Rehassle parking spots.  we probably have too many.
+                        some progress, but lets get final decision written up and sent to Bill O'Brian, etc.
+
+6/13/87  CP         CP                                                  track down refrigerator.
+6/13/87  RG         CP                                                  hassle water supplier.
+
+6/13/87  CP         CP                                                  determine status of printers, order supplies.
+
+6/13/87  GJC                                                            Hassle dial-up line on vax.  PECANN or NAHA?
+6/15/87  RG         RG                                                  determine status of MIT line. Check with Gil Pratt.
+
+6/14/87  RG                                                             Make sure overtemp alarm and alarm list is operational
+
+---current assignments:
+
+assignee        assigner        project
+
+Henry           RG              investigate space in Cambridge
+
+CP              RG              Build out consultant and architect
+
+
+
+---toy acquisition list
+the budget provides for the following toys for the first six months of the company.
+In this section, anyone can add suggestions about what order or exact manner the
+toys should be acquired in, how to maximize their use, etc.
+
+micro-vax               $50K
+rg and gjc:   may not be necessary if GMS makes arrangements with PARADYME to use theirs.
+
+2 Mac IIs
+rg:     we should get one of these as soon as possible.
+
+2 386 machines
+
+---longer term projects
+
+common lisp and x3j13
+ who:  RG is currently handling this but others need to be involved.
+   representation on cleanup committee
+   common loops
+   XWINDOWs  (will be presented to x3j13 at meeting in boston june 30/july 1!
+
+delivering services via phone line
+ who: ? maybe keith corbett
+   convenient transfer of files, mail, bug reports, etc to LOWELL
+   ditto for customers and to other points.
+
+   specification of standard modem.
+     (note from bob: I bought a well-recommended 2400 baud modem for $244 via mail order
+     from INCOMM. The modem is upgradable to 4800 and 9600 baud.)
+   get modem hooked up directly to a lispm, and make lispm software interface smooth.
+   remote diagnostics
+
+networking
+ who:  probably pld or someone supervised by him.
+   networking over serial ports.
+
+
+
+---wish list
+---  Dont put too much in here, please, and try to be somewhat realistic.   Feel free to reference flamage elsewhere.
+real projects:
+
+project:   K-machine
+
+
+project:   Lambda software and support
+
+project:   MOBY address
+RG:     we really need to work on this....
+
+secondary projects:
+
+project:   IKE
+
+tertiary projects:
+
+gateway:   CP
+
+------------
+*** beginning of per-person stuff ***
+------------
+---EFH
+
+                         K Machine Software Development
+
+
+
+ Underpinnings
+
+   Trap Handler         75% finished
+
+   Paging System        mostly done except for device driver or IOP interface
+
+
+ Common Lisp
+
+   Compiler             nearly done, in use
+
+   Type System
+
+   GC
+     GC RAM             done
+     Transporter RAM    done
+     Transporter
+     Scavenger          not done, microcode from old system needs to be translated,
+                        rest can be lifted
+
+   Arrays               done, simple cases in use now
+
+   Simple Lists         done, or available from old system
+
+   Sequences etc.       We have two implementations of this, but both need rework
+
+   Numbers              mostly written, not completely tested
+                        needs transcendental functions and random numbers,
+                        can be ported from old system
+
+   Loader               partially done, untested
+
+   Printer              done
+   Reader               done
+   Evaluator            done
+
+   Streams
+   Pathnames
+   Hash Tables          written, needs compiler work to compile efficiently
+
+   Format
+
+   Package System       done
+
+
+
+   Error System         not started, needs object system, maybe port old
+   Rubout Handler       port one of the old ones
+   Debugger
+   Processes/Scheduler/Job Control
+   Make-System
+
+
+
+   Graphics
+   Flavors/Common Loops/CLOS
+     Old flavors is out of date and should be replaced
+     however, much of our window sytem and editor is written
+     in it.
+   Window System
+   Editor
+   Inspector
+   File System
+   Tape System
+
+
+
+
+Garbage Collector
+      GC.LISP        #347  85  86473(8)!   03/30/87 15:52:40              robert
+      UC-SCAVENGER.LISP #148  39  39278(8)!   02/05/87 15:50:32           RG
+      UC-TRANSPORTER.LISP #85  41  41235(8)!   12/16/86 01:21:45          rg
+
+
+
+Error System
+
+      CONDITION-FLAVORS.LISP #13  16  15729(8)!   10/16/85 19:50:33       JRM
+      EHF.LISP       #293  64  64654(8)!   03/26/87 16:01:11              robert
+      ERRMAC.LISP    #26  28  27766(8) !   02/12/87 19:07:25              RPK
+      TRAP.LISP      #33  69  70105(8) !   01/19/87 21:22:08              RG
+
+Debugger (Error Handler)
+
+      EH.LISP        #395 140 143237(8)!   12/27/86 15:42:52              jrm
+      EHBPT.LISP     #9  17  16754(8)  !   12/18/85 12:22:21              khs
+      EHC.LISP       #262  83  84171(8)!   10/02/86 05:59:55              robert
+      EHW.LISP       #125  33  33210(8)!   10/07/86 15:53:58              mrc
+       Window error handler, not generally used
+
+Window System
+
+      TVDEFS.LISP    #297  45  45306(8)!   11/12/86 16:02:40              gjc
+      SHEET.LISP     #583 109 110858(8)!   03/30/87 12:23:59              robert
+      SHWARM.LISP    #370  87  88794(8)!   12/31/86 14:09:49              EFH
+      BASWIN.LISP    #577  81  82659(8)!   03/20/86 16:01:42              JRM
+      BASSTR.LISP    #411  80  81658(8)!   05/27/87 19:44:47              pld
+
+      UC-TV.LISP     #14  42  42323(8) !   01/22/87 23:24:28              rg
+      GRAPHICS.LISP  #11  34  33811(8) !   10/10/86 16:57:19              robert
+
+      SCRMAN.LISP    #169  35  34892(8)!   02/05/86 18:15:00              pace
+
+      UC-TRACK-MOUSE.LISP #20  20  20229(8)!@  05/30/86 13:55:05          dg
+      MOUSE.LISP     #267  57  57625(8)!   10/10/86 10:06:12              jrm
+
+      MENU.LISP      #115  60  60831(8)!   03/30/87 13:16:35              robert
+      FRAME.LISP     #172  43  43532(8)!   04/22/86 23:35:52              dg
+
+
+      CHOICE.LISP    #130  82  83896(8)!   07/08/86 14:10:34              mrc
+      SCRED.LISP     #117  68  69063(8)!   04/22/86 23:35:02              dg
+      SCROLL.LISP    #183  46  46943(8)!   04/22/86 23:35:34              dg
+
+      STREAM.LISP    #152  26  25994(8)!   05/06/86 20:25:01              RMS
+      RH.LISP        #182  62  63026(8)!   03/30/87 12:35:07              robert
+
+      SYSMEN.LISP    #196  43  43412(8)!   10/02/86 04:01:50              robert
+      WHOLIN.LISP    #105  29  29468(8)!   03/11/87 21:16:54              jrm
+
+      TSCROL.LISP    #76  27  27380(8) !   05/31/86 04:36:10              gjc
+      TYPWIN.LISP    #123  29  29166(8)!   10/12/85 22:33:17              rg
+
+
+Flavors
+      FLAVOR.LISP    #316 202 206152(8)!   02/17/87 15:49:10              RpK
+        misc stuff in uc-call-return
+
+
+
+CL
+      GENRIC.LISP    #55  91  92658(8) !   05/13/87 16:40:40              robert
+        Generic sequences, Quote:
+        ;>> In general these are abysmally slow.
+        ;>>  Many many many many special-cases need to be written.
+        ;>>  This is all very depressing.
+
+
+
+
+--totally not used      PACK4.LISP     #286  50  50903(8)    06/25/83 17:40:51              RMS
+        old packages
+
+
+Old Compiler
+      QCDEFS.LISP    #179  38  38134(8)!   02/17/87 01:57:30              rg
+      QCFILE.LISP    #359  40  40692(8)!   03/27/87 12:54:37              robert
+      QCLAP.LISP     #272  44  44723(8)!   12/16/86 01:01:19              RG
+      QCLUKE.LISP    #35   24  24142(8)!   01/29/87 14:56:33              RpK
+      QCOPT.LISP     #177  78  79626(8)!   02/23/87 18:07:27              RPK
+      QCP1.LISP      #682 140 142373(8)!   04/30/87 18:12:11              Rauen
+      QCP2.LISP      #301  94  96019(8)!   12/29/86 02:15:10              rg
+      QCPEEP.LISP    #39   31  31530(8)!   10/27/85 10:47:22              rg
+
+      QCFASD.LISP    #260  30  29764(8)!   12/25/86 01:31:14              rg
+
+
+Loader
+      QFASL.LISP     #491  47  48127(8)!   12/16/86 00:29:18              RG
+      UNFASL.LISP    #22  13  12885(8) !   09/01/85 11:37:52              Mly
+
+Types
+      TYPES.LISP     #103  80  81641(8)!   04/23/87 17:20:14              jrm
+
+
+
+
+
+---rg
+
+
+what is "COMMON lisp"?
+  procedural stuff
+
+
+what is ZETA lisp?
+  (very slightly) different procedural stuff.
+  flavors
+  window system
+  ZWEI
+
+
+What is necessary to make old flavors and the window system run?
+
+Do we "have" common lisp now?  YES of course.
+
+what is the standards picture?
+    common lisp:   pretty much available, although numerous details still being hassled.
+    common loops:  first draft of "final draft" will probably be available soon.
+    window system based on common loops:  not started yet
+    standard window system based on common loops:  totally off in the future.
+    other window systems:
+        intellicorp
+        sun news
+        xwindows
+        microsoft windows
+
+
+what is minimum software to be deliverable?
+   do we need to run LAMBDA code?
+
+   do we need a window system?
+
+
+
+major machine independant modules:
+  storage convention independant
+      CLPACK.LISP    #226  81  82122(8)!   05/20/87 11:49:39              jrm
+      EVAL.LISP      #178 114 116230(8)!   04/15/87 15:58:01              jrm
+      GENRIC.LISP    #55  91  92658(8) !   05/13/87 16:40:40              robert
+      LTOP.LISP      #572  40  40467(8)!   02/10/87 18:21:34              pld
+      REP.LISP       #21  13  12481(8) !   02/18/87 18:13:12              rg
+      QFCTNS.LISP    #840 124 126235(8)!   05/07/87 12:53:09              pld
+      QMISC.LISP     #729  92  93611(8)!   03/10/87 13:37:53              naha
+      QRAND.LISP     #495 114 115748(8)!   03/27/87 16:12:27              robert
+      SORT.LISP      #70  24  24498(8) !   08/16/86 13:10:03              jrm
+      SYSDCL.LISP    #291  23  22730(8)!   04/14/87 17:20:40              robert
+        (lists other modules, etc)
+      TYPES.LISP     #103  80  81641(8)!   04/23/87 17:20:14              jrm
+      ADVISE.LISP    #42  10  10163(8) !   03/16/86 11:07:04              GJC
+      CHARACTER.LISP #27  12  11359(8) !   01/23/87 14:41:57              mrc
+      CLMAC.LISP     #23  17  16594(8) !   05/11/87 15:03:18              jrm
+      DEFMAC.LISP    #84  14  13372(8) !   05/26/86 19:18:02              rg
+      DEFSEL.LISP    #74  12  11884(8) !   10/02/85 12:37:55              Mly
+      ENCAPS.LISP    #35  26  26479(8) !   12/25/86 01:30:17              rg
+      LMMAC.LISP     #456  84  85376(8)!   02/12/87 19:09:42              RPK
+
+      FLAVOR.LISP    #316 202 206152(8)!   02/17/87 15:49:10              RpK
+
+      HASH.LISP      #114  19  18907(8)!   03/12/86 20:12:14              GJC
+      HASHFL.LISP    #72  38  38614(8) !   12/23/86 16:04:55              rg
+
+      LOOP.LISP      #806  98  99383(8)!   10/03/86 18:08:30              robert
+
+      MAKSYS.LISP    #201  89  90569(8)!   01/29/87 18:00:55              RpK
+
+      GC.LISP        #347  85  86473(8)!   03/30/87 15:52:40              robert
+
+      PRODEF.LISP    #62   9   8996(8) !   11/12/86 20:53:57              RG
+      PROCES.LISP    #203  50  50458(8)!   02/07/87 14:24:40              RG
+
+      SETF.LISP      #127  52  52512(8)!   04/07/87 22:17:01              EFH
+
+      STRING.LISP    #163  55  55517(8)!   03/30/87 15:31:17              robert
+      STRUCT.LISP    #337  91  92899(8)!   03/26/87 17:17:01              robert
+      FQUERY.LISP    #53  14  13734(8) !   04/20/86 10:09:01              rg
+
+   pathnames and high level IO
+      HOST.LISP      #111  27  27386(8)!   07/24/86 01:21:39              rg
+      ACCESS.LISP    #36  46  46167(8) !   02/14/87 13:19:48              RG  sys:io;file;
+      OPEN.LISP      #204  90  91820(8)!   02/14/87 13:20:07              RG
+      PATHNM.LISP    #573  90  91771(8)!   02/14/87 13:18:13              RG
+      PATHST.LISP    #211  81  82096(8)!   02/14/87 13:19:25              RG
+
+      FORMAT.LISP    #271  71  72542(8)!   05/13/87 15:12:25              robert
+      FREAD.LISP     #29   8   7965(8)     10/29/83 18:51:57              RMS
+      GRIND.LISP     #150  39  39464(8)!   10/21/86 17:29:31              mrc
+      INPUT-READERS.LISP #11  26  25792(8)!   02/18/87 18:12:09           rg
+      PRINT.LISP     #220  52  52368(8)!   03/26/87 16:10:40              robert
+      READ.LISP      #459 103 105085(8)!   03/19/87 13:29:52              jrm
+      RDDEFS.LISP    #64  13  12836(8) !   01/08/87 23:42:24              RG
+      CRDTBL.LISP    #41  11  11012(8) !   11/14/86 17:11:03              RPK
+      RDTBL.LISP     #174   8   7488(8)!   04/14/86 16:46:51              GJC
+      RTC.LISP       #50  45  45361(8) !   11/01/85 17:41:53              RpK
+      QIO.LISP       #228  38  38156(8)!   06/23/86 21:12:34              ref
+      STREAM.LISP    #115  47  47329(8)!   07/26/86 18:32:42              robert
+      HARDCOPY.LISP  #4   8   8040(8)  !   02/05/86 17:56:13              RPK
+      BALDIR.LISP    #118  28  28438(8)!   01/23/87 23:32:57              pld
+
+   misc utilities
+      ANALYZE.LISP   #50  30  29814(8) !   12/24/86 19:58:24              rg
+      BAND.LISP      #49  14  13581(8) !   11/16/86 17:58:16              rg
+      LOGIN.LISP     #90  14  13557(8) !   10/23/85 16:11:49              RpK
+      MATRIX.LISP    #30  17  16863(8) !   04/10/86 15:31:34              dg
+      PATCH.LISP     #183  38  38332(8)!   02/18/87 18:12:48              rg
+      PLANE.LISP     #35   9   8987(8) !   02/03/86 15:11:27              PECANN
+      QTRACE.LISP    #164  14  14005(8)!   10/05/86 15:24:51              robert
+      STEP.LISP      #75  13  12666(8) !   02/18/87 18:13:56              rg
+      RESOUR.LISP    #47  22  21957(8) !   02/18/87 18:13:35              rg
+      DRIBBL.LISP    #41   6   5930(8) !   03/26/87 19:16:42              robert
+      SRCCOM.LISP    #41  18  17430(8) !   11/18/86 02:17:35              rg
+      TIME.LISP      #139  45  45491(8)!   05/01/87 10:08:00              pld
+      TIMPAR.LISP    #80  65  65824(8) !   05/31/86 09:35:17              gjc
+
+   debugger
+      CONDITION-FLAVORS.LISP #13  16  15729(8)!   10/16/85 19:50:33       JRM
+      EH.LISP        #395 140 143237(8)!   12/27/86 15:42:52              jrm
+      EHBPT.LISP     #9  17  16754(8)  !   12/18/85 12:22:21              khs
+      EHC.LISP       #262  83  84171(8)!   10/02/86 05:59:55              robert
+      EHF.LISP       #293  64  64654(8)!   03/26/87 16:01:11              robert
+      EHW.LISP       #125  33  33210(8)!   10/07/86 15:53:58              mrc
+        window error handler.  in somewhat marginal condition currently, altho it is useable.
+      ERRMAC.LISP    #26  28  27766(8) !   02/12/87 19:07:25              RPK
+      TRAP.LISP      #33  69  70105(8) !   01/19/87 21:22:08              RG
+
+   high level network
+
+   medium level network
+      ADDR-RES.LISP  #45  18  18002(8) !   08/02/86 20:10:02              pace  -->Obsolete
+      HOST.LISP      #157  30  30695(8)!   02/14/87 13:19:10              RG
+
+   protocol specific
+    chaos
+      SIMPLE-ETHER.LISP #75  24  23592(8)    02/26/85 23:51:59            pace  -->Obsolete
+
+   low level network device driver
+      SIMPLE-ETHER.LISP #75  24  23592(8)    02/26/85 23:51:59            pace  -->Obsolete
+
+   user systems
+      CONVER.LISP    #153  59  59537(8)!   04/22/86 20:14:30              dg
+
+    font hacking
+      FNTCNV.LISP    #89  74  75164(8) !   10/02/86 05:22:34              robert
+
+
+   fairly random
+      SELEV.LISP     #31  12  12031(8) !   10/13/85 03:43:37              Mly
+      INFIX.LISP     #13  16  15912(8) !   05/31/86 09:36:06              gjc
+      METER.LISP     #86  50  50367(8) !   04/13/87 19:01:39              pld
+
+   old-compatibility -- probably needed
+      MACARRAY.LISP  #9   8   8005(8)  !   02/18/87 18:12:27              rg
+      OUTPUT.LISP    #47  23  22682(8) !   04/25/86 10:24:50              rpp
+
+   old compatibility -- probably not needed
+     old (squared) object oriented stuff
+      CLASS.LISP     #104  24  23799(8)!   11/05/85 10:57:22              rg
+      METH.LISP      #67  18  17720(8) !   05/21/86 19:43:18              gjc
+
+
+  storage convention dependant
+      DESCRIBE.LISP  #24  35  35222(8) !   02/18/87 18:10:39              rg
+      SGFCTN.LISP    #73   6   6136(8) !   10/03/86 17:51:26              robert
+      SGDEFS.LISP    #58   9   8453(8)     02/20/85 01:59:10              bobp
+      STORAGE.LISP   #92  21  21101(8) !   02/18/87 18:16:54              rg
+      STORAGE-DEFS.LISP #15  10   9999(8)!   06/15/86 14:20:20            dg
+      DISASS.LISP    #108  16  15452(8)!   12/25/86 02:14:24              rg
+
+      NUMDEF.LISP    #13   9   8918(8) !   09/11/85 21:28:25              Mly
+      NUMER.LISP     #82  27  26775(8) !   10/08/86 11:23:38              robert
+      RAT.LISP       #53  13  12604(8) !   03/27/86 18:21:41              BED
+        (has some overflow-from-microcode cases)
+
+    interface to old compiler
+      QCFILE.LISP    #359  40  40692(8)!   03/27/87 12:54:37              robert
+      QNEW.LISP      #20  22  22030(8) !   04/03/84 08:55:26              MLY
+        (warnings stuff)
+
+    old compiler
+      QCDEFS.LISP    #179  38  38134(8)!   02/17/87 01:57:30              rg
+      QCFASD.LISP    #260  30  29764(8)!   12/25/86 01:31:14              rg
+      QCLAP.LISP     #272  44  44723(8)!   12/16/86 01:01:19              RG
+      QCLUKE.LISP    #35  24  24142(8) !   01/29/87 14:56:33              RpK
+      QCOPT.LISP     #177  78  79626(8)!   02/23/87 18:07:27              RPK
+      QCP1.LISP      #682 140 142373(8)!   04/30/87 18:12:11              Rauen
+      QCP2.LISP      #301  94  96019(8)!   12/29/86 02:15:10              rg
+      QCPEEP.LISP    #39  31  31530(8) !   10/27/85 10:47:22              rg
+      QFASL.LISP     #491  47  48127(8)!   12/16/86 00:29:18              RG
+      UNFASL.LISP    #22  13  12885(8) !   09/01/85 11:37:52              Mly
+
+low level io, really mostly device independant tho.
+      DISK.LISP      #414 133 136130(8)!   03/16/87 15:04:12              naha
+      DLEDIT.LISP    #99  51  51275(8) !   10/10/86 11:48:07              robert
+      NEW-DISK.LISP  #56  29  29530(8) !   11/04/86 12:30:20              naha
+      INC.LISP       #13  13  13229(8) !   05/31/86 04:31:25              gjc
+        (incremental partitions, also compare-partition, etc)
+      UDISK.LISP     #21  20  19856(8) !   08/28/86 08:27:46              GJC
+
+major box dependant modules:
+      PRIMITIVE-IO.LISP #47  49  49242(8)!   01/10/86 16:04:39            dg
+        (stuff for wired io)
+      CONFIG.LISP    #50  18  17718(8) !   03/27/87 16:25:24              robert
+        (needed for lambda NxN type stuff)
+      CONFIG-DEFS.LISP #17  15  14594(8)!   03/26/87 16:51:26             robert
+      SHARE-CHAOS.LISP #22   9   8422(8)!   05/01/87 17:13:01             robert -->Obsolete
+      SHARED-DEVICE.LISP #49  16  15679(8)!   02/12/87 13:48:26           rg
+      SYSCONF.LISP   #25  15  14833(8) !   03/26/87 15:58:01              robert
+      IOMSG.LISP     #38  15  14415(8) !   05/21/86 19:49:30              pace
+      SDU-SERIAL.LISP #32  21  21286(8)!   04/16/86 14:39:06              JRM
+
+old cold load maker
+      COLDLD.LISP    #117  41  41758(8)!   12/16/86 00:22:19              RG
+      COLDPK.LISP    #33   3   2959(8) !   10/08/86 12:17:09              robert
+      COLDUT.LISP    #162  63  64355(8)!   12/18/86 09:57:33              rg
+
+general parameters
+      QCOM.LISP      #697  68  69048(8)!   12/18/86 08:49:47              jrm
+      QDEFS.LISP     #422  15  14870(8)!   06/08/86 21:59:55              rg
+
+
+K lambda system incompatibilities:
+  no CDR coding:
+     ART-Q-LISTs dont exist
+Edit definition of (:PROPERTY COMPILER::COMPILER-TEMPORARIES-RESOURCE SI::RESOURCE-CONSTRUCTOR)
+Edit definition of (:PROPERTY FORMAT::FORMAT-PARAMS SI::RESOURCE-CONSTRUCTOR)
+Edit definition of ADJUST-ARRAY-SIZE
+Edit definition of ARRAY-POP
+Edit definition of ARRAY-PUSH-PORTION-EXTEND
+Edit definition of EH::ART-Q-LIST-ARRAY-P
+Edit definition of FORMAT::FORMAT-PARSE-CLAUSES
+Edit definition of FS::MAKE-DIRECTORY-ALIST
+Edit definition of FS::MAKE-FILE-NAME-ALIST
+Edit definition of FS::MAKE-SUBDIRECTORY-ALIST
+Edit definition of SI::ALLOCATE-FASL-TABLE
+Edit definition of SI::ANALYZE-FILE
+Edit definition of SI::GET-MAPPING-TABLE-LOCATION
+Edit definition of SI::MAKE-COMPONENT-MAPPING-TABLES
+Edit definition of SI::MAKE-FLAVOR-HASH-ARRAY-INTERNAL
+Edit definition of SI::SORT-ARRAY-STABLE
+Edit definition of SI::SORT-CONTIG-LIST-QUICK
+Edit definition of SI::SORT-LIST-STABLE
+Edit definition of SI::UNFASL-WHACK
+Edit definition of VECTOR-POP
+Edit definition of ZWEI::INITIALIZE-ZMACS
+Edit definition of ZWEI::MERGE-COMPLETION-AARRAY
+Edit definition of ZWEI::READ-TAG-TABLE
+Edit definition of ZWEI::SECTIONIZE-FILE-BUFFER
+
+     G-L-P doesnt exist
+
+Edit definition of (:METHOD TV::WHO-LINE-FILE-SHEET :DELETE-STREAM)
+Edit definition of (:METHOD TV::WHO-LINE-FILE-SHEET :OPEN-STREAMS)
+Edit definition of (:METHOD ZWEI::INTERVAL-STREAM-WITH-FONTS :LINE-IN)
+Edit definition of (:METHOD ZWEI::INTERVAL-STREAM-WITH-FONTS :TYI)
+Edit definition of (:PROPERTY < FORMAT:FORMAT-CTL-MULTI-ARG)
+Edit definition of (:PROPERTY FORMAT::[ FORMAT:FORMAT-CTL-MULTI-ARG)
+Edit definition of (:PROPERTY FORMAT::{ FORMAT:FORMAT-CTL-MULTI-ARG)
+Edit definition of SI::ANALYZE-RECORD-USED-OBJECT
+Edit definition of SI::CURRENT-AREA-LIST
+Edit definition of SI::PKG-INITIALIZE
+Edit definition of SI::SORT-ARRAY-STABLE
+Edit definition of SI::SORT-LIST-STABLE
+Edit definition of SI:FIND-FILES-USING-OBJECTS
+Edit definition of ZWEI::ANTICIPATE-FONT-POP
+Edit definition of ZWEI::COM-COMPLETE-AND-EXIT-1
+Edit definition of ZWEI::COM-COMPLETION-APROPOS
+Edit definition of ZWEI::LOOKALIKE-SPECS
+Edit definition of ZWEI::MERGE-COMPLETION-AARRAY
+
+----
+(khh):
+  Recommended Development Path
+    The following subsections describe the recommended
+    development path for the K. The sections 1-4 are meant to be
+    implemented in the order listed.
+
+    1. Windowless K processor on VMEBUS with Sun UNIX
+       a) Description
+          Put the K processor on the VMEBUS and install it in a Sun
+          workstation. The K runs a COMPLETE COMMON-LISP system but
+          has no window system support. All communication with the Sun
+          is through streams to a unix program, or to/from a file.
+          This provides the K in a usable delivery system
+          configuration. All the performance of the K is available.
+          This version of the machine is the quickest to bring to
+          market since it doesn't require flavors, a window system,
+          ZMACS, etc. If desired this configuration could easily be
+          made without use of any of the MIT code since nearly all the
+          modules that make it up are written new already and are not
+          based on the MIT code. This would allow this version to not
+          require any MIT royalties.
+
+       b) Time - approx 6 Months from now for well tested system out
+          for Beta testing with customers.
+
+    2. K processor with IOP on VMEBUS - Zeta-lisp & development sys
+       a) Description
+          This configuration consists of a K processor and an IOP
+          installed on the VMEBUS. The actual box could be either a
+          Sun box, a Silicon Graphics box, or a custom box (whichever
+          we decide, but preferably only one of the three). The
+          software will be all the code from phase-I with the addition
+          of a zeta-lisp compatibility package, a flavors package, and
+          all of the standard Lisp Machine applications programs
+          (ZMACS, SUPDUP, etc). This configuration is intended to as
+          close as possible to the Lambda software as possible. It
+          provides all the development facilities found in a Lambda.
+          (If step three can happen fast enough, then this step could
+          be skipped, but that should be decided later.)
+
+       b) Time - Approx 4 months after Phase-I
+
+    3. K processor with IOP and/or SUN - network window system
+       a) Description
+          The hardware configuration for this phase is the same as
+          that in either phase-I or phase-II. The difference is that
+          the window system has been replaced by a networked window
+          system. The particular window system is left as a future
+          decision (NEWS, XWINDOWS, etc.) depending on what resolves
+          out as the standard.
+             The version of this system with the sun processor allows
+          use of the Lisp environment on both the local sun processor
+          and remote ones on the net. The IOP version is only a remote
+          Lisp server.
+
+       b) Time - Approx 4-5 months after Phase-II
+
+    4. Put out the IBM-PC or MAC-II based machine.
+       a) Description
+          This is a longer term project. This requires the development
+          of some semi-custom logic to fit the K into either a MAC-II
+          and/or IBM-PC/XT/AT/PS2. This could be a high volume high
+          performance system at a relative low price. The window
+          system for this version would be the approriate thing for
+          the host box (IE MS-WINDOWS or MAC window stuff).
+
+       b) Time - Approx 2 years from now.

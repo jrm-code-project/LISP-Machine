@@ -1,0 +1,315 @@
+-*- Mode:Text -*-
+
+remove extraneous entries from select-windows column of system menu.
+
+add mode-line for cell-edit-pane: display cell name and location
+
+;;;;;;;;;;;;;;;;
+
+arbitrary number of sheets
+    consists of named 2-dim array of data
+    start with one at init
+arbitrary number of grid window sets
+    consists of set of windows pointing to sheets
+    can save alone, or as an attribute of the set of sheets
+    start with one, init to default sheet
+
+startup:
+        create a constraint frame with
+                status line (1)
+                editor window (4)
+                command menu (2 or 3)
+        and rest of screen as the default grid-window on the default sheet.
+        create additional grid-windows as inferiors, using :create-pane;
+                fix edges to within area of initial default grid-window
+
+;;;;;;;;;;;;;;;;
+
+grammar:
+
+mouse or keyboard oriented?
+make all of either possible.
+
+top-level:
+        mouse on mouse-sensitive item:
+                immediate action from menu
+        or mouse on command menu:
+                { select-for-display, edit, create, delete, load, save }
+
+after mouse on command menu:
+        command menu becomes:
+                { window-set, grid-window, sheet, cell, type-in, abort  ;;
+                  sel-multiple, sel-rectangle, sel-type-in }
+        mouse on one of those, or mouse on mouse-sensitive item.
+
+mouse on modifier / type menu:
+        select-multiple, rectangle, type-in-list; or mouse on any row or col header
+        window-set, grid-window, sheet, cell, type-in
+
+when using mouse on cell to select cell as answer to query,
+        change item-type-alist to nil.
+*grid-cmd-alist*        ;;top-level commands
+*grid-location-alist*   ;;just return item type and location
+
+top-level commands:
+        grammar?:
+                { select (display), edit, create-new, del, load (ask), save }
+                { multiple (list), row, col, mouse-rectangle, type-in } ;;optional
+                { window-set, grid, sheet, file, cell, type-in }
+                { do-it }  ;;if any from multiple
+        or
+                command menu: window-set,
+        select window-set:
+                select from menu of window-sets and create-new
+                completely restructure screen
+        select grid-window: bring up where it was displayed last
+        select sheet: bring up default whole-screen window for sheet
+
+;;;;;;;;;;;;;;;;
+
+grid-window is flavor of mouse-sensitive-typeout window for spreadsheet grid display
+grid-window database is list of all grid-windows that have been instantiated
+    commands to create, delete, select one at a time
+        default is full-outwin, optional select size / location
+    add instance vars to grid-window flavor to keep all window state
+
+window-set is a list of grid-windows with sizes and locations of each
+window-set database is list of all window-sets
+    commands to create, delete and select a window-set
+    set is created by storing what is exposed (selectivly?)
+        1. whole screen; 2. query each exposed window; 3. mark rectangle with mouse.
+    deleting set just means deleting grid-window list entry from database
+    selecting displays whole set
+nice if it can be saved or at least recovered in proportional format
+     so portrait and landscape are interchangable.
+
+sheet is 2-dim array of spreadsheet data; includes default column widths,
+    list of other sheets referenced, and associated lisp code.
+associated code is a list of editor buffers containing arbitrary code
+    that may be referenced by any number of sheets.    The buffers are pointed
+    to by the sheets so that they may be saved together.
+    Is it possible to dynamically keep the list of required buffers?
+    Assign ownership of a buffer when it is created?
+    Require user to list buffers use by sheets?
+For each sheet, build lists of:
+    other sheets: cells referenced outside of sheet
+    editor buffers: symbols and functions referenced outside of sheet
+plist of symbols indicate editor buffers
+ saving/loading editor buffers: send blips to editor for:
+    save, load, compile
+loading: compare qfasl and text; default to qfasl if newer, ask if not;
+    if qfasl, just load it; if text, load and compile; option or command to load text
+look at system-menu "layouts" for screen-save info
+don't need status window if command-menu label can be used.
+leaves command-menu, editor-window and set of grid windows.
+default grid window is rest of screen; always in background.
+
+saving, loading sheets:
+    save by sheet, set of sheets, grid-window or list-of-, or window-set or list-of.
+        maybe sufficient to name sheets to save only by windows
+            every sheet has a default grid-window
+        maybe necessary to save sheets in separate files from each other and/or windows,
+            so that independently edited window sets can share sheets.
+            -- declare sheets as read-only; saved in separate files
+    make list of sheets named by save-list
+        build list of sheets used by each sheet by parsing all cells in sheet
+    saving by window-set or set of window-sets:
+        flexible heirarchy:
+            top level: list of window-sets;
+            window-set: named list of grid-windows;
+            grid-window: named window into a sheet; includes list of overriding column widths.
+            sheet: array of spreadsheet data with default column widths.
+                 saved with list of other sheets referenced
+    saving by sheet or list-of:
+        just above line for list of sheets.
+
+ file pointer from grid to sheet can be sheet in file or sheet in separate file,
+     or sheet assumed to be in core.
+
+function to get real column width from heirarch of 1. grid, 2. sheet, 3. default (for grid?)
+
+save / load data: sheet or linked set of sheets
+save / restore display parameters: one screen or set of screens
+
+
+
+
+
+The world consists of a set of two-dimensional arrays, segments
+of which may be displayed in individual windows.    Each array cell
+may contain an expression, which may be a numeric or string constant
+or function.
+
+Cells are globally named by an array name and a cell local name or cell
+relative or absolute array index, or locally named by a cell name or
+array index.    Cell local names map into single cells, vectors, or
+two-dimensional subsets of arrays.
+
+Cell expression contents:
+    Numeric constant, any valid lispm data type:
+        Evaluates to itself; required for use in numeric expressions.
+    String constant (art-string array):
+        Evaluates to itself; causes error if referenced by numeric expression.
+        Intended primarly for display of spreadsheet labels, but can also
+        be referenced in expressions that expect a string.
+    List:
+        Eval is called.    May contain any valid Lisp expression that evaluates
+        to a number or string.
+    FEF:
+        Funcall.
+    Forwarding:
+        May reference an expression from another cell, as opposed to
+        copying a value computed by another cell.
+
+Referencing spreadsheet data:
+simplest:
+    (aref foo-array indices ...)
+    Not capable of returning a sub-array (anything bigger than one cell).
+better:
+    (sref foo-array row-range col-range)
+    Foo-array may be an array name, or nil for self.
+    Row-range and col-range may be numbers, which may be integer constants
+     or symbols that evaluate to constants, or a list of (from-index to-index),
+     where from-index and to-index evaluate to constants or NIL for the
+     lower and upper limits of the array, or the constant NIL for both
+     limits of the array.
+Examples:
+    (+ 3 4) -> 7
+    (- (sref gross
+
+Editing / Entry:
+    Two paths: cells and zmacs.
+        Expressions can be entered as cell contents; the expressions can
+        call arbitrary Lisp functions.    The functions are indepently
+        managed in a separate editor buffer.
+    Creating arrays:
+    Creating windows:
+    Defining functions:
+
+Internal structure:
+    Defstruct for arrays, with header info containing names and sizes.
+    Symbol table for each array is attached in array header;
+    maps names to zero, one and two-dimensional sub-arrays.
+    List of functions from editor buffer.
+alt: 3-dim array: 2 dimensions for row/col; 3rd has fixed slots
+    for (0) expression, (1) timestamp, (2) names defined here,
+        (3) display mode (format string), (4) my-index.
+
+Loading / Saving:
+    Arrays are dumped in ASCII list form, the same as in expression mode.
+    List for an array has header that specifies names and sizes,
+    including symbol table for names defined within.
+    LISP functions saved in ASCII format, compiled as loaded?
+
+Display capabilities:
+
+Arbitrary windows, managed by existing system code.    Each window
+shows a subset of a spreadsheet array.    For each window, the
+contents of the array may be displayed as the unevaluated expressions,
+or as the computed values.
+
+Normal display mode is value, where each cell is evaluated and the
+result is displayed.    Expression mode displays the cell contents
+unevaluated.    Expression editing is normally done in value mode, in
+which the expression for the currently selected cell is displayed in an
+editor buffer.
+
+Each array may be displayed by an arbitrary number of windows, but
+each window may only display a contiguous two-dimentional subset of
+one array.
+
+Computation heirachy:
+
+Default: For each cell, if not valid, evaluate it (recursive).
+    References to other cells cause them to eval.
+    What about recursive references?
+
+Input: When one cell changes, invalidate (recursively) all cells that
+    depend on it.    Every reference to a cell attaches a pointer from that
+    cell to the cell that references it.    Pointers must be kept consistent
+    when editing expressions.
+
+Modes: Evaluate on every cell change vs. eval on command.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+Cell Expression Syntax ...
+
+(cell-ref
+(this-cell
+(this-array
+(this-row
+(this-col
+
+v = RC[1] - RC[2]
+v = R[-1]C + R[-1]C[1]
+
+net = gross - expenses
+
+cash = cash[-1] + income
+
+expression is evaluated in context of cell that points to it
+"indirect" could be:
+        1. explicit pointer to a different cell or cell's expression
+                (expr (
+        2. default expression for a column
+
+(expr cell) means eval-of-expr-in-indicated-cell
+
+...
+
+Can numeric grid be eliminated completely?
+graph instead of grid
+every cell must be named
+window into sheet specifies display locations.
+only explicitly mentioned cells are displayed.
+
+grid exists only to identify display locations.
+expressions for vectors are written without bounds
+and only instantiate cells as required for display
+
+net = gross - expenses ...
+
+cell for net has (- gross expenses).
+range of cells or column of window says to display "net".
+values displayed is indexed by distance from first cell that says "net".
+that cell can say where to start and how to increment.
+increment for index is always 1; offset is arbitrary.
+increment and offset for printing can be date / time or integer.
+        :start-date "date"    ;for (time:parse), nil means now
+        :incr-by-year year-increment            ;implies :print-by-year unless overridden later
+        :incr-by-quarter quarter-increment
+        :incr-by-month month-increment
+        :incr-by-week week-increment
+        :incr-by-day day-increment
+        :print-by-year t
+        :print-by-week t
+        :length N               ;length of vector; default to infinite
+
+Grid-window has N x M array of display parameters.
+        First cell of a column or row has expression for vector.
+        Following cells default to vector row or col?
+                how to tell which?
+                knowledge is in cell-aref: non-existent cell
+
+Efficient cell-value-ref and display update requires
+storing values for each displayed cell, but it's
+too much work to implement dynamic-size arrays.
+So, sheet must have cells for each displayable value,
+cells allocated and stored in pre-allocated array slots as required for display.
+Window has vector headers for display mode; can indirect into sheet;
+window-aref finds cell to use for display info and cell to use for cell-eval;
+cell-ref finds cell-expr to use; cell-eval gets correct environment.
+
+display modes:
+        1. scrollable screen window, smaller than desired,
+           for on-screen display and editing.
+        2. display for printing; superset of (1), perhaps
+           by assuming maximum bounds of each window.
+        3. raw or heirarchical display for editing structure?
+
+to display random lisp symbol value,
+        expression is symbol,
+        timestamp is t,
+        last-value is value from last cell display refresh (only works for atoms)
+

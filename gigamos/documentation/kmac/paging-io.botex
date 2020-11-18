@@ -1,0 +1,39 @@
+@chapter Paging I/O
+
+Raw paging involves low-level address translation on the Mac side;
+a fairly complex scheme may be required to simultaneously
+
+@itemize @bullet
+@item minimize LISP software changes;
+@item support required K changes; and
+@item fit comfortably within the robust Macintosh environment.
+@end(itemize)
+
+The Mac application will assume the burden of maintaining address maps
+below the LISP view of physical addresses.  Everything else will be
+done in LISP and must be compatible with current code.
+
+If Size(Minimum_Pageable_Unit)  Size(disk block), then look up the
+physical addresses of the paging files and eliminate all chunks which
+are not contiguous in physical memory. The paging files must always be
+kept open by the application.
+
+We may want to use Mac memory as a paging disk cache.  Can the Mac's
+cache be used to build such a thing? Or must we start from scratch?
+
+"We probably cannot improve performance with a paging
+cache smaller than main memory."                --rwk
+
+The LISP Machine does virtual ---> physical address translation, which
+the Mac then translates into (native) physical disk (locations).
+These addresses are derived from files, not partitions as previously
+suggested.
+
+@textbox
+@center Montreal notes:
+
+Scheme is:
+Read in, put at physical address, start copying.
+Command to find out how much paging space there is.
+
+@end textbox

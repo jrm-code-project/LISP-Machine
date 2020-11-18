@@ -1,0 +1,51 @@
+--  draft ---
+
+Hardware to support Critical Sections.
+
+   Correct operation requires that the system transition direclty from
+"legal" state directly to another "legal" state, as "seen" from the
+garbage collector. (Legal states are those in which all storage conventions are obeyed.)
+Obviously, unless this is true, the garbage collector scavenger might "encounter"
+an incorrectly formated object, which unpredictable and probably fatal results
+for the system.
+   A key aspect of this dictum is what it means to be "seen".  The Lambda,
+for example, does not employ "coersive" scheduling at the microcode level.
+Therefore, a microcode sequence can potentially be coded in confidence it
+will not be possible to interrupt out of the middle (however, if certain things
+are done, such as doing a transported read memory access, there will be
+a possibility of "gc-visibility").  The Falcon employs coercive scheduling,
+so the possibilities for lossage are much greater, and in fact, the problems
+are completely inadequately dealt with by the FLEABIT software design.
+The hardware support proposed here ameloriates these problems, while retaining
+the advantages of coercive scheduling (i.e. reduced interrupt latency).
+  A second problem concerns "motion" of objects.  Conceptually, objects move
+only with a "flip" occurs.  (Flipping involves a process switch to the
+garbage-collector process).  Even if the garbage collector
+itself operates correctly, it might break an ongoing computation by moving
+a piece of data "out from under".  This is a relative rare event, and its scheduling is
+relatively loosly coupled (i.e. can be delayed for a short interval without
+penality).  However, the actual motion of the object is carried out by the
+transporter, whose execution is tightly coupled to the ongoing process.
+  Now if all pointers employed by the computation
+are strictly "kosher" at all times, the problem does not exist since the pointers
+will be updated by the garbage collection process when the object gets moved.
+However, it may not be feasible or efficient to avoid the momentary existance of
+non kosher pointers, particularily in places like the VMA.  Having a more uniformly
+typed machine (such as the 40bitter as compared to the 32 bit) ameleoriates these
+problems but does not necessarily eliminate them.
+
+  A section of code which is "embarrissing" from this point of view is termed
+a "critical" section.  [This term is also used in discussions of multi-process
+interlocking. The two situations are similar, properly interpreted]
+
+  The UNBOXED-LOCATIVE (pretty-much) non-solution
+
+  The FLEABIT approaches some of these problems by introducing the UNBOXED-LOCATIVE
+datatype, the idea being that it is a "pointer" to data, which, however, is unboxed.
+This approaches the scavenger side of the problem; the scavenger simply doesnt look
+past such a pointer.  As long as there exists in the system at least one other pointer
+to the same object, the object will get "saved".  The remaining problem is
+relocating the UNBOXED-LOCATIVE if the object it points to gets moved.
+
+
+*allow-sequence-break*

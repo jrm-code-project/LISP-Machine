@@ -1,0 +1,146 @@
+Specification for Program
+
+Name:   Meta-X Refind File,
+        Meta-X Refind All Files,
+        Meta-X Refind All Files for ...
+        Meta-X Revert Buffer (Numeric Argument Extension)
+        Meta-X Revert Buffer If Needed
+        Meta-X Revert All Buffers
+        Meta-X Revert All Buffers in ...
+
+Date:   9/15/88
+
+Programmer:     Saz
+
+Est. Work:      1-2 days
+
+Project status: Being Implemented
+
+Purpose:        These programs are intended to serve as a mechanism for preventing corruption of development files, in cases where developers are forced to read in and save out shared files between cold boots.  Currently, Keith Corbett and William Foster are involved with development efforts requiring such a tool, for the Lambda and Falcon source files, respectively.
+
+Description:    Meta-X Refind File
+        The behavior of Refind File is similar to that of Revert Buffer, in that it is used to ensure a user that a given ZMacs buffer or set of buffers becomes consistent with the file system.  The current buffer is used to contain the results of this command.  The new commands differ from Revert Buffer in two ways: 1] when a more recent version of the filename exists (the more recent version may be read in, as opposed to only the version read in), and 2] when modifications have been made to the current buffer (the user is queried as to how to proceed in most cases). See the "Functionality" section for precise operational details.
+
+        Meta-X Refind All Files
+        Refind All Files performs the operation of Refind File on each file-associated buffer that has been read into the machine, querying the user as to how to proceed for each buffer requiring such directives.
+
+        A numeric argument extension to Refind All Files provides the user with an automatic version for which certain default actions are taken in those cases where Refind All Files would ordinarily have queried the user as to how to proceed.  See the "Functionality" section entitled, "Numeric Argument Extension to Meta-X Refind All Files".
+
+        The following six commands represent extensions to the Refind All Files command.  These commands provide the user with varying mechanisms for specifying the buffers on which to execute the Refind File command.  For each command in this section, a numeric argument variant performs the default operations on the same subset of buffers, without querying the user before proceeding.
+
+        Meta-X Refind All Files For Tag Table
+        Refind All Files with associated buffers that have already been read in for a (specified) tag table;
+
+        Meta-X Refind All Files For System Buffers
+        Refind All Files with associated buffers that have already been read in and which are associated with a (specified) system;
+
+        Meta-X Refind All Files For Directory
+        Refind All Files with associated buffers that have already been read in from a given directory;
+
+        Meta-X Refind All Modified Files
+        Refind All Files with associated buffers that have been modified since they were read in;
+
+        Meta-X Refind All Unmodified Files
+        Refind All Files with associated buffers that have not been modified since they were read in;
+
+        Meta-X Refind All Files For Specified Buffers
+        Refind All Files for a menu-specified subset of the buffers that have already been read in.
+
+        Meta-X Revert Buffer  (Numeric Argument Extension)
+        With a numeric argument, Revert Buffer now checks to see if a newer version of the file associated with the specified buffer exists on disk, doing nothing if not, and reading the new file into the current buffer if so.
+
+        Meta-X Revert All Buffers
+        Revert All Buffers is a simple extension to Revert Buffer, traversing all buffers in the current *ZMACS-BUFFER-LIST* and sending each a :revert-buffer message.
+
+Meta-X Revert Buffer If Needed
+        Executing the command Revert Buffer If Needed performs a Revert Buffer on a specified buffer, if it has a defined :revert-buffer operation (this includes all file-associated buffers and all Dired buffers), if the results of doing such a revert would alter the current buffer's contents.  This includes all cases in which a) modifications exist in a file-associated buffer, b) a newer version of a :NEWEST file exists on disk, and c) all Dired buffers (since deciding "if needed" in this case would take just as long as actually reverting the Dired buffer itself).  No querying or confirmation occurs for this command (once the user has specified the buffer to Revert in the mini-buffer); any modifications to the current buffer are discarded, as with Revert Buffer.
+
+
+Meta-X Revert All Buffers If Needed
+        Revert All Buffers If Needed performs the operation of Revert Buffer If Needed on each buffer for which Revert Buffer If Needed would have had an effect.
+
+
+
+Functionality:  Presented below are tables defining the behavior of the basic modules of this specification.  Commands not outlined in this section are trivial extensions of existing commands or of those presented here (see "Description" section).
+
+Meta-X Refind File
+
+        Specification   Modified?       More recent             Action Observed:
+        of pathname                     (">" version or
+        used to read                    more recently
+        in current                      written) version
+        buffer's                                available when
+        contents:                       Meta-X Refind
+                                                File is executed?
+
+FILE1.LISP#>    YES             YES                     User given choice                                                               to: discard changes                                                             and read in most                                                                recent (the new                                                                 ">" version) of                                                                 FILE1.LISP into                                                                 buffer, do a Source                                                             Compare Merge                                                           into current buffer                                                             or a separate                                                           buffer, or nothing.
+
+        FILE1.LISP#>    NO              YES                     Newest version of                                                               FILE1.LISP#> read                                                               into current buffer
+
+        FILE1.LISP#>    YES             NO                      User informed of                                                                disk status, asked
+                                                                        whether to Revert                                                               Buffer, do a Source                                                             Compare Merge                                                           with version read                                                               in, or nothing
+
+        FILE1.LISP#>    NO              NO                      None
+
+        FILE2.LISP#43   NO              NA                      User informed of                                                                disk status, asked                                                              whether to Revert                                                               Buffer to contain                                                               current contents of
+                                                                        FILE2.LISP#43, or
+                                                                        of most recent (">")
+                                                                        version of                                                                      FILE2.LISP found                                                                on disk, changing                                                               buffer name
+                                                                        accordingly, or                                                                 nothing
+
+
+
+
+
+Meta-X Refind File, continued
+
+        Specification   Modified?       More recent exists? Action:
+
+FILE2.LISP#43   YES             NA                      User informed of                                                                disk status, queried                                                            as to whether to                                                                write file out to a                                                             user-specified                                                          pathname (default                                                               being the same                                                          pathname), then                                                                 queried whether to                                                              revert buffer                                                           contents to                                                                     FILE2.LISP#43, or                                                               do nothing
+
+
+
+Meta-X Refind File Without Query
+
+        Specification   Modified?       More recent             Action Observed:
+        of pathname                     version of current
+        used to read                    buffer's associated
+        in current                      pathname available
+        buffer's                                on disk at the time
+        contents:                       Meta-X Refind File
+                                                Without Query is
+                                                executed?
+
+NA              YES             YES                     Newest version of                                                               associated                                                                      pathname named                                                          "xxx" read into                                                                 a newly created                                                                 buffer named                                                            "NEWER-xxx"
+NA              NO              YES                     Newest version of                                                               associated                                                                      pathname read                                                           into current buffer
+
+NA              NA              NO                      None
+
+
+
+
+
+
+
+
+
+
+
+
+ Meta-X Revert Buffer If Needed
+
+        Specification   Modified?       More recent             Action Observed:
+        of pathname                     version of current
+        used to read                    buffer's associated
+        in current                      pathname available
+        buffer's                                on disk at the time
+        contents:                       Meta-X Revert
+                                                Buffer If Necessary
+                                                is executed?
+
+NA              NO              NO                      None
+
+                        (All other cases)                               Same as Meta-X                                                          Revert Buffer
+
+
+Related work:   In order to fully protect against file branching in parallel development, it is also desirable to ensure that a user is actually modifying the most recent version of a development (newest source) file as of the point at which he begins  working, possibly after an extended absence from the machine.  The code which marks a previously unmodified buffer as modified could be made to include a version of Meta-X Refind File, which would check in the background as to whether the user was actually typing in a buffer representative of the latest version's contents.  "Latest" in this sense could be determined by numeric version, version with most recent write date, whatever.  If a discrepancy were to be found, the user could be instructed to execute the Meta-X Refind File command at that time, thus ensuring both that developmental modifications take place only in the intended places and that no two programmers cause a "fork" to occur in the file system.

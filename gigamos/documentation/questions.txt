@@ -1,0 +1,103 @@
+;;; -*- Mode:Text; Package:USER; Fonts:(HL12 HL12B); Base:10 -*-
+
+1TEXT AWAITING A DOCUMENT*
+
+PAL CHANGES
+
+        Daisy chips -- Falcon
+           Simulator by end of week (6/10)
+
+        Daisy boards work but are currently untested.
+
+        K is currently able to reset to a known state.
+
+
+CURRENT LOWELL STATUS
+
+        problems remaining are with individual bits only
+        TRANSMIT works
+        RECEIVE works
+        Functional pair projected by end of week (6/10)
+        Of 20 MacMate units, 5 will go to Lambdas, 15 to Macs
+        1 to be boxed/packaged for AAAI-88 -- should be functional,
+           transportable, painted.
+        Awaiting a "working" prototype (i.e., "one we have faith in")
+        6-ft cabling suggested in production
+        One 50-ft cable for test purposes
+           Rate the chips appropriately
+        Memory Received
+        Static Column RAMS -- 25 SIMS (none before January)
+        Toshiba, Toyocom
+        6 full-speed 4 Meg machines (?)
+
+SILICART
+
+        Minor changes required to the K Technical Manual, plus sections
+            on Reset, Screen Spy, and Single Stepping
+
+        Timing Simulations: 15 seconds per step
+        Logic Simulations: somewhat faster
+            (simulating a 16-Meg Lambda using half a 2x2)
+
+DATA TRANSFER RATES
+
+        Driver writes 24-bit addresses
+
+        [Consistent with:
+          Mac OS uses 24 bits address, plus eight flag bits = 32
+        ?]
+
+
+GIGATEXT
+
+        French/English translator (?)
+
+MACHINE REGISTER ACTIVITY
+
+        1. Register pool for new and discarded registers, local variables
+        2. Important registers:
+
+                Open (K:o0-15)
+                Active (K:a0-15)
+                Return (K:r0-15)
+
+        3. Commands and issues fleshed out in some detail:
+
+        OPEN (or CH-OPEN)
+        CALL
+        TAIL-OPEN
+        TAIL-CALL
+        MULTIPLE VALUES
+             31
+            destination-return-mv (hardware)
+
+        4. Other issues mentioned:
+
+        DATA FORMATS
+        MEMORY AND STORAGE CONVENTIONS
+        LOW-LEVEL PROTOCOLS
+
+
+OTHER SOFTWARE ISSUES
+
+K compiler
+ benchmarks
+ diagnostics
+
+Bus coupler diagnostics in Cambridge are awaiting arrival
+of a bus coupler and initialization code from RWK.  After
+both have been produced and tested, they can be shipped to
+Montreal for integration there.
+
+TRAPS
+
+Software trap handler decides who gets passed arguments
+such as constants, variables, and certain state information.
+The software trap handler lives in low-memory on the K, is
+written in assembler, and consists of a sequence of
+instructions:
+
+A. Save state
+B. Determine whether trap is a synchronous or asynchronous one
+C. Call the appropriate servicing routine
+D. (Once serviced,) return to more trap handler code

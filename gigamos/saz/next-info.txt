@@ -1,0 +1,625 @@
+From smh@GSI-CAM Mon Oct 17 13:13:54 1988
+Received: from GSI-HARPO (lmi-harpo.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA29391; Mon, 17 Oct 88 13:12:58 edt
+Date: Monday, 17 October 1988, 13:12-EDT
+From: Steve Haflich <smh@GSI-CAM>
+Subject: NeXT information
+To: info-falcon@GSI-CAM
+Message-Id: <[GSI-HARPO].17-Oct-88 13:12:23.smh>
+
+I have accumulated a variety of reports and informed NeXT commentary
+from mailing lists.  Some of it is well worth knowing.  Enjoy.
+
+By the way, Franz Inc Allegro Common Lisp is bundled free with each NeXT
+machine as part of the standard software.
+
+====================
+
+------- Forwarded Message
+
+To:      ucbvax.berkeley.edu!hackers_guild
+Subject: Next stuff
+
+As I promised - here's a summary of the NeXT opening.
+
+Steve's presentation started off quietly, quickly captivating the
+audience.  For the most part, the audience applauded all the right
+places throughout.
+
+The opening started about 45 minutes late, and began with a standard
+enough summary of the life cycles of the Apple II, IBM PC, and MAC.
+The NeXT machine's life cycle will span the next ten years and peak
+in 1994-95.
+
+Statistics on the size and yearly budgets of american universities and
+colleges were used to arrive at the interesting conclusion that
+educational institutions are "Fortune 500 companies disguised".
+
+A list of features recommended by representatives of edcuational
+instutions were given - including unix os, speed, memory, megapixel
+display, sound capability, array processing, laser printer, and low
+noise/power.
+
+Steve discussed the memory bandwidth problems that are encountered
+when all these features are packed into one box, and the IBM/style
+channel I/O solution used by the NeXT box.
+
+The DSP was discussed in some detail.  It supports CD quality stereo
+output and microphone input.  NeXT has collaborated with CMU, Stanford,
+and others in researching the areas of sound, Music, speech, array
+processing, image processing, encryption, and high speed phone modem
+applications.
+
+SCSI runs at > 4MB.  Anyone see a Pixar port coming along?
+
+Next (a phrase used often in the presentation) Steve introduced the
+Fremont manufacturing plant, where the NeXT board is built "untouched
+by human hands".  Quite entertaining and humeorous with a Star Wars
+style beginning featuring boards zooming by in perspective.
+
+The packaging of the NeXT box was discussed.  Three of the four slots
+are empty, and there is room for two 5 1/4 inch drives.
+
+Then the NeXT machine itself was unveiled, and Steve stood back to allow
+the machine to introduce itself - this was swift.  First the machine
+emulated an Apple command line style interface, giving a little
+narrative history of computing on the screen.  Then this display winked
+out and up came a tiny macintosh screen, which again explained it's view
+of the state of computing, using the mouse and cut and paste in a very
+cute way.  This winked out and BOOM, fanfare for the common man started
+playing, and up popped windows containing everything imaginable -
+rotating molecules and so forth.
+
+        Intermission, 20 minutes.  No Irish coffee or anything!
+
+Steve demonstrated the NeXT Application kit, and hooked switches and
+sliders up to an animated gas molecule confined by a piston.  This was
+very well received.  This was followed by Dr. Richard Krandal (sp?) who
+demoed a statistics lab, a molecule rotator, and an oscilloscope
+connected to the microphone.  The scope entranced the audience, since it
+picked up the applause quite nicely.  The scope included an fft screen,
+which induced a fit of whistling from the audience.
+
+After a short sound demo, Steve demoed the "digital Library", which
+included Webster's Unabridged Dict, Oxford Dict of Quotes, webster's
+thesarus, and the complete works of Shakespeare.  This software was
+written by Michael Hawley.  Lots of oohs and ahhs here as the audience
+realized how quickly shakespeare was being scanned for words and
+phrases.  A real scholar's tool.
+
+Next, some synthesized plucked string and gamelan pieces.
+
+Bundled software includes: Mach OS,. PostScript, NeXTStep user interface
+tools, misc. sound and music software, digital library, WriteNow (a word
+processor), Mail (unix mail with voice capability), Mathematica (a
+symbolic mathmatics application), Sybase (a high performance data base
+package - this is a big deal), and Franz Common Lisp.
+
+Basic price is $6500.  Standard features: 8 MB ram, 256MB cartridge
+optical r/w mass storage, 68030 CPU, 68882 FSP, 56001 DSP (all running
+25Mhz), SCSI interface, sound output, microphone input.
+
+The Laser printer is 400 dpi, with a 300 dpi draft mode (much applause
+and laughter here), and will cost $2K.  330MB winchester is $2000,
+600MB $4000.
+
+Personalities from NeXT's business partners had a chance to say a few
+words - with their photo and voice played back by the NeXT box.  These
+associates are Adobe, Motorla, Cannon, wolfram, Sybase, Franz Inc.,
+Frame, and Lotus.  Last, but not least, IBM is a software partner and
+intends to support NeXTStep via AIX.
+
+The show finished up with Bach's A minor violin concerto, accompanied
+by the NeXT box and played by the principal second violinist of the
+SF symphony.
+
+Summary - the audience was totally captivated and entertained.  There
+seemed to be real excitement at each new technical revelation, and the
+price tags were very well received.  On the minus side, I talked briefly
+with some UC administrators who did not buy the "Fortune 500" argument
+and were wondering exactly who would buy this thing.  Personally I would
+have been reassured had Steve introduced a (still hypothetical) new wife
+- from Japan - whose father manufactures 1MB DRAMS.
+At any rate, the opening displayed fantastic showmanship, created real
+excitement, and will remain a model for future product introductions for
+some time to come.  Now let's wait for boxes.
+
+------- End of Forwarded Message
+
+------- Forwarded Message
+
+Article 6860 of comp.arch
+From: jlo@elan.UUCP (Jeff Lo)
+Newsgroups: comp.sys.misc,comp.os.misc,comp.misc,comp.arch
+Subject: The NeXT machine has been announced! (long)
+Date: 12 Oct 88 22:15:31 GMT
+Organization: Elan Computer Group, Inc., Palo Alto, CA
+
+Well, I just got back from the NeXT introduction at Davies Symphony Hall
+in San Francisco and thought I would update the net on what Steve Jobs
+announced about the NeXT computer.
+
+The machine is based on the Motorola 68030 with a 68882 floating point
+chip as well as a 56001 DSP chip, all running at 25 MHz. It will support
+up to 16 MB of RAM with 1 Mbit chips, maybe 64 MB with 4 Mbit chips
+(they haven't tried this yet). Mass storage is on a 256 MB removable
+erasable optical disk! Jobs said that the removable media goes for ~$50.
+The display is a gray-scale mega-pixel display (no exact sizes given).
+There was no mention of color. Everything is displayed with Display
+PostScript, developed jointly by NeXT and Adobe. This apparently runs
+with a proprietary window system. There was no mention of X Windows.
+Also standard are audio input and output, ethernet, and SCSI. Jobs said
+that with the standard sound capabilities, all that is needed for a 9600
+bps modem is some software and a phone connection.
+
+The entire CPU board consists of 45 chips as compared to 100+ for a fast
+PC and 300+ for a typical workstation. Everything has been crammed onto
+a 12 inch square board through the use of very dense surface mounted
+devices, and a few large custom CMOS chips. Two of these chips implement
+what Jobs called a "mainframe on two chips". These basically provide
+fast I/O processors for all I/O systems including the optical disk,
+SCSI, ethernet, sound processors (I assume the DSP and A/D-D/A
+converters) and the NuBus. The NuBus is run at 25 MHz (Jobs compared it
+to a 10 MHz NuBus, is this what the Mac II uses?). The SCSI interface
+was reported to have a 4 MB/sec. transfer rate. There are 12 I/O
+processors total.
+
+The CPU box has 4 slots, 1 is used by the CPU board, the others were
+empty.  The box itself is a black cube a foot on a side. The display,
+keyboard and two-button mouse are also black. The display has an
+integral adjustable height and tilt stand. The display is connected to
+the CPU box with a single 3 meter cable which transmits the 100 MHz
+video, power, sound, keyboard and mouse data. The back of the display
+has connectors for the keyboard and mouse, along with a speaker,
+microphone and headphone jacks and gold-plated RCA stereo jacks.
+
+The sound capabilities of the system were impressive, being able to
+record and playback high-quality sound. Using the DSP chip some very
+realistic sounding music was generated on the fly in real-time.
+
+The box, display, and everything else looked very modern and high-tech -
+all black.
+
+The operating system is based on MACH with NFS support. On top of this
+is Display PostScript. Above this is what NeXT is calling NextStep. This
+consists of their window server, interface builder, application builder
+and workspace. This is what was licensed by IBM. On top of this are the
+applications.
+
+When you login, you get a browser several icons, and a menu on the
+screen.  The browser lets you move quickly from directory to directory,
+and to run applications or open icon based directory windows. The root
+menu is always on the screen, always on top, and may be positioned
+anywhere on the screen (and even off the screen). The menus cascade, and
+the submenus may be torn off and left on the screen. Along the right
+edge is what I think Jobs called the icon dock. It is a set of icons for
+commonly used applications which are kept on the left edge, and are
+always on top. If you need the screen space, this column of icons may be
+slid down off the screen, leaving only the NeXT icon showing. Icons may
+be freely moved in and out of the dock so you can keep what icons you
+use a lot there.
+
+Jobs said that the new environment should cut the time used in coding
+the user interface of a program from 90% to 10% of the total coding
+time. With the application builder Jobs said it would go to zero. The
+environment is object oriented, I believe based on Objective-C. You can
+modify existing stuff with subclassing and inherit much of the base
+application. The application builder lets you build an application just
+by placing buttons, sliders, and any other graphic objects into a
+window, and then attaching the the input and output objects to object
+messages.
+
+Software that comes bundled with the system include MACH, Display
+PostScript, NextStep, the sound and music tools, the digital library,
+WriteNow, Mail, Mathematica, Sybase and Franz Lisp.
+
+The digital library consists of Webster's 9th Collegiate Dictionary,
+Webster's Collegiate Thesaurus, the Oxford Dictionary of Quotations and
+the Complete Works of William Shakespeare on-line. There is a built in
+spell program and dictionary/thesaurus lookup application. A word can be
+selected in any window and looked up. The dictionary even includes the
+pictures.
+
+WriteNow is a word processing system, Mail is arpanet compatible mail,
+including the capability to send speech, Mathematica is for (obviously)
+mathematical problems and such. Sybase is a sequel database server.
+
+A PostScript laser printer was also announced the can run at either
+400 dpi or in 300 dpi "draft" mode. The printer is markedly smaller
+(shorter) that most laser printers. No mention was given of speed.
+
+Several demos were run with rotating molecules, smooth scrolling text,
+voice storage and playback, speech waveforms and FFTs, etc. Everything
+ran well, and ran fast.
+
+Jobs announced the following prices (apparently education prices):
+
+        NeXT computer:           $6500
+        NeXT PostScript Printer: $2000
+        330 MB winchester disk:  $2000
+        660 MB winchester disk:  $4000
+
+Jobs said that machines will start shipping in early November '88,
+the 0.8 pre-release of the software for developers will be available
+in Q4 '88, the 0.9 pre-release for developers and aggressive users in
+Q1 '89, with the 1.0 release for general consumption in Q2 '89.
+
+All in all, the machine looked good and fast, although I wonder about
+the fact that several desirable things were not mentioned, i.e., color
+monitors, X-Windows, some kind of floppy drive for software
+distribution, etc. I imagine a typical SCSI tape drive could be used for
+archival storage.
+
+I'm sure I must have left something out, but I'm sure someone will fill
+in the gaps and correct any mistakes I made (sometimes it was hard to
+hear from the nosebleed seats in the back row of the top balcony).
+
+- --
+Standard Disclaimer: I have nothing to do with NeXT except being a possible
+software developer that got invited to the announcement.
+- --
+Jeff Lo
+..!{ames,hplabs,uunet}!elan!jlo
+
+------- End of Forwarded Message
+
+------- Forwarded Message
+
+< headers removed>
+
+    Jobs announced as he said he would. Here is a rather long review
+    which has many technical details of the NeXT machine. One question:
+    does this mean all the new "powerful" workstations will be painted
+    black???
+
+
+ Item 263  16:49 Oct12/88  352 lines   No responses
+ Michael Nowak
+ The NeXT Introduction
+
+ This item describes Ted Hanss' impressions of the NeXT machine
+ announcement in San Fransisco.
+
+ For the past several months ITD has been tracking the  developments at
+NeXT Computer. I've been asked to enter my  personal impressions of the
+machine. This item was written before  the actual announcement, so some
+details are likely missing. I  will update this item when I return from
+San Francisco and write  a longer review for an upcoming MicroDigest.
+
+ Ted Hanss
+
+ -----------------------------------------------------
+
+ NeXT Announces New Workstation
+
+ On Wednesday October 12, Palo Alto, California-based NeXT Inc.
+introduced its long-awaited computer workstation. NeXT founder  Steve
+Jobs lead the announcement extravaganza before an estimated  4,000
+invited guests at the Davies Symphony Hall in San  Francisco. The NeXT
+system integrates a wealth of powerful  hardware components with
+software innovations resulting in a  significant advance over current
+workstations.
+
+ Jobs co-founded Apple Computer but left after a power struggle  with
+current CEO John Sculley. Jobs used his accumulated wealth  to begin
+this new venture. NeXT was expected to release its  workstation almost
+two years ago and continued delays earned the  company the sobriquet
+"Eventually" by industry pundits. However,  the best kept secret in the
+industry has now been released and I  look forward to its impact on
+computing in higher education.
+
+ The $6,500 NeXT workstation is a black magnesium cube packed with  high
+performance components including the first commercial 256  megabyte
+read/write optical disc drive, a 25MHz Motorola 68030  microprocessor,
+microprocessor- controlled input/output channels,  and a digital signal
+processor. The object-oriented graphical  user interface is built on
+Display PostScript and provides an  intuitive front end to the powerful
+Mach operating system. The  monochrome four gray-level display is
+extremely crisp and clear.   NeXT also introduced an eight page per
+minute 400 dot per inch  (dpi) PostScript laser printer for $2,000.
+
+ System Unit.
+
+ The main system unit is one foot square and is designed to sit on  a
+shelf or on the floor. The single-board design utilizes few  than 50
+integrated circuits (ICs) and makes significant use of  surface mount
+technology and proprietary VLSI chips. The board  includes a thin
+Ethernet connection, a high speed (four to five  megabits per second)
+SCSI connector, a printer connection, and  two serial connections. Three
+slots remain free in the unit for  future upgrades and third party
+add-on boards. To encourage third  party board development, NeXT will
+market the backplane chip to  board manufacturers.
+
+ The system unit allows for two 5.25-inch full height disk drives.   The
+system comes standard with a 256 megabyte magneto-optical  disc drive
+utilizing removable, erasable optical disc cartridges.   Cartridges will
+cost approximately $50 to $75, with prices  expected to drop during the
+next year. Options include a 330  megabyte Winchester hard disk
+(approximately $2000) or a 660  megabyte Winchester hard disk
+(approximately $4,000). A formatted  optical disc containing the
+pre-installed system and applications  software comes with the machine.
+Beginning work with the NeXT  workstation is as simple as connecting the
+cables and plugging in  the power. Within ten minutes you can be working
+in your word  processor.
+
+ The workstation, based on the Motorola 68030 microprocessor  running at
+25MHz, utilizes 12 additional processors dedicated to  the management of
+input and output (I/O) devices such as video,  audio, printer, disk,
+network, etc. This technique, similar to  mainframe computer designs and
+resulting in very high performance  I/O, is made possible by
+NeXT-developed VLSI chips. In addition,  the workstation also contains
+the Motorola 68882 math coprocessor  and an Motorola 56001 digital
+signal processor making possible  complex audio and image processing,
+optional high speed modems  (9600 bits per second), data encryption,
+facsimile, array  processing, etc. The standard configuration includes
+eight  megabytes of random access memory (RAM), which is expandable to
+16 megabytes with one megabit chips or, in the future, 64  megabytes
+with 4 megabit chips.
+
+ Using VLSI technology, the fewer than 50 ICs on the motherboard
+compares with 100 ICs commonly found in personal computers, the  300-500
+in advanced-function workstations, and the thousands of  ICs in
+mainframes. All of the chips except one are CMOS, which  results in the
+board only using 11 Watts of power----even with 16  megabytes of RAM on
+it. In fact, NeXT had to redesign the power  supply because the power
+consumption came in much lower than  expected
+
+ Monitor.
+
+ The monitor is connected to the system cube by a three meter flexible
+cord that carries power as well as video, audio, mouse, and keyboard
+connections. The 17" two-bit (four level) gray scale monitor has a
+resolution of 1120 by 832 pixels at 92 pixels per inch. NeXT will not
+deliver a color monitor at this time. As the monitor is driven by
+Display PostScript, true What You See is What You Get (WYSIWYG) images
+can be printed on the optional 300/400 switchable PostScript laser
+printer. Display PostScript, developed jointly by NeXT and Adobe
+Systems, Inc., is the result of interactive extensions to Adobe
+PostScript.
+
+ The monitor features ports for the keyboard connector, a  microphone,
+and stereo headphone/speaker connectors. The monitor  also includes an
+integral tubular metal stand that allows a good  deal of flexibility in
+positioning. In recognition of its  potential placement in public work
+areas, both the monitor and  the system unit include integral security
+tie-down hooks.
+
+ Operating System.
+
+ Jobs is committed to UNIX as he believes it will be the primary
+operating system for computers in the 1990's. The NeXT  workstation is
+based on the Mach operating system, developed at  Carnegie-Mellon
+University. Mach is a communication- oriented  replacement for the UNIX
+kernel that provides binary  compatibility with Berkeley 4.3 UNIX
+applications. It also  provides multiple tasks, multiple threads of
+execution within  each task, flexible sharing of memory between tasks,
+message-  based interprocess communication, and transparent network
+extensibility.
+
+ Printer.
+
+ The black-cased printer is a low-profile, small footprint device
+(approximately 17 inches long by 6 inches high by 14 inches  wide). It
+is based on the Canon LBP-UX print engine and uses  standard LBP-SX
+toner cartridges (the same as those used by Apple  LaserWriter IIs). The
+printer is software switchable between 300  and 400 dots per inch (dpi).
+The resolution is switchable to  allow for faster printer at 300 dpi.
+The 400 dpi resolution  results in much higher quality images as well as
+better  compatibility with facsimile standards. The eight page per
+minute  printer features a straight paper path to reduce jams and a bulk
+envelope feeder. The printer is connected to the NeXT system unit  by a
+three meter serial cord and the PostScript interpretation is  performed
+within the system unit by the workstation's 68030  microprocessor. While
+the NeXT machine will work with any  PostScript printer, purchasers will
+likely find the NeXT printer  very affordable---the printer costs only
+$2,000.
+
+ Graphical User Interface.
+
+ The NeXT machine features much more than hardware advances. Jobs  told
+me that he is actually most proud of the workstation's  software.
+Targeted as it is at the higher education market, a  great deal of work
+has gone into providing an easy-to- use  interface to the powerful UNIX
+operating system. For applications  developers there is the Interface
+Builder, a graphical  object-oriented method to build and modify an
+application's user  interface. The Application Kit utilizes 25
+high-level objects for  building applications (the Macintosh, for
+example, has  approximately 400). These objects include buttons, text,
+windows,  sliders, fonts, dials, bitmaps, panels, switches, menus,
+rulers,  scrap books, lists, checkboxes, storage, etc. The objects are
+all  user-extensible. NeXT found that user interface-specific
+programming is typically 50% of the code in an application, but  takes
+90% of a programmer's time. NeXT hopes that with the  Interface Builder
+this will drop to near ten percent for both.
+
+ In addition to its graphics capability, the workstation excels at
+sound and music. For the use of sound, the NeXT workstation  allows
+storage and play-back of CD-quality audio. NeXT plans to  make an
+object-oriented music kit available in the future. This  kit would use
+physical modeling synthesis ("PostScript for  sound") and subtle sound
+articulation. In addition, NeXT is  working with universities on speech
+recognition applications.
+
+ Bundled Software.
+
+ A great deal of software is bundled with the workstation. The  reason,
+according to NeXT, is that if you don't build it in it  won't get used.
+The result is a system that provides potential  developers with a "high
+common denominator standard platform"  according to NeXT's John Ison.
+
+ System software bundled with the workstation include the Mach
+operating system (with its UNIX applications interface); the  Interface
+Builder; Searcher (a portable interface for information  searching);
+Workspace Manager for interacting with the UNIX  operating system; and
+Sun Microsystems Network File System (NFS)  for linking workstations on
+a network.
+
+ Applications software packages bundled with the system include:
+WriteNow word processing; Wolfram Research's Mathematica; Sybase  SQL
+Server (this is a special version of Sybase SQL Server that  only works
+with NeXT workstations, an upgrade is available);  Franz Allegro CL
+Common LISP; Stepstone Objective C;, and the GNU  C compiler, debugger,
+and Emacs editor.
+
+ Also on the bundled optical disc is a "digital library" that  includes
+Merriam Webster's Ninth Collegiate Dictionary and  Thesaurus; the Oxford
+Book of Quotations; the Oxford Complete  Works of Shakespeare; all
+system and application documentation  (including Mathematica, Sybase,
+LISP, Objective C, etc.); and  chapter six of the Postscript reference
+manual (the PostScript  operators). All digital libraries are fully
+indexed (user data  files, mail, etc. are indexed on the fly) and
+quickly searchable.
+
+ NeXT has been working with major software vendors involved in  porting
+applications to the NeXT workstation. NeXT has been  encouraging the
+vendors to price their packages at under $500 a  copy and advocating
+site licenses as well. $500 for UNIX-based  applications is very
+reasonable compared to commercial UNIX  applications that can run $2,000
+or more. These applications  include document processors, paint
+programs, object-oriented  drawing programs, bezier drawing programs,
+spreadsheets,  statistics software, terminal emulators, music
+composition  software, and compilers.
+
+ Networking.
+
+ NeXT claims to have achieved a high throughput Ethernet  interface. As
+to administering networks, users will have to cope  with typical UNIX
+network administration initially. NeXT is  currently implementing
+sophisticated network administration  tools, however very large networks
+will continue to need system  administrators.
+
+ Manufacturing Facilities.
+
+ A tour of NeXT's manufacturing facilities revealed more about the
+company's attention to detail and commitment to quality. Their
+manufacturing line, which only takes two to three staff to run,
+features high flexibility and fast production. A design change  made at
+NeXT is communicated over network connection to the  manufacturing line
+several miles away where, within 15 minutes,  the line is reprogrammed
+for the change. All parts are  lot-tracked back to NeXT's suppliers and
+on to the end users.   This allows NeXT to quickly locate the source of
+any quality  problems and identify who may have received any substandard
+equipment.
+
+ Availability.
+
+ NeXT will ship systems with version 0.8 software to key customers  and
+developers starting this quarter and expects to ship systems  with final
+software by second quarter 1989 to a broader base of  institutions and
+developers.
+
+ Concerns.
+
+ Those at Michigan who have seen the machine believe this  workstation
+represents a very attractive solution to the growing  information
+technology needs of higher education. The NeXT  workstation integrates a
+wealth of powerful hardware components  with impressive software
+innovations yielding a very significant  advancement over existing
+products. NeXT has excelled at  providing the power of UNIX with an
+intuitive interface. However,  there exist several concerns:
+
+ Many will likely be disappointed that there is no color monitor  for
+the NeXT workstation. Jobs did not wish to utilize color  mapping as it
+does not provide the desired quality. Therefore,  NeXT is waiting before
+delivering a color monitor. However, the  four gray-level monitor is
+very impressive and the use of shading  is quite powerful.
+
+ NeXT is aiming to deliver workstations at personal computer  prices.
+However, this is not a student machine. At $6,500,  without a printer,
+there will be few student purchases. NeXT sees  price reductions in the
+future, but for now the machine will be  purchased by departments and
+faculty and placed in public  workstations areas. The question is, how
+soon will NeXT reach its  goal of the $3,000 workstation?
+
+ Several of the software companies reportedly working with NeXT  are not
+known for their powerful and intuitive user interfaces.   We hope that
+NeXT is working closely with these companies and  assisting in their
+development of applications that take full  advantage of the powerful
+NeXT interface.
+
+ Most who have seen the workstation are quite impressed with the optical
+disk drive, but would like the presence of a 3.5-inch floppy disk drive
+as well. $75 for a 256 megabyte cartridge compares very favorably with
+almost $400 for equal floppy disk storage. However, small amounts of
+data are more conveniently handled on 3.5 inch floppies.
+
+ In my time spent viewing the Interface Builder I developed the  concern
+that while it is very powerful, it may be too flexible.   It would be
+useful to develop a user interface "grammar checker"  that examines an
+application's adherence to user interface guidelines.
+
+ NeXT is very clear that it is targeting the higher education  market.
+However, NeXT cannot ignore the business market. It is  understandable
+that NeXT does not want to target the business  market from the announce
+date, but NeXT must acknowledge that it  may have to reconsider this
+position. Students will be graduating  from universities and entering a
+workplace without NeXT machines.   In addition, how does NeXT plan to
+support the people who have  left the university with their NeXT box?
+
+ NeXT at Michigan.
+
+ What advantages does the NeXT workstation offer to Michigan? For  one,
+it is a superb integration of hardware and software  components. It will
+allow deployment of a very powerful  workstation that is easy to set up
+and use. The NeXT machine's  user interface will make this workstation
+attractive to those who  need the powerful applications running in the
+UNIX environment  but have been put off by the UNIX C or Bourne shell
+interfaces.   In addition, UNIX experts will appreciate the power of the
+machine and will continue to have access to the tools they  currently
+use.
+
+ The NeXT machine is expected to have several familiar DOS and
+Macintosh applications ported to it very soon. This will allow  easy
+migration of both data and experience for those personal  computer users
+who want to move up this high performance  workstation. NeXT is also
+advocating that software vendors offer  individual copies under $500 as
+well as site licenses. This  should make software affordable.
+
+ There are a number of opportunities for developing instructional  and
+research software for the NeXT machine. The highly  graphics-oriented
+interface and powerful applications-building  tools should lead to
+powerful courseware. In addition, building  on bundled components, such
+as Mathematica, can quickly lead to  classroom tools.
+
+ It is clear that this workstation was designed for the higher
+education market. NeXT has spent a great deal of time talking  with
+educators and administrators and listening to their needs.   It looks as
+if the NeXT workstation will successfully meet these  needs as well as
+surpass some expectations.
+
+ Summary.
+
+ In summary, I was very impressed with this workstation. The NeXT
+machine has a list of features that surpass those of its  competition.
+Any one of these features would make the NeXT  workstation stand out
+among the current line of desktop machines,  the combination of them all
+in one box is very exciting: the  optical disc drive, the digital signal
+processor, the graphical  user interface, the high resolution screen,
+the list of bundled  software, the PostScript laser printer, and the
+microprocessor-  controlled I/O channels. I believe the NeXT machine
+will provide  strong competition for personal computers such as the
+Macintosh  II and for the PS/2 Models 70 and 80 running Presentation
+Manager  and OS/2. In addition, it competes very well with the offerings
+from traditional UNIX vendors such as Apollo and Sun. Sun will  most
+likely react by cutting prices, but it's not just the NeXT  machines
+price that makes it attractive. Rather it is the  integrated package of
+innovative hardware and software  developments that exploit the power of
+the UNIX operating system  with an intuitive user interface.
+
+------- End of Forwarded Message
+
+[Finally, this is a comment about the digital signal processing
+facilities. -smh]
+
+Date: Sun, 16 Oct 88 00:17:32 -0400 (EDT)
+From: Chad Kavanaugh Bisk <cb29+@andrew.cmu.edu>
+To: csound@ems.media.mit.edu
+Subject: Re: NeXT's machine has a Digital Signal Processor
+
+The NeXT machine comes with the DSP56001 which is running at 20MHz (not
+25MHz) and takes two cycles to complete each instruction, giving it a
+speed of exactly 10 MIPs.  For further information on this chip and the
+NeXT machine in general, see the alt.next bboard.  An article in Byte
+magazine goes into quite a lot of detail about the chip and its
+instruction set.
+
+=======================================================================

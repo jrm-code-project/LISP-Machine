@@ -1,0 +1,7 @@
+
+
+GigaMos' Current Hardware Plan
+
+GigaMos currently plans to advise and review the development of the
+Phoenix Chip processor, with the goal of producing a chip set that is
+software compatible with the current Falcon Board set.

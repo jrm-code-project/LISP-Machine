@@ -1,0 +1,95 @@
+-*- Mode:TEXT; Package:USER -*-
+
+
+                          * PROCESSOR-SYMBOL *
+                             A Proposal for
+                         Compiling References to
+                   Foreign (Target Processor) Symbols
+
+                                  - - -
+
+                              [Proposal #8]
+
+                            Keith M. Corbett
+
+                              Oct. 5, 1988
+
+                                  - - -
+
+A. INTRODUCTION:
+
+A problem can arise when system files must refer to different symbols,
+depending on the target processor of compilation.  The existing
+customization mechanisms do not provide a solution in many of these
+cases.
+
+Various suggestions have been discussed; the following appears to be a
+"clean" solution.
+
+B. PROPOSAL:
+
+A customization macro is documented below that should solve a certain
+kind of problem with foreign (target processor) symbol reference.  The
+problem was first encountered when compiling the compiler, on and for
+Lambda, after patches had been made to accomodate the cross-compiler.
+The problem will arise whenever Lambda system files contain references
+to Falcon packages that are not known to Lambda.
+
+The code in Example 1 (below) will not compile on the Lambda unless the
+K software is loaded.  For various reasons it is NOT desirable to force
+the system maintainers to load the K software to compile the Lambda
+system software for the Lambda.
+
+-----------------------------------------------------------------------------
+Example 1:
+
+  (cond
+    ((eq *target-computer* 'k)
+     ;;array:art-q ;;WKF: 5/18/88
+     #+lambda k-array:art-q #+falcon array:art-q
+     ''art-q)
+    ((eq *target-computer* 'falcon)
+     ;;etc.
+     ))
+-----------------------------------------------------------------------------
+
+The basic point of the proposed solution is to return, as the result of
+expanding a user-friendly macro, the desired symbol using INTERN.
+
+In the earlier example, the new macro would be employed as follows (Example 2):
+
+-----------------------------------------------------------------------------
+Example 2:
+
+ (processor-symbol
+   (:lambda "ART-Q" "ZL")
+    #+lambda (:falcon "ART-Q" "K-ARRAY")
+    #+falcon (:falcon "ART-Q" "ARRAY"))
+-----------------------------------------------------------------------------
+
+The proposed macro has CASE-like features, permitting a list of
+processor keywords and/or a T (or OTHERWISE) default symbol description.
+
+The experimental version of the PROCESSOR-SYMBOL macro is currently
+located in the file DJ:KEITH;PROCESSOR-SYMBOL.  Simple regression test
+cases have been implemented, and are also contained in that file.
+
+{Update: The macro in PROCESSOR-SYMBOL has one flaw that I will address:
+the macro-expanded code only handles the target processor case at that
+time.  There are ways this could lose.  It should emit a CASE statement
+to handle all processors. --Keith}
+
+[RWK: This update doesn't help the problem it is trying to address. It
+is ambiguous just which target is intended. I propose that you allow the
+same syntax as #+ and #- do for disambiguating between the compilation
+target and the run-time target. i.e.
+
+(processor-symbol
+  (:lambda "ART-Q" "ZL")
+  ((and (:local :lambda)
+        (:target :falcon))
+   "ART-Q" "K-ARRAY")
+  ((and (:local :falcon)
+        (:target :falcon))
+   "ART-Q" "ARRAY"))
+]

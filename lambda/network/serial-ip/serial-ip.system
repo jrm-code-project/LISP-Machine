@@ -1,0 +1,4 @@
+;;; -*- Mode:LISP; Package:USER; Base:10; Readtable:ZL -*-
+
+
+(si:set-system-source-file :SERIAL-IP "SYS:NETWORK;SERIAL-IP;SYSDEF")

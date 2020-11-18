@@ -1,0 +1,284 @@
+This is TeX, Version 1.3 for Berkeley UNIX (preloaded format=gsibotex 87.10.29)  27 MAY 1988 19:48
+**Manual.botex 
+(Manual.botex This is BoTeX, Version 1.23 of 29 October 1987
+(/usr/lib/tex/macros/patbo.lib) (/usr/lib/tex/macros/byf1.lib)
+Cross reference for Manual (Manual.aux) (title-page.botex [1])
+(copyright-page.botex [2]) (introduction.botex Chapter 1)
+(notation-conventions.botex Chapter 2 [1]) (architecture-overview.botex
+Chapter 3 [2] [3]) Part 1 [4] [5] (timing.botex Chapter 4
+Underfull \vbox (badness 2042) has occurred while \output is active
+\vbox(643.20255+2.33333)x469.75499, glue set 2.735
+.\glue(\topskip) 29.74045
+.\vbox(14.40277+4.03278)x469.75499
+..\hbox(14.40277+4.03278)x469.75499, glue set 364.41321fill
+...\chaprm 4
+...\chaprm .
+...\kern 11.92548
+...\chaprm T
+...\chaprm i
+...etc.
+..\penalty 300
+.\glue 12.0 plus 4.0 minus 4.0
+.\penalty 5000
+.\write0{\chapentry {Timing}{4}{\folio }}
+.etc.
+
+ [6]
+[7] [8] [9]) (instruction-set.botex Chapter 5 [10] [11] [12] [13]
+Overfull \hbox (19.96121pt too wide) in paragraph at lines 205--213
+\tenrm puts is $$DTP-CHARACTER. Like-wise, the DT-RIGHT-ARRAY-AND-LEFT-STRUCTUR
+E|
+
+\hbox(9.0+2.33333)x469.75499, glue set - 1.0
+.\tenrm p
+.\tenrm u
+.\tenrm t
+.\tenrm s
+.\glue 3.99998 plus 2.0 minus 1.33333
+.etc.
+
+[14] [15] [16] [17] [18] [19] [20] [21] [22]) (program-counter.botex Chapter 6
+[23] [24]) (register-memory.botex Chapter 7 [25] [26]) (call-hardware.botex
+Chapter 8 [27] [28] [29]
+Overfull \hbox (1.08488pt too wide) in paragraph at lines 107--110
+\tenrm bus, ac-cess-ing the RETURN-PC-RETURN-DESTINATION func-tional source/des
+tination. |
+
+\hbox(9.0+3.0)x469.75499, glue set - 1.0
+.\tenrm b
+.\tenrm u
+.\tenrm s
+.\tenrm ,
+.\glue 3.99998 plus 2.5 minus 1.06665
+.etc.
+
+
+Underfull \vbox (badness 3713) has occurred while \output is active
+\vbox(643.20255+2.33333)x469.75499, glue set 3.33836
+.\glue(\topskip) 34.14323
+.\vbox(9.99998+0.0)x469.75499
+..\hbox(9.99998+0.0)x469.75499, glue set 207.95338fill
+...\ssecrm 8
+...\ssecrm .
+...\ssecrm 2
+...\ssecrm .
+...\ssecrm 1
+...etc.
+..\penalty 300
+.\penalty 10000
+.\write0{\subsubsecentry {Call Stack Return PC RAM}{8}{2}{1}{6}{\folio }}
+.\glue(\parskip) 18.06749
+.etc.
+
+ [30]
+[31] [32] [33] [34] [35]) (instruction-cache.botex Chapter 9 [36]) (alus.botex
+[37] Chapter 10 [38]) (datatype-ram.botex Chapter 11 [39]) (alu-opcodes.botex
+Chapter 12 [40] [41]
+Underfull \vbox (badness 10000) has occurred while \output is active
+\vbox(643.20255+2.33333)x438.81886
+.\glue(\topskip) 35.80989
+.\hbox(8.33333+2.33333)x410.08557
+..\glue(\tabskip) 0.0
+..\hbox(8.33333+2.33333)x58.71936
+...\hbox(8.33333+2.33333)x58.71936, glue set 26.38606fil []
+..\glue(\tabskip) 0.0
+..\hbox(8.33333+2.33333)x58.71938
+...\hbox(8.2+0.0)x58.71938, glue set - 33.28053fil []
+..\glue(\tabskip) 0.0
+..etc.
+.\glue(\baselineskip) 1.33334
+.\hbox(8.33333+2.33333)x411.4189
+..\glue(\tabskip) 0.0
+..\hbox(8.33333+2.33333)x58.71936
+...\hbox(8.33333+2.33333)x58.71936, glue set 26.38606fil []
+..\glue(\tabskip) 0.0
+..\hbox(8.33333+2.33333)x58.71938
+...\hbox(8.2+0.0)x58.71938, glue set - 34.61386fil []
+..\glue(\tabskip) 0.0
+..etc.
+.\glue(\baselineskip) 1.33334
+.etc.
+
+ [42]
+Underfull \vbox (badness 10000) has occurred while \output is active
+\vbox(643.20255+2.33333)x509.29375
+.\glue(\topskip) 35.80989
+.\hbox(8.33333+2.33333)x285.8524
+..\glue(\tabskip) 0.0
+..\hbox(8.33333+2.33333)x58.71936
+...\hbox(8.33333+2.33333)x58.71936, glue set 23.21939fil []
+..\glue(\tabskip) 0.0
+..\hbox(8.33333+2.33333)x58.71938
+...\hbox(0.0+0.0)x58.71938, glue set 58.71938fil []
+..\glue(\tabskip) 0.0
+..etc.
+.\glue(\baselineskip) 1.33334
+.\hbox(8.33333+2.33333)x362.75229
+..\glue(\tabskip) 0.0
+..\hbox(8.33333+2.33333)x58.71936
+...\hbox(8.33333+2.33333)x58.71936, glue set 24.2194fil []
+..\glue(\tabskip) 0.0
+..\hbox(8.33333+2.33333)x58.71938
+...\hbox(8.2+0.0)x58.71938, glue set - 14.78055fil []
+..\glue(\tabskip) 0.0
+..etc.
+.\glue(\baselineskip) 1.33334
+.etc.
+
+ [43])
+Part 2 [44] [45] (memory-board.botex Chapter 13 [46]) (memory-access.botex
+Chapter 14 [47] [48] [49] [50]) (traps.botex Chapter 15 [51] [52]
+Underfull \vbox (badness 10000) has occurred while \output is active
+\vbox(643.20255+2.33333)x469.75499
+.\glue(\topskip) 32.28722
+.\vbox(11.856+3.36)x469.75499
+..\hbox(11.856+3.36)x469.75499, glue set 240.416fill
+...\secrm 1
+...\secrm 5
+...\secrm .
+...\secrm 4
+...\kern 9.93599
+...etc.
+..\penalty 300
+.\penalty 10000
+.\write0{\secentry {Trap Entry Sequence}{15}{4}{\folio }}
+.\glue(\parskip) 18.06749
+.etc.
+
+ [53]
+Underfull \vbox (badness 2644) has occurred while \output is active
+\vbox(643.20255+2.33333)x469.75499, glue set 2.98079
+.\glue(\topskip) 31.18323
+.\vbox(12.95999+4.31999)x469.75499
+..\hbox(12.95999+4.31999)x469.75499, glue set 107.60503fill
+...\secrm 1
+...\secrm 5
+...\secrm .
+...\secrm 5
+...\kern 9.93599
+...etc.
+..\penalty 300
+.\penalty 10000
+.\write0{\secentry {Normal Trap Exits (Non-modifying)}{15}{5}{\folio }}
+.\glue(\parskip) 18.06749
+.etc.
+
+ [54]
+[55] [56]
+Underfull \vbox (badness 10000) has occurred while \output is active
+\vbox(643.20255+2.22221)x469.75499
+.\glue(\topskip) 38.03212
+.\hbox(6.1111+2.22221)x469.75499, glue set 111.39348fil
+..\glue(\leftskip) 21.68121
+..\hbox(0.0+0.0)x0.0
+..\glue 5.24998
+..\glue 5.24998
+..\glue 5.24998
+..etc.
+.\glue(\parskip) 0.0
+.\glue(\baselineskip) 2.83334
+.\hbox(6.94444+2.22221)x469.75499, glue set 158.64334fil
+..\glue(\leftskip) 21.68121
+..\hbox(0.0+0.0)x0.0
+..\glue 5.24998
+..\glue 5.24998
+..\glue 5.24998
+..etc.
+.etc.
+
+ [57])
+(transporter-ram.botex Chapter 16 [58] [59] [60] [61]
+Underfull \vbox (badness 4779) has occurred while \output is active
+\vbox(643.20255+0.0)x469.75499, glue set 3.6319
+.\glue(\topskip) 34.14323
+.\vbox(9.99998+2.79999)x469.75499
+..\hbox(9.99998+2.79999)x469.75499, glue set 296.91727fill
+...\ssecrm 1
+...\ssecrm 6
+...\ssecrm .
+...\ssecrm 6
+...\ssecrm .
+...etc.
+..\penalty 300
+.\penalty 10000
+.\write0{\subsecentry {Read Operations}{16}{6}{1}{\folio }}
+.\glue(\parskip) 18.06749
+.etc.
+
+ [62]
+Overfull \hbox (5.25008pt too wide) in paragraph at lines 223--231
+\tenrm pat-tern. It makes re-peated calls to the func-tion LOAD-TRANSPORTER-RAM
+-PATTERN,|
+
+\hbox(8.33333+2.33333)x469.75499, glue set - 1.0
+.\tenrm p
+.\tenrm a
+.\tenrm t
+.\discretionary
+..\tenrm -
+.\tenrm t
+.etc.
+
+[63]) (gc-ram.botex Chapter 17 [64]) (spy.botex Chapter 18 [65]) Part 3
+[66] [67] (storage-conventions.botex Chapter 19 [68] [69] [70] [71] [72]
+[73] [74] [75]
+Underfull \vbox (badness 10000) has occurred while \output is active
+\vbox(643.20255+2.33333)x469.75499, glue set 8.27649
+.\glue(\topskip) 35.80989
+.\hbox(8.33333+2.33333)x469.75499, glue set 0.27042
+..\hbox(0.0+0.0)x0.0
+..\tenrm T
+..\tenrm h
+..\tenrm e
+..\glue 3.99998 plus 2.0 minus 1.33333
+..etc.
+.\penalty 150
+.\glue(\baselineskip) 1.33334
+.\hbox(8.33333+2.33333)x469.75499, glue set 0.06685
+..\tenrm l
+..\discretionary replacing 2
+...\tenrm o
+...\tenrm -
+..\tenrm o
+..\kern0.33333
+..\tenrm c
+..etc.
+.etc.
+
+ [76]
+[77]
+Overfull \hbox (4.31114pt too wide) in paragraph at lines 760--765
+\tenrm pointer field points to a mem-ory struc-ture con-sist-ing of a $$DTP-COM
+PILED-FUNCTION-|
+
+\hbox(9.0+2.33333)x469.75499, glue set - 1.0
+.\tenrm p
+.\kern0.33333
+.\tenrm o
+.\tenrm i
+.\tenrm n
+.etc.
+
+[78] [79] [80] [81] [82]) (register-list.botex Appendix \char 65 [83])
+(functional-io.botex Appendix \char 66 [84] [85]
+Underfull \vbox (badness 10000) has occurred while \output is active
+\vbox(643.20255+0.0)x469.75499
+.\glue(\topskip) 32.14322
+.\vbox(12.0+0.0)x469.75499
+..\hbox(12.0+0.0)x469.75499, glue set 147.27693fill
+...\secrm B
+...\secrm .
+...\secrm 2
+...\kern 9.93599
+...\secrm T
+...etc.
+..\penalty 300
+.\penalty 10000
+.\write0{\secentry {Table of Functional Destinations}{\char 66}{2}{\folio }}
+.\glue 12.0
+.etc.
+
+ [86]
+[87] [88] [89] [90]) [91] (Manual.toc) [-1] (Manual.toc [-2] [-3] [-4] [-5])
+[-6]
+Output written on Manual.dvi (99 pages, 262592 bytes).

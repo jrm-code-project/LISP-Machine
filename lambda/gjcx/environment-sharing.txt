@@ -1,0 +1,61 @@
+*****************************************************************
+** N.B. !!! WARNING !!! NOTICE  !!!                            **
+** This may be a valuable trade secret of Lisp Machine Inc.    **
+** Or it may be garbage.                                       **
+*****************************************************************
+
+11-Apr-86 21:15:24 -George Carrette
+
+Problems: To have a global lexical environment.
+
+          To be able to have multiple Macsyma listeners with
+          a different state in each.
+
+
+(defun foo (exp)
+   (funcall #'bar exp)
+   (if (eq (car exp) 'baz)
+       '(bar)
+      ....))
+
+The problem is that there are so many cells which can can have side effects
+made on them.
+
+Lemma: New data type INDEX-REF-POINTER.
+       [<INDEX-REF-POINTER><OFFSET>]
+
+       Similar to [<EXTERNAL-VALUE-CELL-POINTER><ADDRESS>]
+       Which means fetch location at <ADDRESS> and look at that.
+
+       More similar to [<SELF-REF-POINTER><OFFSET>]
+       Which means fetch <OFFSET> of current value of SELF.
+
+
+       [<INDEX-REF-POINTER><OFFSET>] means fetch the location
+       at (PLUS <A-INDEX-REF-POINTER-BASE>  <OFFSET>) and look at that.
+
+Lemma: Primitives for allocating environments and binding the A-INDEX-REF-POINTER-BASE.
+
+Solutions:
+ [1] In each cell that is subject to a side effect while running the application, e.g.
+   - value cells.
+   - function cells.
+   - property lists.
+  => put an INDEX-REF-POINTER.
+
+ [2] A global lexical environment may be had by using the INDEX-REF-POINTER in
+   the FEF locations (such as used for function cell and special variable references)
+   normally containing EXTERNAL-VALUE-CELL-POINTER.
+   -> would need to modify FASLOAD to allocate these.
+
+ * For Macsyma. Could use [1]. Could even decide after loading it that you want multiple
+   copies. Could implement forking of sessions. Could also use [2] on the function
+   cell and value cell and [1] for the property list. Although it may be better to
+   shadow PUTPROP and GET et al and implement our own plist mechanism, perhaps using
+   a hash table. Significant data compactness advantage over existing system
+   performance could perhaps be had this way.
+
+
+Stinger:
+  One may well want to enclose over <A-INDEX-REF-POINTER-BASE>.
+

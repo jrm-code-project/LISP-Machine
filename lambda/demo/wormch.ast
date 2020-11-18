@@ -1,0 +1,66 @@
+0 KSTID WORM AST
+9 HEIGHT
+9 BASE LINE
+0 COLUMN POSITION ADJUSTMENT
+2 CHARACTER CODE
+7 RASTER WIDTH
+10 CHAR WIDTH
+0 LEFT KERN
+
+   **
+  ****
+ ******
+ ******
+ ******
+  ****
+   **
+3 CHARACTER CODE
+7 RASTER WIDTH
+10 CHAR WIDTH
+0 LEFT KERN
+
+   *
+  * *
+ * * *
+  * * *
+ * * *
+  * *
+   *
+4 CHARACTER CODE
+7 RASTER WIDTH
+10 CHAR WIDTH
+0 LEFT KERN
+
+   **
+
+ ******
+
+ ******
+
+   **
+5 CHARACTER CODE
+8 RASTER WIDTH
+10 CHAR WIDTH
+0 LEFT KERN
+  ****
+ ******
+********
+********
+********
+********
+********
+ ******
+  ****
+7 CHARACTER CODE
+7 RASTER WIDTH
+10 CHAR WIDTH
+0 LEFT KERN
+
+   *
+  *
+     *
+  * *
+ *
+    *
+   *
+

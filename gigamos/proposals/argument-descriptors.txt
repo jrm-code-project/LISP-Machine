@@ -1,0 +1,172 @@
+-*- Mode:TEXT; Package:USER -*-
+
+
+                 Argument Descriptor Modularizations
+
+                              A Proposal
+                                - - -
+
+                            [Proposal #9]
+
+                           Keith M. Corbett
+
+                            Oct. 12, 1988
+
+                                - - -
+
+A. INTRODUCTION
+
+Argument descriptors have been implemented on the Lambda in a
+processor-dependent fashion, and they are used quite widely throughout
+the system.  The following is a proposal for modularizing the
+implementation, thereby facilitating the Falcon port.
+
+I suspect that Lambda argument descriptors are just the tip of this
+particular iceberg.  There are many related parts of the system that use
+system constants and microcode routines, and they may be handled in a
+similar fashion.
+
+B. BACKGROUND/CURRENT IMPLEMENTATION
+
+An argument descriptor is a fixnum which is packed with information
+describing how a function takes arguments.  The most common use is to
+get the minimum and maximum number of arguments accepted by a function.
+(Note that the current implementation allows at most 63 function
+arguments.)
+
+ARGS-INFO and %ARGS-INFO are both used in system code; both return the
+numeric argument descriptor for a given function.  The LISP ARGS-INFO
+version accepts function specs and invokes the microcode %ARGS-INFO
+version once it has processed its argument.
+
+The following table of byte specs and bit field values is taken from the
+file SYS:COLD;QCOM.LISP, which defines these constants for the processor
+(they are loaded during the cold system build and are used by microcode
+routines).  Constants with two percent signs prefixed (%%) are byte
+specifiers for use with, e.g., LDB or DBP (and thus would have to change
+for the Falcon).  Constants with one percent sign prefixed (%) are bit
+field values for use with, e.g., LOGAND.
+
+CONSTANT                        VALUE (OCTAL)   COMMENTS
+---------------------------------------------------------------------------
+%ARG-DESC-QUOTED-REST           10000000        ;has quoted rest argument
+%%ARG-DESC-QUOTED-REST          (BYTE 1. 21.)
+
+%ARG-DESC-EVALED-REST           40000000        ;has evaluated rest argument
+%%ARG-DESC-QUOTED-REST          (BYTE 1. 20.)
+
+%ARG-DESC-ANY-REST              (BYTE 2. 20.)   ;has either kind of rest argument
+
+%ARG-DESC-FEF-QUOTE-HAIR        20000000        ;compiled fcn with hairy quoting
+%%ARG-DESC-FEF-QUOTE-HAIR       (BYTE 1. 19.)   ; must check ADL for full info
+
+%ARG-DESC-INTERPRETED           10000000        ;interpreted function, and/or
+%%ARG-DESC-INTERPRETED          (BYTE 1. 18.)   ; no information available
+                                                ; (VALUE = 1000077) ***
+
+%ARG-DESC-FEF-BIND-HAIR         40000000        ;compiled function with hairy
+%ARG-DESC-FEF-BIND-HAIR         (BYTE 1. 17.)   ; binding, linear enter must check
+                                                ; ADL
+
+%ARG-DESC-MIN-ARGS              (BYTE 6. 6.)    ;minimum number of required args
+%ARG-DESC-MAX-ARGS              (BYTE 6. 0.)    ; maximum number of required +
+                                                ; optional (all positional, not
+                                                ; rest) args
+
+*** NOTE: Interpreted functions do not necessarily have this value.
+
+C. SCOPE/WHERE ARGUMENT DESCRIPTORS ARE USED
+
+The modules that utilize argument descriptors include:
+
+  o Interpreter
+  o Compiler
+  o DESCRIBE (describing functions)
+  o Macro-expansion (AUTOMATIC-DISPLACE)
+  o Debugger / error handler (displaying/modifying frames)
+  o Resources (getting arg-lists of parametizer functions)
+  o Function typing (FUNCTIONP)
+
+For my own convenience, I assembled a list of functions and files
+calling %ARGS-INFO or ARGS-INFO, and collected these definitions (DEFUNs
+and fragments thereof) into one file.  I verified this information by
+doing a Tags Search on SYSTEM for "%ARG-DESC".
+
+D. PORTABILITY RECOMMENDATIONS
+
+1.) Fix QCOM to compute these values via calls to BYTE, if possible.
+This requires that a decision be made as to how QCOM type definitions
+(and cold loading generally) will be handled for the Falcon system.
+
+2.) Define WITH-ARGS-INFO (macro) and functions for getting the arg-desc
+elements with a single call to ARGS-INFO.
+
+This facility is designed to minimize calls to ARGS-INFO, a goal of the
+existing implementation.
+
+WITH-ARGS-INFO (MACRO): (FUNC VARLIST &BODY BODY)
+Executes BODY with the variables listed in VARLIST bound
+  to argument information values for function FUNC.
+Specify variable names corresponding to the desired argument information;
+  use NIL to indicate a value that will not be computed.
+
+The available values, in order, are:
+
+  - MIN-ARGS, the minimum number of positional (required + optional)
+              arguments expected by FUNC
+  - MAX-ARGS, the maximum number of positional arguments expected by FUNC
+  - QUOTED-REST-P, non-NIL if FUNC takes a quoted &REST arg
+  - EVALED-REST-P, non-NIL if FUNC takes an evaluated &REST arg
+  - ANY-REST-P, non-NIL if FUNC takes either kind of &REST arg
+  - INTERPRETED-P, non-NIL in certain cases for interpreted functions, or
+                   when no information is available
+  - QUOTE-HAIR-P, caller must check ADL for "hairy" quoting information
+  - BIND-HAIR-P, caller must check ADL for "hairy" binding information
+
+To access the argument information directly, specify FUNC as a list,
+(FUNC INFO):
+
+  - FUNC, element 1, is a function object or function spec;
+  - INFO, element 2, is a variable to which argument information is bound.
+
+For example:
+
+   (with-args-info function-spec (min max)
+     (format t "~&~A takes from ~D. to ~D. arguments"
+             function-spec min max))
+
+3) Replace invocations of ARGS-INFO and %ARGS-INFO in the system with
+calls to WITH-ARGS-INFO.  Where %ARGS-INFO is being called directly now,
+the call to ARGS-INFO will require two additional type checks; the
+increased portability compensates for the slight overhead.
+
+There are several advantages to this change:
+
+a) A uniform, high-level argument descriptor interface is provided;
+
+b) Only ARGS-INFO will call %ARGS-INFO, and only the new macro will call
+ARGS-INFO;
+
+c) Only one (centralized) modification should be required to make
+argument descriptors work on the Falcon.  If it is determined that a
+very different argument descriptor implementation is needed (or already
+provided in Falcon code), ARGS-INFO "users" (in the system software)
+will not need to be modified.
+
+-------
+Comments:
+
+[JIM]
+
+The slots of the argument descriptor need to be setf'able.
+I think that this argues that there should be an equivalent
+set of functions to access single slots.
+
+[Keith]
+
+This was ultimately seen by everybody as a good idea, but we're shelving
+it until after the prototype is done.  This can/should be reactivated
+when we get to porting the related Lambda primitives, e.g. FUNCALL, and
+the Lambda compiler.
+
+Status: ON HOLD

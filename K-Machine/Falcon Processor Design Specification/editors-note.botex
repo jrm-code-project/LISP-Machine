@@ -1,0 +1,33 @@
+@c editors-note.botex
+@c
+@c David Saslav, 13 June 1988
+
+@chapter Editor's Note
+
+Revisions have been made to the following sections since the May 27th draft:
+
+4.1 (and ff.)
+Clocks renamed to CPROC1, CPROC2, CMEM1, CMEM2.
+
+4.3.1.3, 4.3.2
+Enforced read wait after a write instruction clarified.
+
+5.3.3
+Reference to macro-link bit clarified,
+"Opcode" column header renamed to "Instruction Format"
+
+5.3.6
+DT-HAIRY-NUMBER explained
+
+5.4.2
+Caption for ALU Immediate Instruction clarified
+
+8.1
+Reference to "yellow alert" trap clarified.
+
+12.
+ALU Opcodes documentation changes (SIGN, Q Register use)
+
+Future versions of this draft will incorporate further revisions to this document.
+
+---David Saslav

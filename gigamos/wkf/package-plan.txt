@@ -1,0 +1,24 @@
+
+ISSUES:
+
+        Two symbols on lambda => one symbol on K    (ie cons)
+
+        NEW-FASD function which does not use home package always.
+          (Needed to deal with map of duplicate to single symbols)
+
+        Some Symbols are in packages via import not inheritance.
+
+METHOD:
+
+        Lambda must guarantee that where duplicate symbols exist on Lambda
+          which are one and the same on the K, the two on the lambda must
+          have home in GLOBAL and PRIMITIVES.
+
+        NEW-FASD must guarantee that when it sees a symbol with home GLOBAL,
+          if a symbol with that name is in PRIMITIVES Pass to the k
+          'prims:symbol-name.
+
+        Explicily import symbols on k as it is done in package-definitions
+          for the lambda.  Later we will need to also Do as in the lambda
+          cold-load imports in order to port the lambda code.
+

@@ -1,0 +1,87 @@
+;;;-*- Mode:Text; Base:10 -*-
+;Model of single float for IEEE standard
+;This description is by no means an exhaustive explaination
+
+;    s    sign bit
+;    exp  exponent
+;    frac fraction
+;    MSB  most significant bit
+;    LSB  least significant bit
+
+       MSB                                       LSB
+        3 3             2 2
+        1 0             3 2                       0
+       +-+---------------+-------------------------+
+       |s|     exp       |        frac             |
+       +-+---------------+-------------------------+
+
+          [----- 8 -----] [---------- 23 ---------]
+
+;if (exp = 0 = frac) then number is understood to be zero.
+
+;exponent bias is +127,
+; thus logical exponent is an integer in the range  [-126, +126].
+
+;fraction has implicit hidden bit at position 23 (if not zero or denormalized).
+
+;    least-positive-single-float = 2**(-126)
+
+
+
+;Model of double from for IEEE standard
+;(not exaustive)
+
+        6 6         5 5
+        3 2         2 1                                                  0
+       +-+-----------+----------------------------------------------------+
+       |s|   exp     |                    frac                            |
+       +-+-----------+----------------------------------------------------+
+
+         [--- 11 ---] [---------------------- 52 -------------------------]
+
+;if (exp = 0 = frac) then number is understood to be zero.
+
+;exponent bias is +1023,
+; thus logical exponent is an integer in the range  [-1022, +1022].
+
+;fraction has implicit hidden bit at position 52 (if not zero or denormalized).
+
+;    least-positive-double-float = 2**(-1022)
+
+; DDB 8/4/88 GSInc@Cambridge
+
+; In reference to Brad's customer's double-precision application...
+
+; B == base == 2
+; T == number of base B digits allowed == 53 (including the hidden bit)
+
+; Here are the values which should correspond to the values requested.
+; Some values were better represented in hexidecimal, and others in
+; standard floating point notation.  Numbers preceeded by
+; the characters  " #x "  are in hexidecimal.
+
+
+        B**(EMIN-1)             ==      #x 800000
+        ;least positive magnitude
+
+
+        B**EMAX*(1 - B**(-T))   ==      #x 7FEFFFFFFFFFFFFF
+        ;greatest positive magnatude
+
+                ==  (logior (ash (+ 1023. 1023.) 52.) (1- (^ 2 52.)))
+
+
+        B**(-T)                 ==      1.110223025E-16
+        ;smallest relative spacing
+
+
+        B**(1-T)                ==      2.220446049E-16
+        ;largest relative spacing
+
+
+        LOG10(B)                ==      0.3010299957
+        ;log base 10 of 2
+
+
+; These numbers should work iff IEEE format is being correctly
+; emulated.

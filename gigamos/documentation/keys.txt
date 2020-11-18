@@ -1,0 +1,76 @@
+-*- Mode:Text -*-
+
+                           CURRENT CONVENTIONS
+
+ZMACS KEYSTROKES:
+
+  COMPILING/DISASSEMBLING FOR THE FLEABIT:
+
+    Hyper-Shift-c       Fleabit compile and download (w/ numeric
+                          arg, show (debug :post); with neg arg,
+                          send to COMPILER-OUTPUT)
+
+    Hyper-Super-c       Fleabit disassemble (:post debug) and
+                          send to the COMPILER-OUTPUT buffer
+
+    Hyper-c             Same as #\hyper-shfit-c except that not
+                          downloaded
+
+    Hyper-m             Fleabit macro expand (needs numeric arg
+                          option for sending output to a buffer,
+                          "MACRO-EXPAND-OUTPUT")
+
+    Hyper-Shift-M       Recursive Fleabit macro expand (not yet
+                          implemented)
+
+
+  CROSS-COMPILING/DISASSEMBLING:
+
+    Super-Shift-c       Fleabit compile and download (w/ numeric
+                          arg, show (debug :post); with neg arg,
+                          send to COMPILER-OUTPUT)
+
+    Super-Super-c       Fleabit disassemble (:post debug) and
+                          send to the COMPILER-OUTPUT buffer
+
+    Super-c             Same as #\Super-shfit-c except that not
+                          downloaded
+
+    Super-m             Fleabit macro expand (needs numeric arg
+                          option for sending output to a buffer,
+                          "MACRO-EXPAND-OUTPUT")
+
+    Super-Shift-M       Recursive Fleabit macro expand
+
+
+  INSERTING COMMENTS:
+
+    Control-$           Inserts a "$$$"-style CTS template on
+                          the current line
+
+    Control-@           Inserts a "@@@"-style CTS template on
+                          the current line
+
+    Control-+           Inserts a "+++"-style CTS template on
+                          the current line
+
+    Control-&           Inserts a "&&&"-style CTS template on
+                          the current line (note this type of
+                          CTS should only go at the beginnings
+                          of files.)
+
+CODING PRACTICES:
+
+A function beginnning with the character "%" may violate storage
+conventions, and it is incumbent upon the user to use the func-
+tion with this knowledge.
+
+Any formal parameter beginning with the character "%" indicates
+that the parameter is assumed to obey the restrictions described
+in the accompanying documentation.
+
+For example:
+
+(defun %set-internal (%symbol value)
+  "Will let you bash T and NIL.  Assumes %SYMBOL is a symbol."
+  (store-contents-offset %symbol *symbol-value* value))

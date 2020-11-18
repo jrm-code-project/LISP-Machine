@@ -1,0 +1,61 @@
+;pace's ZMAIL init file -*-Mode:Lisp;Package:ZWEI;Readtable:CL;Base:10-*-
+(LOGIN-SETQ *FROM-HOST* '#FS::UNIX-HOST "LMI-ANGEL")
+(LOGIN-SETQ *FROM-USER-ID* '"pace")
+(LOGIN-SETQ *DEFAULT-REFORMATTING-TEMPLATE* 'SIMPLIFY-HEADERS)
+(LOGIN-SETQ *DEFAULT-INITIAL-WINDOW-CONFIGURATION* ':NEW)
+(LOGIN-SETQ *NEXT-MIDDLE-MODE* ':NEXT-UNSEEN)
+(LOGIN-SETQ *REQUIRE-SUBJECTS* ':INIT)
+(LOGIN-SETQ *SUMMARY-SCROLL-FRACTION* 0.5s0)
+(LOGIN-SETQ *SUMMARY-WINDOW-FRACTION* 0.3s0)
+(LOGIN-SETQ *FILTER-MOVE-MAIL-FILE-ALIST*
+            '((COMMON-LISP . "ANGEL: /lmi/pace/common-lisp-mail")))
+(LOGIN-SETQ *OTHER-MAIL-FILE-NAMES*
+            '(#FS::UNIX-PATHNAME "ANGEL: /lmi/pace/common-lisp-mail"))
+
+
+(define-mail-template simplify-headers
+  "Pace's header striper"
+  (delete-field :return-path)
+  (delete-field "Received")
+  (delete-field "Summary")
+  (delete-field "Expires")
+  (delete-field "References")
+  (delete-field "Followup-To")
+  (delete-field "Distribution")
+  (delete-field "Keywords")
+  (when (and (find-field "From")
+             (string-equal "From " (bp-line (interval-first-bp *interval*)) :end2 5))
+    (delete-interval (interval-first-bp *interval*)
+                     (beg-line (interval-first-bp *interval*) 1)))
+
+  (let* ((msg (car *msgs*))
+         (headers-end-bp (getf (msg-status msg) 'headers-end-bp))
+         (start-of-msg (copy-bp headers-end-bp)))
+    (when start-of-msg
+      (move-bp start-of-msg (forward-over *blanks* start-of-msg)))
+    (when (and start-of-msg
+               (zerop (bp-index start-of-msg))
+               (looking-at start-of-msg "In System 1")
+               (line-previous (bp-line headers-end-bp))
+               (string-equal "*** EOOH ***" (line-previous (bp-line (interval-first-bp *interval*)))))
+      (let ((end-of-original-header (create-bp (line-previous (bp-line (interval-first-bp *interval*))) 0)))
+        (do ((end-of-stuff (bp-line start-of-msg) (line-next end-of-stuff))
+             (last-line (bp-line (interval-last-bp *interval*))))
+            ((or (null end-of-stuff)
+                 (eq end-of-stuff last-line)
+                 (line-blank-p end-of-stuff))
+             (when (and end-of-stuff
+                        (not (eq end-of-stuff (bp-line start-of-msg))))
+               (insert-interval end-of-original-header start-of-msg (create-bp end-of-stuff 0))
+               (let ((bp (beg-line start-of-msg 1)))
+                 (when bp
+                   (delete-interval bp (create-bp end-of-stuff 0))
+                   (insert (end-line start-of-msg) " etc...")
+                   )))))))))
+
+
+(DEFINE-FILTER COMMON-LISP
+               (MSG)
+               (MSG-HEADER-RECIPIENT-SEARCH *RECIPIENT-TYPE-HEADERS* "common-lisp"))
+
+(putprop (make-register-name #\B) (create-interval "harvard!seismo!ihnp4!zaiaz!bill") 'text)

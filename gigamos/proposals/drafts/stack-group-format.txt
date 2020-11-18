@@ -1,0 +1,296 @@
+                Proposal  #2
+
+
+
+Stack Groups on the Falcon.
+
+
+        The hardware stack structure on the Falcon is different than that
+on the lambda.  However, what the programmer wants to see (from the debugger, for
+example) remains the same, a "stack machine".   This proposal details how we
+reformat the various falcon stacks into stacks which look very much like the LAMBDA.
+The basic idea is to do the reformatting always and at the very lowest level,
+i.e. as the data is loaded or stored from the falcon hardware.
+
+Doing it this way has several advantages and disadvantages.
+
+advantages:
+     (1)economy of mechanism-- no need for separate "scrolling" routines for example.
+             no matter what you are trying to do, you save out, do-it, and reload.
+             Thus, the only routines that deal directly with the hardware are LOAD and STORE.
+     (2)minimum of code that runs in "embarrasing" circumstances
+             Somewhat a consequence of 1.  When the Falcon call hardware is "disturbed"
+             the code must VERY careful.  (no ordinary subroutines, may not be able to
+             reference local variables in the usual way, etc .)  Ultimate reliability
+             will be served if this sort of code is minimized.
+     (3)avoid proliferation of hardware frame numbers into system datastructures.
+             the HEAP numbers used by the falcon hardware may cause difficulties if
+             they are allowed to "persist" over a long period.  (When you reload they
+             might not be the same, what if you have to scroll, what if there are more than
+             256 frames, etc. etc.)  We avoid these difficulties by discarding them
+             immediately (remapping them, if you will, into positions in a conventional
+             style stack.).
+     (4)closest to lambda.
+             This will allow our current error handler to operate with minimum modification.
+     (5)only two stacks need be allocate (or worried about) in most contexts, as on LAMBDA.
+             (these are the MAIN and SPECIAL stacks).  Only one EXTRANEOUS stack per entire
+             system is allocated, and it is considered to be in the same logical classification
+             as the hardware stacks.
+
+disadvantages:
+        some loss of efficiency
+             doesn't make "pooled" use of hardware  (i.e. allowing several processes frames
+                to be in hardware at once.)  This is probably not a good idea anyway for various
+                reasons. However, a slight inefficency will occur.  Process switch time will
+                still be quite acceptable (by lisp machine standards) anyway.  (Due to the
+                necessity to SWAP the special pdl, worst case latency is in principle unbounded
+                anyway.)
+             mechanism of call hardware load-unload itself
+                a small overhead may occur due to this mapping, etc, as compared to simply
+                storing out the hardware in a fixed place, etc.   This is insignificantly
+                small and may not ever exist since the code required is comparable.
+             catch and throw.  Storing things out and reloading to implement "stack molesting"
+                operations could introduce some overhead.  The case which we might eventually
+                want to fix by a "fast bypass" is short THROWs.  If you are THROWing to a place
+                only a few frames up the stack, it will be quite a significant overhead to
+                store out the stack group, figure out the THROW, and reload.  This can be sped
+                back up by an "fast case" test which looks for the catch frame within the FALCON
+                call hardware.  If found, it would do the right thing, etc.  If the catch-frame
+                was not found, then you store out etc.  Note that in any case it is necessary for
+                the system to be able to handle the case where you are throwing over more frames
+                than will fit in the call hardware (no matter how big that might be unless it was
+                capable of being truly arbitrarily large).
+            Copying data  in the EXTRANEOUS stack.  Since the EXTRANEOUS stack is considered to
+                be on a level with the hardware stack(s), it is emptied and/or reloaded in parallel
+                with the actual hardware.  This data might not need to be copied otherwise.  However,
+                the overhead should not be significant since if you are using the extraneous stack,
+                those frames are not running ultra fast anyway.  (note that it is not necessary to reload
+                the "entire" EXTRANEOUS stack, if that were defined somehow, but only that portion
+                that corresponds to the portion loaded in the PHYSICAL call hardware).
+
+shortcomings:   (These dont really have to do with the scheme being proposed here, but are due
+                to inherit design deficiencies in FLEABIT.  However, we might as well discuss them
+                here.)
+                Due to the lack of formatting information in fleabit format stacks, it may not be
+                possible to put information in the FLEABIT BIND and EXTRANEOUS stacks in their
+                proper frames on "stack group" stack.  Until this is fixed, it will not be
+                possible to force a return with the error handler from an arbitrary frame.
+
+                The FLEABIT system does record all the PDL levels CATCH frames.  The STACK
+                dumper routine must detect CATCH frames (easily done with a single compare)
+                make the corresponding MAIN stack frame contain the EXTRANEOUS pdl info
+                up to the level in the CATCH frame.
+
+
+
+-- background --
+
+        The falcon hardware implements the following stacks, the hardware frame "heap" (and presumably software extension
+        thereof), the EXTRANEOUS PDL (used for overflow from 16 slots and functions of >= K args)
+        (k= 16 now, this will have to be reduced to 14 or 15), the special stack (a usual lisp binding
+        stack).  There is also a hardware return stack (which also contains return-destination and open-and-active
+        information) which corresponds logically with the frame heap.
+
+        Catch frames in the fleabit, ultra-simplified
+        A catch frame is opened like any other.  However, it can be recognized by
+        the fact the presence of a special marker (currently li:unwind-marker) in register 0
+        of that frame.   The rest of the frame is available for containing other info
+        necessary to unwind to that level in specific registers.  For example, register 1
+        has the special-pdl pointer, register 2 the extraneous stack pointer, etc.
+        Altho the details may change, we propose to retain this basic scheme.
+
+
+        ===========  in more detail, or what we would actually do:  ======
+
+The stack-group data structure would look essentially similar to stack-groups on the
+lambda (which definition is in "SYS:SYS2;SGDEFS").  In other words, there would be the
+same categories of entries, with some additions or deletions within the categories.
+
+Only two "low level" subroutines which "talk" to the hardware need to be written:
+   (load-stack-group-into-hardware <stack-group> <n>)   says load the hardware
+        such that (at most) N frames are actually loaded.  This means that
+        a hardware stack-underflow will occur in N frames worth return, etc.
+        N is a system parameter which can be adjusted for best performance.
+        Initially, for simplemindedness, N will be a constant perhaps 10 or so.
+
+   (store-stack-group-from-hardware <stack-group> ) says unload the hardware into
+        <stack-group>.  Of course, it needs to be stored just "beyond"
+        that portion of the stack (if any) which was not previously loaded
+        into the hardware.
+
+The following routines, which deal with stack-groups strictly as data objects, are needed.
+
+    (activate-stack-group <stack-group> )       ;corresponds to SGENT in lambda ucode.
+        this is called to signify that <stack-group> is the next one to run.
+        Mostly, it establishes the correct varible binding environment
+        (by traversing the special-pdl from least recent to most recent), and also
+        moves certain quantities associated with the stack group into their
+        appropriate homes.
+
+    (deactivate-stack-group <stack-group>)      ;corresponds to SGLV in lambda ucode.
+        inverse operation from activate-stack-group.  Traverses special pdl
+        from most-recent to least-recent.
+
+Generally, each user level operation (i.e. invoking a stack-group as a function)
+    calls deactivate-stack-group to leave the stack-group being left, followed by
+    activate-stack-group to enter the stack-group being entered.
+
+These two are called by the following:  look at lambda ucode for further details
+        as to exact args, etc.  I will gradually fill this is for those who
+        are not readers of lambda ucode, if there is a demand.
+
+ SGENT called by:
+    SG-CALL  reached if a stack group invoked as a function.
+    SG-ENTER  activate stack GROUP.
+
+ SGLV called by:
+    SG-CALL
+    SG-RESUME
+    SG-RETURN
+The stack group datastructure (initially from the LAMBDA), << .. >> annotated:
+  some LAMBDA items which dont apply have been deleted.
+
+(DEFSTRUCT (STACK-GROUP :ARRAY-LEADER (:CONSTRUCTOR NIL) (:ALTERANT NIL))
+      SG-NAME                       ;String with the name of the stack group
+      SG-REGULAR-PDL                ;Regular PDL array, 0=base of stack
+      SG-REGULAR-PDL-LIMIT          ;Max depth before trap
+        <<until stack-conventions revised, this will be "approximate">>
+      SG-SPECIAL-PDL                ;Special PDL array, 0=base of stack
+      SG-SPECIAL-PDL-LIMIT          ;Max depth before trap
+
+      SG-INITIAL-FUNCTION-INDEX     ;Index into PDL of initial M-AP
+                                    ;   (3 unless initial call has adi)
+      SG-PLIST
+ ;can probably delete this.  check in error-handler
+ ;    SG-TRAP-TAG                   ;Symbolic tag corresponding to SG-TRAP-MICRO-PC.
+ ;                                  ; gotten via MICROCODE-ERROR-TABLE, etc.  Properties
+ ;                                  ; off this symbol drive error recovery.
+      SG-RECOVERY-HISTORY           ;Available for hairy SG munging routines to attempt to
+                                    ; leave tracks.
+      SG-FOOTHOLD-DATA              ;During error recovery, contains pointer to a stack frame
+                                    ; which contains saved status of the main stack group.
+                                    ; (Preventing it from being lost when the foothold is
+                                    ; running.)
+      ((SG-STATE)
+       (SG-CURRENT-STATE 0006)      ;state of this stack group
+       (SG-FOOTHOLD-EXECUTING-FLAG 0601)        ;not used
+       (SG-PROCESSING-ERROR-FLAG 0701)          ;taking error trap (detect recursive errors)
+       (SG-PROCESSING-INTERRUPT-FLAG 1001)      ;not used
+       (SG-SAFE 1101)
+       (SG-IN-SWAPPED-STATE 2601)   ;we are in the swapped state
+       (SG-SWAP-SV-ON-CALL-OUT 2501)        ;if this is on in the caller, or
+       (SG-SWAP-SV-OF-SG-THAT-CALLS-ME 2401))       ;   this in the callee, then swap
+      SG-PREVIOUS-STACK-GROUP       ;Stack group who just ran
+      SG-CALLING-ARGS-POINTER       ;Pointer into previous stack group's REGPDL to
+      SG-CALLING-ARGS-NUMBER        ;   the args passed to us.
+
+      SG-REGULAR-PDL-POINTER        ;Saved pdl pointer (as index into regular-pdl array)
+      SG-SPECIAL-PDL-POINTER        ;Saved A-QLBNDP (as index into special-pdl array)
+ ;      SG-AP                       ;Saved M-AP
+ ;      SG-IPMARK                           ;Saved A-IPMARK
+      SG-TRAP-MICRO-PC              ;Address of last call to TRAP
+
+      SG-SAVED-VMA              ;Pointer field of VMA as a locative
+      )
+
+
+
+               ==================== Comments ====================
+
+[smh 23sep88]
+
+        "This proposal details how we reformat the various falcon stacks into stacks
+        which look very much like the LAMBDA."
+
+   It doesn't, really.  This proposal is mostly about justifications for doing
+things this way rather than some other way.  It would be nice if the proposal
+listed the _what_ in addition to the _why_, that is:
+
+  - What modules/functions would have to be written?  By whom? (Presumably RG.)
+  - Sketch (at least) the data structure definition for a STACK-GROUP.
+  - What code would have to be modified to call the new stuff?  What are the
+    implications for, say, the trap handler?
+  - When should this project be done?  When is the earliest it could start because
+    of dependencies on other tasks?  When is the latest it could start because of
+    dependencies upon it?
+  - How long will this project take to write, debug, and integrate?  While in
+    process, might it poterntially cause additional flakines that would affect
+    other development?
+
+
+I don't see why it is ever necessary to copy the extraneous pdl.  The extraneous
+pdl is accessed via a general register.  When a stack group is resumed the
+extraneous pdl pointer could simply be loaded with the ``current'' pointer saved
+in the stack group, with the actual vector of data staying ``in-place'' in the
+stack group.  The two problems this leaves to resolve are: (1) detecting and
+handling overflows so the extraneous pdl can be grown; and (2) guaranteeing the
+gc doesn't move the beast, or if it does, that doing so doesn't break anything.
+
+
+     mechanism of call hardware load-unload itself
+        a small overhead may occur due to this mapping, etc, as compared to simply
+        storing out the hardware in a fixed place, etc.   This is insignificantly
+        small and may not ever exist since the code required is comparable.
+
+I don't understand this.  It is really unclear what is being compared to what
+with regard to efficiency.
+
+
+     catch and throw.  Storing things out and reloading to implement "stack molesting"
+        operations could introduce some overhead.
+
+"Could" should here read "will".  It would be reasonable to claim that the
+overhead will be acceptible, and that the more-efficient alternatives would be
+very messy to implement, but some evidence to both points should be provided.
+
+
+In summary, I don't disagree with the conclusion of this proposal, but for
+planning purposes it would be better to spell out more of the implementation
+details and implications before commencing the implementation , or even accepting the proposal.
+
+====================
+-JIM
+
+I disagree with the point that what the programmer wants to see is a
+stack machine. I would argue that what the programmer wants to see is an
+accurate model of the internal state of the machine. Particularly in
+a debugger it is important to preserve what appears on the screen
+and what is in the actual hardware.
+
+I would like to understand the format of the stacks in a stack group.
+It seems to me that getting argument and local's information
+may be a little tricky and I'm sure that educating everyone as
+to how it will be done would be useful.
+
+It seems to me that this proposal should address the issue of
+returning from an arbitrary frame also.  |||rg 10/4: The only problem
+in returnning from an arbitrary frame arises because of the FLEABIT
+compiler's lack of framing on the EXTRANEOUS-PDL and SPECIAL pdl.
+The mechanism described can preserve whatever framing thats there, but obviously can't
+manufacture information where there is none.  The issue of the
+EXTRANEOUS-PDL does need to be worked out but the details are not directly
+relavent to STACK-GROUPS.  I agree that any new proposal for calling
+conventions should assure that all PDLs are properly framed.|||
+
+In the beginning of the proposal, one of the arguments for
+doing it is "economy of mechanism." Later in the proposal
+it is suggested that "short throw" could be implemented
+as a different piece of code. Are there other "special"
+pieces of code that will have to be implemented? It seems
+to me that such a "critical" piece of system code should
+only be written once and that if it needs to be duplicated
+we have the wrong modularity.
+***************
+
+[pfc 30sept88]
+
+        I read through the proposal and Steve's comments and fixed a few typos.
+
+        Some questions:
+
+                Will stack groups be implemented for the current boards ??
+
+                How do the proposed call hardware changes for the chip impact stack groups ??
+
+
+====================

@@ -1,0 +1,206 @@
+@c compiled-functions.botex
+@c
+@c 31-Dec-87, EFH
+@c 04-Apr-88, James Rauen
+
+@chapter Compiled Functions
+
+@section Static Linking
+
+   Some of the great features of Lisp systems are dynamic linking
+and run time argument checking.  Dynamic linking allows the
+redefinition of functions at run time.  A function may be
+redefined (to fix a bug for instance) and functions that call it
+will automatically get the new version next time they call it.
+In addition the number of arguments passed is checked at run
+time, and most Lisp systems do a generic function call, allowing
+the free mixing of compiled and interpreted code.
+
+   The overhead for dynamic linking is high however, at least an
+indirection through a symbol or function cell.  Usually there is
+also a run time check of the number of arguments, dispatching on
+the type of the function called, setup for optional arguments and
+so on.
+
+   Most languages such as C and Pascal avoid this overhead by
+using static linking.  Before any code is run, all functions must
+be linked together with pointers directly to the called function.
+Number of arguments is checked at link time.  The disadvantage of
+this approach is the lack of flexibility, any change to the
+program requires relinking of the entire program.  This makes
+incremental development difficult.
+
+  The K machine has a scheme for retaining all the flexibility of
+the Lisp Machine dynamic linking while attaining the speed of
+static linking.
+
+  Each function object contains link information about its entry
+points and what functions it calls with how many arguments.
+
+  A function call instruction contains a direct pointer to an
+entry point of the called function it wishes to call.  When a
+function is redefined, the old function is "killed": all the
+instructions of the function have a special "static link bit"
+set.  This bit causes a trap at the time the instruction is
+fetched.  The call instruction is still executing and is the
+trapped instruction.  The trap handler finds the function object
+for the instruction at the trapped pc and then looks up the
+actual function being called in the link information.  The call
+instruction is then relinked and reexecuted.
+
+  In some cases, such as a return to a changed function or a call
+of the actual function object rather than its symbol, the old
+function must be called.  In this case the killed function must
+be "resurrected".  A copy of the killed function is made and that
+is called instead.  The original copy must remain killed for any
+calls which are still linked to it. 
+
+  The dead bit also allows static linking to work with incremental
+garbage collection.  Functions in oldspace have the dead bit set,
+the trap handler detects this case and transports the function.
+
+
+The Details
+
+  The linker is contained in the file WARM-LOADER along with
+the loader.
+
+  A function object is contains the following link information:
+
+ENTRY POINTS
+
+  The entry points are a set of pairs of number of arguments and
+offsets into the function.  The function:
+
+  (defun foo (a b &optional c) (bar a b c))
+
+has entry points #(3 1 2 0).  Functions which call FOO with three
+arguments enter the function at one instruction after the
+starting address, functions which call it with two arguments
+enter at the starting address.
+
+  Functions which take a rest arg have a negative number in the
+number of arguments part of a pair.  This indicates that the
+specified offset is good for calls passing a number of arguments
+greater than or equal to the negative of the number minus one.
+(The minus 1 is because zero cannot be negated therefore greater
+than or equal to zero arguments is specified by minus one).  The
+function:
+
+  (defun foo (a &rest x) (bar a x))
+
+has entry points #(-2 0).
+
+REFS
+
+  The refs list all the functions called by a function.  They are
+a set of triples of the offset of the call within the calling
+function, the name of the function called (usually a symbol), and
+the number of arguments it is called with.  In the function:
+
+  (defun foo (a b) (bar 1 2 3) (baz a b))
+
+the refs are:
+
+  #(4 BAZ 2
+    2 BAR 3)
+
+ie, BAZ is called at offset 4 with 2 arguments, and BAR is called
+at offset 2 with 3 arguments.
+
+
+  The function GET-ENTRY-ADDRESS finds the address to which a
+call is linked.  It takes the called function object, the number
+of arguments, the calling function, and the address of the call.
+It returns an address for the call instruction.  If the function
+cannot take that many arguments, the address of an error function
+is returned which will signal wrong number of arguments.
+
+  When the called function is called with a rest arguments, the
+number of arguments must be passed to the function.  This
+requires adding an extra instruction to move the number of
+arguments into a register.  Since it would be difficult to make
+functions grow and shrink, a small two instruction piece is
+consed which looks like this:
+
+   (MOVEI GR:*ARG-1* <nargs> BOXED)
+   (JUMP <fcn> ())
+
+the address of this piece is returned by GET-ENTRY-ADDRESS and is
+put in the call instruction.
+
+  When a call to a dead function occurs, the call is relinked by
+the trap handler.  The trap handler has the PC of the call, it
+must find the function object containing the call to find the
+link information for the call.  The function
+GET-COMPILED-FUNCTION-FROM-PC does this.  When a function is
+loaded an illegal instruction is placed before the first
+instruction.  The lower half of this instruction contains a back
+pointer to the compiled function object.
+GET-COMPILED-FUNCTION-FROM-PC searches back from the call
+instruction, until it sees the illegal instruction and returns
+the compiled function object.  The offset of the call instruction
+can then also be deduced.
+
+  The two argument link for rest args also has an illegal
+instruction header; but instead of containing a pointer to a
+function it contains a locative pointer to the original call
+instruction.
+
+  References to functions which are undefined at link time are
+linked to UNDEFINED-FUNCTION.  It will attempt to find the
+function at run time and jump to it.  The link to
+UNDEFINED-FUNCTION will be snapped so the next time the called
+function will be called directly.
+
+
+@subsection Calling Conventions
+
+      Arguments to functions are passed in the registers of the
+      opened frame and on the stack. The first 16 arguments will
+      be passed in registers, and any after that will be allocated
+      on the stack.
+
+@subsubsection Optional Arguments
+
+        Optional arguments are passed in the usual way. The calling
+        function must enter the routine at the right entry point for
+        the number of arguments being passed. That entry point will
+        then take care of setting all the non-passed arguments to
+        their default values.
+
+@subsubsection &REST Arguments
+
+        When a function that takes &REST args is called, the
+        number-of-arguments (NARGS) must be put in the global
+        register GR:*ARG-1*. Since the compiler doesn't know if the
+        function being called wants rest args or not, it doesn't
+        produce code to load *ARG-1*. The linker will produce a two
+        instruction code block containing the following
+        instructions:
+
+             (MOVEI GR:*ARG-1* '<nargs>)
+             (JUMP  <function>)
+
+        The call will then be made to this block instead of the the
+        function directly. The back pointer for this linkage code
+        will contain a unboxed-locative to the call instruction.
+        This allows linkages to be distinguished from normal
+        functions which have compiled function pointers.
+
+        The entry code for rest args will call CONS-REST with the
+        number of args before the rest point, and the number of args
+        passed. The extra's will then be consed into a list and
+        returned as the rest arg.
+
+        When FUNCALL or APPLY call a function expecting &REST args,
+        they will enter two instructions beyond the normal rest arg
+        entry point since they have already consed the rest arg
+        list.
+
+@subsubsection Keyword arguments
+
+        Keywords work identically to rest args, except that after
+        consing the list, GET-KEYWORD-ARG-VALUES is called to assign
+        the keyword arguments to the appropriate registers or stack
+        locations.

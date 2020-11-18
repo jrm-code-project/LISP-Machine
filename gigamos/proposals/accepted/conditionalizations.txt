@@ -1,0 +1,222 @@
+-*- Mode:Text -*-
+
+
+
+              Lambda System Source Code Conditionalization
+
+                                 for the
+
+                            Falcon Processor
+
+                      (smh 8Aug88/revised 26Aug88)
+
+
+
+SUMMARY:
+
+
+
+     This proposal puts forth the starting point for a mechanism by
+which a single set of Lisp system source files may be conditionalized
+and maintained to compile and run on the Lambda, K, and other (known)
+processors.
+
+
+
+
+BACKGROUND:
+
+
+
+ The Problem Introduced By The Cross Compiler
+
+
+  While certain files implementing either low-level system functionality
+or system-specific facilities may contain machine-dependent code (and
+therefore must be maintained separately), the bulk of system files that
+implement the LISP language and most LISP Machine tools are primarily
+machine-independent in their coding.  This means that they require only
+occasional conditionalization, when complete knowledge about either the
+run-time target processor execution environment is unavailable at
+code-writing/code-compilation time.  The existence and behavior of the
+cross compiler, however, adds significantly to the complexity required
+for a consistent conditionalizing mechanism.
+
+
+ Run-Time Code Conditionalization
+
+
+  When run-time parameters such as processor type and/or loaded system
+options are unknown to the code writer, conditionalizations must be
+written into the code itself to cover multiple contigencies.  One way of
+providing such conditionalizations is to have code that explicitly
+checks the status of the machine at run time.  This is a feasible
+alternative if the condition being checked is something which cannot be
+determined at compile time, such as whether a floating-point accelerator
+exists on the machine which will run the code.
+
+  However, run-time machine status has no bearing on processor type
+conditionalization.  There is no reason for code written to run on a K
+processor to test whether it is running on a Lambda.  This `test' is
+performed implicitly at compile time.
+
+  The normal way of invoking compile-time conditionalization is with the
+read-time conditionalizers #+<FEATURE> and #-<FEATURE>.  These examine
+whether :FEATURE is present on the system's *FEATURES* list.
+
+  However, this mechanism is insufficient when conditionalizing for
+cross compilation.  [Note: For the purposes of this discussion, a cross
+compiler is invoked to compile code written on a SOURCE MACHINE, with
+the intention that its compiled output code will be executed on a TARGET
+MACHINE (or a simulation thereof).]  The conditionalization occurs at
+read time on the source machine, and so the target machine never sees
+any code that was not strictly source machine compatible.
+
+  For further information on cross compiling and maintaining
+target environments at compile time, see the information file named
+"JB:PROPOSALS.BACKGROUND;CROSS-COMPILING.TEXT".
+
+
+
+IMPLEMENTATION:
+
+
+
+ An Extension To Run-Time Code Conditionalization
+
+
+  A proposed extension to the #+ and #- reader macros would support
+cross compilation for multiple target processors.  The TARGET macro
+would understand a new keyword symbol which performs conditionalization
+with regard to SI:*TARGET-FEATURES*.  This is best illustrated by an
+example:
+
+        (defconstant pi #+(target lambda)
+                          ;; Use this value if running on a Lambda:
+                          3.14285s0
+                        #+(target falcon)
+                          ;; Use this value if running on a Falcon:
+                          22/7
+                        #-(target (or lambda k))
+                          ;; Use this value if running on neither:
+                          3.1415926s0)
+
+  The new variable *TARGET-FEATURES* contains a list of features, which
+is consulted by the reader for #+(target ...) or #-(target ...)
+constructs, in the same manner as it currently consults the *FEATURES*
+list.  *TARGET-FEATURES* is bound by the cross compiler only.  If
+*TARGET-FEATURES* is bound to NIL (its normal value), then the reader
+will conditionalize on the source machine's features list (*FEATURES* on
+the Lambda), rather than on *TARGET-FEATURES*.  Hence, TARGET-style
+conditionalizations will may still be used outside of code that is being
+cross-compiled.
+
+  For completeness, the syntax #+(LOCAL ...) is also understood and
+forces conditionalization to source machine compatibility.  It would be
+used in the unlikely event that some feature or property of the source
+machine were needed for a conditionalization occurring inside a
+"#-LOCAL" (read, "To be compiled for a machine other than the source
+machine") cross-compilation environment.
+
+
+
+  The following table indicates the current initial values of the
+local features lists for the Lambda and Falcon systems:
+
+
+
+
+    Machine             Lambda          Falcon
+
+
+    Feature List Name   *FEATURES*      COMPILER:*FALCON-FEATURES*
+
+
+    Initial Features    :LAMBDA         :FALCON
+                        :LEXICAL        :LEXICAL
+                        :COMMONLISP     :COMMONLISP
+                        :LOOP           :LOOP
+                        :DEFSTRUCT      :DEFSTRUCT
+                        :LISPM          :LISPM
+                        :MIT            :MIT
+                        :LMI            :LMI
+                        :COMMON         :COMMON
+                        :CHAOS          :CHAOS
+                        :SORT           :SORT
+                        :FASLOAD        :FASLOAD
+                        :STRING         :STRING
+                        :NEWIO          :NEWIO
+                        :ROMAN          :ROMAN
+                        :TRACE          :TRACE
+                        :GRINDEF        :GRINDEF
+                        :GRIND          :GRIND
+
+
+
+
+  [Note that the initial Falcon Features list is identical to the
+initial Lambda Features List, except that the ":LAMBDA" feature is
+replaced by the ":FALCON" feature.]
+
+  The conditionalization symbol used to ensure Lambda processor
+compatibility on should always be #+LAMBDA.  The conditionalization
+symbol for the Falcon (and all related processor names, such as "K" and
+"Phoenix") should always be #+FALCON, as later versions of the Falcon
+system may use a different conditionalization symbol.  Failure to
+conform at this stage will add to the complexity of any future
+switchovers.
+
+  Certain functions are shared by the Lambda and Falcon compilers.  An
+example of such code is the optimizer.  Such code should
+use calls to ECASE to dispatch on the value of the variable
+COMPILER:*TARGET-COMPUTER*, which will always have either the value
+COMPILER::K or the value COMPILER::LAMBDA-INTERFACE.
+
+
+
+OPEN ISSUES:
+
+
+
+  It is still an open issue as to what sort of conditionalization scheme
+should be used for conditionalizing on the various operating-system
+hosts possible.  Such conditionalization could occur either at compile
+time or at run time.  Since space is at a premium, compile-time
+conditionalization would seem to be preferable.
+
+  Also open is the scheme for actually indicating that a
+conditionalization is to occur in code.  The current scheme rests on the
+shoulders of the programmer the entire burden of ensuring that the
+layout of the code makes clear to future human readers the intent of the
+conditionalization.  The current "#+" and "#-" scheme has the
+disadvantage of having an implicit "(WHEN x y)" (or, worse, in the case
+of #-, a "(WHEN (NOT x) y)" control structure.  It would clearly be
+preferable to employ an "(IF x y z)" control structure of some kind.
+Such a conditionalization scheme would be general (just as an IF
+statement without a third clause is semantically equivalent to a WHEN
+clause).
+
+  Ideally, of course, would be something which had as its implicit
+control structure something similar to
+
+      (ECASE processor-variable
+        (x ...)
+        (y ...)
+        (z ...)
+        .
+        .
+        .)
+
+One restriction worth noting for such a scheme is that the LISP reader
+must be prohibited from reading or interning any objects in the
+non-pertinent clauses.  This essentially means that any such mechanism
+would have to be built *around* LISP's parenthesis structure, just as
+with the "#" mechanism.
+
+
+
+COMMENTS:
+
+
+
+STATUS: Open

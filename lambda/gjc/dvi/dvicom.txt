@@ -1,0 +1,44 @@
+Compilation log started at 4-Sep-87 12:36:45 by "keith" for
+ INPUT: #FS::LM-PATHNAME "EXP1: GJC.DVI; DVICOM.LISP#15"
+ OUTPUT: #FS::LM-PATHNAME "EXP1: GJC.DVI; DVICOM.QFASL#1"
+
+
+
+
+Compilation complete at 4-Sep-87 12:36:56
+10.87 seconds realtime 1.41 seconds disk wait
+
+The automatic garbage collector is enabled,
+and has recently condemned 351,892 words of volatility 2 storage.
+
+There are 14,073,851 words of dynamic space, 1,590,877 words of static space, and
+11,819,992 words of free space.  Free space consists of 9,404,416 words of unallocated
+storage plus 1/2 of the 4,831,137 words of storage already allocated to specific
+regions but not yet used.
+
+Dynamic space storage distribution:
+
+      Level      Current Size     Threshold      Mode
+        3              34,263       139,810      Flips when size exceeds threshold.
+        2               2,681 (+ 351,892 condemned words)
+       349,525      Flips when size exceeds threshold.
+        1           7,477,596          None      Automatic flipping disabled.
+        0           6,559,311        Passed      Automatic flipping disabled.
+
+Of the 351,892 words of condemned storage, 109,026 words have already been evacuated
+to copyspace.  The scavenger has scanned 78% of the existing scavengeable storage,
+with somewhere between 3,457,464 and 3,700,330 words of storage yet to be scanned.
+Up to 242,866 words of free space may be required to contain additional evacuated objects.
+
+  Total:  Level 0:  Level 1:  Level 2:  Level 3:
+Flips:  14  0  0  1  13
+Words condemned:  2,203,181  0  0  351,892  1,851,289
+Words reclaimed:  1,701,319  0  0  0  1,701,319
+Reclamation ratio:  77.2%  0.0%  0.0%  0.0%  91.9%
+Transporter CPU time:  3.5  0.0  0.0  1.0  2.5
+Transporter disk time:  1.7  0.0  0.0  0.7  1.0
+Scavenger CPU time:  9.7  0.0  0.0  2.0  7.7
+Scavenger disk time:  0.7  0.0  0.0  0.5  0.3
+Cost per word reclaimed:  9.4  NIL  NIL  NIL  6.8
+Active processor utilization:  28.3%  0.0%  0.0%  46.1%  24.6%
+Total processor utilization:  0.0%  0.0%  0.0%  0.0%  0.0%

@@ -1,0 +1,18 @@
+ZMail now handles mouse clicks more robustly in message editing mode.
+
+If, while editing a message in the bottom (message text) window, a user
+clicks any mouse button in the top (summary) window, the editing is
+saved, :edit mode is exited, and Zmail jumps to the clicked-on message
+line.
+
+If, while editing, the user clicks on a menu command, ZMail warns the
+user that menu commands are not executable from within :edit mode, and
+then fquery's the user as to whether or not to exit :edit mode at that
+time.  If the user responds with "Y", :edit mode is exited, all editing
+to the message is saved in the body of the message, the user is
+presented with a reminder to reclick to execute the particular menu
+command, and the top level command loop is re-entered.
+
+If the user responds with "N", then ZMail simply reminds you that the
+<End> and the <Abort> keys may be used to exit an edit session when you
+are finished with the text.

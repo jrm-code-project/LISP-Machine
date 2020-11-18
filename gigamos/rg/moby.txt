@@ -1,0 +1,510 @@
+
+;  COPYRIGHT LISP MACHINE INC 1985
+;    CONFIDENTIAL
+;  This file contains trade secret information of Lisp Machine Inc.
+;   (However, I (RG) and LMI (to some extent) state their intention of making
+;   this technique "OPEN" at an appropriate time.)
+
+;This file begun on 2/13/85.  The MOBY-ADDRESS scheme was conceived on 2/10/85.
+
+;  The MOBY ADDRESS(c) Technique.
+
+;BACKGROUND:
+;  One of the most important characteristics of a computer system is its "address space".
+;This basically determines how large a program can be run, and until now has been thought
+;of as a hardware determined parameter.  For example, the address space of the LMI
+;LAMBDA processor has been said to be 2**25. of 32. bit words, and this number is determined
+;by the width of certain hardware data paths, the size of certain mapping memories, etc.
+;Although there have been various attempts to run larger programs than the basic address space of
+;the computer involved, they have usually proved (much) less than successful.
+;"Overlaying", for example, is one well known graveyard.  The MOBY ADDRESS(c) technique
+;is a fundamental advance which allows the logical address space (now identified
+;as the MOBY space) to be decoupled from the underlying hardware address space
+;(now identified as the LOCAL space.)  Once decoupled from hardware, only software considerations
+;limit the size of the MOBY space.  The baseline scheme we consider here, for example,
+;provides 57 bits of address.  The feasibility of such large address spaces makes fundamental
+;differences possible in the way addresses are treated.  For example, with such a large address
+;space it becomes possible to make every address which ever existed or will exist running LISP
+;machine environment unique.  (For example, each time a machine was booted it might be assigned
+;a 25 bit chunk of address space, which would never again be reused.)  This, in turn,
+;makes it possible to implement pointers from any LISP machine's evironment directly to
+;any other.  This has far reaching consequences for the possibility of employing multiple
+;processors on a single problem in an effective manner and on the problem of "stable" storage,
+;to name only two important practical problems.
+
+;BASICS
+;  Virtual memory systems are commonplace in current day computer systems.
+;Virtual memory systems evolved in response to a need to run larger programs than the
+;available amount of physical primary memory (referred to as core memory).
+;With a virtual memory system, a large amount of core memory can be simulated by the
+;combination of a smaller amount of core memory plus a large backing store (usually a disk).
+;This disk need not possess truly random access capability, and typically has a cost per bit
+;several orders of magnitude less than core memory.   Basically, the image to be run
+;is maintained on the disk, but parts that are actually active are "swapped-in" to core.
+;The amount of core available affects only the number of swaps (and thus the time) necessary
+;to run a given program; the ultimate answer will always be the same as if
+;the entire amount of physical core had existed (ignoring time-dependancies etc.)
+;A virtual memory system, then, decouples the virtual address space
+;from the physical address space. However virtual addresses are still dealt with directly
+;by hardware, and thus their sizes are limited by the width of certain hardware data paths.
+; In the usual virtual memory system, the data on disk is maintained in exactly the same format
+;as the format in which it is used in core.  Thus, swapping operations consist merely of
+;transferring data from core to disk or vice versa.
+; A MOBY ADDRESS(c) system operates similarily, with a key difference.  The data format on disk
+;is not the same as the data format in core.  In core, data with hardware determined
+;pointer widths, etc, exists exactly as usual.  These addresses are now identified as LOCAL
+;addresses.  On disk, however, the data storage form is different, not a simple image of that
+;used in core.  For example, two 32-bit words on disk might be used to represent each 32 bit
+;word which exists in core.  This, then, allows a larger pointer width, if desired.  The baseline
+;scheme presented here, used with usual LAMBDA storage conventions, allows a total MOBY ADDRESS(c)
+;pointer width of 25.+32. equals 57. bits.  Note that during this format conversion,
+;it is necessary to distinguish pointer data (which should be converted) from non-pointer
+;data (numbers, strings, etc) which must not be affected.  This is possible on a tagged
+;machine (such as a LISP machine), but not easily possible on a conventional computer.
+;  For concreteness we assume the LOCAL address
+;space is 2**25 and the MOBY space 2**57 although, of course, other sizes are possible.
+;Also, for concreteness, we will refer to the values of other parameters of the LMI Lambda
+;system, such the page size of 2**8, where appropriate.
+
+;RECONCILATION
+;  Swapping operations in a MOBY ADDRESS(c) system are not quite as simple as in a
+;straightforward virtual address system.  To effect a swapin, the MOBY ADDRESSes present on disk
+;must be converted to LOCAL addresses, a process referred to as RECONCILATION.
+;Similarily, a swapout involves the conversion of LOCAL addresses to MOBY ADDRESSes, which
+;is called DERECONCILATION.  To implement reconcilation and dereconcilation efficiently, the
+;system maintains data structures, which associate, perhaps on a per page basis, each LOCAL page
+;with its current MOBY page.  Since there are many more MOBY pages than LOCAL pages,
+;each MOBY-LOCAL association must be in some sense transitory.
+
+; A MOBY ADDRESS system must eventually provide for recycling of LOCAL addresses.  Consider a
+;program which scans through 2**26 words.  After 2**25 words have been swapped in, all
+;LOCAL addresses have been associated with MOBY addresses and the process can not go
+;forward unless some LOCAL addresses are recycled.
+;  However, practically speaking, a lot of address space can be touched before recycling
+;is necessary. The MOBY recycling limit is a bit "farther away" in some sense than
+;the conventional garbage collector limit in that the full 2**25 local addresses space
+;can be used before it is absolutely necessary to face the recycling problem.
+
+; $69 Question: when is it safe to recycle a LOCAL address and how is the system to know
+;this in practice?
+
+; Answer: It is safe to recycle a LOCAL address page and use it to swap in a different MOBY page
+;  if and only if there are no LOCAL pointers to that page in existance.  Note that LOCAL
+;  pointers on the page itself should not be counted.
+
+;  One way to determine how many LOCAL pointers point to each LOCAL page without special hardware
+;is to make a COUNT pass over the entire LOCAL data structure.  In a typical
+;practical system, this would result in a noticable, but probably not intolerable delay,
+;particularily if the entire LOCAL database is retained in physical core memory
+;(in a IMPURE MOBY scheme we consider below, it might not be).  A system with 1 million words
+;of core might COUNT in about 1 to 5 seconds, for example.
+;  With special hardware (which might well be developed and patented by LMI), these counts
+;could be maintained incrementally by hardware with essentially no system slowdown.
+;(The optimization of not counting pointers to their own page could also be dealt
+;with by hardware).
+
+;Incremental Reconcilation
+; For various reasons, it is advantageous to allow the reconcilation process to be
+;incremental, instead of requiring an entire MOBY page be reconciled to a LOCAL page
+;immediately when it is swapped in.  To implement this, the individual Qs on the LOCAL
+;page which have not yet been reconciled are filled in with DTP-UNRECONCILED data type.
+;DTP-UNRECONCILED pointers are never allowed to enter "the machine".  When an attempt
+;is made to bring a DTP-UNRECONCILED pointer into the machine, an immediate trap occurs
+;and that pointer is RECONCILED before further computation can proceed.
+; DTP-UNRECONCILED pointers can also be used in conjunction with DERECONCILATION.
+;Any typed Q in LOCAL memory can be changed to a DTP-UNRECONCILED pointer
+;whenever desired. (Of course, if the page involved is writeable and has been written,
+;the corresponding MOBY Q must be updated with the DERECONCILED LOCAL pointer).
+;If any attempt is made to use such a pointer, a trap will occur and it will be RECONCILED again.
+
+;  When all available LOCAL space has been associated with MOBY space,
+;it possible that no LOCAL pages with zero reference counts will exist to recycle.
+;  In such a situation, the system must DERECONCILE some LOCAL pointers and try again
+;in the hope that the LOCAL reference count of some LOCAL page has been reduced to zero.
+;In a LOCAL address space of 2**25, there are 2**17 pages.  If all have a non-zero pointer count
+;there must be at least 2**17 pointers to them, which would occupy at least 2**9 pages.
+;  So in the extreme worst case, operating blindly, it might be necessary to DERECONCILE
+;almost everything except 2**9 pages worth before the LOCAL reference count of any page
+;was reduced to 0. However, typical cases are expected to be far, far better than this.
+
+;  This worst case situation can be greatly improved by a selective DERECONCILE.
+;After a COUNT pass, (or at any desired time if incremental COUNT hardware is available),
+;histogram the per page reference count data.  N free local pages can be obtained in one
+;DERECONCILE sweep of the LOCAL data structure as follows: Set a threshold by consulting
+;the cumulative page reference data from the histogram.  During the sweep, any reference
+;to a page with fewer references to it than this threshold would be DERECONCILED.
+;No pages would actually be swapped out, except the desired N, however, so at completion
+;of the sweep the system would retain 2**17-N pages of immediately usable LOCAL data.
+;  Such a selective DERECONCILE could itself be done on an incremental basis if
+;COUNT hardware is available.  A background process (or processor) could simply scan LOCAL space.
+;As each pointer is passed, if it points to a LOCAL page with a suitably low reference count
+;(and perhaps meeting other conditions), that pointer is DERECONCILED.  If this reduces
+;the LOCAL reference count of the page to 0, the page is put back on the available list.
+;Prior to actually recycling a LOCAL page (which could result in that MOBY address eventually
+;getting swapped in to a different LOCAL page), the state of the central processor must be
+;"dumpped out", which then assures that the reference counts are completely accurate.
+;(The reference counts normally count only pointers contained in core memory, not those
+;contained within "the machine".)
+
+;The MOBY cache.
+;  It is likely a good idea to keep a cache of recently processed pages, represented in MOBY form.
+;They are then available to the incremental reconcilation process, etc.  Also, if the
+;pages involved are writable, they may be needed for updating during the DERECONCILATION process.
+
+;The Keeper
+;  When a MOBY pointer is referenced, the storage being referenced might exist on any
+;Lisp machine! Likely, various databases and servers would exist to aid in determining which
+;machine was the "KEEPER" of the desired data.  For simplicity, we assume there is exactly
+;one KEEPER of any given address, although one can imagine schemes where, for redundancy
+;or other reasons, this is not true. The KEEPER is defined to be that machine which normally
+;stores the given data on its disk.  Such data
+;can be "checked out" by other machines, and each KEEPER maintains records of who has checked out
+;what data that this KEEPER is keeping.   Each machine which checks out data also keeps records of
+;what data has been checked out from which machines.  In the event a machine crashes, it sends out
+;a wakeup message when it reboots.  This invokes recovery proceedures to assure global data base
+;consistancy.
+
+;access patterns.
+;  The process of RECONCILEing a large program which was KEPT on a remote server might
+;involve excessive latency as messages are sent back and forth, etc.  To improve this situation,
+;it might be advisable to transfersections in bulk slightly ahead of the actual need.
+; Eventually, a fancy adaptive system might optimize
+;this, recognizing a reference pattern and predicting future references.
+;(This sort of live data is very hard to accumulate and use effectively in present systems.)
+
+;multiprocessor issues:
+;  We consider the case of several processors, each with its own LOCAL space, working
+;off the same MOBY space.  The basic pointer mechanism works nicely, however, we still face
+;the problem of assuring consistancy of the same MOBY location as seen by several processors.
+;  The first important case is that of READ-ONLY data.  There is clearly no problem with
+;read-only data, and this points out the importance on identifing all READ-ONLY data as
+;such to the system.  Read-only data is duplicated by each processor into LOCAL space,
+;as necessary.
+;  With read-write data, the KEEPER maintains maintains a record of which other computers
+;have or may have "checked-out" the section, page or Q invovled.
+
+; WRITABLE data can be divided in four types, uniquely represented, automatically interlocked,
+;manually interlocked and unsafe.
+
+; Uniquely represented data is represented by a single current copy.  It can be safely modified
+;    by whoever possesses it without further ado.  However, means must be provided
+;    for the normal "keeper" of the data to remember who, if anyone, has checked-out
+;    the official copy.   One who checks out data must be prepared to respond to a
+;    disgorge message (instructing him to send either return the official copy to
+;    the KEEPER or send it to a third party.).  The disgorge operation is implemented
+;    by DERECONCILING the data in the local environment.
+
+; Automatically interlocked data is used where writes are possible, but rare.  The data
+;  is duplicated as with read only, and all users must maintain it in a read-only mode.
+;  If a write should occur, a fault will be taken.  That user must exchage confirmation
+;  with all other users who have checked out the data before a modification is allowed.
+;  In case two users attempt to modify the data simultaneously, it is important only that
+;  all copies of the data get updated consistantly.  This can be arranged..
+
+; Manually interlocked data allows writes to proceed with minimal delay to the process
+;  doing the write.  The data is set up read-only in the hardware.  If a write
+;  happens, advisory messages are sent to other checked-out users.  However, since the
+;  writing process is not delayed, it is possible that another machine could read the old
+;  data even well after the write has been completed in the writing machine and program
+;  execution proceeded.  A primitive ASSURE-MOBY-CONSISTANCY is provided, which waits
+;  for advisory messages.   After this returns, all reads done by any machine must see
+;  the new data.
+
+; unsafe
+;  ignores the problem.  User can send a "Here's what I think this data is" at any time,
+;    if someone pipes up and disagrees, they can argue it out.
+
+
+;WRITE-ONCE address space.
+;  Has the property that it can be CONSed in, but never thereafter modified.
+;It is a valuable resource for dealing with data bases which are built by multiple processors
+;simultaneously without excessive locking delays.
+
+;Note that the uniqueness of the MOBY addresses allows many simple operations to be
+; efficiently performed in the KEEPER (either directly on the MOBY database or
+; LOCALizing it).   For example, a request to do a LISP GET can be sent
+; across the ethernet as three moby-addresses (an operation and two arguments).
+; the reply is a single MOBY-ADDRESS, etc.
+
+
+;SECTIONS
+;  A SECTION is a group of MOBY pages, which occupies one or more contiguous ranges of
+;MOBY address space.  (Typically, though, we visualize a SECTION as occupying only a few
+;such ranges if more than one.  At some point, the SECTION would be recopied and compacted
+;into a small number of ranges if it became excessively fragmented.)
+;  SECTIONS serve a role in reducing the size of data bases necessary to effect
+;RECONCILATION and DERECONCILATION.  Perhaps more importantly, SECTIONS provide a mechanism
+;to control the "globality" of the MOBY address space.  For example, it would not really
+;do to have every process in the universe sharing a single copy of the LISP atom NIL,
+;because what happens if somebody clobbers it?   Similarily, if a machine crashes
+;at an arbitrary time, assuring that the global data base is again consistant presents
+;non-trivial difficulties.
+;  SECTIONS are a mechanism for beginning to deal with such problems.  One primary idea is
+;that a SECTION can have a COPY-ON-WRITE attribute.   Thus each processor can map in and use
+;the base section, but if any write operation occurs, the prime copy is not modified.
+;Instead, a MAPPED SECTION arises (as distinguished from the original section which is
+;called a DIRECT SECTION) which consists of new copies of any pages that have been modified
+;plus the original pages where they have not been modified.  The MAPPED SECTION continues
+;to occupy the same MOBY ADDRESS space as the original (plus more perhaps, if it has
+;grown larger).   To keep track of these copies, we introduce the idea of ENVIRONMENTs,
+;discussed further below.  In brief, the current ENVIRONMENT specifies which copy of each
+;known SECTION is actually in use at a given time by a given processor, plus information
+;which controls the selection of active copies of other SECTIONs which may become known.
+;  A SECTION has a human sensible name, and can appear in directories, be deleted, etc.
+;In this way, a section is somewhat similar to a conventional FILE.  SECTIONS also
+;have some similarity to LISP machine AREAs, in that a CONS operation in MOBY space occurs
+;with respect to a SECTION.
+
+;RECONCILATION and DERECONCILATION with SECTIONS.
+;  Using SECTIONs, the operations of RECONCILATION and DERECONCILATION can be considered
+;in two phases.  First there is the SECTION level ASSOCIATE operation which assigns an
+;appropriately sized hunk of LOCAL address space to the MOBY address space of the particular
+;SECTION.  Individual pages are then processed in either direction as called for.
+;  By making ASSOCIATE entires at the SECTION level in the RECONCILATION data base, its size is
+;greatly reduced.  (However, we still provide for PAGE and Q entries under the section
+;entry in some circumstances).
+
+;  Using SECTION based LOCAL - MOBY ASSOCIATIONs implies that the reference counts,
+;mentioned above, might really be kept on a SECTION basis rather than the per page
+;basis previously described.   Similarily, the smart DERECONCILE mentioned above
+;could work on the basis of SECTIONS.  The system would identify a set of SECTIONs to
+;be purged from LOCAL space, primarily, perhaps, on the basis of the reference counts
+;incrementally maintained by special hardware.   Once a decision had been made to
+;DEASSOCIATE some particular set of SECTIONs, a scan of the LOCAL data base would be
+;initiated.  Any pointer to a SECTION to be DEASSOCIATED would be DERECONCILED.
+;Once the LOCAL reference count of a given SECTION has been reduced to zero,
+;the DISASSOCIATION can safely take place.  Note that this DISASSOCIATION process
+;is well suited to being performed by a small auxillary processor so as to avoid
+;interference with the main processor, although it could also be done by a background
+;process on the main processor.
+
+;As a sidelight, note that
+;  structures in MOBY space which overlap page boundaries must be treated contiguously in
+;LOCAL space.  So it may be advisable in some cases to minimize the extent to which
+;structures cross page boundaries.  In practice, though, MOBY-LOCAL page associations are
+;likely to be established in larger units than single pages, SECTIONS as described above.
+;In such a case there would be no additional penality attached to a structure which overlapped
+;a page boundary as long as it was contained entirely within its SECTION.
+
+
+;DYNAMIC RECONCILATION.
+;    The above discussion of SECTIONS illustrates how  multiple versions of a SECTION
+;can exist at the same time and still all be "linked in".  (In effect, the multiple versions
+;share the address space, but not the data).  In DYNAMIC RECONCILATION, another scheme,
+;the local pointer corresponding to a MOBY address is produced by the result of a
+;LOCAL function call.  The data in MOBY form, then, consists of a function to call
+;and arguments.  This might be used for linking LISP SYMBOLS, although there
+;are other options available for this as well.
+
+;PURE versus IMPURE MOBY systems.
+;The MOBY ADDRESS(c) system has been introduced in PURE form, that is, every
+;LOCAL address is always necessarily associated with a MOBY address (from which it has
+;been swapped in).  It is also possible to have an IMPURE MOBY ADDRESS(c) system,
+;in which some LOCAL address have no associated MOBY address (or at least no
+;non-transitory MOBY address).  If fact, such systems are of great practical interest
+;such as the case where a LISP machine is booted as usual, then asked to "JOIN"
+;the MOBY environment.  Some problems, however, arise in this process.
+
+;RECONCILATION with an existing local address space.
+
+;LIST structure in the MOBY space.
+; Lists are typically composed of other lists, strings, numbers, and symbols.
+; LISTs themselves, strings and numbers in the MOBY space present no particular problems.
+;   Symbols, tho, are another story.
+
+;LISP symbols
+; The most important thing about a LISP symbol is its unique run-time identity or address.
+; Symbols also have PRINT-NAMES, VALUE-CELLs, FUNCTION-CELLs, PACKAGE-CELLS, and
+;  PROPERTY-LISTS.  VALUE-CELLS cells may be quite write-volatile, although the
+;  SYSTEM-CONSTANT, and DEFCONST special cases are also important.  FUNCTION-CELLs
+;  are rarely, but occasionally written.  The PLIST presents a special problem in that
+;  not only is the PLIST cell potentially volatile, but the entire LIST is subject
+;  to WRITE operations of PUTPROP, etc.  Also, GET is very frequently used, and it
+;  may be quite unacceptable to send network messages, etc, for every GET even if that
+;  would work.
+
+;In a IMPURE moby environment, a SYMBOL may not have its unique run-time idenity in quite
+;  the same way.  One problem comes if the "same" symbol already exists
+;  both LOCAL and MOBY environments at the time a machine JOINs.  (By same we
+;  mean as identified by some process having to do with READTABLEs and PACKAGEs,
+;  not sharing a MOBY address).  We could "solve" the identity problem by making
+;  special entries in the RECONCILE/DERECONCILE data bases, but that would still leave
+;  the difficulty that symbol in the two spaces would not necessarily share the same PLISTs, etc.
+
+;MOBY-SYMBOLS, a new sort, truly exist in the MOBY environment.  They can never
+;  exist in the decoupled part of a LOCAL environment, thus, they are completely "different"
+;  from any symbol we have now.  The information associated with a MOBY symbol
+;  includes detailed instructions for how the individual writable locations of the
+;  symbol are to be handled (re the writable options supported by the MOBY system
+;  discussed above).  MOBY-SYMBOLS do not have property-lists per se, altho GET, PUTPROP
+;  can still be used. (PLIST, however, is not permitted).  Write options can be
+;  individually specified for the ASSOCIATION cell of each possible PLIST key.
+
+;What are we trying to do with symbols?
+;  One of the benchmark tasks for the MOBY system is recompile a large system
+;using several processors simultaneously and effectively to do the job.
+;Compilation is an elaborate transformation on lists, which is critically dependant
+;on the properties of symbols.  (Notably, the VALUE-CELLs, FUNCTION-CELLs, and PROPERTY-LISTs
+;thereof.)  We are not, however, proposing that the system's S-expression be read directly
+;into MOBY space and the various machines sicced on various pieces thereof.
+; Instead, the system is specified by a DEFSYSTEM, as now, (hopefully better than now),
+;consists of various FILES, some of which are DEFs files, exactly as now.  It is the
+;programmers responsibility to assure each file will compile properly in an environment
+;consisting of the previous DEFs files, in effect.  Thus, we need only assure
+;the appropriate DEFs files get read into each environment, etc.  MOBY-symbols are not
+;involved.
+
+;Even with MOBY symbols, we must have LOCAL-ENVIRONMENT options.  That is,
+; we cannot permit any program to break the entire MOBY enviroment by clobbering
+; a critical property, etc.  Additionally, we must allow for long term system evolution,
+; change of data formats, etc.  Furthermore, any MOBY-ROOT structures must be carefully
+; designed to avoid bottlenecks as they are accessed by many machines simultaneously, etc.
+
+;The MOBY-ROOT.  We allocate a fixed number (randomly 1024 for now)
+; of ROOT-ENVIRONMENTS.  The allocation of a
+; new one is an exceedingly rare event (corresponding to major system revisions, etc,
+; or an absolute maximum of one per day (ha ha)).  Vectors to ROOT-EVIRONMENTS
+; are stored in the first 1024 positions of ROOT-SPACE.
+
+;ENVIRONMENTS.
+;  An environment is a group of pages which can be "inherited".  Each process
+;has a current environent list.  The key point is, no environment, except possibly
+;the first, is ever actually modified.  A MOBY-ROOT, for example, is only "read-into"
+;by certain exceedlingly privledged processes (and typically never, once it is initialized).
+;Normally if a write occurs to a page in the MOBY root, the write is allowed to
+;proceed.  However, the MOBY-ROOT is not modified!.  Instead, the modified page now becomes
+;part of another environment on the current-environment list of the running process.
+
+;All processes with the same identical environment list "see" the same identical MOBY
+;symbols.  Processes with differing environments, may not.  If they share the same
+;ROOT environment, however, symbols in that ROOT will be EQ even though they may not
+;have the same contents in their VALUE-CELLs, etc!
+
+;MOBY PACKAGES.
+;  Serve an analogous function for MOBY symbols as normal packages in the LISP machine system
+;serve for normal symbols.
+
+;for now, an environment list will be associated with a processor, not exactly a process.
+
+;all it takes to join is some LOCAL pages.
+
+;local versus non-local environments.
+
+;non-local evironments can be shared by several machines.
+
+;(MOBY-JOIN )
+
+;  purpose designed
+;    disk directories
+
+;  lists
+
+;  compiled programs
+
+;  flavors, objects
+
+
+;RECONCILATION data structures.
+;   section oriented
+;   page oriented
+;   Q oriented.  DTP-UNRECONCILED.
+
+; mostly section oriented structures, for efficiency and to avoid problems
+;  with structures which cross page boundaries.  RECONCILING in a section uses
+;  LOCAL address space for the whole thing, which shouldnt be too bad if sections
+;  are of reasonable size.
+
+;  information retained:
+;   for each BASE-MOBY-ADDRESS the corresponding BASE-LOCAL-ADDRESS (or not mapped.)
+;                              the corresponding MOBY-EXTENT.
+;   Consing option.  In some cases, allocated MOBY pages for this processor to CONS in.
+
+;  Note that even if a page is partially reconciled, the MOBY representation
+;  contains the current information for any unreconciled Qs.
+
+
+;DERECONCILATION structures.
+;   section
+;   page
+;   Q           DTP-UNRECONCILED.
+; mostly page orient structures are used, indexed directly by LOCAL page number.
+;  basic need is to retain associated MOBY page, a 57-8 bit number.
+; if COUNT hardware is not available, results of last SCAN should be retained (a fixnum)
+; must be able to determine SECTION.
+
+;KEEPER data structures.
+;  check-out structures
+;   section, page or Q oriented
+;    list of HAVERs.  indications for HAVE-GIVEN-UNIQUE, HAVE-GIVEN-ONLY-ONE-FOR-NOW.
+;      HAVE-GIVEN-UNCONTROLLED.
+
+;HAVER data structures.
+;  section, page or Q oriented
+;  states are  "have unique"  "have only one for now" "have a copy" "have an unsafe copy"
+;    "dont have".
+
+;Initial swap out to MOBY space.
+;  in a mixed system, what if a pointer to a LOCAL address with no associated MOBY
+;    address is found.
+;  or more generally, outside understood MOBY-mapped regions.
+;    (dump a dynamically mapped function call (or error).
+;       obtainning moby address space for CONSing involved.
+
+;  Consing in MOBY space.  You dont just randomly cons.  you cons relative to some section.
+
+;TRANSITORY addresses.
+;  The LOCAL address space of each machine is itself directly assigned a place in the
+;MOBY address space.  Such pointers must be used very carefully, since the become invalidated,
+;en masse, each time the machine in question is booted.  Also, symbols etc, are not
+;unique in the usual sense relative TRANSITORY address.  By definition, transitory
+;address are permanently KEPT and can not be check out.
+
+;SECTION names.
+ ; A section is a list of address ranges.
+
+;SECTION directory.
+
+;
+;B-TREES  are believed well suited to maintaining the various data bases.
+;  for file directories, order chosen so node fits on a PAGE.
+
+;the world is a tree of B-TREEs.
+;  host* device* directory* name* type* version*
+;     property-list btree
+;     file-map btree
+
+;a directory is a mapping between human-sensible character strings and file numbers.
+
+;a file-map  is a list  (<location> <number of bits>)
+
+
+;hooking MOBY space into the present LISPM storage managment system.
+; A MOBY-AREA exists which consists of the region or regions used to map MOBY space.
+;  could use a region slot for each section mapped in.
+;  alternatively, could use special MOBY-MAPPED regions to map in several
+;    sections each.
+;  MOBY sections should be static.
+
+;  making MOBY-CONSes go in the right place.
+;alternatively, a AREA for each section mapped could exist.
+
+;bind DEFAULT-CONS-AREA to MOBY-AREA and have a MOBY-CONS-SECTION variable.
+
+
+******* 5/20/85
+
+We propose to identify each active moby section with an AREA.  To do this,
+a few extra bits need to be added.
+
+  A bit associated with the BITS of the AREA says its a MOBY-AREA.
+    Attempts to create new regions in such area give REGION-OVERFLOW trap
+    to macrocode.
+
+  %make-region (which is not now used) is respecified.
+    (%make-region area size bits)
+
+  (%wipe-region  high-data low-data words)  wipes the region from current free pointer
+    to that data and sets the free-pointer.
+
+  A bit associated with each region which inhibits CONSing in that region.
+   used for MOBY-REGIONs which may not appear full yet are not suitable for CONSing.

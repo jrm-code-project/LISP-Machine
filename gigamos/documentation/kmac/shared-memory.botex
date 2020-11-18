@@ -1,0 +1,282 @@
+@chapter Shared Memory
+
+@section Memory Cache and Mapping
+@c include kmemory
+
+@textbox
+@center Montreal notes:
+
+The memory cache in shared memory is an instruction register cache.
+
+@end textbox
+
+@section Data Formats
+
+Although shared memory resides physically on the K,
+storage conventions for data within K/Mac shared memory will follow Macintosh standards.
+That is, the convention for byte-ordering, argument and value strings, etc., will be specified to be
+MAC-friendly as required.
+
+Each individual shared memory location will denote
+either a 32-Bit scalar quantity or physical address within K memory where the data resides.
+
+Pointers to locations outside of the major header area
+(i.e., control blocks) reside in static memory on the K (in a safe, wired, non-GC-able place)
+
+The following is a fractional Pascal-like specification for the command and argument portions of a
+control block:
+
+@example
+CMD:    (CMD1, CMD2, ... CMDn)         {enumerated sequence}
+ARG:    ARRAY [0..255] of LONGINT;
+@end(example)
+
+@itemize -
+@item K-Owned, K-Allocated
+@item Slot-relative (i.e., pointers are absolute, non-relocatable
+physical addresses in low K memory.)
+@item No type codes included in the control blocks.
+@end(itemize)
+
+Issue: Use a pre-determined starting address in shared memory (i.e., same for all machines?)
+or a dynamic location (e.g., specified in K config PROM)?
+
+Any K-to-Mac initialization information could conceivably be located in the K's config
+PROM, accessible to the Mac application.
+
+@textbox
+@center Montreal notes:
+
+No data should be kept in Mac memory.  The only things which
+need to go in Mac memory are pointers to the starting locations of
+the various K Machines' shared space (one pointer per K).
+
+The K memory will get information from the configuration area, which
+will be pointed to by the config prom.  The Cambridge team will indicate
+the low address of the configuration area structure.  The
+config prom will use one byte per word.
+
+@end textbox
+
+@section K Configuration Prom
+
+GSI-CAM is currently working on completing the specificaton of the final
+layout of the K Config PROM.
+
+Suggested additions include a unique (serial) ID for each machine
+produced. Benefits include:
+
+@itemize *
+@item Advantages to VAR's
+@item Advantages to third-party S/W vendors
+@item Ease of solving MOBY addressing problems.
+@end(itemize)
+
+@textbox
+@center Montreal notes:
+
+The K Window should be a (proper) subset of the Mac screen.  The
+Mac should be performing simple (fast) bitblts from the K's memory when
+requested (by the K?) to do so.
+
+@end textbox
+
+@section K/Mac Shared Memory -- Diagram
+
+In the shared memory diagram on the next page, and in all diagrams
+that follow, the following symbolic conventions apply:
+
+@display
+---->                   Arrows indicate pointers to
+                          structures at other physical
+                          locations within shared memory.
+
+Structure-Name          Mixed case indicates a structure name.
+
+NUMERIC-CONSTANTS       Upper case indicates numeric constants.
+
+{Variable-Values}       Braces indicate variable values.
+
+[ Thirty-Two-Bit-Word ] Brackets enclose each 32-bit word.
+
+[ {Variable-23} /       Contiguous 16-bit half-words
+        {Variable-47} ]   are separated by a slash.
+
+@end(display)
+@page
+@center     THE K-MACHINE/MACINTOSH SHARED MEMORY SPACE (K-MAC-AREA)
+
+@smalllisp
+
+*********************************
+        K-MAC-Area
+*********************************
+       Header-Table
+*********************************
+[ MAC-K-AREA-HEADER-TOKEN       ]       ;Verify pattern
+[ {HOW-MANY-K-MACHINES}         ]       ;Count of K machines avail.
+[-->Major-Command-Block         ]       ;Fast global commands
+[-->Keyboard-Mouse-Command-Block]       ;Keyboard/mouse commands
+[-->Screen-Descriptor-Block     ]       ;Screen drawing commands
+[-->Paging-Command-Block        ]       ;Paging, world load
+[-->FileSystem-Table            ]       ;Access to MAC file system
+[-->Network-Area                ]       ;Access to MAC network controller(s)
+[-->Serial-Port-Area            ]       ;Serial I/O / modem
+[-->Printer-Area                ]       ;Access to MAC printing
+        :
+*********************************
+      Major-Command-Block
+*********************************
+[ {K-To-MAC-Command-Opcode}     ]       ;Table (to be done)
+[ {K-To-MAC-Status}             ]       ;0=null, 1=ongoing, -1=finished
+[ {K-to-MAC-Argument-Count}     ]       ;Or fixed # arguments?
+[ {K-to-MAC-Argument-1}         ]       ;Argument length/string
+        :
+[ {K-to-MAC-Argument-N}         ]       ;How many?
+
+[ {K-to-MAC-Values-Count}       ]       ;Or fixed # values?
+[ {K-to-MAC-Values-Block-1}     ]       ;Argument length/string
+        :
+[ {K-to-MAC-Values-Block-N}     ]       ;How many?
+
+[ {MAC-To-K-Command-Opcode}     ]       ;Table (to be done)
+[ {MAC-To-K-Status}             ]       ;0=null, 1=ongoing, -1=finished
+[ {MAC-To-K-Argument-Count}     ]       ;Or fixed # arguments?
+
+[ {MAC-To-K-Argument-1}         ]       ;Argument length/string
+        :
+[ {MAC-To-K-Argument-N}         ]       ;How many?
+
+[ {MAC-To-K-Values-Count}       ]       ;Or fixed # values?
+[ {MAC-To-K-Values-Block-1}     ]       ;Argument length/string
+        :
+[ {MAC-To-K-Values-Block-N}     ]       ;How many?
+*********************************
+
+@end(smalllisp)
+
+@textbox
+@center Montreal notes:
+
+In bloc_communication;
+
+mac_version, k_version: add comment specifying that these are software
+versions.
+
+name change: *major_k_area --> *major_k_mac_cmd_block
+
+name change: *major_mac_area --> *major_mac_k_cmd_block
+
+name change: *keymouse_area --> *keyboard_mouse_cmd_block
+
+In bloc_keyboard;
+Can't use mbutton -- mouse events should be buffered or queued.
+
+In bloc_major_k;
+The Major Command Area is the only type needed to be defined for all
+commands.
+
+Add Arg_count, Val_count (for?) multiple values
+Args: File info block, Volume info block.
+
+@end textbox
+
+@section Major and Minor K/Mac Commands
+
+Each processor will send no more than one "major command"
+at a time. (This makes the interrupt processing
+more straight-forward.)  Major commands are
+requests that must be dealt with at a high
+priority; these requests may be accomplished by
+interrupting the other processor for immediate
+attention.
+
+Minor command areas will be dealt
+with in the Mac's normal processing loop.
+For example, the
+K can pass several file command(s) before the
+MAC deals with them; but at any time the K can issue a major
+command to reset files, reset the network, or reset
+the entire K/Mac state, at any time.
+
+@textbox
+@center Montreal notes:
+
+K will be allocating memory "up front".
+
+@end textbox
+
+@subsection Major Commands
+
+@figure
+@itemize
+@item Reboot (Cold, Warm)
+@item Shutdown
+@item Restart
+@item  Quit Current Application
+@item  Allocate File Control Block
+@item  Release File Control Block
+@item  How-Many-K-Machines]
+@item  Return-To-Mac
+@item  Return-To-K
+@item  (Reset/Close-all- files?)
+@item  (Reset network?)
+@item  (Reset entire state?)
+@item  (Priority-{area}?)
+@item Read In Configuration Record
+@item Fill In Screen Descriptor
+@item Fill In Paging Descriptor
+@end(itemize)
+@caption List of K/Mac Major Commands
+
+@end(figure)
+
+Major commands are intended to perform global operations which either
+take very little time to execute (such as Allocate File Control Block),
+or which are performed infrequently but with drastic effects (such as
+Reboot).
+
+@textbox
+@center Montreal notes:
+
+When returning status and values, the other processor (almost always the
+Mac) need not guarantee to always respond as desired, but it will return
+something -- at least a response-status string.  (LISPM can use this,
+e.g., in the who-line to indicate what the MAC is thinking about.)
+
+Command "Reboot" should be defined more carefully.
+
+"Allocate FCB" should tell the Mac about the new FCB.
+
+"Release FCB" should tell the Mac to forget about the FCB.
+
+Return-to-Mac --> Return-Mouse-To-Mac: add comment "the creator of the window controls the mouse."
+
+Command "Restart" should be defined more carefully.
+
+Command "Reset/Close-all-files" should be defined more carefully.
+
+Command "Reset-network" should be defined more carefully.
+
+Command "Reset-entire-state" should be defined more carefully.
+
+Command "Priority-xxx" should be defined more carefully.
+
+FCB ("File Control Block") ---> SCB ("Stream Control Block")
+
+@end textbox
+
+@subsubsection Major Commands Under Discussion
+
+@c (Moving Window?)
+@c
+@c We've decided that this is not a problem --rwk
+@c
+@c Perhaps to give a way for the MAC to move
+@c the LISP window, even to a different monitor
+@c (this would require a priority interrupt.)
+
+(How-are-you?)
+
+When somebody wants/needs a "keep-alive"
+reassurance.

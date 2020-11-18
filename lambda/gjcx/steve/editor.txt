@@ -1,0 +1,2118 @@
+.c -*- mode:bolio; package:steve; readtable:cl; -*-
+
+.chapter "Introduction to the STEVE editor"
+.section "Introduction"
+
+        lan{steve} is a general purpose screen oriented text editor
+based upon the lan{emacs} editor. In many respects lan{steve} and
+lan{emacs} are identical, with the primary difference being that
+lan{steve} is written in lan{nil} for the lan{dec} lan{vax-11}
+series computers and can be called directly from the lan{nil}
+interpreter.  Those who are familiar with lan{emacs} will be able to
+use lan{steve} immediately, and should skip to the end of this
+chapter, as the first part is meant to be an introduction to
+lan{steve}.
+
+
+.section "Getting Started"
+
+        There is one difference between the editor environment and the
+rest of lan{nil} to be aware of. Because the editor and lan{vms}
+have conflicting
+uses for many of the control keys, the editor must run in "passall" mode.
+This implies that the normal interrupt commands do not normally work in the
+editor. So the first command to learn is the editor command to return to
+whatever you were doing before you entered the editor.
+It is a two key command typed by holding down the "Control" key
+and pressing the "Z" key twice.
+
+.table 7 250 250
+.item Control-Z Control-Z       Return-to-superior.
+Exit the editor and return to whoever called it. This is the normal
+way to exit from lan{steve}.
+.end_table
+
+        Now that you know how to exit the editor you may be curious how to
+enter it. Of course this is not an editor command, but rather a lan{nil}
+function.
+
+.defun ed &optional what-to-edit
+Enters the editor, returning to whatever you were working on before.
+If you have not run the editor since starting lan{nil} it will be completely
+initialized with one empty buffer.
+        Normally one types 3(ed)* to the lan{nil} interpreter to get
+into lan{steve}.   2what-to-edit* may be a pathname (or string
+naming a file), or the name of a function. If given, the editor will
+try to find the
+file or function definition and let you edit it; otherwise the argument
+is ignored. There are editor commmands to find files and function definitions
+anyway, so the argument is not really very important, except that it can be
+convenient, and can be used from programs.
+.end_defun
+
+
+.section "Editing Files"
+
+        The principle purpose of an editor is to create or modify a
+file. In broad outline an editor is used by reading a file into a
+buffer, modifying it somehow and then writing it back to some long
+term storage device, generally a disk. Most of the editor commands are
+concerned with modifying
+a buffer, and will be expained later. In order to understand the commands
+for reading and writing files one should know about the general structure
+of lan{steve} and its buffers.
+
+.lisp
+                          _______
+                          | NIL |
+                          _______
+                            |
+                        __________
+                        | Editor |
+                        __________
+                        /       \
+                       /         \
+                ____________    ____________
+                | Buffer-1 |    | Buffer-2 |
+                ____________    ____________
+                    |               |
+                 __________      __________
+                 | File-1 |      | File-2 |
+                 __________      __________
+
+.end_lisp
+
+        As the diagram shows, the editor runs inside lan{nil}, and
+contains any number of buffers, each of which is associated with a file.
+This diagram can be modified by creating a new buffer or killing one,
+or by changing the file associated with any buffer. There are editor commands
+for all of these operations, and for some more complex combinations of them.
+The editor always selects one buffer as the current buffer, and displays
+a section of it around the cursor.
+
+        The format of this display is one of the features of an
+lan{emacs} style editor like lan{steve}, and is the reason it is
+called a "screen editor".
+
+.lisp
+_________________________________________________
+|                                               |
+|       This is a picture of what an editor     |
+| display might look like except that is is very|
+| small._                                       |
+|       Note that the cursor is at the  end of  |
+| the previous paragraph.                       |
+|                                               |
+|                                               |
+|                                               |
+|                                               |
+|STEVE foo (LISP) disk:[cre]bar.lsp {3} -- *    |
+|                                               |
+|                                               |
+_________________________________________________
+.end_lisp
+
+        The box in the diagram represents the edges of a terminal screen.
+The two paragraphs are the contents of a buffer. The single line below
+that is called the mode line. It contains as much information about the
+current state of the editor as is convenient. From this we see that
+the buffer is named "foo" and that it is associated with the file
+"disk:[cre]bar.lsp". The notation 3{3}* after the file name indicates
+that the current version number is 33*. If the file does not exist on disk
+the version number and the braces will be missing from the mode line.
+The star (*) on the right of the mode line indicates
+that the buffer has been changed so it is not the same as the file
+on disk.
+The current position of the cursor is at the end of the first
+paragraph. (On most terminals a cursor shows up as a blinking underscore
+or box, though this depends upon the exact type of terminal. In this chapter
+we show the cursor as a underline (_) since it is fairly difficult to print a
+blinking cursor.)
+
+        Under the mode line is a blank area of several lines. This is
+called the mode area and it is where most error messages and
+prompts are shown.
+
+        We are almost ready to start expaining the individual editor
+commands.  The only other thing you should know first is how they are
+typed.  Most lan{steve} commands are either one or two character
+commands.  Since one adds alphabetic characters to the buffer simply
+by typing them (not that you know this yet) lan{steve} must not use
+alphabetic characters for its commands. Instead the control characters
+are used. (The control characters are typed by holding down the
+"control" key and pressing some other key, just as the capital letters
+are typed by holding down the shift key.)  Since there are not enough
+control keys for all of lan{steve}'s commands it also uses a
+term_i{meta key}.  A Meta key is similar to a shift key or a control
+key.  Now we can have the characters "a", "A", "Control-A", "Meta-A",
+and "Control-Meta-A".
+
+        Unfortunately most terminals do not have a meta key. Not to worry,
+though, lan{steve} is designed to work without it, just as certain text
+justifiers are designed to work with terminals which have no lower case.
+Three commands are "bit-prefix" commands. Typing one of these
+will change the next character you type just as if you had been holding
+down the corresponding combination of control and meta keys.
+.need 2000
+.table 7 250 250
+.item Altmode           Prefix-Meta
+Pressing 2Altmode* (marked SELECT or ESCAPE on some terminals)
+will make the next character a "meta" character. For example
+2Altmode F* (two characters) is the same as 2Meta-F* (one
+character).
+
+.item Control-^ Prefix-Control
+Pressing 2Control-^* (control-uparrow) will make the next character
+a "control" character. For example 2Control-^ F* (two characters) is
+the same as 2Control-F* (one character). On some terminals,
+notably the lan{vt100}, 2Control-^* is typed as
+2Control-~* (control tilde);  normally, the 3^* character
+is a shifted 36*, so one holds down 2control*, 2shift*,
+and 26*.
+
+.item Control-Z         Prefix-Control-Meta
+Pressing 2Control-Z* will make the next character be both a control
+and a meta character. For example 2Control-Z F* (two characters) is
+the same as 2Control-Meta-F* (one character).
+.end_table
+.sp 2
+        All of these bit-prefix commands 2add* the quality to the next
+character. There is no problem with doing it twice. The two character
+sequences 2Control-Z Z* and 2Control-Z Control-Z* both are read as
+2Control-Meta-Z*.
+
+        We are now ready start expaining the various editor commands.
+These are the commands you will use to create buffers and write files.
+All of these commands are safe to use since they will notice if you
+are about to destroy any of your work and ask you if you really want to do
+that.
+
+.table 7 250 250
+.item Control-X Control-F       Find-File
+Find-File will prompt for a file name and you should type it
+from the keyboard. If there is a buffer for that file then it will
+be selected and be the new current buffer. Otherwise a buffer is created
+for the file and the file is read in from disk if it exists there.
+Find-File is the most common way to read a file from disk. It creates
+a new buffer for each file which is convenient. When Find-File creates
+a buffer it uses the file name without any extention as the buffer name.
+Since the name of each buffer must be unique this doesn't work when
+you are editing two files which have the same name but are on different
+directories or have different extensions (file types), so Find-File will
+notice if you are doing this and will ask you for a new buffer name
+to use.
+
+.item Control-X Control-S       Save-File
+Save-File writes the current buffer to its associated file,
+and changes the mode line to indicate that the buffer and file are now
+identical. (This is not done until the output is complete, so if there
+is a disk error or some other error you will not think it has been
+saved when it hasn't been.)
+
+.item Control-X Control-V       Visit-File
+.item1 Control-X Control-R
+Visit-File is like Find-File except that it re-uses the current
+buffer, destroying its contents. It is still safe since it will offer to
+save it if any changes have been made to it.
+
+.item Control-X Control-W       Write-File
+Write-File writes the current buffer to a file, but unlike save file
+it will prompt you for the file name.
+.end_table
+.sp 2
+        As an example, suppose that the screen looks like the diagram
+above.  If you type 2Control-X Control-W* (Write-File) the editor
+will prompt you for a file name.  Assume you want to save the file
+into 7disk:[cre]baz.lsp*.  You type "7disk:[cre]baz.lsp*".
+The screen will look like this:
+.lisp
+_________________________________________________
+|                                               |
+|       This is a picture of what an editor     |
+| display might look like except that is is very|
+| small.                                        |
+|       Note that the cursor is at the  end of  |
+| the previous paragraph.                       |
+|                                               |
+|                                               |
+|                                               |
+|                                               |
+|STEVE foo (LISP) disk:[cre]bar.lsp {3} -- *    |
+|Write File:disk:[cre]baz.lsp_                  |
+|                                               |
+_________________________________________________
+.end_lisp
+
+        Notice that the cursor is temporarily placed in the mode area.
+After the command is complete it will return to the text in the buffer.
+The editor will fill in an incomplete file specification for you,
+using the file specification associated with the buffer. In this example
+the file name could have been typed as 7[cre]baz.lsp* or 7baz.lsp* or
+just 7baz* since that is the only part that is changing.
+        After typing whatever file name you choose you must type
+2Return*.  Most commands that prompt you in the mode area require
+a 2Return* to end the command.  Until you press 2Return* you
+may change the file name  using the delete key and retyping the parts
+that were wrong. Also the keys 2Control-W* and 2Control-U*
+usually delete a word or the whole command
+letting you start over. If you delete too far the command is aborted if
+that is legal, otherwise a bell will sound.
+        Suppose you hit the 2Return* key now. The buffer will be written,
+the prompt will be deleted and the editor will tell you that it has finished.
+The screen will change showing you what is happening, and will look like
+this (though we cannot show you how it changes.)
+.lisp
+_________________________________________________
+|                                               |
+|       This is a picture of what an editor     |
+| display might look like except that is is very|
+| small._                                       |
+|       Note that the cursor is at the  end of  |
+| the previous paragraph.                       |
+|                                               |
+|                                               |
+|                                               |
+|                                               |
+|STEVE foo (LISP) disk:[cre]bar.lsp {1} --      |
+|Writing File...                                | 2This line...*
+|Written BAZ.LSP;1[CRE]DISK:                    | 2Then this line*
+_________________________________________________
+.end_lisp
+
+        Notice that the cursor has returned to the buffer text
+and that the star (*) has been removed from the mode line to indicate
+that the buffer and file are identical, and that the version number has
+been changed to 31*. This is because the new file name did not
+exist on disk. Had the file been saved under its old name the version
+number would have been incremented by 1 from 33* to 34*.
+Finally the file name in the mode area has been updated so that
+Save-File will use the new file name.
+
+.section "Modifying the buffer"
+.subsection "The Simplest Commands"
+
+        As I hinted before, typing any alphanumeric character will
+add it to the buffer. In fact almost any character that you can type without
+holding down the control key will act like this. Also, the delete (or rubout)
+key will delete the last character before the cursor. If you can place
+the cursor where you want it and delete and insert characters then you are
+already able to make any editing change you have to. Since it is so
+simple to change characters in the buffer, lan{steve} concentrates on
+commands to put the cursor where you want it quickly and easily.
+The first few such commands are:
+.table 7 250 250
+.item Control-F Forward-Character
+2Control-F* moves the cursor forward one character in the buffer.
+(The end of a line counts as one character.)
+
+.item Control-B Backward-Character
+2Control-B* moves the cursor backward one character in the buffer.
+
+.item Control-N Down-Real-Line
+Move straight down to the next line.
+
+.item Control-P Up-Real-Line
+Move straight up to the previous line.
+.end_table
+
+        These are the commands to move up down right and left.
+
+        Now you know how to edit a file! If you can you should
+probably try to use lan{steve} to create a simple file and save it.
+Print it if you can and compare it to what you see on the screen. See
+what happens if you try to back up before the beginning of the buffer
+using 2Control-B* or 2Control-P*.  Type enough lines to fill
+up the screen (use 2Return* to end each line) then a few more.
+What happens when the cursor is about to move onto the mode line? Now
+use 2Control-P* to move back.
+
+.subsection "Now that you know the Simplest Commands"
+
+        Now that you know the simplest commands there are many others that
+you should learn. There are some general facts about the editor which will
+help you get more out of each command which I will expain first.
+
+.subsubsection "Numeric Arguments"
+        It is possible to give any command a numeric argument. The command
+or may not use it, but you can always supply it. In fact, if you don't
+supply an argument an argument of one (1) is implied. There are several ways
+to specify an argument. In all cases the numeric argument is typed before
+the command. The most general way to specify an argument is:
+
+.table 7 250 250
+.item Control-U Universal-Argument
+2Control-U* followed by a positive or negative integer specifies
+that integer as the argument for the following command.  2Control-U*
+with no number specifies an argument of four (4). 2Control-U Minus*
+with no number is treated specially as an argument of minus 1 (-1).
+Some commands treat 2Control-U* with no number differently than
+2Control-U 4*.
+
+For terminals with a meta key it may be easy to use the meta-digit keys.
+
+.item Meta-0, Meta-1, ..., Meta-9, Meta-Minus
+.item1 Control-Meta-0,..., Control-Meta-9, Control-Meta-Minus
+.item1          Auto-Argument
+Any of the Metafied numeric digits begin a numeric argument.
+It is just like 2Control-U* followed by the digit. Notice that
+repeated meta digits are multiplied together.
+
+.item Control-0,..., Control-9, Control-Minus
+.item1          Auto-Argument-Digit
+The control-digits end any previous digit and act as digits
+in an argument. Thus 2Control-2 Control-3* is the argument
+twenty-three (23).
+Any arguments before or after a sequence of control-digits will be multiplied
+by the final control-digit argument. Because most terminals do not send
+control-digits these must be specified using the uparrow bit-prefix
+(for instance, by typing 2Control-^ 2*), so in practice they are
+not used much. Note that the 2Control-Minus* must be specified first.
+.end_table
+
+        If several arguments are specified they are multiplied together.
+The primary use of multiple arguments is to type 2Control-U* several
+times in a row. Each 2Control-U* multiplies the argument by four (4).
+So 2Control-U Control-U* is sixteen (16) and 2Control-U
+Control-U Control-U*
+is sixty-four (64). The cursor movement commands treat the argument as
+a repeat count (as do most commands where that is meaningful).
+Some useful combinations are 2Control-U Control-U Control-F* which
+moves forward about a quarter of a line, and 2Control-U Control-N*
+which moves  down four lines. You will find many other "Cliches" or
+combinations of editor commands which you use automatically to do one
+thing.
+
+.subsubsection "Control-X"
+
+        As I said before there are not enough keys on a keyboard for all
+of the commands defined in lan{steve}. The 2Meta* key is one way
+of getting more characters so lan{steve} can have a large number of
+single character commands. But it is not enough. To get even more
+commands lan{steve} uses the key 2Control-X*
+as a prefix character. There are many two character commands which begin
+with 2Control-X*.  What actually happens is that the editor
+normally looks up the command for each key in a table. The
+2Control-X* key says that the editor should use a different table
+for the next key.  This greatly expands the number of commands that
+can be typed.
+
+.subsubsection "Meta-X and Control-Meta-X"
+
+        With 2Meta* and 2Control-X* it is possible to define
+enough editor commands, but there is another problem. Eventually there
+are so many commands that it becomes difficult to remember them all.
+For this reason there is a command, 2Meta-X*, which reads a
+command name from the keyboard and executes the command. It is easier
+to remember the name of an unusual command that to remember which key
+invokes it. In fact there are many commands which we don't bother to
+define keys for.
+
+        You type 2Meta-X* either by holding the 2Meta* key and
+pressing 2X*, or by typing the 2Escape* key followed by
+2X*. When you type it the cursor
+is moved to the echo area and a colon (:) is printed as a prompt.
+You type the name of the command and then type 2Return* to execute it.
+Some Meta-X commands take "string" arguments. These can be typed in several
+different ways. The simplest way is to type the command name, then to
+type an 2Escape* before each argument. (An extra 2Escape*
+after the last argument will be ignored.) When the command has been
+typed with all of its arguments, press 2Return* to execute it.
+
+        There are a number of special features which make it easier to
+type a 2Meta-X* command. The 2Delete* (or 2Rubout*) key
+will delete the last character you have typed. (If you delete too many
+characters the 2Meta-X* command is aborted.) The 2Control-G*
+key will abort the command at any time.
+(2Control-G* will abort a partially typed command almost anywhere in the
+editor.)  2Control-W* will delete a word, and 2Control-U* will
+delete the entire 2Meta-X* command, letting you start over.
+
+        The command does not have to be completely typed, only enough
+to make it unique. At any time you may find out if a command is unique
+by typing 2Escape* (or 2Altmode* on some terminals). The editor will
+finish as much of the command as it can and type that part of it for you.
+If it is not unique the bell will ring. If it is unique the 2Escape* will
+be typed after the command (it appears as a dollar sign ($)).
+You may delete these characters just as if you had typed them if this
+is not the command you wanted.
+
+        The 2Space* key is another special character. It is like
+2Escape* except that it only completes one word of the command. If
+the command is finished it will add an escape after the last word.
+
+        If you type a question mark (?) while typing a 2Meta-X* command
+you will see a list of all possible ways to finish the command. This
+is typed in the upper part of the screen, over the text. (As soon as
+the 2Meta-X* command is finished, the text will be re-displayed.) If the
+list is longer than one screenful the word "7*more**" will appear on the
+last line above the mode line. Type 2Space* to see the next screenful
+of commands. Type 2Control-G* to abort the entire 2Meta-X* command.
+(There are several other commands which use the upper part of the screen
+temporarily. All of these will print "7*more**" in the bottom line and
+expect either a 2Space* to continue, or a 2Control-G* to
+abort. Any other character causes an abort, and is then used as a command.)
+
+.lisp 500 1
+        A summary of special 2Meta-X* characters.
+
+Delete          Rubout the last character showing in the command.
+Escape          Completes the command and separates arguments.
+Space           Completes a word.
+Control-G       Abort everything.
+Control-W       Rubout a word. Works while typing arguments also.
+Control-U       Start over. Rubout the entire Meta-X command. (Doesn't abort.)
+?                       Help.
+.end_lisp
+
+        Most commands which are normally executed using 2Meta-X* are
+smart about their arguments. They can determine how many you have typed
+and will prompt you for any that are required. Often it is easier to
+use 2Meta-X* commands this way since the prompt will tell you what kind
+of argument to type. Some commands can do completion for you
+or otherwise help you type the arguments. The 2Control-Meta-X* command
+is a variant of 2Meta-X* which is designed to take advantage of this.
+The difference is that the command is executed as soon as it is completed,
+either by 2Escape* or 2Space*. Otherwise it is exactly the
+same as 2Meta-X*.
+
+.subsubsection "Marks and Regions"
+
+        Associated with each buffer is a ring which may store up
+to eight (8) marks. These are buffer pointers created by certain commands
+for future reference. There is a command to create a mark where the
+cursor is and a command to go to the last mark, and some other commands.
+The text between the cursor and the last mark is called the region.
+Many commands operate on this region.
+
+.subsubsection "Killing and Un-killing"
+
+        Whenever more than one character is deleted it is stored in a
+place called a term_i{kill-ring}. Should you decide that it was a
+mistake to delete it then you may retrieve it with the un-kill command
+(2Control-Y*).  This also lets you copy text from one place to
+another, by killing it, moving the cursor and then un-killing it. To
+make several copies type 2Control-Y* several times. The command
+un-kill-pop (2Meta-Y*) will retrieve the next to last peice of
+killed text. If 2Meta-Y* is used right after 2Control-Y* or
+2Meta-Y* the previous un-kill is deleted first. (Unlike lan{its}
+lan{emacs}, 2Meta-Y* can be used at any time.)
+
+.subsubsection "List Oriented Commands"
+
+        A number of commands operate on "lists". These are normally
+defined as lan{lisp} lists with balanced parentheses. This definition
+is controlled by a syntax table and may vary in different major modes
+(see below). For example, in lan{lsb} mode the characters 3{*
+and 3}* are a type
+a parenthesis and will define a list. The editor knows about
+doublequote syntax for strings and vertical-bar syntax for symbols.
+
+.subsubsection "*more*"
+
+        A number of commands will overwrite the text on the screen.
+There is no need to worry, the text has not changed and will redisplayed
+when the current command is finished. If this overwrite fills the top part
+of the screen then the word "7*more**" will be printed on the line above
+the mode-line. The editor will wait for you to read the screen and type a
+space. The space will not be put into the buffer, it just indicates that
+you are ready to see the next screenful of information.
+If you type 2Control-G* it will abort (see below).
+
+.subsubsection "Aborts"
+
+        When the editor is reading from the terminal it usually will
+abort if you type 2Control-G*. The word "7aborted*" will
+appear in the mode area. This is a good thing to try if you are
+losing, though it doesn't work in some places it should.
+
+.section "Major Modes"
+
+        When editing different kinds of documents it is often
+convenient for some editor commands to behave slightly differently.
+For example, when editing a program it seems most useful to have the
+2Tab* key indent the current line so it lines up with the
+corresponding syntactic unit above it, but when editing a paper you
+want the tab key to indent for a paragraph. lan{Steve} has a number
+of term_i{major modes} which are designed for special kinds of
+editing. Most of the major modes are very similar,
+so there is no need to relearn much when you change modes.
+Some of these modes have not been really implemented and are more or
+less alternate names for fundamental mode. I hope that their existance
+will inspire people to contribute the appropriate customizations.
+These mode are marked as Experimental.
+
+.table 7 250 250
+.item Bliss mode (experimental)
+For editing lan{Bliss} programs.
+
+.item Bolio mode
+A mode built on Text mode (see below) indended for sources to
+the text justifier lan{Bolio}. Knows about lan{Bolio} comments. Also
+assumes that lan{Bolio} is being used to document a lan{Lisp} program,
+so the paren echo hack is turned on and 2Meta-.* tries to
+find a function definition.
+The Control-Meta digits are used to change to that number font.
+2Control-Meta-** inserts a "pop font" command.
+
+.item C mode (experimental)
+For editing lan{C} programs. Knows about the /* foo */ syntax of comments,
+but this style of comment has not been used much yet.
+
+.item dcl mode (experimental)
+For editing lan{VMS} command procedures. Knows about the comment character.
+
+.item Fortran mode (experimental)
+For editing lan{fortran} programs.
+
+.item Fundamental mode
+The basic mode upon which most other modes are built. Not used
+for much editing, since usually there is a better and more specialized mode
+for any particular job.
+
+.item Lisp mode
+For editing lan{lisp} programs. The principle features are that parentheses
+are matched as they are typed (try it, it is hard to explain) and that
+the 2Tab* key knows how to indent for lan{lisp} code.
+
+.item LL mode
+Lisp Listener mode is not really for editing documents. It
+simulates the lan{lisp} (or lan{nil}) top level loop by evaluating
+each top level
+form as soon as it is typed, and printing the result into the buffer.
+There are several reasons to use this mode for interactive testing.
+Because you are typing at the editor you have its full power to modify
+a form as you type it in. You are not limited to deleteing the last characters
+typed as you would be normally. Even after a form is executed you may
+modify it and re-use it by backing up (with 2Control-P*), editing it, and
+then re-executing the form with 2Meta-Z* or by erasing and
+re-typing the last
+close paren. Finally, there is a record of what you have done, and the
+results. You may save the buffer and print it. You may add comments
+as you work.
+
+.item LSB mode
+For editing lan{lsb} programs. The primary difference from Lisp mode is
+that the characters 3{* and 3}* are also treated as Parentheses.
+
+.item Macro32 mode (experimental)
+For editing lan{VAX} lan{macro32} programs.
+
+.item Macsyma mode (experimental)
+For editing lan{macsyma} programs.
+
+.item Pascal mode (experimental)
+For editing lan{Pascal} programs.
+
+.item PLI mode (experimental)
+For editing lan{PLI} or lan{Pl/1} programs.
+
+.item Scribe mode (experimental)
+For editing lan{Scribe} documents.
+
+.c .item Test mode
+.c This should be dyked out. It is not useful except for debugging
+.c the editor itself.
+
+.item Text mode
+For editing english (or german or french...) text. 2Tab*
+is normal and 2Meta-.* only searches the loaded buffers without trying
+to find the source file through the function definition. (This may be
+wrong... comments?) Paragraph commands search for lines which begin with
+a white space character rather than for blank lines (as they do in
+program modes.)
+.end_table
+
+.section "Help and Self Documentation"
+
+        lan{steve} has a several commands designed to help you when
+you don't know how do something. The principle commands are
+2Meta-?* and 2Control-Meta-?*, which is the more general
+of the two. When you type 2Control-Meta-?* the editor will
+prompt you in the mode area with:
+.lisp
+Help (type ? for options):
+.end_lisp
+
+        You respond with a single character. The choices are
+.table 7 250 250 0 0 0
+.item A
+Apropos. (You type a Word to search for.)
+.item C
+Document a Character. (You type the character.)
+.item D
+Describe a command. (You type the command name.)
+.item K
+Document a Key. Identical to C.
+.item S
+Syntax. (You type a character.)
+.end_table
+
+        A (Apropos) prints all paragraphs in the help file which contain a
+string. It is useful for finding documentation on some concept.
+Also available through 2Meta-X Apropos*.
+
+        C (Character) finds the name of the command that a key is bound to
+and then treats that just like D (Describe) would. Also available through
+2Meta-X Describe-Key*. (Type the full name. 2Meta-X Describe*
+confuses completion.)
+
+        D (Describe) searches for a paragraph in the help file which contains
+the string in the first line of the paragraph. The help file is structured so
+that paragraph will be the documentation for that command when it is fully
+typed. If this is losing because you don't know the full name of the command
+try Apropos instead. Also available through 2Meta-X Describe*.
+
+        K (key) is another name for C (Character) and 2Meta-X
+Describe-Key*.
+
+        S (Syntax) documents the editor syntax of characters.
+The character is read using the lan{nil} function 3read*, so
+many characters can be typed as themselves. Most others can be typed
+by using the quote prefix "3\*". The possible syntax types
+are 2Word-Alphanumeric*, 2Lisp-Alphanumeric*,
+2White-Space*, 2Paren-Open*, 2Paren-close*, 2String-Quote*, 2Character-quote*, and 2Prefix*. Also available through
+2Meta-X Describe-Char-Syntax*. (Note that 2Meta-X Describe*
+interferes with completion of this name.)
+
+.section "Glossary of Commands"
+
+        So far you know about how to insert characters into the buffer,
+give commands arguments and these commands:
+
+.table 2 500 2000
+.item Control-F
+7Forward-Character*
+.item Control-B
+7Backward-Character*
+.item Control-N
+7Down-Real-Line*
+.item Control-P
+7Up-Real-Line*
+.item Control-X Control-F
+7Find-File*
+.item Control-X Control-S
+7Save-File*
+.item Control-X Control-V
+7Visit-File*
+.item Control-X Control-R
+7Visit-File*
+.item Control-X Control-W
+7Write-File*
+.item Delete
+7Backward-Delete-Character*
+.end_table
+
+Starting on the next page is a complete list of commands, including these and
+all others.
+.page
+
+.center 9Glossary Of STEVE commands*
+.sp 2
+.subsection "Special Character Commands"
+
+.table 7 250 250
+.item Backspace         Backward-Character
+Move the cursor backward one character or more if given an argument.
+
+.item Tab                       Insert-tab (In non-LISP modes)
+Insert a tab.
+
+.item Tab                       Indent-For-Lisp (In LISP modes)
+Indent the current line according to the nesting structure.
+
+.item Linefeed          linefeed
+Break the current line and indent the next line.
+Equivalent to 2Return* followed by 2Tab*.
+
+.item Return                    Crlf
+Insert a line separator or just move to the next line if before
+two blank lines. Skips comment ender if there is one.
+
+.item Altmode                   Bit-Prefix Meta
+Make the next character be a 2Meta* character.
+
+.item Rubout                    Backward-Delete-Character (in non LISP modes)
+Deletes one character before point. If given an argument kills
+that many characters before point.
+.end_table
+
+.need 3000
+.subsection "Control Character Commands"
+
+.table 7 250 250
+.item Control-Altmode           Exit-Editor
+Return to whoever called the editor, generally the lan{nil} interpreter.
+
+.item Control-Space             Set-or-pop-mark
+With no argument places a mark at point. With an argument pops
+the last mark and goes to it.
+
+.item Control-;         Indent-for-comment?
+Inserts a comment on the current line or adjusts the placement
+of an existing comment.
+
+.item Control-<         Mark-Beginning
+Place a mark at the beginning of the buffer.
+
+.item Control-=         What-Cursor-Position
+Prints the 2X* and 2Y* coordinates of the cursor on the screen,
+the current character and the number of characters before point and
+the percentage of the file which that is. Line separators count as two
+characters since that is how many they occupy in a file. See
+3Count-Lines-Region*
+
+.item Control->         Mark-End
+Place a mark at the end of the buffer.
+
+.item Control-@         Set-or-pop-mark
+With no argument places a mark at point. With an argument pops
+the last mark and goes to it.
+
+.item Control-A         Beginning-Of-Line
+Move the cursor to the beginning of the current line.
+
+.item Control-B                 Backward-Character
+Move the cursor back one character or more if given an argument.
+
+.item Control-C         Exit-Editor
+Return to whoever called the editor, generally the lan{nil}
+interpreter.  2Control-C* should interrupt the editor as it does
+in the rest of lan{nil} but because the editor must be in Passall
+mode that is not possible.
+
+.item Control-D         Delete-Character
+Delete the character that the cursor is on.
+
+.item Control-E         End-Of-Line
+Move the cursor to the end of the current line.
+
+.item Control-F         Forward-Character
+Move the cursor forward one character or more if given an argument.
+
+.item Control-G
+2Control-G* will abort the editor if it is reading from the terminal.
+
+.item Control-H         Backward-Character
+Just like 2Control-B*.  2Control-H* is 2Backspace* in
+seven-bit lan{ascii}.
+
+.item Control-I         Tab
+2Control-I* does whatever 2Tab* would do. In Lisp Mode and its
+derivatives (see major modes, below) this indents according to
+the syntax of text as a lan{lisp} program. In non-Lisp modes this is a
+normal 2Tab*.
+
+.item Control-J         Indent-New-Line
+Equivalent to 2Return* followed by 2Tab*. Ends the current line and
+indents the next line.
+
+.item Control-K         Kill-Line
+Kill to the end of the current line. If the cursor is at the end
+of a line it kills the line separator. With an argument kills that many lines.
+
+.item Control-L         New-Window
+Clear the screen and redisplay everything. Useful if
+the screen is garbaged somehow (for example if someone sends you mail).
+The window is moved to put the cursor in the middle of the screen.
+With an argument puts the cursor that many lines from the top of
+the screen. With a negative argument counts from the bottom of the screen.
+
+.item Control-M         CRLF
+Insert a line separator or just move to the next line if before
+two blank lines. Skips comment ender if there is one.
+
+.item Control-N         Down-Real-Line
+Move the cursor straight down one line or more if given an argument.
+
+.item Control-O         Open-Line
+Puts a 2Return* right after the cursor. With an argument creates
+that many blank lines.
+
+.item Control-P         Up-Real-Line
+Move the cursor up one line or more if given an argument.
+
+.item Control-Q         Quoted-Insert
+The next character is treated as an alphanumeric character regardless
+of what it is. This is how to put control characters into the buffer.
+2Meta* characters cannot be put in the buffer, because they cannot be
+in lan{nil} strings.
+
+.item Control-R         Reverse-I-Search
+Incrementally search backward through the buffer for a string.
+
+.item Control-S         I-Search
+Incrementally search the buffer for a string.
+
+.item Control-T         Transpose-Characters
+Exchange the character before the cursor with the character at the
+cursor.
+
+.item Control-U         Universal-Argument
+Read an argument for the next command.
+
+.item Control-V         Next-Screen
+Move the window and the cursor forward almost one screenful.
+The last two lines of the window are now the top two lines. With a numeric
+argument moves the window and cursor that many lines.
+
+.item Control-W         Kill-Region
+Kill the region between point and mark and save it in the kill ring.
+
+.item Control-X         Prefix-Character
+2Control-X* is a prefix character. Type any character after it
+for a two character command.
+
+.item Control-Y         Un-Kill
+Get the most recent kill out of the kill ring and insert it in the
+buffer. With an argument 2N* gets the 2N*th kill. With just
+2Control-U* as an argument, it leaves the cursor before the
+un-killed text.
+
+.item Control-Z         Bit-Prefix Control-Meta
+Read the next character as a 2Control-Meta* character.
+
+.item Control-\         Prefix-Meta
+Read the next character as a 2Meta* character.
+
+.item Control-]         Abort-Recursive-Edit
+Return from a recursive edit without doing anything more.
+
+.item Control-^         Bit-Prefix Control
+Read the next character as a 2Control* character.
+
+.item Control-Rubout            Backward-Delete-Hacking-Tabs
+Like 2Rubout* except that a 2Tab* is first expanded into spaces.
+This is useful for indenting things. In Lisp modes 2Rubout* and
+2Control-Rubout* are interchanged.
+.end_table
+
+.need 3000
+.subsection "Meta Key commands"
+.table 7 250 250
+.item Meta-Linefeed             Indent-New-Comment-Line
+Equivalent to 2Control-N* 2Meta-;*
+
+.item Meta-Return               Back-To-Indentation
+Put the cursor on the first non white-space character in the
+current line. (Tabs and spaces are white-space.)
+
+.item Meta-Altmode              Minibuffer
+Start a minibuffer.
+
+.item Meta-#                    Change-Font-Word
+Change the font of the previous word.
+
+.item Meta-(                    Make-parens
+Enclose the next lan{lisp} expression in parens. With an argument enclose
+that many lan{lisp} expressions.
+
+.item Meta-)                    Move-Over-Right-Paren
+Move past the next close parenthesis, then do a 2Linefeed*.
+
+.item Meta-.                    Defun-Search-All-Buffers
+Find a defun. In some modes this will look at the subr object
+to find the module a grovel around to find and load the file where the
+function is defined. In most text modes (other than bolio) it just searches
+the loaded buffer.
+
+.item Meta-;            Indent-for-comment?
+Inserts a comment on the current line or adjusts the placement
+of an existing comment.
+
+.item Meta-<                    Goto-Beginning
+Put the cursor at the beginning of the buffer.
+
+.item Meta-=                    Count-Lines-Region
+Prints the number of lines between point and mark in the mode area.
+Also prints the number of buffer characters between point and mark (counting
+the line separator as one character. See 3What-Cursor-Position*.)
+
+.item Meta->                    Goto-End
+Put the cursor at the end of the buffer.
+
+.item Meta-?                    Describe-Key
+Reads a key from the keyboard and prints its documentation.
+
+.item Meta-A                    Backward-Sentence
+Move to the end of the previous sentace.
+
+.item Meta-B                    Backward-Word
+Backup one word. (With an argument backs up that many words.)
+
+.item Meta-C                    Uppercase-initial
+Capitalize a word.
+
+.item Meta-D                    Kill-word
+Kill the next word.
+
+.item Meta-E                    Forward-Sentance
+Move the cursor to the end of the current sentance.
+
+.item Meta-F                    Forward-Word
+Move over one word. With an argument moves over that many words.
+
+.item Meta-H                    Mark-Paragraph
+Put point at the beginning of a paragraph and mark at the end.
+
+.item Meta-I                    Insert-Tab
+Puts a tab into the buffer. 2Meta-I* does not change in Lisp modes.
+
+.item Meta-J                    Indent-New-Comment-Line
+Equivalent to 2Control-N Meta-;*.
+
+.item Meta-K                    Kill-Sentence
+Kill the sentence after the cursor.
+
+.item Meta-L                    Lowercase-Word
+Convert the next word to all lowercase characters.
+
+.item Meta-M                    Back-To-Indentation
+Move the cursor to the first non white-space character in the current line.
+
+.item Meta-N                    Down-Comment-Line
+If the current line has a blank comment delete it. Then move to the
+next line and add or adjust the comment start in the correct column.
+
+.item Meta-P                    Up-Comment-Line
+If the current line has a blank comment delete it. Then move to the
+previous line and add or adjust the comment start in the correct column.
+
+.item Meta-R                    Move-To-Screen-Edge
+With an argument move to the beginning of that line on the screen.
+With a negative argument count from the bottom. With no argument
+move one third from the top.
+
+.item Meta-S                    Center-Line
+Centers the non white-space characters in the current line.
+
+.item Meta-T                    Transpose-Words
+Exchange the words before and after the cursor.
+
+.item Meta-U                    Uppercase-Word
+Convert the next word to all upper case characters.
+
+.item Meta-V                    Previous-Screen
+Move point and the window back so the two top lines become the two
+bottom lines. With an argument move that many lines.
+
+.item Meta-W                    Copy-Region
+Put the text between point and mark in the kill ring but do
+not delete it from the buffer.
+
+.item Meta-[                    Backward-Paragraph
+Move to the beginning of a paragraph. In Lisp modes a
+paragraph begins with a blank line. Otherwise a paragraph begins with a line
+that starts with a white-space character.
+
+.item Meta-\                    Delete-Horizontal-Space
+Delete any spaces or tabs around the cursor.
+
+.item Meta-]                    Forward-Paragraph
+Move to the end of a paragraph.
+
+.item Meta-^                    Delete-Indentation
+Join the current line to the previous line and delete white space
+as appropriate. Leaves the cursor where the line separator was, so a
+2Linefeed* undoes the effect of 2Meta-^*.
+
+.item Meta-~                    Buffer-Not-Modified
+Clears the flag which says the current buffer has been changed.
+The star (*) in the mode line will be erased. Be careful with this command:
+use it only when you are sure there have not been any changes to the buffer
+that you want saved.
+
+.item Meta-Rubout               Backward-Kill-Word
+Kill the word befor the cursor.
+.end_table
+
+
+.need 3000
+.subsection "Control-Meta Commands"
+
+
+.table 7 250 250
+.item Control-Meta-Backspace    Mark-Defun
+Put point at the beginning of a defun and mark at the end.
+
+.item Control-Meta-Linefeed     Indent-New-Comment-Line
+Equivalent to 2Control-N* 2Meta-;*.
+
+.item Control-Meta-Return       Back-To-Indentation
+Move the cursor to the first non white-space character in the current line.
+
+.item Control-Meta-(            Backward-Up-List
+Move backward to next enclosing open parenthesis.
+
+.item Control-Meta-)            Forward-Up-List
+Move forward to next enclosing close parenthesis.
+
+.item Control-Meta-;            Kill-Comment
+Kill the entire comment field on the current line.
+
+.item Control-Meta-?            Editor-Help
+Self documentation function. Type a single character
+(one of 76*, 7A*, 7C*, 7D*, 7K*,
+7L*, 7S*, or 7?*) to
+select which type of help you want.
+
+.item Control-Meta-@            Mark-Sexp
+Put the mark at the end of the next lan{lisp} expression.
+
+.item Control-Meta-A            Beginning-Of-Defun
+Backup to the beginning of the current or previous defun.
+Does not require matched parentheses or a complete defun.
+
+.item Control-Meta-B            Backward-Sexp
+Move backward over one lan{lisp} expression.
+
+.item Control-Meta-C            Compile-Sexp
+Compile the current defun. Only works for lan{nil} code.
+The compiled function is loaded into the current lan{nil}.
+
+.item Control-Meta-D            Down-List
+Move to the inside of the next list in the buffer.
+
+.item Control-Meta-E            End-Of-Defun
+Move to the end of the current or next defun.
+Does not require matched parentheses or a complete defun.
+
+.item Control-Meta-F            Forward-Sexp
+Move forward over one lan{lisp} expression.
+
+.item Control-Meta-H            Mark-Defun
+Put point at the beginning and mark at the end of the current defun.
+
+.item Control-Meta-J            Indent-New-Comment-Line
+Equivalent to 2Control-N* 2Meta-;*.
+
+.item Control-Meta-K            Kill-Sexp
+Kill the next lan{lisp} expression.
+
+.item Control-Meta-M            Back-To-Indentation
+Move the cursor to the first non white-space character in the current line.
+
+.item Control-Meta-N            Forward-List
+Move forward over one list.
+
+.item Control-Meta-O            Split-Line
+Break a line at the cursor and indent the second half so it
+starts in the same column.
+
+.item Control-Meta-P            Backward-List
+Move backward over one list.
+
+.item Control-Meta-Q            Indent-Sexp
+Apply tab to every line in the lan{lisp} expression following the cursor
+except for the first line.
+
+.item Control-Meta-R            Reposition-Window
+Try to place the beginning of the current defun at the top of the
+window without moving the cursor. Does not require balanced parentheses.
+
+.item Control-Meta-T            Transpose-Sexps
+Exchange the previous and next lan{lisp} expressions.
+
+.item Control-Meta-U            Backward-Up-List
+Move backward to the previous enclosing open parenthesis.
+
+.item Control-Meta-V            Scroll-Other-Window
+In two window mode scrolls the other window forward.
+With an argument scrolls by lines.
+
+.item Control-Meta-W            Append-Next-Kill
+If the next command is a kill command the previous kill will
+be appended to it, even if it would not otherwise be. Has no effect if
+the next command is not a kill command.
+
+.item Control-Meta-X            Instant-Extended-Command
+Read an extended (named) command from the keyboard and execute it.
+If completion finishes the command name it will be executed instantly,
+without waiting for a 2Return*.
+
+.item Control-Meta-[            Beginning-Of-Defun
+Move to the beginning of the current or previous defun.
+
+.item Control-Meta-]            End-Of-Defun
+Move to the end of the current or next defun.
+
+.item Control-Meta-^            Delete-Indentation
+Join the current line to the previous line and delete white space
+as appropriate. Leaves the cursor where the line separator was, so a
+2Linefeed* undoes the effect of 2Control-Meta-^*.
+
+.item Control-Meta-Rubout       Backward-Kill-Sexp
+Kill the lan{lisp} expression before the cursor.
+.end_table
+
+.need 3000
+.subsection "Control-X Commands"
+
+.table 7 250 250
+.item Control-X Control-A       Toggle-Auto-Fill-Mode
+With no arg, toggles auto fill mode.  With a negative arg, turns
+it off.  With a positive arg, turns it on and sets Fill Column to that number.
+
+.item Control-X Control-B       List-Buffers
+Lists all buffers and their major modes.
+
+.item Control-X Control-Z       Exit-Editor
+Return to whoever called the editor, generally the lan{nil}
+interpreter.
+
+.item Control-X Control-D       Directory-Display
+List all versions and types of the current file. With an
+argument reads a pathname and lists all files which match it.
+
+.item Control-X Control-F       Find-File
+Find-File will prompt for a file name and you should type it
+from the keyboard. If there is a buffer for that file then it will
+be selected and be the new current buffer. Otherwise a buffer is created
+for the file and the file is read in from disk if it exists there.
+Find-File is the most common way to read a file from disk. It creates
+a new buffer for each file which is convenient. When Find-File creates
+a buffer it uses the file name without any extention as the buffer name.
+Since the name of each buffer must be unique this doesn't work when
+you are editing two files which have the same name but are on different
+directories, or have different extensions (file types) so Find-File will
+notice if you are doing this and will ask you for a new buffer name
+to use.
+
+.item Control-X Tab             Indent-Rigidly
+With an argument shifts all lines in the region right (or left
+if negative) that many columns.
+
+.item Control-X Control-L       Lowercase-Region
+Convert all characters between point and mark to lower case.
+
+.item Control-X Control-N       Set-Goal-Column
+2Control-N* and 2Control-P* try to move to the goal column if there is
+one. With an argument removes the goal column. Otherwise set it to the
+current cursor position.
+
+.item Control-X Control-O       Delete-Blank-Lines
+Delete all blank lines following point, and if the current is
+blank delete all blank lines before it.
+
+.item Control-X Control-P       Mark-Page
+Put point at the beginning and mark at the end of the current page.
+
+.item Control-X Control-Q       Set-File-Read-Only
+.nofill
+With positive argument sets file read only.
+With negative argument sets buffer read only.
+With zero argument allows any access.
+.fill
+
+.item Control-X Control-R       Visit-File
+Visit-File is like Find-File except that it re-uses the current
+buffer, destroying its contents. It is still safe since it will offer to
+save it if any changes have been made to it.
+
+.item Control-X Control-S       Save-File
+Save-File writes the current buffer to its associated file,
+and changes the mode line to indicate that the buffer and file are now
+identical. (This is not done until the output is complete, so if there
+is a disk error or some other error you will not think it has been
+saved when it hasn't been.)
+
+.item Control-X Control-T       Transpose-Lines
+Exchange the current and previous lines.
+
+.item Control-X Control-U       Uppercase-Region
+Convert all characters between point and mark to upper case.
+
+.item Control-X Control-V       Visit-File
+Visit-File is like Find-File except that it re-uses the current
+buffer, destroying its contents. It is still safe since it will offer to
+save it if any changes have been made to it.
+
+.item Control-X Control-W       Write-File
+Write-File writes the current buffer to a file, but unlike save file
+it will prompt you for the file name.
+
+.item Control-X Control-X       Exchange-Point-And-Mark
+Put point where mark is and mark where the point was.
+
+.item Control-X Altmode Re-Execute-Minibuffer
+Evaluate the symbol "+". 2Meta-X* and some other commands setq 3+*
+appropriately so this does the right thing.
+
+.item Control-X #               Change-Font-Region
+Sets the font number of the region to the argument. Good for
+Bolio at least.
+
+.item Control-X (               Start-Kbd-Macro
+Begins defining a keyboard macro.
+
+.item Control-X 1               One-Window
+Make the current window fill the entire screen and discard all other windows.
+
+.item Control-X 2               Two-Windows
+Split the current window into two windows. Can create any number of
+windows until they get two small.
+
+.item Control-X 3               View-In-Other-Window
+Split the current window into two windows but stay in the top half.
+
+.item Control-X 4               Visit-In-Other-Window
+Combines Find-File and two window mode. Asks for a file to find,
+then displays it in a new second window.
+
+.item Control-X ;               Set-Comment-Column
+Sets the comment column to the current cursor column. Comment commands
+try to start comments in the comment column.
+
+.item Control-X =               What-Cursor-Position
+Shows the 2X* and 2Y* coordinates of the cursor on the screen,
+the current character and how far through the buffer you are.
+
+.item Control-X A               Append-To-Buffer
+Adds the text of region to the end of another buffer.
+
+.item Control-X B               Select-Buffer
+Asks for a buffer name and creates or selects a buffer of that name.
+
+.item Control-X F               Set Fill Column
+Sets the fill column to be the argument, if given, or else the
+current cursor position.
+
+.item Control-X G               Get-Q-Reg
+Asks for the name of a lan{lisp} variable and tries to interpret its value
+as text to insert into the buffer.
+
+.item Control-X H               Mark-Whole-Buffer
+Put point at the beginning of the buffer and mark at the end.
+
+.item Control-X K               Kill-Buffer
+Reads a buffer name and kills that buffer.
+
+.item Control-X L               Count-Lines-Page
+Prints the number of lines in the current page in the mode area.
+
+.item Control-X O               Other-Window
+Selects the next window.
+
+.item Control-X T               Transpose-Regions
+Transposes two regions defined by point and the last three marks.
+
+.item Control-X X               Put-Q-Reg
+Asks for a lisp variable and saves the text in the current region
+there. Designed to be undone with Get-Q-Reg (2Control-X G*).
+
+.item Control-X [               Previous-Page
+Move point to the previous page boundary.
+
+.item Control-X ]               Next-Page
+Move point to the next page boundary.
+
+.item Control-X Rubout  Backward-Kill-Sentence
+Kills text to the previous end of sentence.
+.end_table
+
+.need 3000
+.subsection "Meta-X Commands"
+
+.table 7 250 250
+.item Apropos
+Searches the documentation for a string and prints all paragraphs
+which contain the string.
+
+.item Auto-Fill-Mode
+Toggle auto fill mode.  With an explicit argument, turn it
+on if positive, and off if negative.  I forget what 0 does.
+Unfortunately this does not change the mode line. It will in the next
+version.
+
+.item Bliss-mode
+Change to lan{bliss} mode.
+
+.item Bolio-Mode
+Bolio mode is built on Text mode, but has features from Lisp mode.
+In particular 2Meta-.* does a Find Function and the parenthesis
+balancing hack is
+turned on. Comments are Bolio comments.  Also,
+2Control-Meta-digit* and 2Control-Meta-** insert a
+2Control-F* followed by themselves, as font switching commands.
+
+.item C-Mode
+Change to lan{C} mode.
+
+.item Comment-Region
+Adds comments to the beginning of each line between point and
+mark. Can be undone with 2Meta-X Uncomment-Region*. Won't work for
+languages with a comment terminator (I think).
+
+.item Compile
+Compiles the file associated with the current buffer. With a
+pathname argument compiles that file instead. Asks if you want the file
+loaded when done.
+
+.item Copy-Mode-Line
+Copy the first non-blank line of the last buffer selected to the
+first line of this buffer. An argument is the name of a buffer to use instead.
+
+.item Dcl-mode
+Change to lan{Dcl} mode.
+
+.item Delete-File
+Reads a file name and deletes it. Asks for confirmation.
+
+.item Describe
+Reads a command from the keyboard and searches for documentation on it.
+
+.item Describe-Char-Syntax
+Reads a character and lists its editor syntax. For normal characters
+just type the character and 2Return*. For special chracters you must type its
+symbolic name in accordance with the current readtable.
+
+.item Evaluate
+Reads and evaluates one lan{nil} form. Prints the value in the mode
+area. Passall mode is turned off during evaluation for safety.
+
+.item Edit-Options
+Recursively edit a buffer showing all the editor variables and their
+documentation and values. Changes to the values will take effect when
+the recursive edit is exited normally. If it is aborted no changes will
+be made. Don't change anything except the values or you may confuse things.
+(Don't add or delete blank lines: that is how the buffer is parsed.)
+
+.item fortran-mode
+Change to lan{fortran} mode.
+
+.item Fundamental-Mode
+Sets the major mode for the current buffer to Fundamental.
+
+.item Help-Meta-X-Commands
+Lists the 2Meta-X* commands. This will probably go away and be
+subsumed under some more powerful help function.
+
+.item Kill-Local-Variable
+Removes the current buffer's local binding of a variable.
+
+.item Kill-Some-Buffers
+Asks for each buffer whether to kill it or save it.
+
+.item Kill-Variable
+Attempts to 3makunbound* some variable. May change or
+go away.
+
+.item Lisp-Mode
+Sets the major mode of the current buffer to Lisp. Turns on
+the parenthesis echo hack and some other features.
+
+.item List-Options
+List the variables which control the behavior of the editor. Shows their
+current values and and short paragraph of documentation for each one.
+If it can be determined that a variable has been redefined by the
+current major mode or minor mode or a local binding it will be marked
+as "(Redefined)".
+
+.item List-Redefinitions
+List only those variables whose values have been changed in the same
+format as List-options.
+
+.item LL-Mode
+Sets the major mode of the current buffer to LL (Lisp Listener).
+Lisp Listener mode is built on Lisp mode, but has the feature that
+a defun is evaluated and printed into the buffer when it is finished.
+It acts like the top-level loop in many ways, except all input and output
+is saved in a buffer. You also get to use 2Tab* and the other
+editor features which help typing lan{lisp} forms.
+
+.item Local-Bind
+Bind some variable to some value when in the current buffer.
+If prompting for input this will tell you what the current value is.
+
+.item LSB-Mode
+Makes the current major be LSB. Very similar to Lisp mode,
+except that 3{* and 3}* are also parentheses.
+
+.item Macsyma-Mode
+Change to lan{Macsyma} mode.
+
+.item Make-Local-Variable
+Like half of Local-Bind. Makes the variable local to the current
+buffer, but doesn't change its value. Not sure if this is useful, it is
+an attempt to sort of be compatible with lan{emacs}.
+
+.item Name-KBD-Macro
+If there is a keyboard macro this will allow you to name it and
+to put it on a key. Asks for the key, then asks for confirmation about that.
+
+.item Overwrite-Mode
+This is not a major mode. It is also not finished. It is supposed
+to make self-inserting characters overwrite the existing characters
+rather that move them over. This much works, but there is some other hair
+which is unimplemented.
+
+.item Pascal-Mode
+Change to lan{Pascal} mode.
+
+.item PLI-mode
+CHange to lan{pli} mode.
+
+.item Query-Replace
+Replace all occurances after point of the first argument with the
+second argument. Asks about each replacement. "3?*" will list
+the options in the mode area. 2Space* does the replacement,
+2Rubout* does not, 2Escape* exits immediately, 2Period*
+(3.*) makes the replacement then exits, and 2Comma*
+makes the replacement, then waits for a 2Space* before continuing
+
+(so you can see the change before moving to the next one).
+
+.item Rename-Buffer
+Change the name of the current buffer.
+
+.item Rename-File
+Takes two file name arguments. Renames the first to the second.
+
+.item Reparse-Mode-Line
+Reset the major mode and all local variables from the file property
+list of the file associated with the current buffer.
+
+.item Replace
+Replace all occurrences of the first argument with the second argument.
+Acts instantaneously (well, as fast as a lan{vax} can go) and leaves
+the cursor where it was. Note: Currently the cursor is left at where
+the last string was replaced.
+
+.item Save-All-Files
+Lets you save any modified buffers. Asks about each one separately.
+
+.item Scribe-Mode
+Change to lan{Scribe} mode.
+
+.item Set-Key
+The first argument is a Key and the second is a binding.
+2Control-X* keys can be specified like (#\Control-X #\Control-B).
+Keys should be specified is accordance with the current readtable.
+This is not intended for use in lan{nil} programs. See the
+section below on Extending The Editor.
+
+.item Set-Variable
+3set*s a lan{lisp} variable to some value.
+
+.item Set-Visited-Filename
+Changes the file name associated with the current buffer, but does
+not change the buffer or write any files.
+
+.c .item Test-Mode
+.c A major mode build on LL mode (Lisp Listener) but with passall
+.c turned off. Not really sure why I did this, except to test the editor,
+.c since Passall is off in LL mode when reading and evaluating a form.
+
+.item Text-Mode
+The major mode for editing text. Also try Bolio mode.
+
+.item Trace-Current-Defun
+Tries to find the name of the current defun and call trace on
+it. Given and argument will trace that function instead.
+
+.item Uncomment-Region
+Tries to remove comments from a region of commented code.
+Meant to be used with 2Meta-X Comment-Region*.
+
+.item Underline-Region
+If the terminal supports 2underlining* change the visible part of
+the region so it is underlined. Waits for you to type a space, then
+reverts to the normal display and lets you continue.
+
+.item View-Buffer
+Shows the contents of a buffer in screenfuls.
+
+.item View-File
+Shows the contents of a file in screenfuls. Until the lan{nil}
+garbage collector works this is much less efficient than visiting the
+file since all of the lines are wasted completely.
+
+.item View-Kbd-Macro
+Shows the sequence of characters in a keyboard macro in the mode area.
+
+.item View-Mail
+This is just a hack which runs View-File over the lan{vms} mail file
+7sys$login:mail.mai*.  If it doesn't work, don't use it.
+
+.item View-Variable
+Prints the value of a lan{lisp} variable. Doesn't barf if the variable is
+not bound. Other than that it is no better than 2Meta-X Evaluate*.
+
+.item What-Page
+Prints the current page number and line number.
+
+.item Write-region
+Writes the text between point and mark to a file. Asks for the
+file name if it is not supplied.
+.end_table
+
+
+.section "Extending the Editor"
+
+        Eventually the internals of the editor will be documented pretty
+completely. Currently the internals are subject to change, so any
+extention may be broken by future changes to the editor.
+However, as any hacker knows, a program does not change all that quickly...
+So one may assume that most of the internals will not change much.
+"Not being documented" means that I don't know which parts will change
+and which parts won't, so you pays your money and you takes your chances.
+
+.subsection "Editor Functions"
+        An editor function is just a lan{nil} function in the
+package lan{steve}.  Currently the name of the function as given in
+this manual or with the
+Describe-Key command is the name of the lan{nil} function, unless
+that conflicts with some other lan{nil} function. (There has been
+some talk of adding a consistent prefix or suffix to all editor commands to
+distinguish them from other internal editor functions.) So you can
+call an editor function from lan{nil} very easily, just find out its name.
+For example the lan{lisp} form 3(steve:forward-word)* will move
+the cursor forward one word, just like 2Meta-F* would. Numeric
+arguments are passed in the global variable var_i{steve:*argument*}.
+
+.defspec steve:define-binding key-sequence binding name modes documentation &rest args
+The new and best way to define a key binding.
+
+2Key-sequence* may be either a character object (see documentation)
+or a list of two character objects. This is interpreted as a key to
+bind to, with the list form used for prefix-character bindings
+(e.g. 3'(#\control-x #\control-f)*).
+
+The 2binding* should be a lan{nil} function name. It is not
+evaluated.
+
+The 2name* may be 3nil*. Otherwise it is used as the
+M-X name of the function.
+
+The 2modes* are a list of modes in which this binding should be
+made. It is not evaluated. Note that bindings are inherited by modes which
+are built on each other, so binding something in FUNDAMENTAL mode
+binds it in all modes etc. Generally things should only be bound in
+one mode and inherited by the others. This makes the effects of
+re-binding more comprehensible to users.
+
+If 2modes* is 3nil* it the binding will affect only
+Fundamental mode.
+
+The 2documentation* is a format-string. The 2args* are
+the corresponding format args and are not evaluated. The documentation
+is stored someplace and currently never be seen again. But soon (probably
+before the end of tonight) I will make the self-documentation functions look
+for it.
+.end_defspec
+
+defspec steve:define-extended name lisp-name documentaion &rest args
+The new and best way to define meta-x commands.
+
+The 2name* is the name which M-X knows.
+The 2lisp-name* is the name of a lan{nil} function to
+implement the M-X function.
+
+The 2documentation* and 2args* are handled the same
+way the 3define-binding* does.
+.end_defspec
+
+.english 0
+These are old ways to define key bindings.
+.end_english
+
+.defspec steve:editor-bind-key key-sequence binding &optional mode-name
+2key-sequence* may be either a character object or a list
+containing two character objects. It is evaluated. The code field of these
+characters should not be an lan{ascii} control character; use the
+bits field to
+select a control character. A list is interpreted as a two character
+command using a prefix character (generally 2Control-X*).
+The binding is not evaluated. It may be a function name, an editor
+command macro specification or a key indirection.
+
+        Normally the binding is a function name to call when the key
+is typed. The function will be called with no arguments.
+        If the binding is a character object the binding for that character
+object is used instead. This is only used for binding 2Control-I*
+to 2Tab*, so it may not be very robust.
+        A list is used to define an editor command macro. The 3car* of
+the list is a function and the 3cdr* is a list of arguments.
+When the editor is reading the key as a command the function is called
+and its values are returned as the "key" and command. This is hairy and
+should not be used lightly. Look at the code for numeric arguments and
+bit-prefixes to see how it can be used.
+
+        The 2mode-name* is used to find the binding table for that
+major mode. The major mode must be declared when this is executed.
+The default is to use the current major mode, which is normally
+fundamental when not in the editor, i.e. when linking lan{nil}.
+
+        If the 2binding* is a symbol then it is also defined as
+a 2Meta-X* command. Not sure if this is good but that's the way it
+is right now.
+.end_defspec
+
+.defmac steve:editor-defun-key key-sequence name &body forms
+A cross between 3defun* and 3editor-bind-key*.
+Defuns 2name* to be a no argument function with a body of
+2forms* and binds it to 2key-sequence* using
+3editor-bind-key*. There is some debate about whether to use this
+function or not.
+.end_defmac
+
+.defun steve:bind-key-in-buffer buffer key-sequence binding
+Not yet tested.
+Define the binding of 2key-sequence* to 2binding* when
+2buffer* is selected, but do not effect other buffers of the same
+or any other major mode.
+.end_defun
+
+.defun steve:bind-in-buffer buffer variable value
+Arrange for 2variable* to be specialy bound to 2value* when
+2buffer* is selected. Because we don't have complete closure
+mechanisms yet this does not side effect the 2variable* immediately.
+Instead the appropriate flag is set so that when control returns to the
+editor command loop it will re-select the current buffer. This is
+transparent to keyboard macros, but must be known to anyone writing
+a lan{lisp} editor macro which uses this function. The best way
+to write such functions is like this:
+.lisp
+steve:(defun foo (frobs)
+        (let ((FLAG [New value of variable]))
+          (bind-in-buffer <buffer> <VARIABLE> FLAG)
+          [computation using FLAG instead of <VARIABLE>]
+        ))
+.end_lisp
+An example of this is the function 3steve:auto-fill-mode*.
+.end_defun
+
+.defun buffer-local-value buffer variable
+Returns the value which 2variable* has in 2buffer*
+or 3nil*. The second value is 3t* if the 2variable* is
+locally bound in the 2buffer*, otherwise 3nil*.
+Not heavily used yet, so there could be bugs.
+.end_defun
+
+        A number of the editor functions take optional arguments which
+are intended to make it easier to use them from lan{nil} code.
+Usually these are the arguments which the function uses. For example
+one may use the form 3(query-replace "foo" "bar")* from lan{nil}
+code. In particular most of the word functions take a numeric argument
+and use that instead of looking at the value of
+3steve:*argument**. Some functions have an optional buffer-pointer
+as an argument. They will operate on this BP instead of the current
+cursor when they receive an argument.
+
+.subsection "Editor Objects"
+        There are several special types of objects used by the editor.
+These are 3steve:buffer*, 3steve:bp*, 3steve:line*,
+3steve:edit-cursor*, and 3steve:window-stream*.
+All of them are flavors. The general intent is that they should not
+be changed in any way except by sending messages, nor should more
+messages be defined. The instance variables may be looked at using the
+accessor macros generated by 3defflavor*, but be careful because
+the values are only valid until somthing changes.
+
+        A buffer object contains everything about a buffer
+including the text. It does not contain a cursor because there may
+be several cursors into one buffer. An 3edit-cursor* contains a buffer
+a window and the position in the buffer where the upper right hand
+corner of the window is. An 3edit-cursor* is also a 3bp*, and
+as such it
+is the location of the cursor. A 3line* is quite complex and should not
+be hacked under any circumstances. In addition to a string of characters
+and the length of the line it contains a list of the 3bp*s which point
+to that line. Whenever the line changes these 3bp*s must be relocated.
+A line also contains an index which indicates when it was last modified.
+This is used to optimize the redisplay. A 3bp* (Buffer Pointer) is a
+pointer to some character in a buffer. The important instance variables
+are the line and position within the line. Remember that each line
+has to point to all 3bp*s that point to the line. A 3window-stream*
+is an output-stream with an x-size, y-size and an x-position and
+a y-position. The redisplay does not know how to handle windows whose
+x-position is not zero, or whose x-size is not equal to the terminal
+width.
+
+The correct way to create these objects is with these functions.
+
+.defun steve:make-bp buffer line position
+Returns a 3bp* pointing to the 2position* character (zero based)
+in 2line*. 2buffer* may or may not be ignored. In any
+case the 2line* must be in the 2buffer*.
+.end_defun
+
+.defun steve:make-line buffer previous next &optional string
+Returns a line in 2buffer* between 2previous* and
+2next* containing 2string*.
+If 2next* is 3nil* this will be the end of the buffer.
+.end_defun
+
+.defun steve:buffer spec &key :create
+2spec* may be a pathname, a buffer name (as a string),
+a buffer or an 3edit-cursor*. The value is either 3nil* or a
+buffer, which
+is found or created using 2spec*. The keyword argument 2create*
+determines if the buffer is created when it does not exist already.
+The default is to create a new buffer.
+.end_defun
+
+.defun steve:list-to-buffer name list-of-strings
+Create a buffer called 2name*. Each string in 2list-of-strings*
+will become a line in the buffer. #\RETURN should not appear in any string.
+.end_defun
+
+.defun steve:point spec &key create
+Like 3buffer* except returns an edit-cursor. The argument
+2create* controls whether a buffer is created in order to
+build the edit-cursor. (If there is a buffer then an edit-cursor will
+always be returned, regardless of the value of 2create*. An
+edit-cursor must have a buffer.)
+The edit-cursor may or may not have a window.
+.end_defun
+
+.defun steve:point-selected spec &key create
+Like 3point* except that the edit-cursor is selected as
+the current cursor and its buffer is the current buffer.
+.end_defun
+
+This last function uses primitives which are useful in their own right.
+
+.defun steve:select-point point
+Make 2point* be the current cursor and its buffer the current buffer.
+.end_defun
+
+.defun steve:select-point-in-current-window point
+Like 3select-point* except the window of the current cursor is
+stolen. This is usually the right way tp select a cursor.
+.end_defun
+
+Some common operations on lines. These are done carefully, so as to
+do the right thing at the beginning and end of the buffer.
+
+.defmac steve:line-next line
+Return the line after 2line* or 3nil* if at the end of the
+buffer. This is a macro generated by 3defflavor*.
+.end_defmac
+
+.defmac steve:line-previous line
+Return the line before 2line* or 3nil* if at the beginning of
+the buffer.
+.end_defmac
+
+.defun steve:nth-next-line line n
+Return the line 2n* lines after 2line*. If the
+end of the buffer is reached, the last line in the buffer is returned.
+If 2n* is 30* the first argument is returned. If 2n*
+is negative, moves backward.
+.end_defun
+
+.defun steve:nth-previous-line line n
+Like 3nth-next-line* except moves up for positive 2n*.
+.end_defun
+
+.need 3000
+Some operations on 3bp*s.
+
+.defmethod bp :advance-pos n
+Ask the 3bp* to advance by 2n* chars. Line separators count as 31*
+character. Bombs back to the editor top level at beginning and end of buffer.
+.end_defmethod
+
+.defmethod bp :move line n
+Place the 3bp* pointing to the 2n*th character of 2line*.
+.end_defmethod
+
+.defmethod bp :get-char
+Return the character that the 3bp* points to.
+.end_defmethod
+
+.defmethod bp :get-char-forward
+Return the character that the 3bp* points to and advance over it.
+.end_defmethod
+
+.defmethod bp :peek-char-backward
+Return the character before the one that the 3bp* points to.
+.end_defmethod
+
+.defmethod bp :get-char-backward
+Return the character before the one that the 3bp* points to backup to
+point to it.
+.end_defmethod
+
+.english 0
+Note the unpleasant asymmetry of names. However, none of these can be
+interpreted as standard stream messages.
+.end_english
+
+.need 4000
+.subsection "Other Functions and Conventions"
+
+.need 3000
+.lisp 0 1
+Editor errors.
+.end_lisp
+
+.defun steve:save-all-files
+This is the 2Meta-X Save-All-Files* function. It may be called from
+outside the editor if the editor is broken, and may be able to save
+your buffers.
+.end_defun
+
+.defun steve:ed-lose format-string &restv format-args
+Abort any operation immediately. Print the 2format-string* and ring
+the bell, then return to the editor top-level. The 2format-string* is
+printed in the mode area. Passall mode is turned off while
+aborting to the top level, so if a bug causes a repetitive error
+you can escape by typing 2Control-C* at the right instant. Keep trying, it
+works, but it may take a few tries.
+.end_defun
+
+.defun steve:ed-warn format-string &restv format-args
+Like 3ed-lose* except the bell is not rung. In general
+3ed-lose* is used when the editor detects an error, and
+3ed-warn* is used for predictable events, like the
+2Control-G* abort out of a command reader. I feel that if the user has
+already done something to cause an abort he/she will not want
+to hear how upset the editor is. The bell is to bring attention
+to something unexpected.
+.end_defun
+
+.defun steve:ed-warning format-string &restv format-args
+Print 2format-string* in the mode area, and continue. Does not cause
+an exit to the editor top-level, but continues any operation in progress.
+.end_defun
+
+.defspec steve:with-no-passall &body forms
+Execute 2forms* with the terminal not in passall mode.
+Sets up an unwind-protect form so an abort is o.k.
+.end_defspec
+
+.defvar steve:*editor-device-mode*
+The editor sets the terminal to passall mode only if this variable is
+3t*. If you write an editor function which turns passall off and on
+you should always use the form:
+.lisp
+(send terminal-io :set-device-mode
+      :passall steve:*editor-device-mode*)
+.end_lisp
+.end_defvar
+
+.need 3000
+.lisp 0 1
+Arguments.
+.end_lisp
+
+.defmac steve:argument?
+Use the form 3(steve:argument?)* to determine if any numeric
+argument was given.
+.end_defmac
+
+.defmac steve:c-u-only?
+Returns 3t* if the argument was 2Control-U* with no number.
+.end_defmac
+
+.defmac steve:real-arg-sup?
+.lisp
+(and (steve:argument?) (not (steve:c-u-only?)))
+.end_lisp
+But more efficient in code and runtime.
+.end_defmac
+
+.defmac steve:buffer-begin? &optional bp
+Test whether 2bp* (or the current cursor) is at the very beginning
+of the buffer.
+.end_defmac
+
+.defmac steve:buffer-end? &optional bp
+Similar; test for the end of the buffer.
+.end_defmac
+
+.defmac steve:first-line? &optional bp
+Returns 3t* if the 2bp* is anywhere in the first line of its
+buffer.
+.end_defmac
+
+.defmac steve:last-line? &optional bp
+Analogous.
+.end_defmac
+
+.defun steve:not-buffer-begin &optional bp
+.defun1 steve:not-buffer-end &optional bp
+.defun1 steve:not-first-line &optional bp
+.defun1 steve:not-last-line &optional bp
+Return to the editor top level (with 3ed-lose*) if the 2bp*
+fails the given test. Otherwise do nothing.
+.end_defun
+
+.need 3000
+.lisp 0 1
+Redisplay
+.end_lisp
+
+.defun steve:make-screen-image
+This is poorly named. It used to be different. Now it is the redisplay
+entire and complete. Just call it and the screen will be
+redisplayed. (If a character has been typed it will exit immediately.)
+.end_defun
+
+.defun steve:setup-mode-area
+Generate and print a current mode line.
+.end_defun
+
+.english
+Some functions use the upper area of the screen to print things. The
+redisplay must be told that this has happened. This is handled by
+using several special functions to position the cursor and to do
+3terpri*. It is possible that this will be changed and that there will
+be a special stream which keeps track of such things. I was sick of
+defining special purpose streams when I got to this.
+.end_english
+
+.defun steve:overwrite-start
+Begin to overwrite the display. If there has been some overwriting of
+the screen since the last redisplay start after it. Otherwise start
+at the top.
+.end_defun
+
+.defun steve:overwrite-home
+Start at the top always.
+.end_defun
+
+.defun steve:overwrite-terpri
+Move the cursor to the next overwrite line. This will do 7*more**
+processing as needed.
+.end_defun
+
+.defun steve:overwrite-done
+Always call this when finished with an overwrite display. This makes
+overwrite-start begin in the right place if called before a redisplay.
+.end_defun
+
+.need 3000
+.english 0
+Reading from the terminal.
+.end_english
+
+.defun steve:read-char&save
+.defun1 steve:peek-char&save
+.defun1 steve:unread-char&save
+Once more I was too lazy to define a special stream.
+These functions will return the next character from the current input source
+and do the right things about it. They interface with keyboard macros and
+the 60char buffer and so on, so it is important to always use these.
+.end_defun
+
+.defun steve:string-read&save list-of-characters
+Another new and poorly tested function. It is supposed to clean up
+after reading some characters without using 3read-char&save* etc.
+It is implemented for use with echoin, and probably should not be used
+elsewhere.
+.end_defun
+
+.defun steve:mx-prompter function format-string &restv format-args
+Prompts in the mode area using 2format-string* and
+2format-args*, then reads from the terminal using
+2function*. Handles 2Control-G* and has some additional
+internal hair which allows completing functions to be defined.
+May be modified to handle 3?* as a help key somehow.
+.end_defun
+
+.defun steve:read-file-name
+Can only be used as an argument to 3mx-prompter*.
+Reads a file name and returns it as a string. Some day this
+will do completion.
+.end_defun
+
+.defun steve:read-buffer-name
+Only for use as an argument to 3mx-prompter*. Will do
+buffer name completion and respond to 3?*.
+Example:
+.lisp
+steve:(mx-prompter #'read-buffer-name "Foo(~a): " foo)
+.end_lisp
+.end_defun
+
+.defun ed-y-or-n-p &optional format-string &rest format-args
+The arguments differ from 3y-or-n-p*. They are used to respond
+to ? only. It is assumed that the prompt has already been printed.
+The cursor position of the end of th prompt is remembered, and the cursor
+will be moved back there after each failed iteration. Control-G will
+exit with 3(ed-warn "Aborted")*.
+Characters are read with 3read-char&save* for use inside the editor.
+.end_defun
+
+.subsection "Packages and sybsystems"
+
+There are two reasons to extend the editor. Many people will want to change
+some small feature to suit their taste. Others will be implementing a
+more comprehensive change, such as writing a mail subsystem.
+STEVE attempts to  make both kinds of extention as easy as possible.
+
+.subsubsection "Modes"
+.english 0
+Definining major modes is really very simple. Defining minor modes is
+really quite hard. So it goes.
+.end_english
+
+.defun define-mode name &optional superior keys syntax &restl variables
+Creates a major mode called 2name*. The 2superior* defaults
+to the current major mode (or fundamental mode). A new major mode is just
+like its superior mode except as incrementally changed. It is similar to
+the componants of a flavor, except there can only be one.
+
+The 2keys* should be nil or a key binding table. (See the functions
+3derive-bindings, make-empty-key-binding-table,
+editor-bind-key*.) If nil a key binding table will be derived from the
+superior mode's table. This key binding table is used whever the new mode
+is the major mode.
+If one binding table is derived from another and that is changed, the change
+will propegate automatically.
+
+The 2syntax* is similar. (See the functions 3derive-syntax,
+make-empty-syntax-table*.)
+Note that changes in superior syntax tables 2do not yet* propegate to
+derived tables after initialization, and that this might change in the future.
+
+The remaining arguments must come in pairs, as for 3setq*.
+The odd arguments are variables to locally bind in every buffer with this major
+mode, and the even arguments are the corresponding values. These may be any
+lan{lisp} variables, not just the editor variables.
+
+As an example here is the current (July 7 1983) definition of 3text*
+mode (from the file nil$disk:[nil.steve]modes.lsp).
+.lisp
+(define-mode text fundamental nil *text-syntax*
+             *display-matching-paren* 0.0
+             *function-search* nil
+             *paragraph-text-style* t
+             )
+.end_lisp
+
+You can see that text mode is derived from fundamental mode, but has
+its own syntax table (defined elsewhere) and that three values are
+changed in text mode. The function editor-bind-key* could be used
+to incrementally change the mode further.
+.end_defun
+
+.subsubsection "Recursive Editing"
+
+Many subsystems invoke a recursive editor on some buffer.
+There is a function which is intended to make it easy to write such a
+recurive editing subsytem work easilly.
+
+.defun recursive-editor descriptive-string &key buffer point mode binding-alist
+Recursively edit the 2buffer*.
+
+By default this just recursively edits the current point in the current
+buffer. However, it is possible to edit any buffer in any mode, using the
+window from any edit-cursor (point). The current-buffer and point cannot
+be changed from inside the recursive editor. (The contents of the
+current-buffer can be changed, but when you exit you will always be
+at the same place in the same buffer.)
+
+2Mode* should be specified as a string or an atom like "Lisp"
+or "LISP" or 'LISP.
+
+2Binding-Alist* is an alist of variables and values to bind in
+the recursive editing session. These will be bound with 3progv*.
+.end_defun
+
+.defun recursive-edit description &optional variables &restl values
+This will probably go away since it is not very easy to use
+and has less functionality than 3recursive-editor*.
+.edn_defun

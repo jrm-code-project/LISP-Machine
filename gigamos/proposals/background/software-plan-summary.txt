@@ -1,0 +1,6 @@
+
+GigaMos' Current Software Plan
+
+GigaMos currently plans to port the LAMBDA software to the Falcon processor,
+using the existing FLEABIT software base as a
+bootstrap environment for loading.

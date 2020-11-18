@@ -1,0 +1,195 @@
+-*- Mode:Text -*-
+
+
+                             A Proposal for
+
+                Expanding the LISP Regression Test Suite
+
+                                  - - -
+
+                              [Proposal #5]
+
+                             Sept. 23, 1988
+
+                           David M. J. Saslav
+
+                                  - - -
+
+Introduction:
+
+A significant portion of Common LISP and ZetaLISP functionality is not
+tested by the existing regression test suite (found on the "VALID"
+logical host.  This suite is run whenever a new system has been
+compiled.
+
+Proposal:
+
+Part I: (COMPLETED)
+
+Spend a couple of hours or so browsing through the Common LISP and
+Grey manuals, estimating the degree of existing coverage in the
+LISP test database.
+
+Part II: (IN PROGRESS)
+
+Spend one day or so writing database tools which will browse through all
+existing CL and ZL tests, generating reports and statistics concerning
+the levels of testing completeness in all pertinent areas (as agreed
+upon in discussion, below).  Included in these reports will be a list
+of those Common LISP and ZetaLISP areas which are:
+
+        o currently not being tested;
+        o nearly minimally covered;
+        o minimally acceptably tested;
+        o well-covered and require no further testing.
+
+Part III: (NOT YET BEGUN)
+
+Specify the functional modules for which (additional) tests are required.
+
+Part IV: (NOT YET BEGUN)
+
+Write test/validation regression tests for that portion of overall
+CommonLISP and ZetaLISP functionality not currently covered by the
+existing LISP test suite and determined through technical discussion
+to be cost-effective candidates for further test-writing.
+
+Rationale:
+
+In our case, the phrase "regression" has an important meaning: we must
+ensure that the Falcon software is at least as good as, if not better
+than, the existing Lambda system.  The existing test suite is the
+starting point for a robust LISP regression suite, one which will
+be usable over the entire lifetime of all future projects.
+
+The existing test suite is healthy.  When first brought up on the
+Lambda, it diagnostically located over twenty bugs as well as numerous
+examples of anomalous behaviour requiring documentation.
+
+The test suite needs immediate expanding, however.  If the first
+comprehensive test of the complete Falcon system occurs after most (or
+all) of the modules have been ported, newly-introduced problems will
+take the maximum possible toll on developer time.  Full testing of the
+core software gives an early indication of the scope and nature of
+newly-introduced problems, thus minimizing the time required to solve
+them.
+
+While this kind of testing is supplemental to the testing that every
+developer is responsible for within the particular development domain,
+this regression suite should serve as a collecting place for these
+tests.  They can be run every time the system changes substantially
+(e.g., when the system is recompiled).  That is the meaning of the
+phrase "regression" -- these tests are designed primarily to ensure that
+the state of the software does not "regress", i.e., that the existing
+software base never suffers damage from any major system development.
+
+-keith/dmjs
+
+
+============================== Commentary
+
+[smh 30sep88]
+
+Two issues to be considered:
+
+[1]     I question whether the focus on Common Lisp is appropriate.
+Although we might like to build (and advertise) a Common Lisp machine,
+in fact our product will and must support both CL and Lambdoid Zetalisp.
+Anything that can be said about the time savings due to having a
+regression test facility for CL goes just as much for Zetalisp.  Given
+that we know we won't have resources to do a 100% job in creating a test
+suite, then we owe it to ourselves to factor in Zetalisp functions and
+constructions in order to prioritize them into our testing efforts.
+
+        I am here thinking about language features such as (but by no
+means limited to) locatives, dynamic closures, array leaders,
+multiprocessing, and (ideally) flavors.  All these require special
+support in both the compiler and low-level runtime system.  Having
+regression tests for this support is just as useful as for basic CL
+functionality.  Actually, I'd be willing to punt testing flavors (except
+for the basic message sending and instance reference mechanisms) because
+the system itself will test the high-level components adequately, but on
+the other hand testing locatives is desirable because so many hidden
+places in the system try to use them.
+
+[2]     Obviously, barring some serious manpower additions, we will not
+be able to complete a full validation/regression testing suite for our
+project.  Given this, I feel we need to develop some rough estimates of
+what portion of the job we might complete with plausible manpower
+assignments.  We all agree that programmers *should* add tests as they
+implement or debug some component of the system, but we all also
+recognise that it is difficult to get programmers to do so.  This is
+especially true if there are serious time pressures -- "externally
+invisible" tasks like testing are usually the first to be compromised.
+Therefore, for project scheduling purposes we need to decide on a
+plausible surcharge ratio to factor into each implementor's time --
+perhaps 10-20% ??  We should schedule that time for writing tests, and
+then make completion of tests part of each milestone item.  If we just
+leave test coding to the good graces of each implementor, it won't
+happen.
+
+        In any case, we can't leave all testing as part of the task of
+the code writer.  Many areas of Lisp functionality are implemented
+inside large files which will be cross compiled and downloded, and our
+plans intend this to proceed *very* quickly once it gets started.
+Coding any significant amount of testing as part of this task would
+seriously alter our porting time estimates!
+
+====================
+
+[Keith: I agree with the substance of Steve's points.  Two comments:
+
+1) There is a test file for ZetaLISP; it just doesn't have much in it
+yet.  I agree that it should be extended, and that can be considered
+part of this project.
+
+2) Yes, the system is the best exercise of Flavors.  But if we follow
+the existing cold-load architecture, Flavors does not get exercised
+until it is needed for the second layer, "inner system".  So we must
+have confidence in the Flavors software at a point before it has been
+used, namely, in the static cold load.  So, I think putting together a
+short test suite for Flavors, which can be run before the cold load gets
+built, could save us much time and aggravation.]
+
+====================
+
+[smh 3oct88]
+
+There are really two separable parts to flavors.
+
+One is the low-level primitive mechanisms in the compiler,
+``microcode'', and funcall hacks to make message sending and instance
+variable reference work.  These mostly still need to be written, and
+will then need to be debugged, so we can capture the debugging test
+cases in the compiler/runtime regression testing suite.  I feel we
+should do this, because it would be nice to have tests for these
+low-level things just like it is nice to have tests for other low-level
+language features.
+
+The other part is the high-level flavor.lisp code which is primarily
+responsible for maintaining the flavor data base.  Since this is almost
+all high-level lisp code, there is no reason to suspect it will fail in
+processor-dependent ways.  Also, there is an ungodly semidocumentedly
+permutationally-much amount of it, with all those different
+:method-combination options, daemons, wrappers, and whoppers.  Therefore
+I think we might as well bypass any serious testing of of high-level
+flavor features.  I think our limited time is better spent elsewhere.
+
+====================
+
+[keith 10oct88]
+
+As Steve and I discussed the other day, we've just been batting around
+different ways of saying the same thing vis-a-vis "low-level" testing:
+the tests should take the form of calls to the minimum number of
+high-level functions (DEFFLAVOR, DEFMETHOD, SEND) required to test the
+low-level mechanisms (FUNCALL, dispatching, etc.).  I believe at this
+point he and I are in violent agreement on every important issue.
+
+Also, David and I agree that the scope of this proposal should include
+testing ZetaLISP fundamentals.  The proposal text (above) has been
+updated to reflect this change.  Additional material is forthcoming
+which will map out, in priority order, the particular modules that need
+to be tested.
+
+====================

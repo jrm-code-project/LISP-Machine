@@ -1,0 +1,14 @@
+
+How long must the processor wait after a memory write before it can perform another
+memory system operation?
+
+What does the low bit of VMA and MD functional destinations mean?
+
+What registers can return-new-open and return-new-tail-open write in to?
+How do the RETURN and RETURN-MV functional destinations work?  Just how
+does this all work?
+
+What use is the VMA box bit?
+
+Differences between chip & board set.  Do PCR, PSR, MCR, and MSR all change?
+

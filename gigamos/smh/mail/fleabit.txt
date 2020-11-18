@@ -1,0 +1,528 @@
+Babyl Options:
+Version:5
+Append:1
+
+0,,
+*** EOOH ***
+Date: Monday, 27 June 1988, 19:13-EDT
+From: William K. Foster <wkf@GSI-CAM>
+Subject: Fleabit: PROG*
+To: BUG-FALCON-COMPILER@GSI-CAM
+Message-ID: <[GSI-LOVE].27-Jun-88 19:13:26.WKF>
+
+In LMI FALCON-COMPILER in Experimental System 124.111,
+Experimental Local-File 74.3, Experimental File-Server 23.1,
+Experimental Unix-Interface 12.0, Experimental ZMail 72.1,
+Experimental Tape 23.6, Experimental Lambda-Diag 16.2, microcode 1756,
+SDU Boot Tape 3.13, SDU ROM 102, Kenvironment Loaded.,
+on Love (LAMBDA):
+
+The fleabit compiler does not currently support PROG*, it does however support PROG.
+
+I was able to work around this by nesting PROGs.
+
+--wkf
+
+
+
+0,,
+*** EOOH ***
+Message-ID: <8806292039.AA11319@gsi-cam.UUCP>
+Date: Wednesday, 29 June 1988, 16:39-EDT
+From: pfc@angel
+To: bug-falcon@angel
+
+
+
+SETQ of special variables does not work in code that runs before the cold load has been linked.
+
+This linking occurs AFTER the COLD-BOOT-FUNCTION (in boot.lisp) has run and BEFORE the warm files are downloaded.
+This occurs in the function K-BOOT. (in warm-files.lisp)
+
+In order to catch any lurking bugs of this kind I have changed the Fleabit compiler to generate code for setq that will
+prevent T and NIL from being bashed.  Later after we are sure no such bugs exist we can change this back to optimized
+%%SET instead of regular SET.
+
+
+
+--pfc
+
+
+
+0,,
+*** EOOH ***
+Message-ID: <8806292100.AA11350@gsi-cam.UUCP>
+Date: Wednesday, 29 June 1988, 16:59-EDT
+From: William K. Foster <wkf@GSI-CAM>
+Subject: Setf of defstruct entires.
+To: BUG-FALCON-COMPILER@GSI-CAM
+
+In LMI Experimental System 124.117, Experimental Local-File 74.3,
+Experimental File-Server 23.1, Experimental Unix-Interface 12.0,
+Experimental ZMail 72.1, Experimental Tape 23.6,
+Experimental Lambda-Diag 16.2, microcode 1756, SDU Boot Tape 3.13,
+SDU ROM 102, Kenvironment Loaded 6/28/88, on Death (LAMBDA):
+
+
+Insert your description of the circumstances here:
+
+In file JB:K.BENCHMARKS;TRAVERSE compiler doesn't know how to setf defstruct entries.
+
+--wkf
+
+
+>>ERROR: No way known to do SETF of NODE-MARK.
+Backtrace from the debugger:
+
+Additional information supplied with call:
+ Expecting 4 values
+
+GET-SETF-METHOD-MULTIPLE-VALUE (P.C. = 254)
+
+ Arg 0 (FORM): (NODE-MARK NODE)
+ Arg 1 (ENVIRONMENT): (NIL)
+ Rest arg: (:SHORT-CUT T)
+ Local 1 (SHORT-CUT): T
+ Local 2 (TEM): NIL
+ Local 3 (G): NIL
+ Local 4: NIL
+ Local 5: NIL
+ Local 6: NIL
+ Local 7 (IGNORE): NIL
+ Local 8 (GS): NIL
+
+
+SETF (P.C. = 58)
+
+ Arg 0 (*MACROARG*): (SETF (NODE-MARK NODE) NODE-MARK)
+ Arg 1 (*MACROENVIRONMENT*): (NIL)
+ Local 0 (ENVIRONMENT): (NIL)
+ Local 1 (PLACES-AND-VALUES): ((NODE-MARK NODE) NODE-MARK)
+ Local 2: NIL
+ Local 3: #<DTP-LOCATIVE 31333454>
+ Local 4 (PLACE): (NODE-MARK NODE)
+ Local 5 (VALUE): NODE-MARK
+ Local 6: ((NODE-MARK NODE) NODE-MARK)
+ Local 7 (TEMPVARS): NIL
+ Local 8 (TEMPARGS): NIL
+ Local 9 (STOREVARS): NIL
+ Local 10 (STOREFORM): NIL
+
+
+FUNCALL (P.C. = 21)
+
+ Arg 0 (FN): #<DTP-FEF-POINTER SETF 4170536>
+ Rest arg (ARGS): ((SETF # NODE-MARK) (NIL))
+
+
+SI::CALL-MACRO-EXPANDER (P.C. = 39)
+
+ Arg 0 (EXPANDER): #<DTP-FEF-POINTER SETF 4170536>
+ Arg 1 (MACRO-CALL): (SETF (NODE-MARK NODE) NODE-MARK)
+ Arg 2 (ENVIRONMENT): (NIL)
+ Local 0 (AINF): 66
+
+
+SI::EXPAND-MACRO-CALL (P.C. = 172)
+
+ Arg 0 (MACRO-CALL): (SETF (NODE-MARK NODE) NODE-MARK)
+ Arg 1 (ENVIRONMENT): (NIL)
+ Arg 2 (EXPAND-SUBSTS): T
+ Rest arg: NIL
+ Local 1 (INHIBITOR): NIL
+ Local 2 (MACRO-FUNCTION-FINDER): NIL
+ Local 3 (NAME): SETF
+ Local 4 (TM): (MACRO . #<DTP-FEF-POINTER SETF 4170536>)
+
+
+Remainder of stack:
+
+MACROEXPAND-1 (P.C. = 20)
+COMPILER::CW-EXPRESSION (P.C. = 266)
+COMPILER::CW-TOP-LEVEL (P.C. = 46)
+MACROEXPAND-ALL (P.C. = 24)
+ZWEI::COM-MACRO-EXPAND-EXPRESSION-ALL (P.C. = 38)
+ZWEI::COMMAND-EXECUTE (P.C. = 86)
+ZWEI::PROCESS-COMMAND-CHAR (P.C. = 57)
+(:METHOD ZWEI:WINDOW :PROCESS-COMMAND-CHAR) (P.C. = 20)
+(:METHOD ZWEI:WINDOW :EDIT) (P.C. = 323)
+(:INTERNAL (:METHOD ZWEI:ZMACS-WINDOW :COMBINED :EDIT) 0) (P.C. = 60)
+FUNCALL (P.C. = 21)
+(:METHOD ZWEI::DISPLAYER :AROUND :EDIT) (P.C. = 25)
+(:METHOD ZWEI:ZMACS-WINDOW :COMBINED :EDIT) (P.C. = 39)
+ZWEI::ZMACS-WINDOW-TOP-LEVEL (P.C. = 38)
+SI::PROCESS-TOP-LEVEL (P.C. = 113)
+
+
+
+
+0,,
+*** EOOH ***
+Message-ID: <8806301912.AA00365@gsi-cam.UUCP>
+Date: Thursday, 30 June 1988, 15:12-EDT
+From: William K. Foster <wkf@GSI-CAM>
+Subject: NTHCDR arg -1
+To: BUG-FALCON-COMPILER@GSI-CAM
+
+In LMI Experimental System 124.117, Experimental Local-File 74.3,
+Experimental File-Server 23.1, Experimental Unix-Interface 12.0,
+Experimental ZMail 72.1, Experimental Tape 23.6,
+Experimental Lambda-Diag 16.2, microcode 1756, SDU Boot Tape 3.13,
+SDU ROM 102, Kenvironment Loaded 6/28/88, on Death (LAMBDA):
+
+
+Insert your description of the circumstances here:
+
+While compiling function DERIV in JB:K.BENCHMARKS;DERIV
+
+--wkf
+
+
+>>TRAP 4737 (ARGTYP POSITIVE-FIXNUM PP 0 XNTHCDR0)
+The first argument to NTHCDR, -1, was of the wrong type.
+The function expected a fixnum greater than 1.
+Backtrace from the debugger:
+
+COMPILER::ASSIGN-LAP-ADDRESSES-FOR-K (P.C. = 196)
+
+ Local 0 (ARGN): 1
+ Local 1 (LVCNT): 3
+ Local 2 (LEXICALS): 0
+ Local 3: (#<COMPILER::VAR #:G6959 65572061> #<COMPILER::VAR #:G6960 65572623> #<COMPILER::VAR #:G6958 65572645> #<COMPILER::VAR #:G6966 65574531> ...)
+ Local 4 (V): #<COMPILER::VAR #:G6959 65572061>
+ Local 5 (TYPE): SYSTEM:FEF-LOCAL
+ Local 6 (KIND): SYSTEM:FEF-ARG-INTERNAL-AUX
+ Local 7 (NAME): #:G6959
+ Local 8 (PERMANENT-NAME): NIL
+ Local 9 (L1): NIL
+ Local 10 (L): NIL
+ Local 11 (LAST-NON-NIL-PTR): NIL
+ Local 12 (HOME): NIL
+ Local 13 (AVAIL-NON-ARG-SLOTS): NIL
+ Local 14 (REGISTER-SLOTS-FOR-LOCALS): NIL
+ Local 15 (STACK-SLOTS-FOR-ARGS): NIL
+ Local 16 (STACK-SLOTS-FOR-LOCALS): NIL
+ Local 17 (TOTAL-STACK-SLOTS): NIL
+ Local 18 (LAP-ADDRESS): NIL
+
+
+COMPILER::QCOMPILE0 (P.C. = 833)
+
+ Arg 0 (EXP): (NAMED-LAMBDA DERIV (DERIV-A) (BLOCK DERIV #))
+ Arg 1 (FUNCTION-TO-BE-DEFINED): DERIV
+ Arg 2 (GENERATING-MICRO-COMPILER-INPUT-P): T
+ Arg 3 (NAME-TO-GIVE-FUNCTION): DERIV
+ Local 0 (EXP1): (BLOCK (#S(COMPILER::GOTAG :PROG-TAG #:DERIV-1231 :LAP-TAG ...)) #<COMPILER::PROGDESC DERIV  NIL; Frame level = NIL 65566645> (COND # # # ...))
+ Local 1 (DEF-TO-BE-SXHASHED): NIL
+ Local 2 (LVCNT): NIL
+ Local 3 (LL): (DERIV-A)
+ Local 4 (MACROFLAG): NIL
+ Local 5 (EXPR-DEBUG-INFO): NIL
+ Local 6 (SUBST-FLAG): NIL
+ Local 7 (WRAPPED-BLOCK-NAME): NIL
+ Local 8: NIL
+ Local 9 (ELT): NIL
+ Local 10 (TEM): NIL
+ Local 11 (ENV): (NIL)
+ Local 12 (BODY): ((BLOCK DERIV #))
+ Local 13 (DOCUMENTATION): NIL
+ Local 14 (LAMEXP): NIL
+ Local 15 (L): (DERIV-A)
+ Local 16 (X): DERIV-A
+ Local 17 (FCTN): COMPILER::ASSIGN-LAP-ADDRESSES-FOR-K
+ Local 18: NIL
+ Local 19: NIL
+ Local 20 (HOME): NIL
+ Local 21 (DEBUG-INFO): NIL
+ Local 22 (DCL): NIL
+ Local 23 (INTERNAL-OFFSETS): NIL
+ Local 24 (MACRONAME): NIL
+ Local 25 (HASH): NIL
+ Local 26 (MACROS-AND-SXHASHES): NIL
+ Local 27 (M): NIL
+ Local 28 (ARGS-INFO): NIL
+ Local 29 (DUMMY-FORM): NIL
+ Local 30 (MXPDL): NIL
+ Local 31 (APPARENT-MAXIMUM-TOTAL-PDL-FRAME-SIZE): NIL
+
+
+COMPILER::QC-TRANSLATE-FUNCTION (P.C. = 432)
+
+ Arg 0 (FUNCTION-SPEC): DERIV
+ Arg 1 (EXP): (NAMED-LAMBDA DERIV (DERIV-A) (BLOCK DERIV #))
+ Arg 2 (QC-TF-PROCESSING-MODE): COMPILER:MACRO-COMPILE
+ Arg 3 (QC-TF-OUTPUT-MODE): COMPILER:COMPILE-TO-CORE
+ Arg 4 (NAME-FOR-FUNCTION): DERIV
+ Local 0 (NEW-OBJECT-THIS-LEVEL): T
+ Local 1: ("Give up on compiling ~S" DERIV)
+ Local 2 (PENDING-DEFINITION): NIL
+ Local 3 (VARIABLES-LISTS): NIL
+ Local 4 (ENTRIES): (#S(COMPILER::COMPILER-QUEUE-ENTRY :FUNCTION-SPEC DERIV :FUNCTION-NAME ...))
+ Local 5 (ENTRY): #S(COMPILER::COMPILER-QUEUE-ENTRY :FUNCTION-SPEC DERIV :FUNCTION-NAME ...)
+ Local 6 (DEFINITION): (NAMED-LAMBDA DERIV (DERIV-A) (BLOCK DERIV #))
+ Local 7 (FUNCTION-TO-DEFINE): DERIV
+ Local 8 (NAME-FOR-FUNCTION): DERIV
+ Local 9 (NEW-OBJECT-THIS-LEVEL): NIL
+ Local 10: (EH:DEBUGGER-CONDITION ("Give up on compiling ~S" DERIV) T ("Give up on compiling ~S" DERIV) ...)
+ Local 11 (FCTN): NIL
+ Local 12 (FEF): NIL
+ Local 13 (TEM): NIL
+ Local 14 (VL): NIL
+ Local 15 (V): NIL
+ Local 16 (E): NIL
+
+
+COMPILER:COMPILE-1 (P.C. = 100)
+
+ Arg 0 (NAME): DERIV
+ Arg 1 (LAMBDA-EXP): (NAMED-LAMBDA DERIV (DERIV-A) (BLOCK DERIV #))
+ Arg 2 (PROCESSING-MODE): COMPILER:MACRO-COMPILE
+   --Defaulted args:--
+ Arg 3 (NAME-FOR-FUNCTION): DERIV
+ Local 0 (FCTN): NIL
+
+
+ZWEI::COMPILE-BUFFER-FORM (P.C. = 106)
+
+ Arg 0 (FORM): (DEFUN DERIV (DERIV-A) (COND # # # ...))
+ Arg 1 (TYPE): DEFUN
+
+
+Remainder of stack:
+
+ZWEI::COMPILE-INTERVAL-PROCESS-BASIC-FORM (P.C. = 28)
+COMPILER:COMPILE-DRIVER (P.C. = 577)
+ZWEI::COMPILE-INTERVAL-PROCESS-FN (P.C. = 24)
+COMPILER:COMPILE-STREAM (P.C. = 586)
+(:INTERNAL ZWEI::COMPILE-INTERVAL ZWEI::DO-IT) (P.C. = 49)
+(:INTERNAL ZWEI::COMPILE-INTERVAL COMPILER::.CONTINUATION.) (P.C. = 17)
+ZWEI::COMPILE-INTERVAL (P.C. = 320)
+ZWEI::COMPILE-PRINT-INTERVAL (P.C. = 168)
+ZWEI::COMPILE-DEFUN-INTERNAL (P.C. = 126)
+ZWEI::COM-CROSSCOMPILE-REGION (P.C. = 60)
+...
+ZWEI::PROCESS-COMMAND-CHAR (P.C. = 57)
+(:METHOD ZWEI:WINDOW :PROCESS-COMMAND-CHAR) (P.C. = 20)
+(:METHOD ZWEI:WINDOW :EDIT) (P.C. = 323)
+(:INTERNAL (:METHOD ZWEI:ZMACS-WINDOW :COMBINED :EDIT) 0) (P.C. = 60)
+FUNCALL (P.C. = 21)
+(:METHOD ZWEI::DISPLAYER :AROUND :EDIT) (P.C. = 25)
+(:METHOD ZWEI:ZMACS-WINDOW :COMBINED :EDIT) (P.C. = 39)
+ZWEI::ZMACS-WINDOW-TOP-LEVEL (P.C. = 38)
+SI::PROCESS-TOP-LEVEL (P.C. = 113)
+
+
+
+
+0,,
+*** EOOH ***
+Message-ID: <8807052004.AA00400@gsi-cam.UUCP>
+Date: Tuesday, 5 July 1988, 16:04-EDT
+From: William K. Foster <wkf@GSI-CAM>
+Subject: Fleabit, NIL destination.
+To: BUG-FALCON-COMPILER@GSI-CAM
+
+In LMI Experimental System 124.124, Experimental Local-File 74.3,
+Experimental File-Server 23.1, Unix-Interface 12.0,
+Experimental ZMail 72.1, Experimental Tape 23.6,
+Experimental Lambda-Diag 16.2, microcode 1756, SDU Boot Tape 3.13,
+SDU ROM 102, Kenvironment Loaded 7/2/88, on Love (LAMBDA):
+
+
+Insert your description of the circumstances here:
+
+
+(defun foo (a b c d) "Causes error when compiled by Fleabit compiler."
+  (hw:float-compare-double a b c d)
+  23)
+
+
+>>ERROR: The source or destination NIL is unknown
+Backtrace from the debugger:
+
+NC::GET-SRC-OR-DEST (P.C. = 115) (from file K-SYS: FLEABIT; GENERATE; ASSEM  )
+
+ Arg 0 (NAME): NIL
+ Arg 1 (FIELD): 1833
+ Arg 2 (INST): 234360903460458496
+ Local 0 (REG): NIL
+ Local 1: NIL
+
+
+NC::DESTINATION (P.C. = 58) (from file K-SYS: FLEABIT; GENERATE; ASSEM  )
+
+ Arg 0 (DEST): NIL
+ Arg 1 (INST): 234360903460458496
+ Local 0 (FD): NIL
+ Local 1 (I): NIL
+
+
+NC::MOVE6505 (P.C. = 69) (from file K-SYS: FLEABIT; GENERATE; ASSEM  )
+
+ Arg 0 (DESTINATION): NIL
+ Arg 1 (RIGHT-SOURCE): R0
+ Rest arg (OPTIONS): (BOXED-RIGHT)
+
+
+NC::ASSEMBLE-INST (P.C. = 27) (from file K-SYS: FLEABIT; GENERATE; ASSEM  )
+
+ Arg 0 (INST): (MOVE NIL R0 BOXED-RIGHT)
+ Local 0 (ASSEMBLE-FUNCTION): #<GLOBAL:DTP-FEF-POINTER NC::MOVE6505 44365421>
+
+
+NC::ASSEMBLE-INSTRUCTION-LIST (P.C. = 83) (from file K-SYS: FLEABIT; GENERATE; ASSEM  )
+
+ Arg 0 (NAME): FOO
+ Arg 1 (INSTRUCTIONS): (TAG::FOO_5 (FALU DOUBLE-COMPARE NOP A2 ...) (FALU DOUBLE-COMPARE NOP A0 ...) (NOP) ...)
+ Arg 2 (ENTRY-POINTS): ((4 . TAG::FOO_5))
+ Local 0 (CODE): (1981656404900987396 1981654205877731844 1981757559970742788 1981757559970742784 ...)
+ Local 1: ((MOVE NIL R0 BOXED-RIGHT) (MOVEI RETURN # BOXED ...))
+ Local 2 (INST): (MOVE NIL R0 BOXED-RIGHT)
+ Local 3 (LOCAL-REF): NIL
+ Local 4 (ADDR): NIL
+ Local 5 (CODE-PT): NIL
+ Local 6: NIL
+ Local 7: NIL
+ Local 8 (ENTRY-PT): NIL
+
+
+Remainder of stack:
+
+NC::GENERATE-FUNCTION (P.C. = 102) (from file K-SYS: FLEABIT; GENERATE; GENERATE  )
+NC::GENERATE (P.C. = 64) (from file K-SYS: FLEABIT; GENERATE; GENERATE  )
+NC::REALLY-COMPILE (P.C. = 28) (from file K-SYS: FLEABIT; TOP  )
+NC::NCA (P.C. = 29) (from file K-SYS: FLEABIT; TOP  )
+NC::C (P.C. = 46) (from file K-SYS: FLEABIT; TOP  )
+NC::CC (P.C. = 22) (from file K-SYS: FLEABIT; GENERATE; LINKER  )
+NC::COMPILE-REGION-FOR-NEW-PROCESSOR (P.C. = 18) (from file K-SYS: FLEABIT; TOP  )
+ZWEI::COMPILE-INTERVAL-PROCESS-BASIC-FORM (P.C. = 32)
+ZWEI::SIMPLE-COMPILE-INTERVAL-PROCESS-FN (P.C. = 21)
+COMPILER:COMPILE-STREAM (P.C. = 586)
+...
+ZWEI::PROCESS-COMMAND-CHAR (P.C. = 57)
+(:METHOD ZWEI:WINDOW :PROCESS-COMMAND-CHAR) (P.C. = 20)
+(:METHOD ZWEI:WINDOW :EDIT) (P.C. = 323)
+(:INTERNAL (:METHOD ZWEI:ZMACS-WINDOW :COMBINED :EDIT) 0) (P.C. = 60)
+FUNCALL (P.C. = 21)
+(:METHOD ZWEI::DISPLAYER :AROUND :EDIT) (P.C. = 25)
+(:METHOD ZWEI:ZMACS-WINDOW :COMBINED :EDIT) (P.C. = 39)
+ZWEI::ZMACS-WINDOW-TOP-LEVEL (P.C. = 38)
+SI::PROCESS-TOP-LEVEL (P.C. = 113)
+
+
+
+
+0,,
+*** EOOH ***
+Message-ID: <8807061758.AA01706@gsi-cam.UUCP>
+Date: Wednesday, 6 July 1988, 13:58-EDT
+From: William K. Foster <wkf@GSI-CAM>
+Subject: Fleabit, rebinding of locals.
+To: BUG-FALCON-COMPILER@GSI-CAM
+
+In LMI Experimental System 124.124, Experimental Local-File 74.3,
+Experimental File-Server 23.1, Unix-Interface 12.0,
+Experimental ZMail 72.1, Experimental Tape 23.6,
+Experimental Lambda-Diag 16.2, microcode 1756, SDU Boot Tape 3.13,
+SDU ROM 102, Kenvironment Loaded 7/2/88, on Love (LAMBDA):
+
+
+Insert your description of the circumstances here:
+
+(defun bar (a) "This breaks the fleabit compiler"
+  (let ((b a)
+        (b (+ a a)))))
+
+
+--wkf
+
+>>ERROR: variable #{Variable B_3} not in venv #S(NC::COMPILER-ENV :FCN #<GLOBAL:DTP-FEF-POINTER (:INTERNAL NC::MAKE-COMPILER-ENV 0) 44276151> :FENV ...) (compiler-bug)
+Backtrace from the debugger:
+
+NC::BUG (P.C. = 23) (from file K-SYS: FLEABIT; TOP-UTIL  )
+
+ Arg 0 (F): "variable ~S not in venv ~S"
+ Rest arg (REST): (#{Variable B_3} #S(NC::COMPILER-ENV :FCN #<GLOBAL:DTP-FEF-POINTER # 44276151> :FENV ...))
+
+
+NC::UNBIND-VARIABLES (P.C. = 72) (from file K-SYS: FLEABIT; COMPILER-ENV  )
+
+ Arg 0 (ENV): #S(NC::COMPILER-ENV :FCN #<GLOBAL:DTP-FEF-POINTER (:INTERNAL NC::MAKE-COMPILER-ENV 0) 44276151> :FENV ...)
+ Arg 1 (VARS): (NIL #{Variable B_3} #{Variable B_4})
+ Local 0 (TABLE): #<SI::EQL-HASH-TABLE 2/90 73433456>
+ Local 1 (MAP-RESULT): (NIL #{Variable B_3} #{Variable B_4})
+ Local 2: (#{Variable B_3} #{Variable B_4})
+ Local 3 (VAR): #{Variable B_3}
+ Local 4: B
+ Local 5 (ENTRY): (#{Variable B_4} #{Variable B_3})
+ Local 6: NIL
+ Local 7: NIL
+
+
+NC::ALPHA-LAMBDA (P.C. = 120) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+
+ Arg 0 (NAME): "P"
+ Arg 1 (LAMBDA-LIST): (B B)
+ Arg 2 (BODY): NIL
+ Arg 3 (ENV): #S(NC::COMPILER-ENV :FCN #<GLOBAL:DTP-FEF-POINTER (:INTERNAL NC::MAKE-COMPILER-ENV 0) 44276151> :FENV ...)
+ Local 0 (ARGS): (B B)
+ Local 1 (REST): NIL
+ Local 2 (OP-VARS): NIL
+ Local 3 (BODY): NIL
+ Local 4: (NIL #{Variable K_2} #{Variable B_3} #{Variable B_4})
+ Local 5 (OP-VAR): NIL
+ Local 6: (#{Variable B_4})
+ Local 7: NIL
+ Local 8 (NAME): B
+ Local 9 (V): #{Variable B_4}
+ Local 10 (VARS): (NIL #{Variable K_2} #{Variable B_3} #{Variable B_4})
+ Local 11 (REAL-VARS): (NIL #{Variable B_3} #{Variable B_4})
+ Local 12 (EXP): (LAMBDA "P" (NIL #{Variable K_2} #{Variable B_3} #{Variable B_4}) NIL)
+
+
+NC::SYNTAX//LAMBDA (P.C. = 29) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+
+ Arg 0: (LAMBDA (B B))
+ Arg 1 (ENV): #S(NC::COMPILER-ENV :FCN #<GLOBAL:DTP-FEF-POINTER (:INTERNAL NC::MAKE-COMPILER-ENV 0) 44276151> :FENV ...)
+ Local 0: ((B B))
+ Local 1 (BODY): NIL
+ Local 2 (VARS): (B B)
+
+
+NC::ALPHA-COMBINATION (P.C. = 59) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+
+ Arg 0 (SYM): LAMBDA
+ Arg 1 (EXP): (LAMBDA (B B))
+ Arg 2 (ENV): #S(NC::COMPILER-ENV :FCN #<GLOBAL:DTP-FEF-POINTER (:INTERNAL NC::MAKE-COMPILER-ENV 0) 44276151> :FENV ...)
+ Local 0 (PROBE): #<GLOBAL:DTP-FEF-POINTER NC::SYNTAX//LAMBDA 44556047>
+ Local 1 (NEW-EXP): NIL
+ Local 2 (SUBST-NAME): NIL
+ Local 3 (NEW-EXP): NIL
+
+
+Remainder of stack:
+
+NC::ALPHA (P.C. = 65) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+NC::ALPHA-LIST (P.C. = 27) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+NC::ALPHA (P.C. = 75) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+NC::ALPHA-COMBINATION (P.C. = 157) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+NC::ALPHA (P.C. = 65) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+NC::ALPHA-LIST (P.C. = 27) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+NC::SYNTAX//BLOCK (P.C. = 37) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+NC::ALPHA-COMBINATION (P.C. = 59) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+NC::ALPHA (P.C. = 65) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+NC::ALPHA-LIST (P.C. = 27) (from file K-SYS: FLEABIT; FRONT-END; ALPHA  )
+...
+ZWEI::PROCESS-COMMAND-CHAR (P.C. = 57)
+(:METHOD ZWEI:WINDOW :PROCESS-COMMAND-CHAR) (P.C. = 20)
+(:METHOD ZWEI:WINDOW :EDIT) (P.C. = 323)
+(:INTERNAL (:METHOD ZWEI:ZMACS-WINDOW :COMBINED :EDIT) 0) (P.C. = 60)
+FUNCALL (P.C. = 21)
+(:METHOD ZWEI::DISPLAYER :AROUND :EDIT) (P.C. = 25)
+(:METHOD ZWEI:ZMACS-WINDOW :COMBINED :EDIT) (P.C. = 39)
+ZWEI::ZMACS-WINDOW-TOP-LEVEL (P.C. = 38)
+SI::PROCESS-TOP-LEVEL (P.C. = 113)
+
+
+
+

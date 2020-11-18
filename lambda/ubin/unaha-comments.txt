@@ -1,0 +1,130 @@
+(
+ ("1." "24-Jun-86 17:58:08" "LAMBDA" "pace" "control ucode before quantum map additions.
+")
+ ("9." "2-Jul-86 12:03:04" "LAMBDA" "naha" "try again for cold disk swap")
+ ("10." "2-Jul-86 14:26:39" "LAMBDA" "naha" "fixed quantum-map-fixed-area-kludge
+")
+ ("11." "2-Jul-86 15:29:28" "LAMBDA" "naha" "fixed end test in quantum-map-fixed-area-kludge
+")
+ ("12." "11-Jul-86 12:04:08" "LAMBDA" "naha" "put in some hats, try to see where q-map gets corrupted
+")
+ ("13." "11-Jul-86 16:35:10" "LAMBDA" "naha" "moved /"for-real/" to after cold-swap-in
+")
+ ("14." "14-Jul-86 12:28:02" "LAMBDA" "naha" "hacking of a-v-quantum-map
+")
+ ("15." "14-Jul-86 15:08:09" "LAMBDA" "naha" "strip data-type from comparisson to decide to quantum map a region
+")
+ ("16." "14-Jul-86 15:37:01" "LAMBDA" "naha" "this time for sure
+")
+ ("17." "14-Jul-86 16:36:20" "LAMBDA" "naha" "this time for sure
+")
+ ("18." "14-Jul-86 17:04:03" "LAMBDA" "naha" "try again
+")
+ ("19." "15-Jul-86 10:36:13" "LAMBDA" "naha" "now heres something we hope you'll really like
+")
+ ("20." "15-Jul-86 11:14:56" "LAMBDA" "naha" "try, try again
+")
+ ("21." "15-Jul-86 11:59:05" "LAMBDA" "naha" "rah rah rah!
+")
+ ("22." "17-Jul-86 11:26:50" "LAMBDA" "naha" "smack into the next wall
+")
+ ("23." "17-Jul-86 14:59:17" "LAMBDA" "naha" "go go go
+")
+ ("24." "18-Jul-86 15:58:33" "LAMBDA" "naha" "fer sher
+")
+ ("25." "21-Jul-86 15:22:17" "LAMBDA" "naha" "this time for sure
+")
+ ("26." "21-Jul-86 21:21:35" "LAMBDA" "naha" "quantum map
+")
+ ("27." "21-Jul-86 21:53:19" "LAMBDA" "naha" "")
+ ("28." "22-Jul-86 10:34:39" "LAMBDA" "naha" "hey rocky, watch me pull a rabbit out of my hat
+")
+ ("29." "22-Jul-86 11:29:13" "LAMBDA" "naha" "again, but that trick never works
+")
+ ("30." "22-Jul-86 15:10:45" "LAMBDA" "naha" "again!
+")
+ ("31." "22-Jul-86 15:46:07" "LAMBDA" "naha" "grunt
+ ")
+ ("32." "23-Jul-86 14:56:08" "LAMBDA" "naha" "fix ccw list initailization
+")
+ ("33." "23-Jul-86 15:08:01" "LAMBDA" "naha" "fix ccw list initailization
+")
+ ("34." "23-Jul-86 15:59:56" "LAMBDA" "naha" "fix disk-swap-pagify-quantum to correctly find page partition info
+")
+ ("35." "23-Jul-86 17:05:20" "LAMBDA" "naha" "try again
+")
+ ("36." "23-Jul-86 18:14:10" "LAMBDA" "naha" "should correctly modify quantum map now.
+")
+ ("37." "24-Jul-86 10:40:03" "LAMBDA" "naha" "fixed disk read//write command to get the right thing now
+")
+ ("38." "24-Jul-86 14:22:42" "LAMBDA" "naha" "swap wont cross quantum boundary
+")
+ ("39." "24-Jul-86 15:52:17" "LAMBDA" "naha" "shoud initialize for fixed asreas right
+")
+ ("40." "25-Jul-86 15:42:19" "LAMBDA" "naha" "allocate new quanta
+")
+ ("41." "25-Jul-86 16:14:31" "LAMBDA" "naha" "pq1-quantum-is-valid
+")
+ ("42." "25-Jul-86 17:09:21" "LAMBDA" "naha" "see what's wrong
+")
+ ("43." "25-Jul-86 18:13:00" "LAMBDA" "naha" "more hacking of uc-logical
+")
+ ("44." "25-Jul-86 20:58:53" "LAMBDA" "naha" "remember to bouble the quantum number to get the map index
+")
+ ("45." "25-Jul-86 21:20:17" "LAMBDA" "naha" "only migrate quanta on write
+")
+ ("46." "5-Aug-86 16:04:27" "LAMBDA" "naha" "try my hacks with 1662 sources
+")
+ ("47." "6-Aug-86 12:02:46" "LAMBDA" "naha" "uc-logical no longer pagable
+")
+ ("48." "8-Aug-86 21:33:00" "LAMBDA" "naha" "bunch of changes.  added processor switch, added %% to byte specs . . .
+")
+ ("49." "18-Aug-86 12:24:17" "LAMBDA" "naha" "fix m-1 bug in band checksumming
+")
+ ("50." "19-Aug-86 15:42:51" "LAMBDA" "naha" "fixes region allocation.  decoupled page partition size from virtual memory size
+")
+ ("51." "22-Aug-86 14:58:33" "LAMBDA" "naha" "reverted change which moved quantum allocation from quantum fault time
+to region allocation time.  a-address-space-maximum still in.")
+ ("52." "22-Aug-86 15:51:45" "LAMBDA" "naha" "added code for allocate-quantum-for-new-region, but doesn't get called.  fixed allocate-new-quantum
+to not illop on read operation")
+ ("53." "22-Aug-86 19:30:43" "LAMBDA" "naha" "enabled quantum allocation at region allocation time")
+ ("54." "23-Aug-86 21:24:37" "LAMBDA" "naha" "allocate-new-quantum no longer clobbers m-a")
+ ("55." "23-Aug-86 22:44:03" "LAMBDA" "naha" "allocate-quantum-for-new-region no longer clobbers m-a on exiting")
+ ("56." "27-Aug-86 17:18:28" "LAMBDA" "naha" "test memory size bug fix")
+ ("57." "27-Aug-86 18:01:22" "LAMBDA" "naha" "put too-much-memory fix to someplace where a-v- are defined.")
+ ("58." "27-Aug-86 18:23:55" "LAMBDA" "naha" "try again")
+ ("59." "15-Sep-86 09:49:25" "LAMBDA" "naha" "restored definition of set-pht-index-mask.")
+ ("60." "15-Sep-86 19:31:20" "LAMBDA" "naha" "hopefully fix the insert-list-header problem when allocating list storage")
+ ("61." "24-Sep-86 16:11:39" "LAMBDA" "naha" "try 1684 with past boot enabled")
+ ("62." "26-Sep-86 10:32:24" "LAMBDA" "naha" "don't allow quantum creation on disk read swaps.  Hopefully now that the list header writer is fixed
+we can get away with this.")
+ ("63." "26-Sep-86 14:50:40" "LAMBDA" "naha" "first phase of incremental PAGE allocation")
+ ("64." "26-Sep-86 15:31:37" "LAMBDA" "naha" "removed data-type field from a-page-allocation-free-pointer when initializing it from sys-comm-wired-size")
+ ("65." "29-Sep-86 14:47:11" "LAMBDA" "naha" "frobbed ALLOCATE-NEW-QUANTUM some")
+ ("66." "29-Sep-86 16:15:14" "LAMBDA" "naha" "removed spurreous xct-next from allocate-new-quantum")
+ ("67." "30-Sep-86 10:59:52" "LAMBDA" "naha" "illop if disk swap passes quantum boundary")
+ ("68." "30-Sep-86 11:28:28" "LAMBDA" "naha" "illop if disk swap passes quantum boundary.  this time with feeling")
+ ("69." "30-Sep-86 17:28:31" "LAMBDA" "naha" "hopefully fix fencepost quantum boundary check of disk-swap-handler")
+ ("70." "1-Oct-86 16:53:50" "LAMBDA" "naha" "page evictor should no longer cross quantum boundaries in it mission to find more pages to write")
+ ("71." "1-Oct-86 18:38:36" "LAMBDA" "naha" "un-illoped obsolete array stuff")
+ ("72." "2-Oct-86 10:26:59" "LAMBDA" "naha" "fix quantum-boundary check in coref-ccw-0")
+ ("73." "2-Oct-86 11:22:40" "LAMBDA" "naha" "this time for sure")
+ ("74." "3-Oct-86 14:57:19" "LAMBDA" "naha" "back up a bit")
+ ("75." "3-Oct-86 19:05:45" "LAMBDA" "naha" "try again with a good LOD band this time")
+ ("76." "3-Oct-86 19:21:15" "LAMBDA" "naha" "try again with a good LOD band this time")
+ ("77." "6-Oct-86 13:03:58" "LAMBDA" "naha" "comment out illop on quantum-allocation during read operation again")
+ ("78." "7-Oct-86 12:39:23" "LAMBDA" "naha" "trap on disk writes outside of page partition")
+ ("79." "7-Oct-86 14:29:20" "LAMBDA" "naha" "make some of uc-chaos pagable instead")
+ ("80." "8-Oct-86 11:20:44" "LAMBDA" "naha" "back to traditional page band allocation")
+ ("81." "8-Oct-86 16:43:52" "LAMBDA" "naha" "round initial value of a-page-allocation-free-pointer up to quantum boundary")
+ ("82." "10-Oct-86 11:29:40" "LAMBDA" "naha" "try out quantum mapped device hack")
+ ("83." "10-Oct-86 14:23:30" "LAMBDA" "naha" "make some of uc-lambda-array pagable")
+ ("84." "10-Oct-86 15:10:08" "LAMBDA" "naha" "moved quantum map dispatch to after highest-direct-virtual-address comparisson")
+ ("85." "10-Oct-86 17:22:17" "LAMBDA" "naha" "drop through rather than illop on invalid quantum map entries in pgf device code")
+ ("86." "14-Oct-86 14:47:32" "LAMBDA" "naha" "make even less pagable")
+ ("87." "15-Oct-86 16:14:32" "LAMBDA" "naha" "try to write l2map better")
+ ("88." "16-Oct-86 10:41:57" "LAMBDA" "naha" "twiddling with fast-boot-enable switch")
+ ("89." "17-Oct-86 16:35:10" "LAMBDA" "naha" "added %map-device-quantum")
+ ("90." "19-Oct-86 11:52:04" "LAMBDA" "naha" "oops, forgot to set a-pq2-tem!")
+ ("91." "19-Oct-86 12:44:26" "LAMBDA" "naha" "removed halt after prom and setting of proc switch fast boot bit")
+)

@@ -1,0 +1,166 @@
+From pace@cap  Tue Feb 11 17:35:06 1986
+Received: from LMI-ANGEL by lmi-cap.ARPA (4.12/4.7) with CHAOS id AA01527; Tue, 11 Feb 86 17:35:06 est
+Received: from LMI-LENE-LOVICH by angel.ARPA (4.12/4.7) with CHAOS id AA15472; Tue, 11 Feb 86 17:34:28 est
+Date: Tuesday, 11 February 1986, 17:34-EST
+From: Pace Willisson <pace@cap>
+Subject: lambda crash
+To: khh@cap, wer@cap, pace@cap
+Message-Id: <[LMI-LENE-LOVICH].11-Feb-86 17:34:15.pace>
+
+This has only happened once, but I am starting a policy of trying to
+track down every error.  We should have a mailing list and an archive
+for this sort of thing.
+
+While executing the following stream (I've put the instructions in the
+order they were executed so you don't have to worry about call and
+return addresses.)
+
+  ;this read works OK
+        ((VMA-START-READ M-2) ADD M-2 A-E)
+        (call-if-page-fault ...)
+  ;now it modifies the MD
+        ((IMOD-LOW) A-ALUF)
+        ((M-TEM) SETZ MD A-BITBLT-TEM)
+        ((M-TEM1) MD)
+        ((IMOD-LOW) M-K)
+  ;now it writes back the modified MD
+        ((MD-START-WRITE)
+                SELECTIVE-DEPOSIT M-TEM (BYTE-FIELD 0 0) A-TEM1)
+        (call-if-page-fault ...)
+  ;this jump happens
+        (JUMP-GREATER-THAN-XCT-NEXT M-4 (A-CONSTANT 1) BITBLT-INNER-3)
+       ((M-4) SUB M-4 (A-CONSTANT 1))
+
+BITBLT-INNER-3
+  ;ERROR:  M-1 gets the right thing, but the VMA keeps the same value
+  ;        that was written on the first instruction above, namely, the
+  ;        value that is still in M-2
+        ((VMA-START-READ M-1) ADD M-1 A-B)
+        (call-if-page-fault ...)
+        ((IMOD-LOW) DPB M-I OAL-MROT A-ZERO)
+  ;Machine hangs here waiting for the MD.  The CSM is in the
+  ;READ-REQUEST-ERROR loop.  The VMA, as I said, still contains the
+  ;value for the first read, and the location that maps to (on a VCMEM
+  ;video buffer) can still be read from the other lambda of the 2x2.
+        ((A-BITBLT-TEM) (BYTE-FIELD 32. 0) MD)
+
+Ken K. says the bit that says whether the destination field of the
+micro-instruction is an A memory address or a combined M/Functional
+address might have been been too slow for what ever it is that enables a
+write on the VMA.  I tried to determine if any other M function
+destination was written, but I can't be sure if I checked everything.
+I'm reasonablly sure none of the following were clobbered:
+
+        pdl-pointer, or c-pdl-pointer-[push or pop]
+        pdl-index, or c-pdl-index-[push or pop]
+        location-counter
+        rg-mode
+        dp-mode
+        stat-counter
+        stat-counter-aux
+        usp, or micro-stack push or pop
+        L1 or L2 maps
+
+The lam program has clobbered the macro-ir on me, so I don't know if it
+might have been bad before; however, I have no reason to suspect it.
+
+Call me if you have any questions.
+
+Pace
+
+
+
+
+
+From rpk@LMI-CAPRICORN  Tue Feb 11 21:44:44 1986
+Received: from LMI-ANGEL by lmi-cap.ARPA (4.12/4.7) with CHAOS id AA01640; Tue, 11 Feb 86 21:44:44 est
+Received: from LMI-DAVID-BYRNE by angel.ARPA (4.12/4.7) with CHAOS id AA16586; Tue, 11 Feb 86 21:44:09 est
+Date: Tuesday, 11 February 1986, 21:44-EST
+From: Robert P. Krajewski <rpk@LMI-CAPRICORN>
+Subject: File server bug
+To: BUG-LISPM@LMI-Angel
+Message-Id: <[LMI-DAVID-BYRNE].11-Feb-86 21:44:00.RpK>
+
+In Experimental System 110.38, Experimental ZMail 65.3,
+Experimental Unix-Interface 9.0, Experimental Local-File 66.0,
+Experimental MagTape 4.1, Experimental FILE-Server 18.1,
+Experimental Lambda-Diag 3.0, microcode 1368, Nifty,
+on David Byrne (LAMBDA):
+
+The file server processes are sensitive to the value of *print-case*
+when they print out transaction ID's.  The other machine will think it's
+got an invalid transaction ID in the reply as a result.
+
+
+From rpk@LMI-CAPRICORN  Tue Feb 11 22:17:54 1986
+Received: from LMI-ANGEL by lmi-cap.ARPA (4.12/4.7) with CHAOS id AA01714; Tue, 11 Feb 86 22:17:54 est
+Received: from LMI-DAVID-BYRNE by angel.ARPA (4.12/4.7) with CHAOS id AA16757; Tue, 11 Feb 86 22:15:52 est
+Date: Tuesday, 11 February 1986, 22:15-EST
+From: Robert P. Krajewski <rpk@LMI-CAPRICORN>
+Subject: ZWEI (?) Lossage
+To: mrc@angel
+Cc: BUG-LISPM@LMI-Angel, mt@cap
+Fcc: CAP: /lmi/rpk/Mail/cc.bb
+In-Reply-To: <8602112229.AA01507@lmi-cap.ARPA>,
+             <8602112232.AA01518@lmi-cap.ARPA
+Message-Id: <[LMI-DAVID-BYRNE].11-Feb-86 22:15:29.RpK>
+
+    Date: Tuesday, 11 February 1986, 17:28-EST
+    From: mrc@angel
+
+    In Experimental System 110.27... Alpha-1 Release, on Mary had a
+    little Lambda (LAMBDA):
+
+    This happened after doing C-X, C-F to read in a file from
+    angel.  Trying to read it in from dired didn't work either.
+    The file is a botex file.
+
+    >>ERROR: Cannot convert #2/i into a string.
+    Backtrace from the debugger:
+
+    STRING (P.C. = 73)
+
+     Arg 0 (X): #2/i
+
+    Additional information supplied with call:
+     Expecting 3 values
+
+    (:PROPERTY :LISP ZWEI::GET-SECTION-NAME) (P.C. = 84) (from file LAD: MT; ZWOBL.#)
+
+There's your (or maybe Mike Travers') problem.  See the filename above ?
+This is a redefined version of a system function; it's not the default
+of the system software as far as it can be determined -- does this file
+work in 102 ?  (I noticed that STRING has a character with a font in
+it.)
+
+How did this file get loaded ?  Did you load it yourself ?  This better
+not be something the system loads in, because you're not supposed to use
+physical pathnames for systems that go outside LMI.
+
+
+From rpk@LMI-CAPRICORN  Tue Feb 11 22:32:54 1986
+Received: from LMI-ANGEL by lmi-cap.ARPA (4.12/4.7) with CHAOS id AA01824; Tue, 11 Feb 86 22:32:54 est
+Received: from LMI-DAVID-BYRNE by angel.ARPA (4.12/4.7) with CHAOS id AA16810; Tue, 11 Feb 86 22:31:26 est
+Date: Tuesday, 11 February 1986, 22:31-EST
+From: Robert P. Krajewski <rpk@LMI-CAPRICORN>
+Subject: Another reason SI::ANALYZE-CHANGED-FILES doesn't work in 110
+To: BUG-LISPM@LMI-Angel
+Message-Id: <[LMI-DAVID-BYRNE].11-Feb-86 22:31:18.RpK>
+
+In Experimental System 110.38, Experimental ZMail 65.3,
+Experimental Unix-Interface 9.0, Experimental Local-File 66.0,
+Experimental MagTape 4.1, Experimental FILE-Server 18.1,
+Experimental Lambda-Diag 3.0, microcode 1368, Nifty,
+on David Byrne (LAMBDA):
+
+SI::ANALYZE-CHANGED-FILES will barf in the current system when walking
+down the debugging info of certain :INTERNAL functions; usually the
+error is trying to take the CAR of :MACROS-EXPANDED while looking at the
+function (:INTERNAL FORMAT::FORMAT-CTL-CHARACTER FORMAT::PRINT-BITS).
+Probably the unmodular compiler builds debugging info correctly for
+normal functions, but not for :INTERNAL ones.
+
+Of course, there's always CAR-SAFE, but a compiler bug like this could
+have other unforeseen and painful consequences (in the debugger,
+perhaps).
+

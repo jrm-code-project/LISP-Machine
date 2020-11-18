@@ -1,0 +1,190 @@
+@chapter Screen, Keyboard, Mouse
+
+@i(The following discussion is strictly a transcription of meeting notes.)
+
+Keyboard I/O requires combining the buffer space for mouse and keyboard.
+We propose that two mouse/kbd command channels be maintained:
+one for normal operations, and the other for high-priority (interrupt-level)
+operations (such as positioning the cursor during redisplay of the blinker).
+
+{??? Above was a way around a mouse scenario that needs to be reconstructed and documented. -KmC}
+
+Two pointers are required (I and O); equal pointer values indicate an empty buffer.
+The Mac advances the pointer upon
+encountering keystrokes.  Use the Mac File System
+char set as a first-order approximation.
+We will propose full character set mapping.
+
+Control of the cursor and synchronizing the state on each side
+may be tricky.  When using the LISPm's cursor, make the Mac's go away,
+with appropriate transfer of control.
+
+For screen updates: the K writes directly
+to its own local screen array.  The K issues a command
+to the Mac to do a (region) copy, then the Mac copies out
+of this K-local screen array.  When the mouse moves
+off of the Mac window containing the K screen, the
+Mac takes the mouse back, unless a GRAB-MOUSE was
+done (from the K side).
+
+When in bit-array-in-memory-option, provide for K to
+tell Mac where to look for it (RWK: the mouse blinker???) using an interface
+to open- and set- blinker, and an array in memory.
+Copy just enough bits to make it work.
+
+Add mouse-x and mouse-y registers to this scheme.
+
+Interrupts vs. Lossage of characters when clicking
+
+We need periodic calls to Mac's GET-NEXT-EVENT operation
+to handle certain screen refresh commands and to enable
+background processes to run.
+
+(We must be) "MultiFinder-aware."
+
+@b(Screen-Interface Descriptor:)
+
+This area is used by the MAC to tell the K where to (re)establish its
+screen drawing region.  <It consists of a single 32-bit register (an
+x-coord and a y-coord, 16 bits each), and three separate registers for
+the <three> buttons>. <RWK: This has to be confused.>
+
+Command:        DRAW-LISP-SCREEN
+
+Arguments:      base (NuBus), height (X), width (Y).  [Scaling?]
+
+@b(Properties of the K/Mac Mouse Interface)
+
+K/Mac mouse clicks can be treated like a
+combination of a position report and a key input.
+The Mac also has mouse speed-dependent scaling as an option,
+if there is a desire to incorporate this as a future feature.
+
+
+Five char mouse message: buttons, dx1, dy1, dx2, and dy2,
+with each d being an 8-bit signed number;
+
+The <decoding> process <consists of>: figuring out <the values of the>
+five arguments, simulating mouse's serial action (or simulating fake mouse
+moves using a click decoding scheme); if all <arguments> are unchanged, do nothing.
+
+About Mouse Commands:
+
+Major commands are used to establish control of the mouse.
+Minor commands are used to establish mouse position.
+
+<Need> commands: TAKE-MOUSE, SURRENDER-MOUSE
+
+Start with the serial action scheme in MTL
+
+Tailor Mac's event manager to conform to the Lisp mouse's behavior
+for clicks (create event <objects>, post them for the LISPM to read).
+
+Obviously the details of K/MAC screen interaction, and the varying
+proposed strategies, need to be discussed further.
+
+
+SCREEN DRAWING and MOUSE ISSUES
+
+Pending a total Window System redesign, we should at the very least
+obtain the NuBus spec.  Until we have it, we understand this much about
+the way screen and mouse drawing should work:
+
+1.  The entire process of drawing a screen should be
+a process of the highest possible priority.
+
+2.  The Screen Descriptor Table points to a count and a list of Screen Descriptors.
+
+3.  A screen descriptor will have the following components:
+
+@itemize *
+@item Screen coordinates
+@item Physical address of the local screen array
+@item Screen height
+@item Screen width
+@item The number of words per line
+@item The number of bits per pixel
+@item A high priority command block
+@item A low priority command block
+@end(itemize)
+
+4.  A screen-interrupts scheme cannot be determined
+until a microcode sequence break and high-priority
+channel operations (have been determined and ordered.)
+<In other words, we need to know if the K can actually interrupt the Mac?>
+
+5. Possible screen drawing schemes include:
+
+@itemize *
+@item The K can draw into the Mac's local memory (when
+and where permissible), with a supporting bitmap,
+the Mac providing a masking ALU operation, and
+then do a copy.
+@item Alternatively, the K can send the Mac logical
+(screen-drawing) operations.
+@end(itemize)
+
+6.  Warping the mouse:
+
+@itemize *
+@item Inherently bad idea (as it induces ergonomic
+inconsistency).
+@item Must atomically change the blinker position and
+alert the Mac to the mouse's new position over the high-priority channel.  This same message also indicates
+the two portions of the screen which need to be redrawn.
+@item Only addresses are sent to the Mac, never screen bits.
+@item Only regions are ever refreshed.
+@item (The mouse cursor bits are sent to the screen
+before the position is set.) (Update area and
+set position.)
+@item Warping the mouse cancels all pending moves,
+tracks, and positions the mouse might have had
+queued up.
+@end(itemize)
+
+Two commands are needed:
+@itemize *
+@item UPDATE-REGION (rectangle)
+@item UPDATE-REGION-AND-SET-MOUSE (old-rectangle, new-rectangle, point)
+@end(itemize)
+
+UPDATE-REGION-AND-SET-MOUSE must make the old blinker go away, and therefore
+needs a pointer to the old-rectangle.
+
+7. (Employing) two channels would greatly improve mouse
+ tracking
+
+@itemize *
+@item One channel for "draw this now"
+@item One channel for "keep everything else up to date")
+@end(itemize)
+
+
+@textbox
+@center Montreal notes:
+
+Fixed-size screen (at first)
+
+Mac should draw the mouse at the vblank interrupt; high-priority queue.
+
+Use mapping resource utility of the Mac for mapping the keyboard.
+
+raw ---> virtual        KMAP
+
+virtual ---> ascii      KCHR
+
+From BLOC_SCREEN:
+
+@format
+
+*screen-adr ---> *screen-descriptor; two channels
+
+long     high-priority-draw     /* mouse, clock, blinkers */
+long     low-priority-draw      /* everything else */
+long     pixel_def              /* bits/pixel */
+
+@end format
+
+screen-descriptors, width, and height should be static structures
+
+@end textbox

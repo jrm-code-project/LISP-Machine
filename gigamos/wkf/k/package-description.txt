@@ -1,0 +1,147 @@
+First the symbols which will be needed to bootstrap the K are created on
+the Lambda.  This is done by loading the file named
+"k-sys:k;package-definitions.lisp".  This is the very first thing
+done in the 'Falcon make-system.
+
+
+I. PACKAGE-DEFINITIONS.LISP
+
+At the top of this file there are macro defintions of the form
+PKG-XXX-IMPORTS.  These are followed by XXX-IMPORTS macro definitions.
+Where XXX is a package from the following list:
+
+        GLOBAL
+        VINC
+        PRIMS
+        CLI
+        CONS
+        ARRAY
+        NEW-MATH
+        SYMBOL
+
+The PKG-XXX-IMPORTS macros return a list of package names.  This list of
+package names represents the packages which import from XXX the list of
+symbols represented by the XXX-IMPORTS macros as a list of symbol names.
+
+For example the PKG-CONS-IMPORTS expands into a list of packages names which
+should import from CONS the list of symbols whos names into which CONS-IMPORTS
+expands.
+
+Specifically, currently for cons:
+
+PKG-CONS-IMPORTS => ("LISP-INTERNALS")
+
+CONS-IMPORTS     =>
+(:import-from cons "RPLACA" "RPLACD" "CAAAAR" "CAAADR" "CAAAR"  "CAADAR"
+                   "CAADDR" "CAADR"  "CAAR"   "CADAAR" "CADADR" "CADAR"
+                   "CADDAR" "CADDDR" "CADDR"  "CADR"   "CAR"    "CDAAAR"
+                   "CDAADR" "CDAAR"  "CDADAR" "CDADDR" "CDADR"  "CDAR"
+                   "CDDAAR" "CDDADR" "CDDAR"  "CDDDAR" "CDDDDR" "CDDDR"
+                   "CDDR"   "CDR"    "CONS"   "ENDP")
+
+These symbols (above named as strings) are imported into the package named
+"LISP-INTERNALS" from the package named "CONS".
+
+
+TO BE DONE:
+
+ Currently we do have duplicate imformation which could lead to possible
+ future mistakes by changing only one.  That is the PKG-XXX-IMPORTS are
+ not used for deciding which packages get the XXX-IMPORTS.  Instead each
+ package definition which follows the two types of macros explicitly
+ uses each set of imports approporiate to itself.  This is a little
+ tedious but straight forward and should be done soon to avoid
+ confusion.
+
+After the macro definitions comes the package definitions.  I surveyed
+these earlier and I believe that the USE structure is identical between
+the lambda and K except for USEd packages which do not exist on the K
+such as "KBUG-STREAMS".  The other difference is that a few packages
+shadow some symbols on the lambda but not on the K and a few packages
+imports some symbols explicitly (i.e. not using the XXX-IMPORTS macros)
+on the lambda but not on the K.  These special cases I believe are not
+going to change very much (since they have stayed constant for several
+months since june) and can therefore be left alone, latter being flushed
+since they are only on the lambda for purposes of cross-compilation.
+
+The end of the file has some functions for creating the k-xxx packages.
+This code has also not changed for a long time and will eventually be
+flushed when we no longer are cross-compiling and debugging.
+
+At this point after the file has been loaded the package structure of
+the lambda is set.  Any new symbols will be created as files are loaded
+and will be appropriately distributed via the pakcage USE structure.
+
+The file "k-sys:k;imported-syms" imports and exports the common-lisp
+symbols into the K-GLOBAL package.
+
+
+
+II. WARM-INTERN
+
+The symbols on the K are created BEFORE any package structure exists.
+This creates complications in the process, making it somewhat obtuse.
+
+As the cold, warm, and hot files are loaded, each symbol is eventually
+downloaded and interned using the function WARM-INTERN defined in
+"K-SYS:COLD;WARM-LOADER"
+
+This process is slightly different for each stage:
+
+During the COLD stage NO symbols exist on the K.  The symbols are stored
+on the lambda and warm-downloaded after the cold boot.
+
+During the WARM stage symbols are downloaded with a package name and
+print name.  The print name is as it appeared in the defining file.  The
+symbol is interned with a string for its package.  Only interning with
+the same print-name and package-name returns the same symbol. The
+package name, however, is a mapping on the home package of the symbol being
+downloaded.  The function GET-SYMBOL-PACKAGE-NAME defined in
+"k-sys:k;new-fasdump" does this mapping on the lambda, based on the
+package structure of the lambda.  The symbol in question is looked up in
+the package specified at the top of the file.  The SYMBOL-PACKAGE
+function is applied to get the home package.  This mapping must be based
+on the home package to preserve symbol identity where the symbol is
+referenced from different packages.
+
+  (if (= home-package "PRIMS")
+      (cond ((symbol exists in "GLOBAL")
+             "PRIMS")
+            ((symbol exists in "LI")
+             (home package of symbol with same name in "LI"))
+            (t
+             "GLOBAL"))
+     (if (home-package exists)
+         home-package
+        "NIL"))
+   ;;; nil for gensyms of which I beleive none are in boot sequence
+
+The above mapping is clearly confusing, but since I have not seen any
+problems associated with it recently I beleive it should rest as is.
+The reason for this indirection is so that two different symbols on the
+Lambda can be mapped to one symbol on the K.  (I don't remember specific
+symbols which this applies too.)
+
+Note: In the KBUG2 & KBUG debuggers when symbols are printed which have
+ strings for their home package they are printed with <angle> brackets
+ surrounding the package. (i.e. <LI>:WARM-BOOT)
+
+During the HOT stage warm-intern calls regular li:intern.
+
+
+III. WARM-BOOT
+
+Finally, in WARM-BOOT which runs after the warm files are all loaded, we
+create the actual packages with USE structure copied as in the
+PACKAGE-DEFINTIONS file (Note: There is currently no enforcement of
+consistency between the USE structure for packages on the K and their
+associated packages USE structure on the lambda.)  Then each symbol
+created during the warm boot (contained in the list gr:*warm-symbols*)
+is interned in it's now existent home package, represented as a string
+in the symbol, and that string is replaced by new package.  Next a list
+of common-lisp symbols is imported and exported from the LISP package.
+Also a list of zetalisp symbols is imported and exported form the GLOBAL
+package.  Lastly, the imports specified by PACKAGE-DEFINTIONS file are
+done.  First the unique symbol is located in its home or other package
+it belongs in.  Once found it is imported into the correct packages and
+its home package is set accordingly.

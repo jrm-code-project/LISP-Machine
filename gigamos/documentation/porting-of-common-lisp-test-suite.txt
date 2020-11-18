@@ -1,0 +1,378 @@
+Specification for Project
+
+Name:   Porting the Common LISP test suite to the Falcon
+
+Date:   9/30/88
+
+Participants:   K. Corbett, D. Saslav
+
+Est. Work:      Two-four days
+
+Project Status: Under review
+
+Purpose:        The goal of this project is to ensure the existence of as complete and correct an implementation of the Common LISP specification for the Falcon as possible; the purpose of this specification is to give an overview of existing regression tests, hopefully suggesting a resource allocation scheme that will afford maximal Common LISP testing without causing an undue strain on concurrent programming efforts.
+
+Description:    This project entails the review and revision of a number of Lambda functions which have been devised for testing Common LISP on the Lambda.  In the Lambda version of the test suite, various interpreting, display, logging, and automating mechanisms surround examples of Common LISP code which have been compiled as examples of, and deviations from the 1985 specification of Common LISP, as set forth by Guy Steele in Common LISP, the Language.  We hope to use these mechanisms along with a more complete set of tests to run relatively complete regression tests on the Falcon implementations of Common LISP routines.
+
+        Attached are two lists, the first of Common LISP topics which are accounted for to some extent in existing test files.  The second attachment represents topics not addressed by the existing Test Suite.  For all entries in the second list, validation tests need to be written.
+
+Procedure:      This project requires detailed analysis and potential revision of the various utilities employed by the Common LISP test suite; in each case, all LISP functions must be guaranteed to be Falcon-compatible.  The utilities involved may be classified into four categories:
+
+        1.      LISP-Interpreting Mechanisms
+        These are the LISP functions which actually run (i.e., evaluate or compile) the examples in a test suite.
+
+        2.      Display Mechanisms
+        These are interactive stream macros used to display the results of individual Common LISP tests on the screen for immediate view by the programmer running the test suite.
+
+        3.      Logging/Database Mechanisms
+        These are file stream macro accessors and constructors, used to record the results of sequences of Common LISP tests for statistical examination by the Common LISP tester.
+
+        4.      Automating Mechanisms
+        These are the mechanisms which have been devised for automating the process of running, displaying, and logging the results of Common LISP tests.
+
+Assessment:     It would appear that roughly 50% of the nearly 800 Common LISP identifiers currently have adequate regression tests.  Given a knowledge of the underlying issues involved in observing correct behavior in Common LISP behavior, tests could be written for the majority of the remaining areas. Clearly, a complete test bed is out of the question; however, careful prioritizing of the test subjects could result in expeditious test-writing, covering a great deal of the remaining areas, in the time given at the beginning of this report.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        Attachment I:   Areas Covered by Common LISP Test Suite
+
+        This list represents Common LISP topics covered by the current Common LISP test suite, found in the following files:
+
+        "VALID:VALID-TESTS;TESTS1.LISP"
+        "VALID:VALID-TESTS;TESTS2.LISP"
+        "VALID:VALID-TESTS;TESTS3-NUMER.LISP"
+        "VALID:VALID-TESTS;TESTS4GSI.LISP"
+
+                Identity Functions
+
+                Environment Inquiries
+
+Software Parameter Inquiries
+Hardware Parameter Inquiries
+
+
+                Debugging Tools
+
+                Code Documentation
+
+                Time Functions
+
+                Input/Output
+
+Printed Representations
+Read
+Parsing
+Macro Characters
+Standard Dispatching Macro Character Syntax
+The Readtable
+Print
+Input Functions
+Character Streams
+Binary Streams
+Output Functions
+Output to Character Streams
+Output to Binary Streams
+Formatted Output to Character Streams
+Querying the User
+
+                Lists
+
+Conses
+Lists
+Alteration of List Structure
+Substitution of Expressions
+Using Lists as Sets
+Association Lists
+
+                Hash Tables
+
+Hash Table Functions
+Primitive Hash Function
+
+                Arrays
+
+Creation
+Access
+Information
+Bit-Array Functions
+Fill Pointers
+Dimension Changing
+
+                Characters
+
+Attributes
+Predicates
+Construction
+Selection
+Conversions
+Control-Bit Functions
+
+                Numbers
+
+Predicates
+Comparisons
+Trigonometric Functions
+Constants Provided
+
+                Macros
+
+Macro Definition
+Macro Expansion
+
+                Predicates
+
+Logical Operators
+
+                Control Structure
+
+Function Invocation
+Simple Sequencing
+Conditionals
+Blocks and Exits
+Iteration, Indefinite and General
+Iteration, Simple Constructs
+Mapping
+The "Program Feature"
+Multiple Values
+Dynamic Non-local Exits
+
+
+
+
+
+
+                Forms
+
+Function Calls
+Named Functions
+Lambda Expressions
+Top-level Forms
+Declaring Global Variables and Named Constants
+
+                Type Specifiers
+
+Coercion
+
+                Structures
+
+Defstruct
+        make-...
+Unnamed Structures
+Named Structures
+
+                Miscellaneous Tests, found in the file:
+                "VALID:VALID-TESTS;MISCELLANEOUS.LISP"
+                (The following list represent tests of individual functions; in order to complete testing for the governing topic, further regression test writing is warranted.  The containing categories for the functions in this list appear in "Attachment II: Areas Not Covered by Common LISP Test Suite,..." pending the construction of more thorough test sequences for each topic)
+
+keywordp
+locally
+psetq
+alphanumericp
+alpha-char-p
+byte-position
+byte-size
+byte
+ash
+boole
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        Attachment II:  Areas Not Covered by Common LISP Test Suite,                    with Estimates of Time Required to Create Them
+
+        The topics listed below are not necessarily all strictly "testable".  Many have deep-rooted ramifications and can only really be tested through repeated use and over long periods of time.  For the purposes of this specification, this list represents chapter and section headings in the table of contents of Steele, Common LISP, the Language, all listed functions in which are not represented in the current state of the regression test  suite.
+
+Scope and Extent
+
+Type Specifiers
+
+Forms
+
+Self-evaluating Forms
+Variables
+Special Forms
+Macros
+Control of Time of Evaluation
+
+                Predicates
+
+Logical Values
+Type Predicates, for Specific Data Types and General
+Equality Predicates
+
+                Control Structure
+
+Constants
+Variables
+Reference
+Assignment
+Generalized Variables
+Establishing New Variable Bindings
+
+                Declarations
+
+Syntax
+Specifiers
+Type Declaration for Forms
+
+                Symbols
+
+Property Lists
+Print Names
+Creating New Symbols
+
+
+
+
+
+
+                Packages
+
+Consistency Rules
+Package Names
+Translating Strings to Symbols
+Exporting
+Importing
+Name Conflicts
+Built-in Packages
+Package System Functions and Variables
+Modules
+
+                Numbers
+
+Precision, Contagion, and Coercion
+Arithmetic Operations
+Irrational Functions
+Transcendental Functions
+Exponential Functions
+Logarhythmic Functions
+Complex Functions
+Type Conversions
+Component Extractions
+Logical Operations
+Byte Manipulation Functions
+Random Numbers
+
+                Sequences
+
+Simple Functions
+Concatenation
+Mapping
+Reduction
+Modification
+Searching
+Sorting
+Merging
+
+                Strings
+
+Access
+Comparison
+Construction
+Manipulation
+
+
+
+
+
+
+
+
+
+
+                Structures
+
+Defstruct
+        make-...
+        Slot Options
+        Options
+By-Position Constructor Functions
+Explicitly Specified Representations
+Unnamed Structures
+Named Structures
+
+                The Evaluator
+
+Run-time Form Evaluation
+The Top-Level Loop
+
+                Streams
+
+Standard Streams
+Creation
+Operations
+
+                The File System Interface
+
+File Names
+Pathnames
+Pathname Functions
+Opening Files
+Closing Files
+Renaming Files
+Deleting Files
+Probing for File Attribute Information
+Loading Files
+Accessing Directories
+
+
+                Errors
+
+General Error-Signalling Functions
+Specialized Error-Signalling Forms and Macros
+Special Forms for Exhaustive Case Analysis
+
+                The Compiler
+

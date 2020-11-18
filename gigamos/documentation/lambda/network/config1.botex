@@ -1,0 +1,487 @@
+@chapter Upgrading to Release 4
+@label[chapter-configuration]
+
+This chapter is intended for system managers upgrading from Lambda Release 3 software to Release 4.
+It explains changes to site configuration parameters and procedures.
+
+After reviewing the material in this chapter,
+see Chapter @ref[chapter-doc-configuration], @b(@nameref[chapter-doc-configuration]),
+for documentation on the network configuration procedures.
+
+@need 1200
+@section Naming Hosts: The Pack Name
+
+Lambda hosts find their own name at system startup in the disk pack label.@cindex[pack name]@cindex[host name]
+With Release 4, for Lambda-Plus configurations,
+it is also necessary to specify the host name of the attached Unix processor.
+The Unix host name must be provided so that the LISP processors can determine the address routing information
+for the attached Unix host.
+
+As documented in the @i(Lambda 4.0 LISP Release Notes),
+you should set the pack name for each Lambda system
+during the Release 4 installation.
+Run the function @see[si:set-pack-name][fun] on each chassis to specify the names of each host.
+The Unix host name must be supplied as the last host name in the pack name.
+
+@group
+Here are two examples, illustrating how to set the pack name of a Lambda-Plus and a Lambda-2x2-Plus:
+
+@lisp
+;;Lambda-Plus
+
+(si:set-pack-name "LAM-A UNIX-A")
+
+;;Lambda-2x2-Plus
+
+(si:set-pack-name "LAM-A LAM-B UNIX-A")
+@end(lisp)
+@end group
+
+@section Site Configuration Changes
+
+Some changes to your current Lambda site files
+may be required for the new release.
+These changes may not be downward-compatible;
+in other words, site files modified for Release 4
+should not be used or loaded in a Release 3 LISP world.
+
+If your site used TCP/IP under a previous release,
+you will definitely have to assign unique Internet addresses to
+Lambda hosts on multi-processor systems (such as 2x2s).
+See below for information on modifying Internet addresses for Release 4.
+
+Most Chaosnet-only installations will not require updated site files.
+Nevertheless, we recommend recompiling Release 3 site files
+before loading them into Release 4.
+Sites that were previously Chaosnet-only may wish to
+take advantage of the TCP/IP capability that comes with Release 4,
+thus requiring site file changes.
+
+The site file directory is assigned the logical pathname @l("SYS:SITE;").
+The source site files are:
+
+@itemize @bullet
+@item SYS: SITE; SYS.TRANSLATIONS
+@item SYS: SITE; HOSTS.TEXT
+@item SYS: SITE; SITE.LISP
+@item SYS: SITE; LMLOCS.LISP
+@end(itemize)
+
+The changes documented below are all changes to entries in one or more of these files.
+
+@need 1200
+@subsection Logical Translations
+
+If you plan to restore Release 4 software options and/or sources,
+you will need to make a change in the file @l("SYS.TRANSLATIONS").
+
+@cindex[source directories]
+With every major Lambda software release, a new @ii(source directory)
+is established
+(see @ref[figure-source-directories]).
+The source directory is a top-level directory below which
+the Lambda system source hierarchy resides.
+
+@figure
+@setq figure-source-directories figure-page
+@settabs 5 @columns
+@< @\ @i(Release) @\ @\ @i(Directory) @cr
+@sp 1
+@hrule
+@sp 1
+@< @\ 2.0 @\ @\ @l("QL;") @cr
+@< @\ 3.0 @\ @\ @l("RELEASE-3;") @cr
+@< @\ 4.0 @\ @\ @l("RELEASE-4;") @cr
+@cleartabs
+@sp 1
+@caption Major Lambda releases - Source directory locations
+@end(figure)
+
+Release 4 sources are located in the @l("RELEASE-4;") directory.
+You must modify your @l("SYS.TRANSLATIONS") file
+to reflect this change
+by substituting all occurrences of ``RELEASE-3'' with ``RELEASE-4''.
+See @ref[figure-compare-sys-translations],
+for an example of a Release 3 and modified Release 4 @l("SYS.TRANSLATIONS") file.
+
+@fullpagefigure
+@setq figure-compare-sys-translations figure-page
+
+@i(Example of SYS.TRANSLATIONS:) Release 3
+
+@lisp
+;;; -*- Mode:LISP; Base:10; Readtable:ZL -*-
+
+(FS:SET-LOGICAL-PATHNAME-HOST
+  "SYS"
+  :PHYSICAL-HOST "MYHOST"
+  :TRANSLATIONS
+  '(("CHAOS;" "RELEASE-3.CUSTOMER-SITE;")
+    ("SITE;"  "RELEASE-3.CUSTOMER-SITE;")
+    ("*;*;*;*;*;" "<RELEASE-3.*.*.*.*.*>")
+    ("*;*;*;*;" "<RELEASE-3.*.*.*.*>")
+    ("*;*;*;" "<RELEASE-3.*.*.*>")
+    ("*;*;" "<RELEASE-3.*.*>")
+    ("*;" "<RELEASE-3.*>")))
+
+@b[Comments:] This file points to the example Release 3 site files
+
+@end(lisp)
+
+@i(Example of SYS.TRANSLATIONS:) Release 4, with local modifications
+
+@lisp
+;;; -*- Mode:LISP; Base:10; Readtable:ZL -*-
+
+(FS:SET-LOGICAL-PATHNAME-HOST
+  "SYS"
+  :PHYSICAL-HOST "MYHOST"
+  :TRANSLATIONS
+  '(("CHAOS;" "OUR-SITE;")
+    ("SITE;"  "OUR-SITE;")
+    ("*;*;*;*;*;" "<@b(RELEASE-4).*.*.*.*.*>")
+    ("*;*;*;*;" "<@b(RELEASE-4).*.*.*.*>")
+    ("*;*;*;" "<@b(RELEASE-4).*.*.*>")
+    ("*;*;" "<@b(RELEASE-4).*.*>")
+    ("*;" "<@b(RELEASE-4).*>")))
+
+@b[Comments:] This file points to site files that were
+copied to a new directory, @l[MYHOST: OUR-SITE;]
+
+@end(lisp)
+@sp 1
+@caption Examples: original and modified (Release 4) SYS.TRANSLATIONS file
+
+@end(fullpagefigure)
+
+If you were previously using the default site file directory  @l("CUSTOMER-SITE;"),
+you should take this opportunity to establish a new site file directory
+that is not associated with the Lambda source hierarchy.@csubindex[site files][from previous releases]
+
+For example:
+
+@lisp
+(fs:copy-directory "myhost:release-3.customer-site;*.*#>"
+                   "myhost:our-site;")
+@end(lisp)
+
+Edit the copied @l("SYS.TRANSLATIONS") file
+to modify the definitions of @l("SYS:SITE;") and @l("SYS:CHAOS;")
+to reflect the new location of your site files.
+
+@need 1200
+@subsection Host Addresses
+
+In previous releases, all hosts within one Lambda chassis
+were assigned the same Internet address.
+In Release 4,
+
+@itemize @bullet
+@item
+Each Lambda LISP host must have a unique Internet address
+@item
+Each Lambda host must have a unique Chaos address; it is used both for
+Chaosnet and interprocessor communication within the same chassis
+@item
+Lambda-Plus Unix hosts must have @i(no) Internet address
+@end(itemize)
+
+You must modify @l("HOSTS.TEXT") to follow these conventions.
+
+See @ref[figure-compare-hosts-text], for an example of a modified @l("HOSTS.TEXT") file.
+
+@fullpagefigure
+@setq figure-compare-hosts-text figure-page
+
+@i(Example of HOSTS.TEXT:) Release 3
+
+@smalllisp
+;;; -*- Mode:Fundamental -*- MYHOST: RELEASE-3.CUSTOMER-SITE; HOSTS.TEXT#18
+
+HOST LMI-AMNESIA,  CHAOS 3412,USER,LISPM,LISPM,[AMNESIA]
+
+;; Lambda 2x2-Plus
+
+HOST MYHOST, [CHAOS 3430,INTERNET 101.0.0.101],USER,LISPM,LISPM,[MASTER]
+HOST AHOST, [CHAOS 3431,INTERNET 101.0.0.101],USER,LISPM,LISPM,[ANOTHER]
+HOST UNIX-HOST, [CHAOS 3432,INTERNET 101.0.0.101],USER,UNIX,NU,[MYUNIX]
+
+;;; Lambda
+
+HOST XTRA-HOST,   CHAOS 3433,USER,LISPM,LISPM,[XTRA]
+
+;; VMS VAX
+
+HOST MEGAVAX,      INTERNET 101.0.0.110,USER,VMS,VAX,[MYVAX]
+@end(smalllisp)
+
+@i(Example of HOSTS.TEXT:) Release 4, with local modifications
+
+@smalllisp
+;;; -*- Mode:Fundamental -*- MYHOST: OUR-SITE; HOSTS.TEXT#20
+
+HOST LMI-AMNESIA, CHAOS 3412,USER,LISPM,LISPM,[AMNESIA]
+
+;; Lambda 2x2-Plus
+
+HOST MYHOST, [CHAOS 3430,INTERNET 101.0.0.101],USER,LISPM,LISPM,[MASTER]
+HOST AHOST, [CHAOS 3431,INTERNET 101.0.0.102],USER,LISPM,LISPM,[ANOTHER]
+HOST UNIX-HOST, CHAOS 3432,USER,UNIX,NU,[MYUNIX]
+
+;;; Lambda
+
+HOST XTRA-HOST,   [CHAOS 3433,INTERNET 101.0.0.103],USER,LISPM,LISPM,[XTRA]
+
+;; VMS VAX
+
+HOST MEGAVAX,      INTERNET 101.0.0.110,USER,VMS,VAX,[MYVAX]
+@end(smalllisp)
+
+@caption Examples: original and modified (Release 4) HOSTS.TEXT file
+
+@end(fullpagefigure)
+
+@need 1200
+@subsection Site Options Added and Removed
+
+Site options are specified globally, for all Lambdas, in @l("SITE.LISP"),
+or locally, for specific Lambdas, in @l("LMLOCS.LISP").
+
+The new site options for Release 4 are as follows:
+
+@description
+@item :NETWORK-NAMES @i([list-of-network-specs])
+
+Defines the available network protocols (:CHAOS and :INTERNET),
+and the network number(s) pertaining to the site.
+See @ref[option-network-names] for further information.
+
+@item :BROKEN-BERKELEY-UNIX-BROADCAST-ADDRESS-P @i([T or NIL])
+
+This site option must be specified if there are
+Berkeley 4.2 Unix systems on your network.
+See @ref[option-broken-berkeley] for further information.
+
+@end(description)
+
+The following options are obsolete, and are not supported by Release 4:
+
+@description
+
+@item :FRONT-END-TCP-CHAOS-SERVER
+Chaos-only Lambda hosts that formerly had to go through a remote
+front-end TCP/Chaos server@cindex[front-end TCP Chaos server]
+must be
+updated to use Release 4 TCP/IP software directly.
+
+@item :TCP-ONLY-LAMBDAS
+Lambda hosts that were formerly designated as ``TCP-only'',@cindex[TCP-only Lambdas]
+when upgraded to Release 4, should be assigned Chaos addresses.
+
+@end(description)
+
+You should delete any entries in @l("SYS:SITE;SITE.LISP") or @l("LMLOCS.LISP")
+that specify an obsolete option.
+Note that this will make the new site information incompatible with Release 3.
+Loading the new site files in a Release 3 band could cause severe networking problems to occur.
+
+All other site options for TCP/IP and Chaosnet should work as previously documented.
+
+@need 1200
+@section Site File Update Check-List
+
+@ref[figure-site-file-upgrade-checklist], provides a check-list
+of the basic changes that must be made to update site files from Release 3 to Release 4.
+
+@fullpagefigure
+@setq figure-site-file-upgrade-checklist figure-page
+@caption Site File Modification Check-List
+@sp 1
+
+Make sure you specify all host names in the pack name,
+and name the hosts in the ``proper'' (i.e., slot) order:@cindex[pack name]
+
+@itemize @choicebox
+@item
+First, name the slot 0 LISP processor
+@item
+Next, name the slot 4 LISP processor (if installed)
+@item
+Finally, name the slot 8 LISP processor @ii(or) the attached Unix processor
+(if installed)
+@end(itemize)
+
+For example: @l[(si:set-pack-name "lam-a lam-b unix-a")]
+
+Make sure you make the following changes in @l("HOSTS.TEXT"):
+
+@itemize @choicebox
+@item
+Assign each LISP processor unique Chaos and Internet addresses
+@item
+Remove Internet addresses for Lambda-Plus Unix hosts (type ``NU'')@cindex[Lambda-Plus]
+@end itemize
+
+Make sure you make the following changes in @l("SITE.LISP") and/or
+@l("LMLOCS.LISP"):
+
+@itemize @choicebox
+@item
+Add the following entry to @l("SITE.LISP") if you have Berkeley 4.2 Unix
+systems on your TCP/IP network:
+@lisp
+(:broken-berkeley-unix-broadcast-address-p t)
+@end(lisp)
+@sp 1
+
+@item
+Add an entry in @l("SITE.LISP") to define @l(:NETWORK-NAMES).
+If you use the Site Editor, it will prompt you to create this entry.
+An entry for a network where IP subnets are not in use would be similar to the following:
+
+@lisp
+(:network-names
+   '((("OUR-NETWORK")
+      ((:INTERNET "101.0.0.0") (:CHAOS 7)))))
+@end(lisp)
+
+@item
+Remove the following entries wherever they appear:
+@lisp
+:FRONT-END-TCP-CHAOS-SERVER
+:TCP-ONLY-LAMBDAS
+@end(lisp)
+@end(itemize)
+
+Make sure you make the following changes in @l("SYS.TRANSLATIONS")
+to the definition of the ``SYS'' logical host:
+
+@itemize @choicebox
+@item
+Specify your own site directory as the translation for
+@l("SYS:SITE;") and @l("SYS:CHAOS;")
+@item
+Specify @l(RELEASE-4;) as the translation for everything else
+@end itemize
+
+@csubindex[site files][check-list]
+@end(fullpagefigure)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end config1

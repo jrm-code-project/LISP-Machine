@@ -1,0 +1,101 @@
+------------------------------------------------------------------------------
+
+        -- draft --     -- draft --   -- draft --   -- draft --
+
+A Formalized Proposal Review System for GigaMOS Systems Inc.
+
+        Purposes:
+           (1)  To assure GigaMOS Systems makes the best possible major design
+                decisions, given its resources and goals.
+           (2)  To assure that the technical plan, so much as possible,
+                reflects a consensus among the design team.
+           (3)  To provide a written record of the company consideration on these
+                issues.  It is believed that this record will be valuable to the company
+                in several ways.  If the same or related issues come up in the future
+                the value of a written record of previous deliberations is obvious.
+                In addition, the written record provides considerable safeguards against
+                "misspeakings", and, in the event of a misunderstanding, may enable the point to
+                be clarified without taking the time of the entire set of persons
+                involved in the decision making process.
+           (4)  To assure technical staff members of GigaMOS systems fair consideration
+                of any proposals they might make, including written response
+                from Senior Project and Company Management.
+
+
+        Mechanism:      -- this is a baseline for starters.  Feel free to make suggestions. etc.
+
+        Any technical staff member (or members) who has an idea for a major
+        change or addition to the then-existing official
+        plans of GigaMOS Systems Inc. is encouraged to submit it
+        in the form of an official written proposal.  These proposals will be available as machine readable text
+        in the directory JB:PROPOSALS;PROP-nn.  The proposal administrator will be responsible for maintaining
+        a table-of-contents file JB:PROPOSALS;TABLE-OF-CONTENTS which will give relevant
+        information about each proposal [Title, proposal number, current status,
+        date last modified, date of company response, last modified, etc]. Each proposal will
+        formally announced to management and project members via electronic mail.
+
+        The proposal, once submitted, will be considered an active document which reflects
+        the current state of consideration of its issue;  this avoids the need to read through
+        a lengthy sequence of files or messages to "come up to speed" on the issue.  The proposal
+        should have sections considering its impact on schedules and resource requirements,
+        but these could be dummies early in the proposal's lifetime.  Thus,
+        the proposal may be updated or elaborated by those making it and
+        technical staff members are encouraged to make comments on the proposal, which should
+        be appended to the end of proposal in a distinctive section, labelled with the name
+        or initials of the person or persons making them.  Normally, one should not edit
+        another's section, except by making short bracketed and signed additions, although,
+        if an idea from a suggestion is adopted into the main proposal
+        it would be appropriate for the proposal makers to note that fact in the comment
+        section where the idea was suggested by some such note as [--this has been incorporated], etc.
+        Of course, new versions of the proposal are written out as the current version,
+        and earlier versions are not normally deleted until they are backed up.  If file forking occurs,
+        (how could forking occur?) it should be straightforward to do a "fair" SOURCE-COMPARE-MERGE.
+
+        The last section of each proposal will be the STATUS section.
+        Each project member will have a chance to record his vote in this section.  When voting is
+        closed (24 hours after an announcement that voting will be closed or sooner if there is
+        no objection), a "verdict" will be deamed to have been reached if there is a 2/3
+        vote of those voting in favor of a particular path.  The official plan will be updated
+        as per this verdict unless, within 24 hours of receiving formal notification of the verdict, the
+        president overrules the verdict.  If he does this, he should record his reasons for so doing
+        in the record.
+
+
+        Calling the Question and Closing
+        If the originators of the proposal believe that the record contains sufficient information
+        to serve as the basis of a decision, they may Call the Question.  Actively Called Questions will
+        will notated in the TABLE-OF-CONTENTS file, and project manager is then responsible
+        for updating his response, normally within two working days.
+
+        If the project manager or company president believes that excessive company resources are
+        being consumed by a particular issue, or believes that the company is irretreivably
+        committed to a certain course beyond the point of useful discussion, he may CLOSE the issue.
+        Formal closing of an issue is effective 24 hours after project members have been notified
+        and will be indicated buy a change in the status listing in the TABLE-OF-CONTENTS file.
+        This really just serves as an advisory to company personel to minimize company resources
+        spent on the issue.  Obviously, persons wishing to reopen the issue should take it up with
+        management.
+
+        Resource Allocation:  As a general rule, around 10% or so.  I.e. if you are spending
+                more than 10% of your time on hassling proposals, etc, think about whether it
+                may too much.  (Of course, we are in a major design or original proposal stage,
+                then more may be appropriate.)
+
+        Scope:
+        Initially, we are going to try out this procedure on the two primary projects of the company.
+        Later, if it is successful, we can extend it to other projects and/or new projects that
+        may be launched.
+
+        Initial-Software-Plan:  The company will port the LAMBDA software to the Falcon processor.
+                The basic method will be to use the existing FLEABIT software base as a
+                bootstrap environment to load the LAMBDA software.  The general flow and
+                work items are as posted on the chart on the wall, although we are currently
+                in the process of revising and updating the chart.  In particular, this proposal
+                process is intended to apply mainly to design choices (as per its purposes above)
+                and does not primarly concern such things as assign dates to milestones
+                or ordering tasks.
+
+
+        Chip-Hardware-Plan:     The company will advise and review the development of the
+                Phoenix Chip processor.  Our current plan is to produce a chip set which is
+                software compatible with the current Falcon Board set.

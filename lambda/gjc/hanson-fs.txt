@@ -1,0 +1,148 @@
+
+Chris Hanson:  An Environment-like "File" System for Scheme
+
+This paper describes the design of a "file" system which can be used
+to store arbitrary Scheme objects.  The system stores the objects in
+"directories", which appear to the Scheme user to be ordinary
+environments.  The same primitive procedures, e.g. LEXICAL-ASSIGNMENT
+and ACCESS, can be used on these environments as on any other.
+
+The difference is that the environments, and the objects which they
+contain, normally are stored on disk.  Binding a name in such an
+environment to an object will normally cause that object to be removed
+from the heap, and stored on the disk.  Referring to an object stored
+on disk, using ACCESS for example, causes the object to be moved from
+the disk to the heap.  Using a mechanism similar to FASDUMP, all RAM
+references to an existing object will be kept up to date when it is
+moved to or from disk.  A different mechanism, which will be
+described, is used to maintain references from disk to disk, and from
+disk to RAM.
+
+The environment system requires, from the host operating system, some
+means of allocating and deallocating disk blocks.  It also requires
+the ability to read and write entire blocks in a random access
+fashion.  Contiguity of the blocks is not required, and the size of
+the disk block is relatively unimportant.  Ideally the system would
+have direct access to the disk driver, and would operate on an area of
+the disk that the host system was not using for other purposes.
+
+It is quite feasible to build the system on top of an existing file
+system, however.  This can be accomplished by creating random access
+files in multiples of the block size, using names that Scheme can
+easily generate and maintain internally.  The files would then be
+opened an closed as required by the environment system's need to read
+or write blocks in any particular file.
+
+                            Block Headers
+
+>From the environment system's point of view, each block will consist
+of a fixed number of 32 bit words.  Each will have a unique block
+number, which is a 32 bit unsigned integer.  For a typical block size
+of 1024 bytes, this gives an addressing range of 16 terabytes, which
+seems more than adequate given the hardware currently available to us.
+
+Each block will have a header of about 8 words.  The first four words
+are the same for every block, as follows:
+
+                +-------+-------+-------+-------+
+                | type  |       (reserved)      | 0
+                +-------+-------+-------+-------+
+                |         backward link         | 1
+                +-------+-------+-------+-------+
+                |          forward link         | 2
+                +-------+-------+-------+-------+
+                |           (reserved)          | 3
+                +-------+-------+-------+-------+
+
+The next four words are type-dependent, but reserved for all types.
+The remaining words hold type-dependent data.
+
+The TYPE field is mostly for use by a salvager, to determine what each
+block is for after the system has suffered some damage.  Initially all
+blocks have type FREE, meaning they are available for allocation, and
+they are doubly linked together using the FORWARD/BACKWARD-LINK
+fields.
+
+Normally, the links are used to join together a group of blocks that
+represent a single logical entity.  An alternate mechanism which has
+different advantages would be to use maps which indicate where all of
+the blocks for that entity are stored.  This would be fairly easy to
+implement also, and maybe should be used instead if it is found that
+more rapid access to the middle of a large entity is needed.
+
+                       Objects and Environments
+
+The most important block type is OBJECT, which is what Scheme objects
+will become when they are stored in the system.  Another important
+type is ENVIRONMENT; ENVIRONMENT blocks have the same properties as
+ordinary OBJECT blocks, but they are treated differently in some
+cases.  The second four words in an OBJECT block are the following:
+
+                +-------+-------+-------+-------+
+                |           superiors           | 4
+                +-------+-------+-------+-------+
+                |       outward pointers        | 5
+                +-------+-------+-------+-------+
+                |        inward pointers        | 6
+                +-------+-------+-------+-------+
+                |           (reserved)          | 7
+                +-------+-------+-------+-------+
+
+The SUPERIORS slot points to a list which is used to keep track of
+what ENVIRONMENT blocks this object appears in.  The elements of the
+list are pairs, each of which contains a pointer to an ENVIRONMENT
+block, and a pointer to a name, which is the name to which the object
+is bound in that environment.
+
+Conversely, the ENVIRONMENT block is organized as a sequence of
+name/object pairs, probably sorted to improve search time.  The
+redundant information is, again, maintained to help make the system
+crash proof, and aid in salvaging.
+
+The OUTWARD-POINTERS and INWARD-POINTERS lists are used to keep track
+of references between objects stored in the system.  Initially, stored
+objects have no references in either direction.  But when an object is
+stored that contains pointers to previously-stored objects, a list of
+those pointers is put in OUTWARD-POINTERS.  Conversely, each of those
+objects gets the newly-stored object added to its INWARD-POINTERS
+list.
+
+Then, when an object is moved from disk to RAM, if anything points at
+it from disk, a forwarding pointer can be left, pointing to a table in
+RAM, which contains the object's actual heap pointer.  This prevents
+the object from being garbage-collected, and can be used to update the
+disk pointers when the object is eventually returned to the disk.
+
+Admittedly, this is a complicated mechanism, but I don't see any
+alternative if we want to have the flexibility it provides.
+
+                           Names and Lists
+
+The somewhat offhand references to names and lists above ignored the
+issue of how such things would be represented in the system.  Since
+these things are referred to in very fixed ways, there is some
+flexibility in their implementation.  The key idea here is that a
+pointer to a name or a list can never be confused with a pointer to a
+block.
+
+I envision that there would be blocks allocated specifically to hold
+entities of a particular type, and pointers to such objects would, say,
+have their top 24 bits be a block number, and their bottom 8 bits be
+an offset into that block.  The block number would be an ordinary
+block number, since it seems that there would not be very much need
+for this kind of block.  Other types of blocks could be numbered above
+this since there is no constraint on block numbering.
+
+Names would be interned, pretty much as they are in Scheme, since they
+are supposed to correspond to Scheme symbols anyway.  Deallocation of
+names would be a difficult process, requiring a full GC of the
+environment system, but that should not be a serious problem given
+that interning tends to keep things around for a long time anyway.
+And likely there would not be an awful lot of names.
+
+Lists of various kinds could be allocated and deallocated easily,
+since they are all of a uniform size.  Since the deallocation is
+completely under the control of the environment system, no garbage
+collection would be required.  It might be desirable to segregate the
+lists based on what they are used for, again to aid in salvaging.
+

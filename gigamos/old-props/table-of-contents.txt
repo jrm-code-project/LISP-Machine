@@ -1,0 +1,82 @@
+
+**********************************************************************
+
+                         PROPOSALS
+
+                     TABLE OF CONTENTS
+
+**********************************************************************
+
+Proposal #1
+     A Formalized Proposal Review System for GigaMos Systems, Inc.
+
+Current Status:                  Accepted
+Date Last Modified:              Sep 12, 1988
+Date of Company Response:        Sep 7, 1988
+Date Response Last Modified:     Sep 7, 1988
+
+
+
+Proposal #2
+     Stack Groups on the Falcon
+
+Current Status:                  Open
+Date Last Modified:              Oct 04, 1988
+Date of Company Response:        None
+Date Response Last Modified:     None
+
+
+
+Proposal #3 Missing
+
+
+
+Proposal #4
+     Flagging Source File Changes
+
+Current Status:                  Accepted
+Date Last Modified:              Oct 03, 1988
+Date of Company Response:        None
+Date Response Last Modified:     None
+
+
+
+Proposal #5 (note new title 10/12/88):
+     Expanding the LISP Regression Test Suite
+
+Current Status:                  Open
+Date Last Modified:              Oct 12, 1988
+Date of Company Response:        None
+Date Response Last Modified:     None
+
+
+
+Proposal #6
+     New Cold Loader
+
+Current Status:                  Open
+Date Last Modified:              Oct 04, 1988
+Date of Company Response:        None
+Date Response Last Modified:     None
+
+
+
+Proposal #7
+     Hardware to Support Critical Sections
+
+Current Status:                  Open
+Date Last Modified:              Oct 01, 1988
+Date of Company Response:        None
+Date Response Last Modified:     None
+
+
+
+Proposal #8
+     Compiling References to Foreign (Target Processor) Symbols
+
+Current Status:                  Open
+Date Last Modified:              Oct 12, 1988
+Date of Company Response:        None
+Date Response Last Modified:     None
+
+*****

@@ -1,0 +1,33 @@
+@comment -*- Mode:Text; Package:USER; Readtable:CL -*-
+
+Logical pathnames can be specified using either of two ways of delimiting
+subdirectories.
+Both `.' and `;' may now be used to separate the parent
+directory field from the subdirectory field in a pathname.
+For example,
+the following two pathnames are equivalent:
+
+@lisp
+;;Traditional syntax:
+
+(pathname "SYS:MY-DIRECTORY;MY-SUBDIRECTORY;MY-FILE.LISP")
+
+;;;Extended (LISPM-like) syntax:
+
+(pathname "SYS:MY-DIRECTORY.MY-SUBDIRECTORY;MY-FILE.LISP")
+@end(lisp)
+
+The @l(UNIX-PATHNAME) flavor now handles a Unix @l(:root) (top-level) directory specification correctly.
+As a result, a directory
+listing of a Unix system's root directory now returns the correct results.
+
+When the Lambda File Server got a Disk Full error, the user was simply
+left hanging.  Now an error is signalled with useful proceed
+options, including: running Dired, calling @l(ZWEI:CLEAN-DIRECTORY),
+or expunging the directory.
+
+File attribute lists containing @l("Mode:CommonLISP") and/or @l("Syntax:CL")
+are now accepted by the compiler, loader, and ZMacs.
+Specifying either or both of these attributes is equivalent
+to specifying @l("Mode:LISP") and @l("Readtable:CL"),
+which provides the correct attributes for CommonLISP code.

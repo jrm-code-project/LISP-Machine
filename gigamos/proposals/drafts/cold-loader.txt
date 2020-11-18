@@ -1,0 +1,278 @@
+        --DRAFT                 DRAFT                   DRAFT--   --rg
+
+        Why we need a new cold loader, how we are going to get it, and what difference
+                it will make.
+
+
+        why we need a new one.
+
+                The current FLEABIT FALCON cold loader has a number of gross structual
+  shortcommings.  For example, it makes no list structure at all!
+  As a result, things have to go thru two very fragile stages before the package
+  system can even be installed.  In the first stage [COLD], no symbols, etc are available
+  at all!  This causes simple looking code to fail in strange ways (clobberring NIL),
+  etc.  In the next stage [WARM] there is a completely simpleminded INTERN which involves
+  a single OBLIST, absolutely no package structure, etc.  Interning things in this way
+  can lead to all kinds of screws later (if package inheritance fails to happen, etc etc).
+  Finally, when the package system comes up, things have to be hacked grossly to be
+  consistant with the multiple extraneous packages, etc which have been introduced in the
+  FLEABIT and FLEABIT-COMPILED systems on the lambda.  This obviously needs to be flushed.
+  There are a number of other gross deficiencies as well.
+
+        What is the Lambda cold load generator?
+
+                It is two files, one fairly large [sys:cold;coldut] and one medium size
+  [sys:cold;coldld].  Mostly COLDUT implements a simple virtual memory on a disk partition.
+  Using a disk partition instead of building the cold load in memory allows considerably
+  more stuff to be incorporated in the cold load.  This is a simplification since
+  then there is less need for the system to run in a "primitive" mode where stuff you
+  normally expect to be there isn't.  For example, the lambda cold load has EVAL, the
+  package sytem, READ, PRINT and lots of other stuff as well as FASLOAD all there to start.
+  The Falcon has only FASLOAD to start, etc.  In other words, it becomes feasible to put
+  most of the stuff in the WARM and HOT file lists directly in the cold load.
+  (The idea way to make a cold load, BTW, is to load the entire system in a separate
+  MOBY section.  That would truly avoid "primitive" modes)
+                The lambda, of course, builds extensive list structure at cold load
+  time which becomes part of the cold load, avoiding numerous problems.
+                The virtual memory system of the FLEABIT-compiled system is seriously
+  wedged in various ways.  Fixing this without breaking everything would be a royal pain.
+  On the other hand, the virtual memory system of the lambda is perfectly adequate
+  in principle (of course, a fair number of details need modification).  It "sort of"
+  comes for free along with the cold load generator.
+
+        What needs modification to make the base lambda cold load generator suitable
+                for the FALCON?
+        The concern of the cold load generator is entirely with data structures.
+  In other words it is greatly concerned with how an array is stored, but cares not
+  what the PDL looks like, let alone a stack-group, etc.  So it needs to know about
+  simple data types like arrays, CONSes and compiled functions.  The current thought
+  (not yet a plan) is to say that the low level conventions used by the FLEABIT are
+  for the most part OK for these simple data types.  [The main exception to this I
+  am aware of is the need to maintain back pointers to entries in functions in case
+  the function gets superceeded.  A minor exception is that the STRUCTURE datatype,
+  etc, would be flushed and defstruct turned into arrays exactly as on the Lambda.
+  Other suggestions for improvements that people are
+  aware of in this area should be voiced, soon if possible, please.]
+        An the next level of detail, converting the cold loader to the fleabit
+  low level data storage conventions involves generating new QCOM and QDEFS files.
+  These files serve as the authoritative, on line reference for much of the storage
+  conventions.
+
+        The hope is, the same FBIN format currently used by FLEABIT can also be loaded
+  by the cold load generator.  We have a couple of legs up on this, because it does
+  currently know how to process QFASL files, which are basically in the same format
+ (less several new FASL-OP codes).
+
+  One significant piece of work would be required would be to put PRIMITIVE operations
+  into the cross compiler.  I guess I feel the user-level syntax used by the FLEABIT
+  is OK, altho it would be interesting if anyone could suggest an improvement.
+  Also required is a method to get DEFAFUNs into FBIN files.
+
+        What general stages might things go thru?
+
+        (1)  cold loader grossly forked.  lambda specific stuff flushed etc.
+        (2)  parameter files converted.
+             [quite straightforward, providing we really do use the FLEABIT data storage
+              conventions]
+        (3)  ability to load cross-compiled files which contain only data.
+        (4)  ability to load cross-compiled files which contain code.
+             [this involves design of some new data structure as well as writing a medium
+             sized piece of code, the basis of which already exists however]
+        (5)  assembling "cold-load" files (using pieces out of FLEABIT where possible)
+             [fairly big job.  Array, CONS, etc extracted, de-package-randomized,
+             cross compiled, etc.]
+        (6)  ability to get cold load from LAMBDA disk partition into FALCON memory.
+        (7)  ability to actually start and execute cold load.
+        (8)  new debugger interface designed.  Includes ability to step machine and save state.
+
+        more or less at this point, we are theoretically pretty much ready to take whatever code
+        has been processed thru to run on the fleabit system and bring it up here.
+        In principle, the same FBIN file could be loaded into either system!
+        [even package screwwage might not be a problem for new or LAMBDAoid code!]
+
+        Note that we get a long long way into this process before we have to deal with
+        control data structure such as pdls or stack-groups.
+
+     Once we accomplish this, how does conversion to the 40 bit machine go?
+
+        Pretty much, nothing having to do with this whole thing is changed.
+    If any changes to array formats, etc are made, the corresponding changes
+    need to be made here.  Changes on the order of adding tag bits to fixnum
+    arrays or code are trivial.  One problem would be access to 40 bit disk files, etc.
+    If we have these going by that time on the MAC, this would be a good way to test
+    them out.  Once inside the Lambda, practically everything is a bignum anyway so
+    32 bits versus 40 makes little difference.
+
+
+
+
+====================
+
+        Datatype by datatype comparision FLEABIT vs new proposals.
+
+  The general assumption above is that data representation (as opposed to control
+structure-representation) of the FLEABIT system is OK and can pretty much be
+used.   This section will serve to record the blow-by-blow as we attempt to
+verify that assumption.  [A few new issues are also being taken up here consistant
+with our recent decision to aim 40 bits, etc.  One notable one is to see
+how much of a squeeze 5 bit datatypes would be.]
+
+  Much of the detail of this work will be recorded in jb:k.ncold;fqcom.
+This file will attempt only to skim the surface.
+
+--Jim
+
+   In the first stage [COLD], no symbols, etc are available
+   at all!
+   This causes simple looking code to fail in strange ways (clobberring NIL),
+   etc.
+   In the next stage [WARM] there is a completely simpleminded INTERN which involves
+   a single OBLIST, absolutely no package structure, etc.
+   Interning things in this way can lead to all kinds of screws later (if
+   package inheritance fails to happen, etc etc).  Finally, when the
+   package system comes up, things have to be hacked grossly to be
+   consistant with the multiple extraneous packages, etc which have been
+   introduced in the FLEABIT and FLEABIT-COMPILED systems on the lambda.
+   This obviously needs to be flushed.
+
+  The Falcon has only FASLOAD to start, etc.
+
+                The lambda, of course, builds extensive list structure at cold load
+  time which becomes part of the cold load, avoiding numerous problems, etc etc.
+
+What does etc. refer to in these sentences?  |||rg:The problems just mentioned previously.|||
+||| Jim: There are a whole bunch of etc.'s I don't think you answered the question ||
+
+ There are a number of other gross deficiencies as well.
+What exactly are the other gross deficiencies.....  |||rg:I think enuf have been enumerated.
+        Many lead from one to another as indicated.  Because of no list structuture
+        then packages are eventually screwwed, etc.  The virtual memory system is also
+        seriously comprimised because it has to work before lots of things exist.|||
+
+  Mostly COLDUT implements a simple virtual memory on a disk partition.
+  Using a disk partition instead of building the cold load in memory allows considerably
+  more stuff to be incorporated in the cold load.
+What else does it do? |||Rg:all the stuff in WARM and HOT for starters.|||
+Jim: WARM and HOT in the K system, I take it. The cold load on the Lambda
+     has a lot more stuff in it than the K WARM and HOT files.
+
+  This is a simplification since then there is less need for the system
+  to run in a "primitive" mode where stuff you   normally expect to be
+  there isn't.
+What is stuff in this sentence?  |||RG:SYMBOLP, SPECIAL VARIABLES.||
+Jim: SYMBOLP and SPECIAL VARIABLES are the main additions we get from a new
+cold loader.
+
+  In other words, it becomes feasible to put
+  most of the stuff in the WARM and HOT file lists directly in the cold load.
+What from hot and cold can't be put in the cold load?  |||rg: substantually all the stuff|||
+Jim: Your two statements contradict one another. FIrst you say you can put
+all the stuff in and then you say most of the stuff has to be left out.
+I was asking what COULDN'T be put in the cold load?
+
+                The virtual memory system of the FLEABIT-compiled system is seriously
+  wedged in various ways.
+Why?  |||rg: for one, the prime allocating structures are not easily accessible.
+  They exist only in global variable type places and funny operations are required
+  to access them.  Without stopping the machine, you can not even locate them in
+  main memory.  Also the map entry has two spearate and semi-unrelated fields which
+  interact in unclear ways.  (the FRESH bit and the rest of it)|||
+Jim: This is a very good explanation of the problem. Thanks!
+
+ Fixing this without breaking everything would be a royal pain.
+Why?  |||Rg: it would fundamentally change the whole thing||
+I see you mean breaking everything by virture of breaking the low level kernel.
+Or fixing it without a major overhaul of Fleabit??
+
+  On the other hand, the virtual memory system of the lambda is perfectly adequate
+  in principle (of course, a fair number of details need modification).
+What needs modification?  |||RG:  This is being worked out.  Consult jb:k.ncold;fqcom
+        for the current state of things|||
+Looks like there is a lot of code in there that deals with Communications areas. Will this
+code be flushed??
+
+  ;; In the cold-load, random list structure goes in INIT-LIST-AREA, and random structure
+  ;; structure goes in WORKING-STORAGE-AREA.  This is done because the cold-load builder
+  ;; doesn't support homogeneous list/structure regions.  At some point the cold-load
+  ;; builder will be revised to deal with this, and then this crock can go away.  Note
+  ;; that there are other places in the lisp system that use INIT-LIST-AREA as an indicator
+  ;; of the last fixed area, these will have to be hunted down and dealt with.
+Are you going to fix this??
+
+There are references to a-memory in the code, what will you do about those?
+Will we have things called FEF's? There seems to reference to self-mapping-table
+in this code, doesn't that refer to flavors? There's lots of SG stuff also.
+
+ It "sort of"
+  comes for free along with the cold load generator.
+What does "sort of" mean here.   |||Rg:The cold load generator also allocates memory
+        and has mechanism for doing it.||
+Why isn't it really for free then?
+
+  The current thought
+  (not yet a plan) is to say that the low level conventions used by the FLEABIT are
+  for the most part OK for these simple data types.
+  [The main exception to this I
+  am aware of is the need to maintain back pointers to entries in functions in case
+  the function gets superceeded.  A minor exception is that the STRUCTURE datatype,
+  etc, would be flushed and defstruct turned into arrays exactly as on the Lambda.
+  Other suggestions for improvements that people are
+  aware of in this area should be voiced, soon if possible, please.]
+What exceptions are there besides this are you aware of?  ||rg: Current plan is to
+retain FLEABIT type codes for the time being.  See comments in NQCOM re which ones
+are unused now and which are not planned to be used (altho they will remain allocated),|||
+
+Do you mean FQCOM? Does the F stand for Falcon? Will we generate a new one
+for the Phoenix? If not why not KQCOM for the name?
+
+        The hope is, the same FBIN format currently used by FLEABIT can also be loaded
+  by the cold load generator.  We have a couple of legs up on this, because it does
+  currently know how to process QFASL files, which are basically in the same format
+ (less several new FASL-OP codes).
+Why is this just a hope? What possible problems could arise?  ||rg: As steve points
+out, some compatiblity things will clearly be needed.  Its just a question of how
+many it worth bothering with.  In any case, users can be assured that code compiled
+with the cross-compiler will run, with at most trivial changes.||
+
+I understand that I just wanted to know what the compatibility issues are?
+Why should user level code change ate all?
+
+        (1)  cold loader grossly forked.  lambda specific stuff flushed etc.
+Why can't the cold loader be conditionalized?  ||rg:  Its not a good idea||
+Jim: Why not?
+
+        (2)  parameter files converted.
+Why can't this file be conditionalized?  ||rg: likewise||
+Jim: I don't think saying "Its not a good idea, with no supporting data
+     is a valid argument in a technical discussion
+
+        (6)  ability to get cold load from LAMBDA disk partition into FALCON memory.
+Remember we must address the Macintosh issues here.  ||rg: Initiallly, this is going
+  to work via LAMBDA.  However, I will make sure things with Bob get coordinated||
+Jim: I think that your document should make mention of what issues need to
+be coordinated. What happens if, god forbid, you get hit by a truck?
+
+        (8)  new debugger interface designed.  Includes ability to step machine and save state.
+Is this the K equivalent of the LAM program. How will this interact with what Montreal is
+doing. Can we give them this piece of work to do?  ||rg: the debugger should be at least as
+good.  However, the interface is something we should get done here.  Later, we might consider
+having them add to the debugger if we found some stuff where that was appropriate.
+For now, all debugging is via LAMBDA (or FALCON when it works well enuf.)  Whether
+CORAL is suitable to do something, is an issue we can face later||
+
+Couldn't we write the spec for the interface and have them code it up?
+
+        more or less at this point, we are theoretically pretty much ready to take whatever code
+        has been processed thru to run on the fleabit system and bring it up here.
+Whats more and whats less and why on theoretically? What other problems might we have?
+||rg: this inheritantly depends on how things work out.||
+Jim: Do you mean simply that unless we have forgotten some minor problem or that at this
+     point there may be major design flaws?
+
+        Pretty much, nothing having to do with this whole thing is changed.
+What will have to change EXACTLY??
+Jim: You didn't answer this question.
+
+        One problem would be access to 40 bit disk files, etc.
+What does etc. mean here?
+Jim: You didn't answer this either?

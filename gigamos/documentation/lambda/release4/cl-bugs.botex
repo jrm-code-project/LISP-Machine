@@ -1,0 +1,159 @@
+@comment -*- Mode:Text; Package:CL-Tests; Base:10; ReadTable:CL -*-
+
+@itemize @bullet
+
+@item On array accesses with a multiply dimensioned array,
+ZetaLISP does not check that each subscript is within range, only that the
+final index into the array after applying the array subscript calculation
+is within the array's data.  Thus, the following (improperly) ''works'':
+
+@lisp
+(make-array '(2 3))
+(aref * 1 -1)
+@end(lisp)
+
+[AREF, SBIT, BIT]
+
+@item The ZetaLISP implementation of arrays loses track of the
+first dimension of an array if any of the dimensions is 0.
+The total size of such an array is, correctly, zero; but Common LISP specifies that the
+dimensions and other attributes of the array are available.
+
+For example,
+
+@lisp
+(make-array '(5 3 2 0 1))
+
+;; Should return e.g.:  #<GLOBAL:ART-Q 5x3x2x0x1 (simple) 50305025>
+;; But it returns e.g.: #<GLOBAL:ART-Q 0x3x2x0x1 (simple) 50305025>
+@end(lisp)
+
+This bug cannot be solved without a major overhaul of the array implementation.
+
+[ARRAY-DIMENSION, ARRAY-DIMENSIONS]
+
+@item For some arguments, ZetaLISP @l(ASIN) returns values which are incorrect.
+For other arguments, a fatal error is signalled.
+
+[ASIN]
+
+@item Calling interpreted functions recursively can cause stack
+overflow after a relatively small number of calls.  In some tests, an
+interpreted function did not terminate (PDL stack overflow),
+even after two attempts to grow the PDL. In these situations
+it is necessary to compile the problem function.
+
+@item ZetaLISP does not provide a pure ``equivalent'' macro definition for @l(DEFUN);
+the form returned by @l(MACROEXPAND) is a @l(PROGN) that calls @l(FDEFINE).
+
+@item ZetaLISP @l(NAME-CHAR) accepts the Common LISP special character names,
+but returns a @l(CHAR-NAME)  with the traditional ZetaLISP name:
+
+@lisp
+
+LINEFEED   --> LINE
+NEWLINE    --> RETURN
+BACKSPACE  --> OVERSTRIKE
+@end(lisp)
+
+[CHAR-NAME]
+
+@item ZetaLISP just returns from certain iteration and control macros with no
+possible steps.
+However, the macroexpansion has code that is not needed.
+
+[DO*, DO, CASE, COND]
+
+@item ZetaLISP does not provide a macro version of @l(LOCALLY).
+
+[LOCALLY]
+
+@item   Equivalence tests with @l(SINGLE-FLOAT-EPSILON), @l(DOUBLE-FLOAT-EPSILON), and @l(LONG-FLOAT-EPSILON)
+may not work as expected.
+
+@item Using the small numeric constants may produce an error,
+``too small in magnitude to be a float''.
+Most of these constants cannot be printed.
+
+[LEAST-NEGATIVE-DOUBLE-FLOAT LEAST-NEGATIVE-LONG-FLOAT
+LEAST-NEGATIVE-SHORT-FLOAT LEAST-NEGATIVE-SINGLE-FLOAT
+LEAST-POSITIVE-DOUBLE-FLOAT LEAST-POSITIVE-LONG-FLOAT
+LEAST-POSITIVE-SHORT-FLOAT LEAST-POSITIVE-SINGLE-FLOAT]
+
+@end(itemize)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end cl-bugs

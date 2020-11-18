@@ -1,0 +1,147 @@
+;;; Some commentary on C style vs Lisp style.
+;;; The C routines for XDR are clever in that
+;;; the same routine is used for encoding an object as decoding an object.
+;;; E.g. to transmit or receive an integer "i" we say "xdr_int(stream,&i)"
+;;; The routines get a pointer to the object, or a pointer to the storage
+;;; for the object. This forces in many cases the pre-allocation of storage
+;;; by the user. Some XDR routines do the allocation for you though when
+;;; given a pointer to a NULL.
+;;; Usually in these translations of code documented in C style
+;;; to lisp style we like to follow the C closely. This saves writing
+;;; more documentation. However, in this case we cannot because there is
+;;; no reliable pointer construct besides the locative. The locative
+;;; is not portable (that is, it could be supported everywhere but
+;;; with drastically different efficiencies) and also unnatural.
+;;;
+;;; What advantage to the C style here?
+;;; (1) less routine names. So shorter names in general.
+;;; (2) Only have to write one routine for each user defined datatype.
+;;; Clearly (2) is the major advantage, for even though there is an XDR
+;;; definition language given in the documentation there is no implementation
+;;; of this language provided by SUN. The way a user adds a new constructive
+;;; data definition is to write a subroutine that describes how to encode (transmit) the object.
+;;; Because of the reflexive property of the underlying primitives
+;;; this is also a subroutine to decode (receive) it. If the XDR language extension was
+;;; provided it would probably be a macro package that, given an XDR description
+;;; generates the C struct and also the transmit and receive routines.
+;;;
+;;; However, we find it better to actually implement an XDR descriptive declaration,
+;;; for this can drive not only the TRANSMIT and RECEIVE routines (which can be compiled
+;;; from the description or or interpreted at runtime in a generic fasion)
+;;; but also the PRINT, DESCRIBE, and INSPECT parts of the lisp style.
+;;; It is fortunate that XDR makes no restriction at all on the machine representation
+;;; of the data. It is truely an eXternal description. Therefore we can choose the
+;;; most convenient lisp representations.
+
+;;; Decided not to use SI:BUFFERED-STREAM-MIXIN or defflavor.
+;;; gratuitous portability. Using CL routines only.
+
+;;; CL doesnt provide a way to define an I/O (in the READ-CHAR, WRITE-CHAR, READ/PRINT sense)
+;;; stream. So that this XDR-STREAM is not an I/O stream. Just a construct to use
+;;; with the XDR library functions.
+
+;;; We keep a lot of the same names, but the argument conventions are made more lisp like.
+
+;; Library routines.
+
+;; Only two routines, XDR_TRANSMIT and XDR_RECEIVE
+
+
+;; the void type is a NO-OP, and is useful when
+;; we want to skip over elements of structures.
+;; have slots known about by lisp but not transmitted.
+
+
+;;; unfortunately, even though the type of the object can be determined at run time
+;;; in the TRANSMIT routine, it cannot be determined in the RECEIVE routine
+;;; since XDR does not define type codes to be transmitted.
+;;; Therefore we dont bother supporting code for this in TRANSMIT.
+
+
+
+;; unsigned = 0 1 2 3  4  5  6  7
+;;   signed = 0 1 2 3 -4 -3 -2 -1
+;;
+
+;; in lisp enumerations should be symbols.
+
+
+
+;; making my own defstruct. what a punt.
+;; portability and bugs-in-lmi are my considerations here.
+
+
+;; thats it for the easy stuff... now for the compound data types.
+
+;; (array <element-type>)
+;; (descriminated_union <descrim> <case-0> <value-0> <case-1> <value-1> ...)
+;; (structure <part0> <part1> <part2>)
+
+;; (fixed_array <size> <element-type>)
+;; note: no "C" library routine for this, so it cannot be in use at this time.
+
+
+
+
+;; what lisp objects should structures and descriminated unions be?
+;; in "C" they are struct's. Defstructs would be natural for lisp.
+;; Here is where even in lisp our data-driven TYPE concept falls down
+;; and the user-has-to-write-a-subroutine would win. There is no consistent
+;; defstruct subprimtives in common lisp. that is, how to make a named array
+;; and how to aref it. So we define XDR_STRUCTURE.
+
+
+  ;; now, it would be fancy to be able to use lisp types here.
+  ;; but not possible in all cases.
+  ;; the descriminated-union structure is extra bagage we just have to put up with.
+
+
+
+
+;; perhaps because of common-lisp motivated modifications we have the
+;; following strange situation.
+;; (global:defstruct (foo :named) ...) gives an array one longer than really needed,
+;; with the 0 slot have the name or NIL.
+;; (lisp:defstruct foo ...) also gives an array one longer.
+;; however slot 0 is not the name. Perhaps this is a bug in the lmi CL implementation.
+;; Slot 0 is the first slot of the structure.
+
+;; To add a new type called LIST.
+;; many structures are given as a structure that is a descriminated union
+;; with two boolean cases. FALSE case indicating VOID, TRUE case indicating
+;; an element of a given structure, with last leg of that structure being
+;; itself, i.e. a descriminated union.
+;; We call this a list.
+
+
+
+Here is an example of this from the port mapper.
+
+We would code the maplist structure like this:
+
+(xdr_descriminated_union 'maplist_next
+                         'boole
+                         '((nil void)
+                           (t maplist)))
+(xdr_structure 'maplist
+               '((prog u_int)
+                 (vers u_int)
+                 (prot protocol)
+                 (port u_int)
+                 (next maplist_next)))
+
+Then receive this value with (xdr_receive stream 'maplist_next).
+A fairly ugly return value.
+
+Instead of threading the list using the structure itself we can
+observe that it is the idiom of having the NEXT slot be the last.
+So instead:
+
+(xdr_structure 'port-mapping
+               '((prog u_int)
+                 (vers u_int)
+                 (prot protocol)
+                 (port u_int)))
+
+and to receive these (xdr_receive stream '(list port-mapping))
+so we are doing exactly that, receiving a list of port mappings.

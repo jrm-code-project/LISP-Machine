@@ -1,0 +1,11 @@
+
+
+(si:sxhash-disk-partition 0 "LOD1" :save-in-file "sys:release;")
+
+after a band transfer to some machine, say to his LOD3, he does:
+
+(equal (si:sxhash-disk-partition 0 "LOD3")
+       (si:sxhash-disk-partition "sys:release;SYS-3P33"))
+
+==> T, you won, NIL, you lost.
+

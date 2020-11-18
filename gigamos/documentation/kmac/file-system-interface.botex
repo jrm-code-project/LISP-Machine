@@ -1,0 +1,319 @@
+@chapter File-System Interface
+
+@section Pathnames
+
+The K/Mac interface will consistently use an extended version of the Macintosh native
+pathname syntax.
+When parsing filenames, the following fields will be recognized:
+
+@lisp
+"KMAC : <vol> : <dir> : <dir> ... : name.type.version"
+@end(lisp)
+
+{Please note the suggested change, using @t(``.'') as the version delimiter
+in place of @t(``#'').
+
+The Macintosh itself does not support wildcards, but
+GSI has converged on a wildcard protocol tailored around the existing ITS standard.
+
+@enumerate
+
+@item On @b(directory listings),
+the wildcard character, @t(``*''), matches any full pathname sub-component.
+(Partial string matches are not supported.)
+
+@item On @b(OPEN file commands), all @i(non-delimiting) characters are parsed as normal characters.
+Therefore, any acceptable Macintosh pathname can be parsed.
+
+@end(enumerate)
+
+In general, the wildcard character is respected for multiple file operations
+such as @l(Meta-X Delete File), networking lookups,
+and tape dump requests.
+For all single file operations,
+such as @l(deletef), @l(probef), and @l(listf),
+wildcards are not supported.
+
+@textbox
+@center Montreal notes:
+
+No Mac devices in Mac pathnames
+
+@end textbox
+
+@subsection Pathname version numbers
+
+Some form of version numbers must be supported.
+GSI is discussing the GNU EMACS method of omitting
+suffixes on @l(:HIGHEST) (most recent) versions only, giving explicit
+version numbers to all other filenames.
+This requires searches through the file system
+only upon calls to @l(probef) and @l(truename) (but not at write time), and on output operations.
+
+On output, a Mac resource will be used to store the computed version number.
+This will help prevent possible confusion, for example if
+previous versions of a file have been deleted.
+
+@textbox
+@center Montreal notes:
+
+Already support Directory as a "user property".
+
+We should have a Mac-type property. Access path should interpret this information
+from the Mac.
+
+There should be no arbitrary resources in arbitrary files.
+
+@end textbox
+
+@need 1600
+
+@section FileSystem Table Structure
+
+@sp 2
+@center FILESYSTEM (MINOR) COMMAND TABLE
+@smalllisp
+*************************
+FileSystem-Table
+*************************
+[ {File-Handle-Count}   ]       ;Number of established file handles
+                                ;(MAC limitations may improve?)
+[ ---> FileHandle-1     ]       ;If 0, slot for handle is "available"
+:
+[ ---> FileHandle-{N}   ]       ;What is current limit?
+
+
+*************************
+  FileHandle
+*************************
+[  {File-Open-Flag}     ]       ;Used e.g. by K to close, MAC to say OK
+[  {File-Open-Mode}     ]       ;READ-SEQUENTIAL, WRITE-SEQUENTIAL, etc.
+[ {File-Buffer-Count}   ]
+[  ---> FileBuffer-1    ]
+:
+[  ---> FileBuffer-N    ]
+*************************
+@end(smalllisp)
+
+The FileSystem-Table is used by the K to
+access files in the Mac's local file space.
+
+Command:     OPEN-MAC-FILE
+@break
+Description: K asks MAC to open a native Macintosh file,
+given its name and CommonLISP arguments (I/O mode, :characters, etc.).
+
+The K gives as one of its arguments
+a "file handle", and sets a pointer into the
+FileSystem-Table.  The K then passes a file handle
+index after preparing pointers to (requested
+number of) buffers. Depending on mode, MAC may
+initiate I/O immediately (e.g. on sequential
+read, MAC could transfer first buffers' worth).
+Thereafter, until the K closes file, both sides
+manipulate file buffer pointers in standard
+LISP buffered stream fashion.
+
+Command:     CLOSE-MAC-FILE
+@break
+Description: From the K's point of
+view, could well be handled in the
+FileHandle area, for example, by setting the
+{File-Open-Flag} to -1.
+
+ZetaLISP interfaces: a K-MAC host/device,
+Macintosh pathname host type, and K-MAC
+file access method are all required.
+
+Comments: I/O must be "LISP Machine standard".
+No new artificial requirements should be required.
+On the other hand, flexibility must be maintained to
+allow efficient implementations.
+Details should be worked out in our next meeting.
+
+@section Internal File Operations
+
+@textbox
+@center Montreal notes:
+
+Need a K to Mac file-type field
+
+Need a where-are-we-doing-translations bit
+
+file-type on output
+
+settable properties?
+
+@end textbox
+
+@subsection FileSystem Minor Commands
+
+The fillowing FileSystem minor commands must be implemented for the first release:
+
+@display
+Open
+Close
+(Read)
+(Write)
+Create Directory
+        Delete (see below)
+        Expunge (see below)
+Directory Listing
+Rename
+Change File Properties
+Set EOF
+[??? Rewind (Tape? :set-pointer?)]
+@end(display)
+
+@i(Precise semantics to be documented here.)
+
+@subsection Supported File Properties
+
+Standard LISP machine file properties are currently supported through functions such as @l(fs:file-properties).
+The Macintosh must supply and maintain these properties as required by the LISP software.
+
+Some properties can be inferred from information already associated with
+a Macintosh file.  The remaining properties must be stored with each
+file in the resource fork. (These properties will be written only into
+the K's filetypes, thereby eliminating any danger of conflict in names
+of resource types.)
+
+@need 2000
+@example
+Stored Properties Vs. Inferred Properties:
+
+LISP File Property      S/I     Comments
+
+:author                 S       Resource
+:byte-size              S       Resource, default to 8
+                                  (Lookup table based on
+                                    Mac file type)
+:creation-date          I       Derived from creation date
+:deleted                -       NA for Mac files (see below
+:characters             I       from Mac file type
+:dont-delete            I       from Mac locked bit
+:dont-reap              I       from Mac locked bit
+:not-backed-up          S       but not in a resource; see below
+:modification-date      I       from modification date
+:length-in-blocks       I       derived from file size, byte size
+:length-in-bytes        I       derived from EOFs
+:qfasl-p                I       from Mac file type
+
+@end(example)
+
+@subsection Supported File Access Methods
+
+@textbox
+@center Montreal notes:
+
+Add KMac to list of access paths.
+
+@end textbox
+
+@subsection File Deletion Schemes
+
+It is agreed that for initial release, ``soft delete'' (which permits
+recovery of a deleted file unless a secondary ``expunge'' operation has
+been performed) will not be supported.
+This is consistent with existing LISPM code; very little modification
+should be required.
+
+@textbox
+@center Montreal notes:
+
+Don't remove current "soft delete" scheme until it has been reviewed.
+
+@end textbox
+
+@subsection Future Enhancement -  Soft Delete Schemes
+@setq section-softdelete section-page
+
+Note that various soft deletion schemes have been discussed,
+but are tabled for future consideration.
+In ``a future release'', Soft Delete and Expunge could be supported
+by the K/Mac interface by various means.
+
+Suggested implementation: modifying the
+File Access Methods to access and maintain a parallel trash
+hierarchy.
+
+@display
+                        Soft Delete             Expunge
+
+Release 1.0             Not supported           NOOP
+
+Release 2.0             Renames file into       Booting the K creates
+                        special "TRASH"         In-core file image such
+                        folder hierarchy        that LISP Machine's Dired
+                                                displays parallel Mac
+                                                directory lookups.
+@end(display)
+
+To be designed:
+
+A file command to view contents of trash folders
+(deleted files)
+
+An inter-filesystem consistency mechanism
+(ideas: counters, ticks, semaphores, locks)
+
+@subsection File Control Blocks
+
+File System control blocks within the communications area
+must be laid out to support the required operations
+in a way that is natural within the existing LISP streams methodology.
+
+@b(File I/O issues:)
+
+Read-ahead; write-behind; setup-input-buffers
+scheme allows Mac to serve as feeder.  MTL should
+make a MAC-FAMILY-PATHNAME flavor mixin
+(patterned after the one for UNIX).  Scratch the
+IOPB, and replace it with a new block containing
+relevant information, in the same way as for
+major commands.
+
+The Mac does not have a MultiBus map;
+therefore, build a gather/scatter memory scheme.
+Swapping should use RQB, block offsets.  LIMITS:
+Largest Mac file/ Paging band/Paging file size.
+Do not assume contiguous block file memory
+allocation; Use Mac files, and find out at boot
+time where all blocks are located for file, do a
+sort/merge on these blocks, leave files open, so
+we need deal only in physical addresses.
+
+On the K, Buffers and File Control Blocks will be
+implemented uniformly as LISP Resources.
+
+@textbox
+@center Montreal notes:
+
+New filetypes needed:  Klod, Kpag, KMac.
+
+Metering will be taken care of with KD08-type files.
+
+@end textbox
+
+@subsection Supported File Types
+
+The relevant analogy is that Folders on the Macintosh
+are analogous to directories on the Lisp Machine.
+
+For Release 1.0, we will support only Data forks of Macintosh files.
+(Resource forks are being used to store certain file properties, however.)
+We will support four Mac file types only:
+
+@lisp
+KFSL    --      8-bit binary executables
+KD08    --      8-bit binary (non-executables)
+KD16    --      16-bit binary (non-executables)
+TEXT    --      8-bit all-text text files
+@end(lisp)
+
+Files of type TEXT will be used to implement program source files,
+typically those with a @i(.LISP) suffix.
+
+We need a mapping for all strange characters in the
+LISP Machine character set for Mac TEXT files.
+(GSI to define a mapping standard.)

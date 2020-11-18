@@ -1,0 +1,131 @@
+Babyl Options:
+Version:5
+Append:1
+
+0,,
+*** EOOH ***
+Message-ID: <8806240204.AA02799@gsi-cam.UUCP>
+Date: Thursday, 23 June 1988, 22:04-EDT
+From: RWK@GSI-CAM
+To: BUG-FALCON-COMPILER@GSI-CAM
+
+In LMI FALCON-COMPILER in Experimental System 124.69,
+Experimental Local-File 74.2, Experimental File-Server 23.1,
+Experimental Unix-Interface 12.0, Experimental ZMail 72.0,
+Experimental Tape 23.6, Experimental Lambda-Diag 16.2, microcode 1756,
+SDU Boot Tape 3.14, SDU ROM 102, K 124, on Claude Debussy (LAMBDA):
+
+I don't think PROGV and PROGW are going to work.  The rewrites
+are Lambda-specific.  We'll need a way to suppress lambda-oid
+rewrites in favor of appropriate P2-FOR-K hackery.
+
+
+
+
+0,,
+*** EOOH ***
+Date: Thursday, 7 July 1988, 15:42-EDT
+From: Steve Haflich <smh@GSI-CAM>
+Subject: suggested optimizations
+To: bug-lispm@GSI-CAM
+Message-ID: <[GSI-ALEX].7-Jul-88 15:42:05.smh>
+
+The lambda compiler should be smart enough to turn MEMBER into MEMQ in
+all of the following:
+
+        (member 'foo ...)
+        (member ... '(x y z))
+
+Specifically, if the first arg to MEMBER is a constant SYMBOL, or if the
+second arg is a constant list of SYMBOLs, then the transformation is
+legitimate.  Numbers could be special cased as well, but this is less
+frequently useful.
+
+This would improve both lambda and K code speed.
+
+
+
+
+0,,
+*** EOOH ***
+Message-ID: <8808191904.AA09236@gsi-cam.UUCP>
+Date: Friday, 19 August 1988, 15:04-EDT
+From: Steve Haflich <smh@GSI-CAM>
+Subject: Lambda compiler lossage
+To: BUG-LISPM@GSI-CAM
+
+In LMI Experimental System 126.51, ZWEI 125.16, ZMail 73.2,
+Local-File 75.2, File-Server 24.1, Unix-Interface 13.0, Tape 24.2,
+Lambda-Diag 17.0, microcode 1762, SDU Boot Tape 3.12, SDU ROM 102,
+kold 4aug88, on Harpo (LAMBDA):
+
+Compiling the following function blows up the lambda compiler.
+
+   (DEFUN BOO (NAME)
+     (LET
+       ((A A))
+       1))
+
+The problem is in P!LET when it tries to flush the `useless' binding of
+the local A to itself.
+
+This is just a note to myself to fix it someday, as it also affects
+the falcon cross compiler...
+
+
+
+
+0,,
+*** EOOH ***
+Date: Thursday, 22 September 1988, 20:30-EDT
+From: Steve Haflich <smh@GSI-CAM>
+Subject: compiler blows the lambda away
+To: bug-lispm@GSI-CAM
+Message-ID: <[GSI-ALEX].22-Sep-88 20:30:00.smh>
+
+Compiling the following function creates bad data and *halts* a lambda:
+
+(defun blimp ()
+  (let (*print-array*)
+    #'(lambda ()
+        (multiple-value-setq (*print-array*)
+          (foo)))))
+
+There are two problems.
+
+(1) The variable scoping analysis code in pass 1 is bizzarre and almost
+certainly incorrect.  I have not fixed this yet.
+
+(2) Some lamebrain decided it was necesary to shave a couple microcode
+cycles in the compiler and use subprimitives to manipulate flag bits.
+Unfortunately, problem (1) causes the subprimitive to receive a
+non-numeric argument, so an invalid lisp object is created, and the
+whole machine crashes or halts.  I put an error check in
+COMPILER:QCOMPILE0 to catch and report the error gracefully without
+crashing the machine.
+
+
+
+
+0,,
+*** EOOH ***
+Date: Thursday, 20 October 1988, 19:00-EDT
+From: Steve Haflich <smh@GSI-CAM>
+Subject: Another One... (Compiling QRAND function TIME-IN-60ths)
+To: jim@GSI-CAM, bug-falcon-compiler@GSI-CAM
+In-reply-to: <[GSI-RAVEL].19-Oct-88 15:27:54.JIM>
+Message-ID: <[GSI-HARPO].20-Oct-88 19:00:55.smh>
+
+    Date: Wednesday, 19 October 1988, 15:27-EDT
+    From: jim@GSI-CAM
+    Subject: Another One... (Compiling QRAND function TIME-IN-60ths)
+    Message-ID: <[GSI-RAVEL].19-Oct-88 15:27:54.JIM>
+
+    >>ERROR: ETYPECASE failure; the value of COMPILER::DEST, MICROSECOND-INCREMENT,
+             is not a return dest, EQL either IGNORE or COMPILER::D-IGNORE, a functional dest, a register dest, a new frame dest, a progdesc, a multiple values, an open frame, a var or a new var.
+
+This is fixed.  MULTIPLE-VALUE-SETQ couldn't properly special vars.
+
+
+
+

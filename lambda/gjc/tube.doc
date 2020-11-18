@@ -1,0 +1,43 @@
+
+
+                                    TUBES
+
+ There are two functions for setting up tubes:
+
+ (TUBE:GET-REMOTE-TUBE "<tube-name>")
+
+  Will return all tubes of "<tube-name>" that have been opened up to this machine.
+
+ (TUBE:OPEN-TUBE "<hostname>" "<tube-name>")
+
+ Will open up a tube named "<tube-name>" to the host "<hostname>".
+
+
+ (TUBE:REMOTE-TUBE-NAMES) returns a list of names for which TUBE:GET-REMOTE-TUBE will
+  return a non-null value.
+
+ Tubes may or may not need unique names depending on the setting of the variable
+
+  TUBE:*REMOTE-TUBE-UNIQUE-CHECK-P*, which defaults to T. If this is T then it
+  is an error to open more than one tube of a given name to a given host.
+
+ When outputing to a TUBE, use :TYO or any of the usual IO functions such as PRINT.
+ A :FORCE-OUTPUT may need to be done on a TUBE to make sure that the output gets to
+ the other side (machine).
+
+ When inputting from a TUBE, use :TYI or any of the usual IO functions such as READ.
+
+
+ A demonstration/test program, TUBE-TALK.
+  On machine "LAM-A" do:
+    (TUBE:TUBE-TALK "test" "LAM-B")
+  On machine "LAM-B" do:
+    (TUBE:TUBE-TALK "test")
+
+  This simple demo is like a telephone in that it is confusing to both talk at the same time.
+
+
+ Debugging functions:
+  (TUBE:PRINT-TUBES) prints out information about tubes.
+  (TUBE:RESET-TUBES) closes in abort mode all tubes and removes them from the list of tubes.
+

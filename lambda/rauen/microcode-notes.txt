@@ -1,0 +1,53 @@
+
+--- Declarations:
+
+A memory variables are declared as follows:
+        (locality a-mem)
+        a-variable-name (initial-value)
+        ...
+
+
+--- Entry:
+
+Instructions are put in I memory.
+        (locality i-mem)
+
+The entry point where %proc begins is declared as follows:
+        (misc-inst-entry %proc)
+
+The pdl stack contains a fixed number of arguments to the procedure.
+
+
+--- Code:
+
+
+#+EXP
+#+LAMBDA
+#-LAMBDA
+A-V-REGION-FREE-POINTER points to a table containing the free pointer for each region.
+        ((vma-start-read) add n a-v-region-free-pointer) gets free pointer for region n.
+CALL-RETURN when first proc returns, jump immediately to second proc.
+        (call-return loc1 loc2)
+ILLOP-IF-PAGE-FAULT
+MD-START-WRITE
+PDL-POP
+Q-POINTER strips type and cdr information, leaving only a number.  (unboxes)
+        ((r) q-pointer v)
+VMA-START-READ starts a lookup in virtual memory; the result will be in md
+        ((vma-start-read) op v1 v2) | ((vma-start-read) v)
+        (check-page-read) | (illop-if-page-fault)
+XFALSE
+XTRUE
+
+(call loc)
+(call-xct-next loc)
+(jump-equal v1 v2 loc)
+(jump-not-equal v1 v2 loc)
+
+unboxing:
+        ((r) output-selector-mask 25 op v1 v2)
+        ((r) dpb m-zero q-all-but-pointer v)
+
+to test a boolean value:
+        ((m-tem) dpb m-zero q-all-but-typed-pointer v)  ; zeros out the cdr code
+        (op-if-[not-]equal m-tem a-v-nil)

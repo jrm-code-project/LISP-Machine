@@ -1,0 +1,369 @@
+-*- Mode: Text; Base: 10; Package: TFrame -*-
+
+---[TFrame Mode: CONTROL]---
+
+No options defined.
+
+Commands are defined as follows:
+
+REWIND/UNLOAD
+  This command rewinds the tape to load point if the left mouse button
+is used.  If the middle button is used, then the tape is unloaded.
+If the tape is unloaded, all subsequent operations will get an error
+until another tape is loaded.
+
+SPACE-FOR-APPEND
+  Position the tape so that all subsequent files written to the tape
+are appended.
+
+BEGINNING-OF-FILE
+  This positions the tape at the beginning of the current file.
+It should be used after aborting out of tape operations to ensure
+that the formatting software does not lose track of its position
+on the tape with repect to files.
+
+BACKWARD-FILES
+  This moves the tape backward by files.  If the left mouse button
+is used, then the "global numeric argument" determined the number
+of files to space over.  If the middle button is used, the number
+of files must be specified by the user.
+
+FORWARD-FILES
+  This moves the tape forward by files.  If the left mouse button
+is used, then the "global numeric argument" determined the number
+of files to space over.  If the middle button is used, the number
+of files must be specified by the user.
+
+RESET-DEVICE
+  This resets the device driver software and the device hardware.
+It is typically used if the device seems to be wedged.
+
+DEVICE-STATUS
+  Returns a list of keywords which describe the status
+of the selected tape device.  Keywords are intuitively
+named and their presence implies boolean truth of the
+condition.
+
+
+---[TFrame Mode: TAPE-INFO]---
+
+No options defined.
+
+Commands are defined as follows:
+
+REWIND/UNLOAD
+  This command rewinds the tape to load point if the left mouse button
+is used.  If the middle button is used, then the tape is unloaded.
+If the tape is unloaded, all subsequent operations will get an error
+until another tape is loaded.
+
+MOUNT-TAPE
+  Determine the format of a tape already online and at load point
+on the selected device.  If the format is supported, then the tape
+header (if any) is printed out and the tape positioned at the beginning
+of the first file.  If the format is not supported, an error to that
+effect will be signalled.
+
+LIST-TAPE
+  This prints a description of all files on the tape to *standard-output*.
+A list of file property lists is returned representing these files.
+
+LIST-SOME-FILES
+  This prints information about a specific number of files on the tape.
+If the left mouse button is used, then the "global numeric argument"
+is used as the number of files.  If the middle button is used, the
+number of files is read from the keyboard.
+
+GET-FILE-PROPERTIES
+  This returns a the file property list of the next file on tape,
+spacing back to the tape's position before the command was executed.
+
+
+---[TFrame Mode: DUMP]---
+
+Options are defined as follows:
+
+*DEFAULT-HOST* ("Default Host")
+  This is the host to use for partition operations.
+It must be a valid network host or NIL meaning the local
+host.
+
+*DEFAULT-DISK-UNIT* ("Default disk unit")
+  This is the disk drive unit number for partition operations.
+It is combined with the "default host" option to determine
+the exact location of a particular partition specified by name
+in the partition operations.
+
+*WRITE-SUBDIRECTORIES* ("Write subdirectories?")
+  If this is TRUE, then file operations will recursively write
+subdirectories as well as the top-level directory specified
+by the pathname for the operation.  Otherwise only one directory
+level will be considered for dumping.
+
+*END-OF-TAPE-ACTION* ("End of tape action")
+  This determines what should happen if the physical end of tape
+is encountered during a dump operation.  If the value of this
+option is :CONTINUE, then the format will continue to another
+tape if possible.  If the value is :ERROR, a physical-end-of-tape
+error will be signalled.  This option holds for all dump operations
+that could possibly reach the end of the tape.
+
+*VERIFY-FILES* ("Verify files")
+  This determines whether files should be verified after they
+are dumped or retrieved.  If files are being dumped, then
+all of the files are written, then verified.  If a partition
+is being written and it is longer than one tape, then each
+tape will be verified before the next one is written.  This
+eliminates the waste of time writing subsequent reels if one
+reel has a compare error.
+
+Commands are defined as follows:
+
+REWIND/UNLOAD
+  This command rewinds the tape to load point if the left mouse button
+is used.  If the middle button is used, then the tape is unloaded.
+If the tape is unloaded, all subsequent operations will get an error
+until another tape is loaded.
+
+WRITE-FILES
+  This command writes files to tape according to a specified
+(optionally wilcarded) pathname.  The pathname is determined
+from the "global pathname argument".  Various options
+will affect the action of this command as documented.
+
+WRITE-PARTITION
+  This writes a partition to tape.  The user will be queried for the
+name of the partition to write, optionally allowing the user to
+use the partition searcher to find an appropriate partition.
+The disk unit to use is the "default disk unit" option.
+Other options may affect this operation as documented.
+
+FINISH-TAPE
+  This command finishes the end of the tape ensuring that any
+information concerning end of tape is written.  If the middle button
+is used, the tape is rewound afterwards.
+
+VERIFY-TAPE
+  This verifies the files on tape against their sources on disk.
+The global pathname argument is used to back-translate filenames
+to find the source, therefore it must be supplied exactly as it
+was for the WRITE-FILES command.  If the file is a partition,
+all necessary information may be contained on the tape to determine
+the source.  In any event, the user will be asked to confirm the
+source or choose another partition to compare against.  This command
+can be used in this way to verify that a partition restored from
+this tape to a different place.
+
+
+---[TFrame Mode: BACKUP]---
+
+Options are defined as follows:
+
+*VERIFY-FILES* ("Verify files")
+  This determines whether files should be verified after they
+are dumped or retrieved.  If files are being dumped, then
+all of the files are written, then verified.  If a partition
+is being written and it is longer than one tape, then each
+tape will be verified before the next one is written.  This
+eliminates the waste of time writing subsequent reels if one
+reel has a compare error.
+
+*BACKUP-HOST* ("Backup host")
+  This specified the target host for all BACKUP and BACKUP-LOGS
+commands.  At this point, BACKUP operations on remote hosts
+are not supported.
+
+*BACKUP-MODE* ("Filesystem Backup Mode")
+  This determines what files in a given domain are to be backed
+up.  A value of :FULL means all files in the domain should be
+dumped.  :INCREMENTAL means that only those files which have
+not been dumped before should be backed up.  Files that have
+not previously been backed up are denoted by an excalmation
+point ("!") to the right of the file length and byte size
+in DIRED or LISTF.  Directories typically do not get marked
+as backed up.
+
+*RECORD-FILES-AS-BACKED-UP* ("Record files as backed up")
+  This determines whether files that are backed up should be marked
+as backed up.  For general purposes, this option should be true.
+
+Commands are defined as follows:
+
+REWIND/UNLOAD
+  This command rewinds the tape to load point if the left mouse button
+is used.  If the middle button is used, then the tape is unloaded.
+If the tape is unloaded, all subsequent operations will get an error
+until another tape is loaded.
+
+VERIFY-TAPE
+  This verifies the files on tape against their sources on disk.
+The global pathname argument is used to back-translate filenames
+to find the source, therefore it must be supplied exactly as it
+was for the WRITE-FILES command.  If the file is a partition,
+all necessary information may be contained on the tape to determine
+the source.  In any event, the user will be asked to confirm the
+source or choose another partition to compare against.  This command
+can be used in this way to verify that a partition restored from
+this tape to a different place.
+
+BACKUP-FILESYSTEM
+  Backup a filesystem.  If the left button is used, the domain
+of files is all files in the filesystem.  If the middle button
+is used, the "global pathname argument" must specify a
+wildcarded pathname which is passed to FS:DIRECTORY-LIST to
+determine a list of the files to backup.  Various options
+will affect the backup as documented.
+
+
+---[TFrame Mode: RETRIEVE]---
+
+Options are defined as follows:
+
+*VERIFY-FILES* ("Verify files")
+  This determines whether files should be verified after they
+are dumped or retrieved.  If files are being dumped, then
+all of the files are written, then verified.  If a partition
+is being written and it is longer than one tape, then each
+tape will be verified before the next one is written.  This
+eliminates the waste of time writing subsequent reels if one
+reel has a compare error.
+
+*FILE-MATCH* ("File match template")
+  This must be a pathname (optionally wilcarded) which is
+used by file match operations (such as FIND-FILE).
+It is sent a :pathname-match message with the pathname of
+a file on tape (parsed with respect to the same host).
+Thus, the lispm pathname parsed from "*;*.*#*" will
+match all files.
+
+*TRANSFORM* ("File restore transform")
+  This determines the pathname of files to be restored.
+This should be a pathname, something that can be applied to
+arguments, or NIL.  If it is NIL, the pathname is derived
+from the file property list on tape parsed with respect to the
+local host.  If it is a pathname, FS:MERGE-PATHNAMES is used
+in which components from the file property list are substituted
+for any null components of the transform.  Thus a transform
+which is a pathname parsed from "lamx:bar;" will cause all
+files to be restored to the BAR directory on host LAMX.
+If the transform is a function, it must take one argument, the
+file property list, and return the pathname to which the file
+should be restored. This option is ignored by partition commands.
+
+*QUERY* ("Query to restore each file")
+  If this is true, the user will be asked whether to restore each
+file.  It can be changed in the middle of a restore files command
+to allow partial selectivity of file retrieval.
+
+*OVERWRITE* ("Overwrite mode")
+  This determines when a file should be overwritten if a file
+of the same name type and version already exists.  If this option
+is :NEVER, files that already exist are automatically skipped.
+If this is :ALWAYS, existing files are always overwritten.
+If it is :QUERY, the user will be asked whether to overwite the
+file.
+
+*CREATE-DIRECTORY* ("Create directory")
+  This option decides what to do if a directory does not exist for
+a file to be restored.  :ALWAYS means to create the directory
+automatically.  :NEVER means to skip the file.  :QUERY means ask
+the user whether to create the directory or skip the file.
+:ERROR causes an FS:DIRECTORY-NOT-FOUND error to be signalled.
+
+Commands are defined as follows:
+
+REWIND/UNLOAD
+  This command rewinds the tape to load point if the left mouse button
+is used.  If the middle button is used, then the tape is unloaded.
+If the tape is unloaded, all subsequent operations will get an error
+until another tape is loaded.
+
+VERIFY-TAPE
+  This verifies the files on tape against their sources on disk.
+The global pathname argument is used to back-translate filenames
+to find the source, therefore it must be supplied exactly as it
+was for the WRITE-FILES command.  If the file is a partition,
+all necessary information may be contained on the tape to determine
+the source.  In any event, the user will be asked to confirm the
+source or choose another partition to compare against.  This command
+can be used in this way to verify that a partition restored from
+this tape to a different place.
+
+FIND-FILE
+  This searches the tape for a file that matches the pathname
+specified by the "file match template".  If the file is found,
+the tape is positioned at the beginning of the file and subsequently
+a RESTORE-FILES command can retrieve it.  The file property list
+is returned.
+
+RESTORE-FILES
+  Restore some files (and/or partitions) from the tape.  If the left mouse
+button is used, then files are restored until the logical-end-of-tape is
+reached.  If the middle button is used, the "global numeric argument"
+determines how many files to restore.  Other options will affect this
+command as documented.
+
+INSTALL-DISTRIBUTION-TAPE
+  Install an LMI distribution tape.  This is provided
+for automatic installation of software release and
+update tapes.
+
+
+---[TFrame Mode: BACKUP-LOGS]---
+
+Options are defined as follows:
+
+*BACKUP-HOST* ("Backup host")
+  This specified the target host for all BACKUP and BACKUP-LOGS
+commands.  At this point, BACKUP operations on remote hosts
+are not supported.
+
+Commands are defined as follows:
+
+LOAD-LOGS
+  Load backup information from logs.
+
+COMPILE-LOGS
+  Compile all filesystem backup logs into qfasl files
+so that they can be loaded faster.
+
+FIND-FILE-BACKUPS
+  Find all backup tapes which contain a specific file.  If
+the left button is used, the pathname is determined from
+the "global pathname argument".  If the middle button is
+used, the pathname is read from the keyboard.
+Note: It is important that the LOAD-LOGS command is used
+to assure that the latest log information has been loaded.
+Otherwise, recently backed up files may not be found.
+
+
+---[TFrame Mode: SELF-DOC]---
+
+Options are defined as follows:
+
+*DOCUMENTATION-FORMAT* ("Self Documentation Format")
+  Determine the format for the TFrame documentation file
+created by the FORMAT-DOCUMENTATION command.  :TEXT format
+is straight text that can be printed by any line printer,
+mailed to other users, or simply examined in the editor.
+:BOTEX format is for internal LMI documentation and will
+not generally be useful to the customer.
+
+Commands are defined as follows:
+
+FORMAT-DOCUMENTATION
+  This command writes the online documentation for TFrame commands
+to a file suitable for formatting and/or printing.  The format used
+for output is determined by the "Self Documentation Format" option.
+The output file is determined by the "Global Pathname Argument"
+option if the left mouse button is used.  If the middle button is used,
+the user must specify the pathname from the keyboard.  The canonical file
+type is always changed according to the format specification.
+
+Currently two formats are supported for output.  The :TEXT format
+is raw, with some prettyness added for command-name headers, etc.
+:BOTEX format is used internally at LMI, but in the event that BOTEX
+is ever released to the field, users may find this a neat way to print
+documentation of their own commands and extentions.
+
+*** End of Tframe Documentation ***

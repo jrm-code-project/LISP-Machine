@@ -1,0 +1,33 @@
+@c notation-conventions.botex
+@c
+@c 25-May-88, James Rauen
+
+@chapter Notation Conventions
+
+This chapter summarizes the notation conventions used in the manual.
+
+
+@section Numbers
+
+Hexadecimal quantities are preceded by "#x".
+
+The contents of bit fields are always written in binary, without any
+qualifier.
+
+All other numerical quantities are written in base ten.
+
+
+@section Bit Fields
+
+@tex
+The bits of an $N$-bit word are numbered from 0 (the least significant
+bit) to $N-1$ (the most significant bit).
+@end tex
+
+Bit fields are written in the form MSB:LSB, where MSB (written in base
+ten) is the number of the most significant bit in the field and LSB
+(also written in base ten) is the number of the least significant bit in
+the field.
+
+
+

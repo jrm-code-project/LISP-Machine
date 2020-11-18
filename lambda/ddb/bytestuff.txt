@@ -1,0 +1,2389 @@
+#|
+
+(byte size position) makes a byte specifier
+
+;;Functions accepting a byte-specifier....
+
+
+(byte-position          byte-spec)
+
+(byte-size              byte-spec)
+
+(ldb                    byte-spec       integer)
+
+(ldb-test               byte-spec       integer)
+
+(mask-field             byte-spec       fixnum)
+
+(dpb                    value           byte-spec       integer)
+
+(deposit-field          value           byte-spec       fixnum)
+
+(%logldb                byte-spec       fixnum)
+
+(%logdpb                value           byte-spec       fixnum)
+
+(%p-ldb                 byte-spec       pointer)
+
+(%p-ldb-offset          byte-spec       base-pointer    offset)
+
+(%p-mask-field          byte-spec       pointer)
+
+(%p-mask-field-offset   byte-spec       base-pointer    offset)
+
+(%p-dpb                 value           byte-spec       pointer)
+
+(%p-dpb-offset          value           byte-spec       base-pointer    offset)
+
+(%p-deposit-field       value           byte-spec       pointer)
+
+(%p-deposit-field-offset   value        byte-spec       base-pointer    offset)
+
+
+|#
+
+
+
+(
+        si:byte-position
+        si:byte-size
+        si:ldb
+        si:ldb-test
+        si:mask-field
+        si:dpb
+        si:deposit-field
+        si:%logldb
+        si:%logdpb
+        si:%p-ldb
+        si:%p-ldb-offset
+        si:%p-mask-field
+        si:%p-mask-field-offset
+        si:%p-pdb
+        si:%p-dpb-offset
+        si:%p-deposit-field
+        si:%p-deposit-field-offset
+)
+
+;;Callers in package GLOBAL of functions in the above list are:
+  %p-contents-safe-p-offset
+  %p-pointerp-offset
+  %p-safe-contents-offset
+  (:internal (:internal gc::object-hash-pointer 0) 3)
+  (:internal (:internal tv::peek-areas-region-display 1) 0)
+  (:internal (:method si:process :interrupt) 0)
+  (:internal (:method tv::basic-inspect :object-closure) 4)
+  (:internal (:method tv::basic-inspect :object-closure) 5)
+  (:internal (:method tv:basic-scroll-bar :handle-mouse-scroll) 0)
+  (:internal (:method tv:basic-scroll-bar :handle-mouse-scroll) 1)
+  (:internal (:method tv:sheet :output-hold-exception) 0)
+  (:internal chaos::background 0)
+  (:internal chaos::find-lispms-logged-in-as-user 0)
+  (:internal chaos::finger-lispms 0)
+  (:internal chaos::make-telnet-echoing-stream 0)
+  (:internal chaos::set-routing-table-from-host-table 0)
+  (:internal chaos:wait 0)
+  (:internal eh::clear-breakpoint 0)
+  (:internal fs::directory-subtree-in-core? 0)
+  (:internal fs::new-write-directory-files 0)
+  (:internal lambda::compile-pattern 0)
+  (:internal lambda::lam-control-p-wait-explorer 0)
+  (:internal lambda::lam-control-p-wait-lambda 0)
+  (:internal lambda::old-lam-get-char 0)
+  (:internal lambda::parse-macro-ir-dispatch-spec 1)
+  (:internal lambda::parse-macro-ir-dispatch-spec 2)
+  (:internal lambda::print-iopb-at-nubus-address 0)
+  (:internal make-area 0)
+  (:internal meter::enable-stack-group 0)
+  (:internal process-sleep 0)
+  (:internal process-wait-with-timeout 0)
+  (:internal si::describe-lexical-closure-bindings 0)
+  (:internal si::map-over-all-objects-in-area 0)
+  (:internal si::map-over-all-objects-in-newspace-region 0)
+  (:internal si::nupi-disk-wait 0)
+  (:internal si::pkg-initialize 1)
+  (:internal si::print-new-mini-label 0)
+  (:internal si::sdu-serial-stream-mixin-timeout-input-wait 0)
+  (:internal si::set-3com-owner 0)
+  (:internal si::wait-for-iomsg-done 0)
+  (:internal sleep 0)
+  (:internal tv::finish-unexpected-select 0)
+  (:internal tv::make-disk-usage-meter-function 0)
+  (:internal tv::page-status-function 0)
+  (:internal tv::peek-areas-region-display 1)
+  (:internal tv::screen-manage-background-top-level 0)
+  (:internal tv::sec-multiple-move 1)
+  (:internal tv:kbd-wait-for-input-with-timeout 0)
+  (:internal zwei::com-quoted-insert 0)
+  (:internal zwei::kbd-scroll 1)
+  (:method chaos:basic-input-stream :clear-eof)
+  (:method chaos:basic-input-stream :get-next-input-pkt)
+  (:method chaos:binary-input-stream-mixin :next-input-buffer)
+  (:method chaos:character-input-stream-mixin :next-input-buffer)
+  (:method eh::function-entry-error :case :proceed-asking-user :new-argument-list)
+  (:method fs::data-connection-mixin :dormant-p)
+  (:method fs::ftp-host-unit :dormant-p)
+  (:method fs::ftp-host-unit :setbinary)
+  (:method fs::ftp-input-binary-stream :discard-input-buffer)
+  (:method fs::ftp-input-binary-stream :next-input-buffer)
+  (:method fs::ftp-output-binary-stream :discard-output-buffer)
+  (:method fs::ftp-output-binary-stream :new-output-buffer)
+  (:method fs::ftp-output-binary-stream :send-output-buffer)
+  (:method fs::lm-data-stream-mixin :bytes-before-current-block)
+  (:method fs::lm-data-stream-mixin :set-buffer-pointer)
+  (:method fs::lm-data-stream-mixin :set-buffer-pointer-to-end)
+  (:method fs::lm-input-stream-mixin :length)
+  (:method fs::lm-output-stream-mixin :after :close)
+  (:method fs::map-input-stream-mixin :next-input-buffer)
+  (:method fs::map-output-stream-mixin :bytes-in-block)
+  (:method fs::map-output-stream-mixin :current-length-from-map)
+  (:method fs::map-output-stream-mixin :max-bytes-in-block)
+  (:method fs::map-output-stream-mixin :maybe-update-map-block-size)
+  (:method fs::map-output-stream-mixin :new-output-buffer)
+  (:method fs::map-output-stream-mixin :send-output-buffer)
+  (:method fs::map-output-stream-mixin :update-rqb-valid-pages)
+  (:method fs::map-stream-mixin :byte-size)
+  (:method fs::odd-byte-size-mixin :wrapper :next-input-buffer)
+  (:method fs::qfile-input-phony-character-stream-mixin :around :tyi)
+  (:method fs::qfile-input-signed-binary-stream-mixin :around :tyi)
+  (:method fs::qfile-input-signed-binary-stream-mixin :string-in)
+  (:method fs::qfile-output-phony-character-stream-mixin :around :tyo)
+  (:method lambda::access-path :bus-read-unsafe)
+  (:method lambda::access-path :bus-write-unsafe)
+  (:method lambda::debuggable-processor :mem-slot)
+  (:method lambda::diag-path :setup)
+  (:method lambda::lambda-via-lmi-debug :halted-p)
+  (:method lambda::lmi-serial-access-path :bus-quad-slot-read)
+  (:method lambda::lmi-serial-access-path :bus-quad-slot-read-byte)
+  (:method lambda::lmi-serial-access-path :bus-quad-slot-write)
+  (:method lambda::lmi-serial-access-path :bus-quad-slot-write-byte)
+  (:method lambda::lmi-serial-access-path :bus-read-byte)
+  (:method lambda::lmi-serial-access-path :bus-slot-read-byte)
+  (:method lambda::lmi-serial-access-path :bus-slot-write-byte)
+  (:method lambda::lmi-serial-access-path :bus-write-byte)
+  (:method lambda::local-access-path :after :init)
+  (:method lambda::local-access-path :bus-quad-slot-read)
+  (:method lambda::local-access-path :bus-quad-slot-read-unsafe)
+  (:method lambda::local-access-path :bus-quad-slot-write)
+  (:method lambda::local-access-path :bus-quad-slot-write-unsafe)
+  (:method lambda::local-access-path :bus-read)
+  (:method lambda::local-access-path :bus-read-byte)
+  (:method lambda::local-access-path :bus-read-byte-unsafe)
+  (:method lambda::local-access-path :bus-slot-read)
+  (:method lambda::local-access-path :bus-slot-read-byte)
+  (:method lambda::local-access-path :bus-slot-read-byte-unsafe)
+  (:method lambda::local-access-path :bus-slot-write)
+  (:method lambda::local-access-path :bus-slot-write-byte)
+  (:method lambda::local-access-path :bus-slot-write-byte-unsafe)
+  (:method lambda::local-access-path :bus-slot-write-unsafe)
+  (:method lambda::local-access-path :bus-write)
+  (:method lambda::local-access-path :bus-write-byte)
+  (:method lambda::local-access-path :bus-write-byte-unsafe)
+  (:method lambda::local-access-path :multibus-word-read)
+  (:method lambda::local-access-path :multibus-word-write)
+  (:method lambda::nu-debug-bus-communication :bus-read)
+  (:method lambda::nu-debug-bus-communication :bus-write)
+  (:method lambda::nubus-via-burr-brown-and-nu-debug :bus-quad-slot-read)
+  (:method lambda::nubus-via-burr-brown-and-nu-debug :bus-quad-slot-read-byte)
+  (:method lambda::nubus-via-burr-brown-and-nu-debug :bus-quad-slot-write)
+  (:method lambda::nubus-via-burr-brown-and-nu-debug :bus-quad-slot-write-byte)
+  (:method lambda::nubus-via-burr-brown-and-nu-debug :bus-read-byte)
+  (:method lambda::nubus-via-burr-brown-and-nu-debug :bus-slot-read-byte)
+  (:method lambda::nubus-via-burr-brown-and-nu-debug :bus-slot-write-byte)
+  (:method lambda::nubus-via-burr-brown-and-nu-debug :bus-write-byte)
+  (:method lambda::nubus-via-lmi-debug :bus-quad-slot-read)
+  (:method lambda::nubus-via-lmi-debug :bus-quad-slot-read-byte)
+  (:method lambda::nubus-via-lmi-debug :bus-quad-slot-write)
+  (:method lambda::nubus-via-lmi-debug :bus-quad-slot-write-byte)
+  (:method lambda::nubus-via-lmi-debug :bus-read-byte)
+  (:method lambda::nubus-via-lmi-debug :bus-slot-read-byte)
+  (:method lambda::nubus-via-lmi-debug :bus-slot-write-byte)
+  (:method lambda::nubus-via-lmi-debug :bus-write-byte)
+  (:method lambda::regint-explorer :bus-quad-slot-read)
+  (:method lambda::regint-explorer :bus-quad-slot-write)
+  (:method lambda::regint-explorer :full-restore)
+  (:method lambda::regint-explorer :full-save)
+  (:method lambda::regint-explorer :read-a-mem)
+  (:method lambda::regint-explorer :read-d-mem)
+  (:method lambda::regint-explorer :read-l1-map)
+  (:method lambda::regint-explorer :read-l2-map-control)
+  (:method lambda::regint-explorer :read-l2-map-physical-page)
+  (:method lambda::regint-explorer :read-m-mem)
+  (:method lambda::regint-explorer :save-mem-status)
+  (:method lambda::regint-explorer :write-a-mem)
+  (:method lambda::regint-explorer :write-d-mem)
+  (:method lambda::regint-explorer :write-dc-to-hardware)
+  (:method lambda::regint-explorer :write-l1-map)
+  (:method lambda::regint-explorer :write-l1-map-to-hardware)
+  (:method lambda::regint-explorer :write-l2-map-control)
+  (:method lambda::regint-explorer :write-l2-map-physical-page)
+  (:method lambda::regint-explorer :write-m-mem)
+  (:method lambda::regint-explorer :write-pc-to-hardware)
+  (:method lambda::regint-lambda :full-restore)
+  (:method lambda::regint-lambda :halted-p)
+  (:method lambda::regint-lambda :passive-save)
+  (:method lambda::regint-lambda :release-halt)
+  (:method lambda::regint-lambda :stop-mach)
+  (:method lambda::regint-lambda :write-func-dest)
+  (:method lambda::serial-bus-communication :console)
+  (:method si::basic-hash-table :describe)
+  (:method si::basic-shared-device :allocate-if-easy)
+  (:method si::basic-shared-device :owner)
+  (:method si::basic-shared-device :set-sys-conf-owner)
+  (:method si::basic-shared-device :sys-conf-owner)
+  (:method si::burr-brown-debug-master :read)
+  (:method si::burr-brown-debug-master :read-data)
+  (:method si::burr-brown-debug-master :write)
+  (:method si::burr-brown-debug-master :write-addr)
+  (:method si::burr-brown-debug-master :write-data)
+  (:method si::disk-partition :read-block)
+  (:method si::disk-partition :write-block)
+  (:method si::eq-hash-table :put-hash)
+  (:method si::eql-hash-table :put-hash)
+  (:method si::partition-input-stream :after :init)
+  (:method si::partition-output-stream :after :init)
+  (:method si::partition-output-stream :byte-size)
+  (:method si::sdu-serial-stream-mixin :describe-status)
+  (:method si::sdu-serial-stream-mixin :discard-input-buffer)
+  (:method si::sdu-serial-stream-mixin :make-interrupt)
+  (:method si::sdu-serial-stream-mixin :next-input-buffer)
+  (:method si::sdu-serial-stream-mixin :send-output-buffer)
+  (:method si:process :cpu-time)
+  (:method si:process :disk-wait-time)
+  (:method si:process :idle-time)
+  (:method si:process :interrupt)
+  (:method si:process :percent-utilization)
+  (:method si:process :total-run-time)
+  (:method si:vanilla-flavor :describe)
+  (:method supdup::basic-nvt :handle-escape)
+  (:method supdup::basic-nvt :remote-beep)
+  (:method supdup::basic-supdup :net-output)
+  (:method supdup::basic-supdup :net-output-translated)
+  (:method supdup::basic-telnet :net-output)
+  (:method supdup::basic-telnet :net-output-translated)
+  (:method supdup::local-editing-supdup :define-command-character)
+  (:method supdup::local-editing-supdup :net-output-translated)
+  (:method system:illegal-instruction :report)
+  (:method system:step-break :print-error-message)
+  (:method tape::lmfl-format :open-file)
+  (:method tape::nupi-device :initialize)
+  (:method tape::raw-format :open-file)
+  (:method tape::tape-stream-mixin :byte-size)
+  (:method tape::tape-stream-mixin :case :set :byte-size)
+  (:method tape::tape-stream-mixin :new-output-buffer)
+  (:method tape::tape-stream-mixin :next-input-buffer)
+  (:method tape::tape-stream-mixin :send-output-buffer)
+  (:method tape::tape-stream-mixin :set-byte-size)
+  (:method tape::tar-format :write-data-to-stream)
+  (:method tv::basic-button :set-name)
+  (:method tv::basic-inspect :object-closure)
+  (:method tv::basic-inspect :object-instance)
+  (:method tv::basic-inspect :object-stack-frame)
+  (:method tv::changeable-name-mixin :set-name)
+  (:method tv::display-layout-window :add-frob)
+  (:method tv::display-layout-window :clear-frobs)
+  (:method tv::display-layout-window :remove-last-frob)
+  (:method tv::essential-set-edges :redefine-margins)
+  (:method tv::inspect-history-window :flush-contents)
+  (:method tv::margin-name-mixin :after :refresh-margins)
+  (:method tv::mouse-blinker-fast-tracking-mixin :track-mouse)
+  (:method tv::temporary-typeout-window-mixin :after :deexpose)
+  (:method tv::who-line-file-sheet :combined :update)
+  (:method tv::who-line-file-sheet :update)
+  (:method tv::who-line-sheet :combined :update)
+  (:method tv::who-line-window :combined :update)
+  (:method tv::xor-accent-mixin :set-accent)
+  (:method tv::xor-accent-mixin :xor-accent)
+  (:method tv:basic-menu :menu-draw)
+  (:method tv:basic-multiple-choice :setup)
+  (:method tv:basic-scroll-bar :after :new-scroll-position)
+  (:method tv:basic-scroll-bar :handle-mouse-scroll)
+  (:method tv:basic-scroll-window :after :change-of-default-font)
+  (:method tv:basic-scroll-window :end-of-page-exception)
+  (:method tv:basic-scroll-window :more-exception)
+  (:method tv:basic-scroll-window :redisplay)
+  (:method tv:basic-scroll-window :redisplay-selected-items)
+  (:method tv:blinker :set-cursorpos)
+  (:method tv:blinker :set-follow-p)
+  (:method tv:blinker :set-sheet)
+  (:method tv:blinker :set-visibility)
+  (:method tv:box-label-mixin :after :draw-label)
+  (:method tv:character-blinker :set-character)
+  (:method tv:essential-scroll-mouse-mixin :mouse-click)
+  (:method tv:full-screen-hack-mixin :before :change-of-size-or-margins)
+  (:method tv:graphics-mixin :clip)
+  (:method tv:graphics-mixin :draw-circle)
+  (:method tv:graphics-mixin :draw-circle-octant-arc)
+  (:method tv:graphics-mixin :draw-circular-arc)
+  (:method tv:graphics-mixin :draw-dashed-line)
+  (:method tv:graphics-mixin :draw-filled-in-circle)
+  (:method tv:graphics-mixin :draw-filled-in-sector)
+  (:method tv:graphics-mixin :draw-line)
+  (:method tv:graphics-mixin :draw-point)
+  (:method tv:graphics-mixin :draw-regular-polygon)
+  (:method tv:graphics-mixin :draw-triangle)
+  (:method tv:graphics-mixin :draw-wide-curve)
+  (:method tv:graphics-mixin :point)
+  (:method tv:line-truncating-mixin :before :end-of-line-exception)
+  (:method tv:menu-highlighting-mixin :add-highlighted-item)
+  (:method tv:menu-highlighting-mixin :highlight-item)
+  (:method tv:menu-highlighting-mixin :remove-highlighted-item)
+  (:method tv:menu-highlighting-mixin :set-highlighted-items)
+  (:method tv:mouse-blinker-mixin :set-offsets)
+  (:method tv:rectangular-blinker :set-size)
+  (:method tv:rectangular-blinker :set-size-and-cursorpos)
+  (:method tv:sheet :bitblt)
+  (:method tv:sheet :bitblt-from-sheet)
+  (:method tv:sheet :bitblt-within-sheet)
+  (:method tv:sheet :change-of-size-or-margins)
+  (:method tv:sheet :deexpose)
+  (:method tv:sheet :deexposed-typein-action)
+  (:method tv:sheet :draw-char)
+  (:method tv:sheet :draw-rectangle)
+  (:method tv:sheet :end-of-line-exception)
+  (:method tv:sheet :end-of-page-exception)
+  (:method tv:sheet :expose)
+  (:method tv:sheet :handle-exceptions)
+  (:method tv:sheet :increment-cursorpos)
+  (:method tv:sheet :init)
+  (:method tv:sheet :inverse-around :init)
+  (:method tv:sheet :more-exception)
+  (:method tv:sheet :notice)
+  (:method tv:sheet :output-hold-exception)
+  (:method tv:sheet :refresh)
+  (:method tv:sheet :save-bits)
+  (:method tv:sheet :set-deexposed-typein-action)
+  (:method tv:sheet :set-reverse-video-p)
+  (:method tv:sheet :set-save-bits)
+  (:method tv:sheet :set-time-out-on-more)
+  (:method tv:sheet :tyo-right-margin-character)
+  (:method tv:sheet :write-char)
+  (:method tv:text-scroll-window :delete-item)
+  (:method tv:text-scroll-window :insert-item)
+  (:method tv:text-scroll-window :more-exception)
+  (:method tv:text-scroll-window :set-item-generator)
+  (:method tv:text-scroll-window :set-items)
+  (:method unix::simple-unix-window-mixin :tyo-lispm-char-to-unix)
+  (:method unix::unix-stream :carrier)
+  (:method unix::unix-stream :interrupt-68000)
+  (:method unix::unix-stream :set-carrier)
+  (:method zwei::arrow-printing-mixin :print-arrow)
+  (:method zwei::black-block-diagram :draw)
+  (:method zwei::black-line-diagram :draw)
+  (:method zwei::editor-stream-mixin :any-tyi)
+  (:method zwei::editor-stream-mixin :increment-cursorpos)
+  (:method zwei::editor-stream-window :combined :deexpose)
+  (:method zwei::editor-typeout-window :more-exception)
+  (:method zwei::editor-window-with-pop-up-mini-buffer-mixin :after :expose)
+  (:method zwei::grey-block-diagram :draw)
+  (:method zwei::interval-stream-with-fonts :line-in)
+  (:method zwei::interval-stream-with-fonts :tyi)
+  (:method zwei::mode-line-window-mixin :before :end-of-line-exception)
+  (:method zwei::mouse-sensitive-mode-line-window :mouse-click)
+  (:method zwei::pop-up-mode-line-window :after :expose)
+  (:method zwei::pop-up-mode-line-window :done-with-mode-line-window)
+  (:method zwei::zmail-overlying-window :before :end-of-line-exception)
+  (:method zwei::zmail-overlying-window :truncated-format)
+  (:method zwei::zwei :before :end-of-page-exception)
+  (:method zwei::zwei :more-exception)
+  (:method zwei::zwei :mouse-moves)
+  (:method zwei::zwei :ready-for-redisplay-p)
+  (:method zwei::zwei-typeout-mixin :prepare-for-redisplay)
+  (:method zwei::zwei-typeout-mixin :ready-for-redisplay-p)
+  (:method zwei:interval-stream :read-cursorpos)
+  (:method zwei:interval-stream :tyi)
+  (:method zwei:standalone-editor-window :combined :deexpose)
+  (:method zwei:window :editor-string-length)
+  (:method zwei:window :editor-tab-width)
+  (:method zwei:window :overprinting-flag)
+  (:method zwei:window :set-blinker-size)
+  (:method zwei:window :set-overprinting-flag)
+  (:method zwei:window :set-tab-nchars)
+  (:method zwei:window :tab-nchars)
+  (:property describe lambda::lam-colon-cmd)
+  (:property eh::function-entry eh::make-ucode-error-function)
+  (:property eh::nubus-error eh::make-ucode-error-function)
+  (:property eh::throw-trap eh::enter-error-handler)
+  (:property lambda::affect lambda::lam-colon-cmd)
+  (:property lambda::build-constant lambda::lam-lap-macro)
+  (:property lambda::code lambda::lam-colon-cmd)
+  (:property lambda::describe-lexical-environment lambda::lam-colon-cmd)
+  (:property lambda::disassemble-fef lambda::lam-colon-cmd)
+  (:property lambda::foothold lambda::lam-colon-cmd)
+  (:property lambda::force-macro-return lambda::lam-colon-cmd)
+  (:property lambda::int-level lambda::lam-colon-cmd)
+  (:property lambda::intoff lambda::lam-colon-cmd)
+  (:property lambda::inton lambda::lam-colon-cmd)
+  (:property lambda::macro-break lambda::lam-colon-cmd)
+  (:property lambda::mid lambda::lam-colon-cmd)
+  (:property lambda::misc-decode-off lambda::lam-colon-cmd)
+  (:property lambda::misc-decode-on lambda::lam-colon-cmd)
+  (:property lambda::pf lambda::lam-colon-cmd)
+  (:property lambda::previous-active-frame lambda::lam-colon-cmd)
+  (:property lambda::previous-active-frame-chain lambda::lam-colon-cmd)
+  (:property lambda::previous-open-frame lambda::lam-colon-cmd)
+  (:property lambda::print-pht lambda::lam-colon-cmd)
+  (:property lambda::relpc lambda::lam-colon-cmd)
+  (:property lambda::return-break lambda::lam-colon-cmd)
+  (:property lambda::scratch-pad-init-area lambda::lam-colon-cmd)
+  (:property lambda::set-block-mode lambda::lam-colon-cmd)
+  (:property lambda::summarize-opcs lambda::lam-colon-cmd)
+  (:property lambda::summarize-opcs-to-buffer lambda::lam-colon-cmd)
+  (:property lambda::system-communication-area lambda::lam-colon-cmd)
+  (:property system:bad-array-type eh::make-ucode-error-function)
+  (:property system:call-trap eh::enter-error-handler)
+  (:property system:exit-trap eh::enter-error-handler)
+  (:property system:illegal-instruction eh::make-ucode-error-function)
+  (:property tv::lexical-closure-slot tv::set-function)
+  adjust-array-size
+  allocate-resource
+  append
+  arglist
+  array-dimensions
+  array-displaced-p
+  array-element-size
+  array-grow
+  array-indexed-p
+  array-indirect-p
+  array-initialize
+  array-pop
+  array-type
+  arraydims
+  byte
+  byte-position
+  byte-size
+  call
+  chaos::background
+  chaos::chaos-packet-length
+  chaos::chaos-subnet-number-from-address
+  chaos::convert-to-int-pkt
+  chaos::convert-to-pkt
+  chaos::decode-canonical-time-packet
+  chaos::echo-server
+  chaos::echo-test
+  chaos::find-lispms-logged-in-as-user
+  chaos::finger-lispms
+  chaos::format-routing-table-pkt
+  chaos::get-host-status-packet
+  chaos::give-finger
+  chaos::give-name
+  chaos::hostat-format-ans
+  chaos::hostat-format-ans-1
+  chaos::make-connection
+  chaos::mini-server-function
+  chaos::peek-chaos-packet-item
+  chaos::pkt-add-32
+  chaos::pkt-dest-conn
+  chaos::pkt-dest-host-num
+  chaos::pkt-dest-subnet
+  chaos::pkt-fwd-count
+  chaos::pkt-source-conn
+  chaos::pkt-source-host-num
+  chaos::pkt-source-subnet
+  chaos::print-recent-headers
+  chaos::probe-conn
+  chaos::rcnt-fwd-count
+  chaos::rcnt-nbytes
+  chaos::rcnt-opcode
+  chaos::receive-cls
+  chaos::receive-fwd
+  chaos::receive-int-pkt
+  chaos::receive-los
+  chaos::retransmission
+  chaos::rut-transmitter-top-level
+  chaos::send-canonical-time-packet
+  chaos::send-status
+  chaos::send-tcp-local-port-pkt
+  chaos::set-routing-table-from-host-table
+  chaos::set-word-count
+  chaos::setup-chaos
+  chaos::setup-my-address
+  chaos::show-routing-path
+  chaos::tcp-server-data-in-function
+  chaos::transmit-int-pkt
+  chaos::transmit-int-pkt-for-conn
+  chaos::transmit-los-int-pkt
+  chaos::transmit-normal-pkt
+  chaos::transmit-pkt
+  chaos::transmit-sts
+  chaos:accept
+  chaos:answer
+  chaos:close-conn
+  chaos:fast-answer-string
+  chaos:forward
+  chaos:get-next-pkt
+  chaos:host-data
+  chaos:open-connection
+  chaos:pkt-nbytes
+  chaos:pkt-opcode
+  chaos:poll-hosts
+  chaos:print-conn
+  chaos:print-pkt
+  chaos:remove-conn
+  chaos:send-pkt
+  chaos:send-unc-pkt
+  chaos:up-hosts
+  chaos:wait
+  char-bit
+  char-bits
+  char-code
+  char-font
+  char-greaterp
+  char-lessp
+  char-not-greaterp
+  char-not-lessp
+  clear-mar
+  code-char
+  compiler::already-optimized-p
+  compiler::apply-on-list
+  compiler::byte-expand
+  compiler::call-to-multiple-value-list
+  compiler::check-number-of-args
+  compiler::compile-file-driver
+  compiler::disassemble-address-contents
+  compiler::disassemble-lexical-reference-instruction-p
+  compiler::fasd-character
+  compiler::fasd-eval-memoized
+  compiler::fasd-fef
+  compiler::fasd-fef-q
+  compiler::fasd-fixed
+  compiler::fasd-index
+  compiler::fasd-new-small-float
+  compiler::fasd-old-small-float
+  compiler::fasd-short-float
+  compiler::fasd-single-float
+  compiler::flag-already-optimized
+  compiler::get-argdesc-prop-from-adl
+  compiler::get-argdesc-prop-from-q-args-prop
+  compiler::lap-header
+  compiler::lap-mfef
+  compiler::lap-modify-lastq
+  compiler::lap-output-word
+  compiler::map-to-old-cdr-code
+  compiler::p2floor
+  compiler::qcompile0
+  compiler::try-ref-lexical-home
+  compiler::try-ref-lexical-var
+  compiler::write-k-instruction
+  compiler:disassemble-arg-name
+  compiler:disassemble-instruction
+  compiler:disassemble-pointer
+  copylist
+  deposit-byte
+  describe-area
+  digit-char
+  digit-char-p
+  disassemble
+  disk-restore
+  disk-save
+  dispatch
+  eh::breakon-this-time
+  eh::cell-location-in-stack-group
+  eh::check-for-bogus-pc
+  eh::clear-breakpoint
+  eh::com-describe-alot
+  eh::com-describe-open-catch-frames
+  eh::com-help-describe-command
+  eh::com-proceed-trap-on-call
+  eh::com-reinvoke-new-args
+  eh::com-return-a-value
+  eh::com-return-reinvocation
+  eh::com-show-stack-temporaries
+  eh::com-throw
+  eh::com-toggle-trap-on-call
+  eh::com-top-level-throw
+  eh::command-lookup
+  eh::command-loop-read
+  eh::comw-set-arg
+  eh::debugger-prepare-for-resume-handler
+  eh::define-dispatch-command
+  eh::enable-trapping
+  eh::fixnum-byte-spec-p
+  eh::function-entry-error-trap
+  eh::get-compiled-function-and-pc
+  eh::get-frame-function-and-args
+  eh::make-lexical-closures-refer-to-new-pdl
+  eh::prepare-to-signal-microcode-condition
+  eh::print-frame-args
+  eh::print-function-and-args
+  eh::proceed-sg
+  eh::process-special-command
+  eh::read-object
+  eh::relocate-specpdl-portion
+  eh::run-sg
+  eh::scan-specpdl-by-frames
+  eh::second-level-error-handler
+  eh::set-breakpoint
+  eh::set-trap-on-call
+  eh::set-trap-on-exit
+  eh::setup-args-window
+  eh::setup-locals-window
+  eh::sg-apply-no-trap
+  eh::sg-contents
+  eh::sg-erring-function
+  eh::sg-eval-in-frame
+  eh::sg-eval-no-trap
+  eh::sg-fixnum-contents
+  eh::sg-frame-of-special-binding
+  eh::sg-frame-special-pdl-index
+  eh::sg-funcall-no-trap
+  eh::sg-listify-args-and-locals
+  eh::sg-number-of-spread-args
+  eh::sg-proceed-micro-pc
+  eh::sg-rest-arg-value
+  eh::sg-run-goodbye
+  eh::sg-throw
+  eh::sg-unwind
+  eh::sg-unwind-to-frame
+  eh::sg-unwind-to-frame-and-reinvoke
+  eh::show-adi
+  eh::show-all-macro
+  eh::show-foothold
+  eh::show-frame-briefly-for-bug-message
+  eh::show-frame-flags
+  eh::show-mv-specs
+  eh::stack-frame-function-and-args
+  eh::symbol-from-value-cell-location
+  eh::trap-on-exit-p
+  eh::trapping-enabled-p
+  eh::window-read-object
+  eh:sg-frame-arg-value
+  eh:sg-frame-local-value
+  eh:sg-frame-special-pdl-range
+  eh:sg-frame-value-list
+  eh:sg-next-active
+  eh:sg-next-open
+  eh:sg-open-call-block
+  eh:sg-save-state
+  eh:unwind-sg
+  export
+  fed::read-ac-into-font-descriptor
+  fed::read-al-into-font-descriptor
+  fed::read-al-into-font-descriptor-1
+  fed::read-ks-into-font-descriptor
+  fed::read-kst-bytes
+  fed::read-kst-halfword
+  fed::write-al-column
+  fed::write-font-descriptor-into-ac
+  fed::write-font-descriptor-into-al
+  fed::write-kst-byte
+  fed::write-kst-halfword
+  fed:display-font
+  format::format-ctl-character
+  format::format-parse-command
+  format::fquery-readline-with-help
+  format::init-char-table
+  format:ochar
+  fs::create-new-directory
+  fs::data-connection-dormant
+  fs::dbg-edit
+  fs::dbg-list-put
+  fs::dbg-require-directory
+  fs::directory?
+  fs::dirheader-flag-bit
+  fs::dirheader-flag-generation-count
+  fs::extended-map-write
+  fs::file-attribute
+  fs::file-closed?
+  fs::file-deleted?
+  fs::file-get-password
+  fs::file-nsi
+  fs::file-server-data-top-level
+  fs::file-server-shutdown
+  fs::file-server-shutdown-1
+  fs::get-old-root-directory-map
+  fs::host-chaos-interrupt-function
+  fs::lispm-to-sixbit
+  fs::lm-salvage-directory
+  fs::lm-write-configuration
+  fs::lmfs-change-file-properties
+  fs::lmfs-close-file
+  fs::lmfs-closed-file?
+  fs::lmfs-delete-empty-subdirectories
+  fs::lmfs-delete-file
+  fs::lmfs-deleted-file?
+  fs::lmfs-directory-list
+  fs::lmfs-expunge-directory
+  fs::lmfs-expunge-file
+  fs::lmfs-file-being-written-or-superseded?
+  fs::lmfs-file-properties
+  fs::lmfs-open-file
+  fs::lmfs-open-input-file
+  fs::lmfs-open-output-file
+  fs::lmfs-open-overwrite-file
+  fs::lmfs-read-directory
+  fs::lmfs-rename-file
+  fs::lmfs-undelete-file
+  fs::lmfs-update-directory
+  fs::lmfs-update-new-format-directory
+  fs::lmfs-write-directory
+  fs::lmfs-write-new-format-directory
+  fs::lookup-directory-1
+  fs::lookup-directory-files
+  fs::lookup-file
+  fs::lookup-newest-non-deleted-file
+  fs::lookup-oldest-non-deleted-file
+  fs::lookup-subdirectories
+  fs::lookup-subdirectory-step
+  fs::maint-killable-files
+  fs::make-mt-stream
+  fs::make-subdirectory-alist
+  fs::map-write
+  fs::map-write-1-block
+  fs::old-write-directory-files
+  fs::pdp10-get-ascii-from-array
+  fs::pdp10-half-words
+  fs::print-brief-attribute-description-in-brackets
+  fs::print-pdp10-ascii-word
+  fs::put-bytes
+  fs::qfile-next-read-pkt
+  fs::read-directory-subtree-into-core
+  fs::read-until-synchronous-mark
+  fs::reinitialize-put-usage-array
+  fs::require-closed-file
+  fs::require-closed-file-not-being-superseded
+  fs::require-deletable-file
+  fs::require-file-not-open
+  fs::rfile-server
+  fs::salvage-reconstruct-put
+  fs::save-directory-subtree
+  fs::server-disk-full-handler
+  fs::set-file-attribute
+  fs::sixbit-to-lispm
+  fs::stream-copy-ascii-file-to-pdp10-tape
+  fs::stream-copy-pdp10-ascii-file-from-tape
+  fs::stream-copy-pdp10-fmt-file-from-tape
+  fs::stream-copy-pdp10-fmt-file-to-pdp10-tape
+  fs::stream-copy-pdp10-qfasl-file-from-tape
+  fs::stream-copy-qfasl-file-to-pdp10-tape
+  fs::stream-read-pdp10-dump-header
+  fs::stream-read-pdp10-tape-header
+  fs::stream-read-pdp10-word
+  fs::stream-write-pdp10-word
+  fs::string-get-32b
+  fs::string-put-32b
+  fs::view-all-headers
+  fs::view-file-map-data
+  fs::wait-until-time
+  fs::write-directory-entry
+  fs::write-directory-entry-new
+  fs::write-property-list
+  gc::%flip
+  gc::%reclaim-oldspace
+  gc::compute-storage-distribution
+  gc::for-all-oldspace-region-object-hash-tables
+  gc::initialize
+  gc::make-pdl-areas-static
+  gc::object-hash-non-pointer
+  gc::object-unhash-non-pointer
+  gc::oldspace-pointer?
+  gc::relink-weak-pointer
+  gc::words-allocated
+  gc:status
+  get-internal-run-time
+  intern
+  intern-local
+  intern-soft
+  lambda::32b-to-num
+  lambda::8086-ptr-to-multibus-address
+  lambda::a-source-via-masker
+  lambda::access-local-proc-conf
+  lambda::address-level-2-map
+  lambda::address-to-offset-in-page
+  lambda::address-to-offset-in-quantum
+  lambda::address-to-quantum-number
+  lambda::advance-to-next-uinst-clock
+  lambda::arm-3com-buffers
+  lambda::assemble
+  lambda::assemble-system
+  lambda::band-ref
+  lambda::band-ref-next
+  lambda::base-sym-of-opc
+  lambda::bb-nd-bus-read
+  lambda::bb-nd-bus-write
+  lambda::bb-nd-read
+  lambda::bb-nd-read-data
+  lambda::bb-nd-read-fast-loop
+  lambda::bb-nd-read-fastest-loop
+  lambda::bb-nd-reset
+  lambda::bb-nd-start-read
+  lambda::bb-nd-start-read-byte
+  lambda::bb-nd-write
+  lambda::bb-nd-write-adr
+  lambda::bb-nd-write-data
+  lambda::bb-nd-write-fastest-loop
+  lambda::bb-nd-write-then-read-fastest-loop
+  lambda::bc-print-status
+  lambda::bc-read-far-status
+  lambda::bc-read-local-status
+  lambda::bc-setup
+  lambda::bc-write-far-status
+  lambda::bc-write-local-status
+  lambda::blast-with-image
+  lambda::build-iopb
+  lambda::build-remap-iopb
+  lambda::build-uib
+  lambda::bulk-read-maps
+  lambda::byte-deposit
+  lambda::byte-dpb
+  lambda::byte-ldb
+  lambda::cadr-adr-to-nubus-quad-slot-and-rel-adr
+  lambda::call-return-loop-loop
+  lambda::change-processor-switches-in-sys-conf
+  lambda::check-ireg-parity
+  lambda::check-pc-stepping
+  lambda::check-simple-jump
+  lambda::check-treg-parity
+  lambda::compare-csmram-with-local-sdu-file
+  lambda::compare-lmc-file
+  lambda::compute-parity-11
+  lambda::compute-parity-32
+  lambda::compute-parity-64
+  lambda::compute-raven-cram-parity
+  lambda::compute-raven-cram-parity-for-lamlp
+  lambda::compute-tram-inst
+  lambda::configuration-index-to-quad
+  lambda::configuration-index-to-quad-slot
+  lambda::convert-all-but-lisp-byte
+  lambda::convert-lisp-byte
+  lambda::convert-value-to-destination
+  lambda::copy-hram-to-array
+  lambda::copy-next-cycle-number-to-m-address-control
+  lambda::cram-clobbered-loop
+  lambda::csm-eval-word
+  lambda::debug-sm-clock
+  lambda::describe-scsi-extended-status
+  lambda::disable-tv
+  lambda::dispatch-push-own-address-actor
+  lambda::dispatch-push-own-address-stepping
+  lambda::dispatch-push-return-with-xct-next-actor
+  lambda::dispatch-stepping
+  lambda::divide-test
+  lambda::divide-test-diag-setup
+  lambda::divide-test-setup
+  lambda::divide-test-setup-to-md-or-vma
+  lambda::dpb-big
+  lambda::dump-ass
+  lambda::eagle-initialize-eagle
+  lambda::enable-mi
+  lambda::enable-nupi-bus-master
+  lambda::enable-tv
+  lambda::execute-nupi-command
+  lambda::fake-mtest-loop
+  lambda::fast-advance-uinst-loop
+  lambda::fast-load-straight-map-level-1
+  lambda::fast-load-straight-map-level-2
+  lambda::fast-load-straight-map-loop
+  lambda::fast-tv-clear-bit-map
+  lambda::fast-zero-maps
+  lambda::fastest-tick-loop
+  lambda::fill-in-vadr-to-lod-offset-table
+  lambda::find-macro-instruction-misc-decode-entry
+  lambda::find-nupi-disks
+  lambda::find-pht-entries-with-dt-fix
+  lambda::fix-7000-cycles
+  lambda::force-uinst-clock-loop
+  lambda::force-uinst-clock-low
+  lambda::funny-plus
+  lambda::get-memory-configuration-from-local-proc-conf
+  lambda::get-memory-configuration-from-sys-conf-structure
+  lambda::get-pointer-from-lambda
+  lambda::get-remote-sys-conf-array
+  lambda::get-slot-or-iv
+  lambda::hh-make-new-tram-array
+  lambda::hh-read-a-mem
+  lambda::hh-read-m-mem
+  lambda::hh-write-a-mem
+  lambda::hh-write-m-mem
+  lambda::high-16-bits
+  lambda::ilong-clear
+  lambda::ilong-setup
+  lambda::inc
+  lambda::init-debug-board
+  lambda::initialize-far-coupler
+  lambda::initialize-far-coupler-if-necessary
+  lambda::initialize-local-coupler
+  lambda::initialize-local-coupler-if-necessary
+  lambda::initialize-quantum-map
+  lambda::insert-share-iopb
+  lambda::invalidate-slot
+  lambda::jump-on-bit-test
+  lambda::jump-stepping
+  lambda::lam-a-constant
+  lambda::lam-a-or-m-adr-out
+  lambda::lam-byte-field-in
+  lambda::lam-byte-field-in-explorer
+  lambda::lam-byte-field-out
+  lambda::lam-byte-field-out-explorer
+  lambda::lam-check-level-2-block
+  lambda::lam-check-level-2-block-bulk
+  lambda::lam-check-page-hash-table
+  lambda::lam-check-physical-page-data
+  lambda::lam-check-volatility-of-page
+  lambda::lam-cold-boot
+  lambda::lam-compare-virtual-page
+  lambda::lam-dcheck-multibus-buffer-org
+  lambda::lam-describe-adl
+  lambda::lam-describe-area
+  lambda::lam-describe-areas
+  lambda::lam-describe-array
+  lambda::lam-describe-closure
+  lambda::lam-describe-fef
+  lambda::lam-describe-instance
+  lambda::lam-describe-memory-copy-out-pht
+  lambda::lam-describe-region
+  lambda::lam-describe-stack-group
+  lambda::lam-disassemble-address
+  lambda::lam-disassemble-arg-name
+  lambda::lam-disassemble-instruction
+  lambda::lam-disassemble-local-name
+  lambda::lam-disassemble-pointer
+  lambda::lam-execute
+  lambda::lam-execute-noclocks
+  lambda::lam-execute-r
+  lambda::lam-execute-r-no-check
+  lambda::lam-execute-source-cycle
+  lambda::lam-execute-uinst-clock
+  lambda::lam-execute-w
+  lambda::lam-fast-test-map-clobberage
+  lambda::lam-find-list-or-symbol-header
+  lambda::lam-for-every-region-in-area
+  lambda::lam-get-defstruct-index
+  lambda::lam-i-misc-name
+  lambda::lam-insert-noop-for-paging
+  lambda::lam-ir-direct-bits
+  lambda::lam-lap-default-and-bugger
+  lambda::lam-lap-eval
+  lambda::lam-lap-pass2
+  lambda::lam-m-constant
+  lambda::lam-make-pointer
+  lambda::lam-make-pointer-offset
+  lambda::lam-mem-read
+  lambda::lam-modify-search
+  lambda::lam-p-contents-as-locative-offset
+  lambda::lam-page-number
+  lambda::lam-print-address-1
+  lambda::lam-print-disk-error-log
+  lambda::lam-print-meta-bits
+  lambda::lam-print-page-hash-table
+  lambda::lam-print-pdl-1
+  lambda::lam-print-set-bits
+  lambda::lam-print-symbol-from-pointer-within-vector
+  lambda::lam-proceed
+  lambda::lam-q-atom
+  lambda::lam-q-null
+  lambda::lam-q-print
+  lambda::lam-q-print-bomb
+  lambda::lam-q-print-fix
+  lambda::lam-q-print-string
+  lambda::lam-read-structure-handle
+  lambda::lam-region-active-p
+  lambda::lam-run-mtest
+  lambda::lam-scan-for-volatility
+  lambda::lam-select-stat2-clock
+  lambda::lam-slash
+  lambda::lam-smash-virtual-page-from-disk
+  lambda::lam-stack-current-frame-setup
+  lambda::lam-stack-print-stack-frame
+  lambda::lam-stack-space-binding-block
+  lambda::lam-stack-xfer-ustack
+  lambda::lam-step
+  lambda::lam-store-breakpoint
+  lambda::lam-structure-info
+  lambda::lam-test-jump-internal
+  lambda::lam-trace-command
+  lambda::lam-trace-the-stack
+  lambda::lam-type-in
+  lambda::lam-type-jump-condition
+  lambda::lam-type-jump-condition-explorer
+  lambda::lam-type-out
+  lambda::lam-ucode-version-from-machine
+  lambda::lam-unset-breakpoint
+  lambda::lam-unsigned-to-signed
+  lambda::lam-verify-area-volatilities
+  lambda::lam-volatility-of-pointer
+  lambda::lam-word-eval
+  lambda::lambda-check-configuration
+  lambda::lambda-connect-loop
+  lambda::lambda-direct-bus-read
+  lambda::lambda-direct-bus-write
+  lambda::lambda-hairy-print-maps
+  lambda::lambda-power-up
+  lambda::ldb-big
+  lambda::lmi-debug-nd-bus-read
+  lambda::lmi-debug-nd-bus-write
+  lambda::load-byte-test-map
+  lambda::load-cram-adr-map-with-straight-map
+  lambda::load-module
+  lambda::logdpb
+  lambda::logldb
+  lambda::loop-tram
+  lambda::low-16-bits
+  lambda::lowest-address-in-area
+  lambda::make-bit-list
+  lambda::map-multibus-address
+  lambda::mask-field-from-fixnum
+  lambda::masked-add-trial
+  lambda::match-dispatch-spec-term
+  lambda::measuring-elapsed-time
+  lambda::memory-status
+  lambda::memory-status-quad-slot
+  lambda::multibus-address-to-8086-ptr
+  lambda::multibus-io-read-8
+  lambda::multibus-io-write-8
+  lambda::multibus-read-16
+  lambda::multibus-read-32
+  lambda::multibus-write-32
+  lambda::nd-bus-write-and-repeat-and-wait-for-halt
+  lambda::nd-bus-write-non-aligned
+  lambda::nd-bus-write-simple
+  lambda::nd-slot-write-halfword
+  lambda::new-init-tram
+  lambda::new-simple-print-maps
+  lambda::noop-p
+  lambda::nu-debug-bus-read
+  lambda::nu-debug-bus-write
+  lambda::nubus-page-to-hardware-virtual-address-page
+  lambda::out32
+  lambda::parse-parity-bits
+  lambda::popj-in-pushj
+  lambda::print-3com-csr
+  lambda::print-3com-rcv-header
+  lambda::print-con-reg-data
+  lambda::print-con-reg-one-line
+  lambda::print-cr1-data
+  lambda::print-cr2-data
+  lambda::print-csmram-codeword
+  lambda::print-dp-mode-data
+  lambda::print-l2c-status
+  lambda::print-lambda-iopb
+  lambda::print-mcr-data
+  lambda::print-memory-control-register
+  lambda::print-memory-status
+  lambda::print-multibus-mapping-register
+  lambda::print-nd-mode
+  lambda::print-next-tram-adr-symbolically
+  lambda::print-nupi-command-block
+  lambda::print-nupi-config
+  lambda::print-nupi-extended-status
+  lambda::print-parity
+  lambda::print-pmr-data
+  lambda::print-processor-switches-data
+  lambda::print-rg-mode-data
+  lambda::print-share-iopbs
+  lambda::print-spi-status-data
+  lambda::print-tram-codeword-hh
+  lambda::print-tram-codeword-old
+  lambda::print-tram-select-0-adr
+  lambda::print-xmit-buffer
+  lambda::pushj
+  lambda::pushj-n
+  lambda::qf-apropos
+  lambda::qf-ar-or-ir-1
+  lambda::qf-array-displace
+  lambda::qf-array-read
+  lambda::qf-array-setup
+  lambda::qf-array-write
+  lambda::qf-boxed-sign-bit
+  lambda::qf-car
+  lambda::qf-cdr
+  lambda::qf-cdr-code
+  lambda::qf-compute-page-hash
+  lambda::qf-current-package
+  lambda::qf-data-type
+  lambda::qf-fef-instruction-length
+  lambda::qf-fetch-string
+  lambda::qf-find-package
+  lambda::qf-findcore
+  lambda::qf-flavor-decode-self-ref-pointer
+  lambda::qf-flavor-mapped-component-flavors
+  lambda::qf-flavor-unmapped-instance-variables
+  lambda::qf-function-cell-contents
+  lambda::qf-function-cell-location
+  lambda::qf-get
+  lambda::qf-get-disk-adr
+  lambda::qf-listp
+  lambda::qf-lm-string-equal
+  lambda::qf-lmstring-msymbol-equal
+  lambda::qf-mem-read-disk-copy
+  lambda::qf-mem-read-transport
+  lambda::qf-package-cell-location
+  lambda::qf-page-hash-table-delete
+  lambda::qf-pkg-hash-string
+  lambda::qf-pkg-name
+  lambda::qf-print-symbols-in-package
+  lambda::qf-property-cell-location
+  lambda::qf-setup-q-fields
+  lambda::qf-smash-cdr-code
+  lambda::qf-smash-data-type
+  lambda::qf-smash-pointer
+  lambda::qf-swap-in
+  lambda::qf-symbol-internal
+  lambda::qf-symbol-internal-search-all
+  lambda::qf-symbol-package
+  lambda::qf-symbol-pkg
+  lambda::qf-symbol-pkg-search-all
+  lambda::qf-symbol-search
+  lambda::qf-value-cell-contents
+  lambda::qf-value-cell-location
+  lambda::qf-virt-adr-of-phys-adr
+  lambda::qf-virtual-mem-map
+  lambda::quad-slot-to-configuration-index
+  lambda::rav-abort-and-parity-off
+  lambda::rav-nubus-reset
+  lambda::rav-print-l1-map-data
+  lambda::rav-print-l2-map-control-data
+  lambda::raven-execute
+  lambda::read-8086-multibus-address
+  lambda::read-a-mem
+  lambda::read-a-mem-stepping
+  lambda::read-a-mem-via-dispatch
+  lambda::read-cram-physical
+  lambda::read-full-macro-ir
+  lambda::read-hram
+  lambda::read-hram-unsafely
+  lambda::read-iopb-controller-io-address
+  lambda::read-iopb-cylinder
+  lambda::read-iopb-from-nubus
+  lambda::read-iopb-memory-address
+  lambda::read-iopb-number-of-sectors
+  lambda::read-iopb-starting-sector
+  lambda::read-level-1-map
+  lambda::read-m-mem
+  lambda::read-mcr-file
+  lambda::read-mid-full
+  lambda::read-multibus-mapping-register
+  lambda::read-next-iopb-address
+  lambda::read-nupi-config-reg
+  lambda::read-pc
+  lambda::read-pmr
+  lambda::read-quantum-map-from-machine
+  lambda::read-remote-config-prom
+  lambda::read-track
+  lambda::read-tv-scan-line-table
+  lambda::read-uib
+  lambda::read-uib-bytes-per-sector
+  lambda::remove-share-iopb
+  lambda::reset-jam
+  lambda::reset-mi
+  lambda::reset-remote-debug-board
+  lambda::reset-tv
+  lambda::rot32
+  lambda::run-time-update-value
+  lambda::salvage-interval
+  lambda::salvage-line
+  lambda::salvage-warnings-of-pathname
+  lambda::set-all-procs-from-remote-conf
+  lambda::set-ilong-if-funct-dest
+  lambda::set-iopb-pointer
+  lambda::set-lambda-speed
+  lambda::set-mode-for-lmi-debug
+  lambda::set-speed-for-lmi-debug
+  lambda::set-up-vcmem-like-ucode
+  lambda::setup-os-mask
+  lambda::share-go-slot
+  lambda::sharestruct-valid-p
+  lambda::simple-control-char-p
+  lambda::sm-step-loop
+  lambda::sm-step-loop-single-uinst
+  lambda::sm-tick
+  lambda::source-execute-boundary-p
+  lambda::spi-running-p
+  lambda::spi-wait-for-shifter-ready
+  lambda::spi-write-ir-shifter-in-raven
+  lambda::spy-write-byte
+  lambda::store-pointer-in-lambda
+  lambda::t-hold-p
+  lambda::temp-byte
+  lambda::test-data-path
+  lambda::test-data-path-floating-bits
+  lambda::test-data-path-shorted-bit
+  lambda::test-imod
+  lambda::test-lc-add
+  lambda::test-macro-fetch-loop
+  lambda::test-macro-fetch-loop-1
+  lambda::test-masker
+  lambda::test-masker-prom
+  lambda::test-multibus-nu-mapping-registers
+  lambda::test-spy-interface
+  lambda::test-subtract-loop
+  lambda::test-tram-adr-data-path
+  lambda::timing-lam-disk-xfer-via-nubus
+  lambda::tv-black-on-white
+  lambda::tv-disable-interrupts
+  lambda::tv-enable-copy-a-to-b
+  lambda::tv-enable-interrupts
+  lambda::tv-fifo-empty-p
+  lambda::tv-set-and-mode
+  lambda::tv-set-ior-mode
+  lambda::tv-set-mode
+  lambda::tv-set-move-mode
+  lambda::tv-set-xor-mode
+  lambda::tv-white-on-black
+  lambda::ua-do-defmic
+  lambda::uass-load-eval
+  lambda::uass-wd-1
+  lambda::uinst-a-count-loop
+  lambda::uinst-cache-test-count-loop
+  lambda::uinst-call-loop
+  lambda::uinst-call-return-loop
+  lambda::uinst-clock-low-p
+  lambda::uinst-compare-loop
+  lambda::uinst-compare-passaround-loop
+  lambda::uinst-jump-equal-loop
+  lambda::uinst-jump-halt-loop
+  lambda::uinst-jump-loop
+  lambda::uinst-m-count-loop
+  lambda::uinst-m-lh-count-loop
+  lambda::uinst-ones-loop
+  lambda::uinst-simple-jump-loop
+  lambda::uinst-simple-m-constant
+  lambda::uinst-simple-m-count-loop
+  lambda::uinst-simple-read-m-loop
+  lambda::uinst-tick
+  lambda::uinst-transporter-old-space-test-loop
+  lambda::uinst-write-mid-test-loop
+  lambda::uinst-write-mid-test-loop-1
+  lambda::unmap-multibus-mapping-registers-pointing-to-slot
+  lambda::update-value-compute-changes
+  lambda::vread
+  lambda::wait-for-iopb-completion
+  lambda::wait-for-nupi-command-complete
+  lambda::write-a-mem
+  lambda::write-a-mem-stepping
+  lambda::write-cram
+  lambda::write-cram-physical
+  lambda::write-current-csmram-to-binary-file
+  lambda::write-current-csmram-to-local-sdu-file
+  lambda::write-high-ireg-loop
+  lambda::write-iopb-to-nubus
+  lambda::write-ireg
+  lambda::write-level-1-map
+  lambda::write-level-2-map-control
+  lambda::write-level-2-map-physical-page
+  lambda::write-low-ireg-loop
+  lambda::write-m-mem
+  lambda::write-m-mem-shifting
+  lambda::write-m-mem-stepping
+  lambda::write-m-mem-via-pdl-pointer
+  lambda::write-micro-code-symbol-area-part-2
+  lambda::write-mid-full
+  lambda::write-multibus-mapping-register
+  lambda::write-nupi-config-reg
+  lambda::write-out-d-mem
+  lambda::write-out-i-mem
+  lambda::write-pc
+  lambda::write-pc-fast
+  lambda::write-pc-stepping
+  lambda::write-t-next-select
+  lambda::write-t-state
+  lambda::write-tram-high-and-low
+  lambda::write-tv-scan-line-table
+  lambda::write-uib
+  lambda::write-us-via-dispatch
+  lambda::write-us-via-dispatch-stepping
+  lambda::wrong-bits-list
+  ldb-test
+  list*
+  list*-in-area
+  load-byte
+  location-boundp
+  logbitp
+  logcount
+  make-area
+  make-array
+  make-array-into-named-structure
+  make-stack-group
+  mar-mode
+  meter::enable-stack-group
+  meter::list-event-function
+  meter::meter-fix-signed
+  meter::meter-fix-unsigned
+  meter::meter-q
+  meter::time-diff
+  peek-char
+  print-error-mode
+  print-herald
+  print-loaded-band
+  process-wait
+  random
+  read-meter
+  sdu::di-type-string
+  sdu::mini-label
+  sdu::ml-backup-label-block-number
+  sdu::ml-bad-track-number
+  sdu::ml-cyls
+  sdu::ml-default-backup-label-track-number
+  sdu::ml-default-bad-track-numer
+  sdu::ml-disk-type
+  sdu::ml-gap1
+  sdu::ml-gap2
+  sdu::ml-heads
+  sdu::ml-interleave
+  sdu::ml-label-block-number
+  sdu::ml-magic
+  sdu::ml-number-of-ok-tracks
+  sdu::ml-sector-size
+  sdu::ml-sectors
+  sdu::ml-size-in-bytes
+  sdu::ml-skew
+  sdu::ml-spare-1
+  sdu::set-mini-label
+  sdu::set-ml-backup-label-block-number
+  sdu::set-ml-bad-track-number
+  sdu::set-ml-cyls
+  sdu::set-ml-default-backup-label-track-number
+  sdu::set-ml-default-bad-track-numer
+  sdu::set-ml-disk-type
+  sdu::set-ml-gap1
+  sdu::set-ml-gap2
+  sdu::set-ml-heads
+  sdu::set-ml-interleave
+  sdu::set-ml-label-block-number
+  sdu::set-ml-magic
+  sdu::set-ml-number-of-ok-tracks
+  sdu::set-ml-sector-size
+  sdu::set-ml-sectors
+  sdu::set-ml-size-in-bytes
+  sdu::set-ml-skew
+  sdu::set-ml-spare-1
+  sdu::set-n-bytes
+  sdu::string-constant
+  sdu::vcs-present-p
+  sdu::vcs-screen-number
+  sdu::vcs-slot-number
+  set-char-bit
+  set-macro-character
+  set-mar
+  si:%make-pointer-unsigned
+  si::%area-flip-enable
+  si::%area-map-status
+  si::%area-scavenge-carefully
+  si::%area-scavenge-enable
+  si::%area-swap-recommendations
+  si::%area-type
+  si::%area-volatility
+  si::%chaos-share-buf-size
+  si::%chaos-share-csr
+  si::%chaos-share-intr-addr
+  si::%chaos-share-pkt-length
+  si::%chaos-share-size
+  si::%cold-sys-conf
+  si::%deallocate-pages
+  si::%logldb-test
+  si::%make-page-read-only
+  si::%make-region-not-read-only
+  si::%make-region-read-only
+  si::%pointer-volatility
+  si::%processor-conf-aux-dev-0
+  si::%processor-conf-aux-dev-1
+  si::%processor-conf-base-multibus-mapping-register
+  si::%processor-conf-boot-command
+  si::%processor-conf-boot-mode
+  si::%processor-conf-boot-status
+  si::%processor-conf-chaos-address
+  si::%processor-conf-chaos-share-0
+  si::%processor-conf-chaos-share-1
+  si::%processor-conf-chaos-share-2
+  si::%processor-conf-chaos-share-3
+  si::%processor-conf-chaos-share-4
+  si::%processor-conf-console
+  si::%processor-conf-console-baud-rate
+  si::%processor-conf-excelan-multibus-map-base
+  si::%processor-conf-excelan-multibus-map-size
+  si::%processor-conf-file-band
+  si::%processor-conf-intmap-multibus-map
+  si::%processor-conf-load-band
+  si::%processor-conf-major-version
+  si::%processor-conf-memory-base-0
+  si::%processor-conf-memory-base-1
+  si::%processor-conf-memory-base-2
+  si::%processor-conf-memory-base-3
+  si::%processor-conf-memory-base-4
+  si::%processor-conf-memory-base-5
+  si::%processor-conf-memory-base-6
+  si::%processor-conf-memory-base-7
+  si::%processor-conf-memory-base-8
+  si::%processor-conf-memory-base-9
+  si::%processor-conf-memory-bytes-0
+  si::%processor-conf-memory-bytes-1
+  si::%processor-conf-memory-bytes-2
+  si::%processor-conf-memory-bytes-3
+  si::%processor-conf-memory-bytes-4
+  si::%processor-conf-memory-bytes-5
+  si::%processor-conf-memory-bytes-6
+  si::%processor-conf-memory-bytes-7
+  si::%processor-conf-memory-bytes-8
+  si::%processor-conf-memory-bytes-9
+  si::%processor-conf-micro-band
+  si::%processor-conf-minor-version
+  si::%processor-conf-n-aux-devs
+  si::%processor-conf-number-of-multibus-maps
+  si::%processor-conf-paging-band
+  si::%processor-conf-parity-enables
+  si::%processor-conf-processor-type
+  si::%processor-conf-rcv-chaos-share-dev
+  si::%processor-conf-send-chaos-share-dev
+  si::%processor-conf-share-interrupt-addr
+  si::%processor-conf-share-iopb
+  si::%processor-conf-share-runme
+  si::%processor-conf-share-slot
+  si::%processor-conf-share-spare-1
+  si::%processor-conf-share-spare-2
+  si::%processor-conf-share-spare-3
+  si::%processor-conf-share-spare-4
+  si::%processor-conf-share-type
+  si::%processor-conf-slot-number
+  si::%processor-conf-starting-processor-switches
+  si::%processor-conf-sys-conf-ptr
+  si::%processor-conf-vcmem-slot
+  si::%processor-conf-vcmem-words-per-line
+  si::%processor-conf-watchdog
+  si::%region-flip-enable
+  si::%region-representation-type
+  si::%region-scavenge-carefully
+  si::%region-scavenge-enable
+  si::%region-swap-recommendations
+  si::%region-type
+  si::%region-volatility
+  si::%set-processor-switch
+  si::%share-tty-buf-size
+  si::%share-tty-lam-intr
+  si::%share-tty-lcsr
+  si::%share-tty-lisp-to-unix-buffer
+  si::%share-tty-lisp-to-unix-in-ptr
+  si::%share-tty-lisp-to-unix-out-ptr
+  si::%share-tty-minor
+  si::%share-tty-owner
+  si::%share-tty-ucsr
+  si::%share-tty-unix-intr
+  si::%share-tty-unix-to-lisp-buffer
+  si::%share-tty-unix-to-lisp-in-ptr
+  si::%share-tty-unix-to-lisp-out-ptr
+  si::%short-float-exponent
+  si::%short-float-mantissa
+  si::%single-float-exponent
+  si::%single-float-mantissa
+  si::%system-configuration-burr-brown-owner
+  si::%system-configuration-chaos-sharedev-buffer-size-in-bytes
+  si::%system-configuration-cmos-clock-chip-owner
+  si::%system-configuration-debug-level
+  si::%system-configuration-default-grey-owner
+  si::%system-configuration-default-second-grey-owner
+  si::%system-configuration-disk-unit-0-initialized
+  si::%system-configuration-disk-unit-1-initialized
+  si::%system-configuration-disk-unit-2-initialized
+  si::%system-configuration-disk-unit-3-initialized
+  si::%system-configuration-disk-unit-4-initialized
+  si::%system-configuration-disk-unit-5-initialized
+  si::%system-configuration-disk-unit-6-initialized
+  si::%system-configuration-disk-unit-7-initialized
+  si::%system-configuration-ethernet-owner
+  si::%system-configuration-excelan-2-initted
+  si::%system-configuration-excelan-2-owner
+  si::%system-configuration-excelan-base-multibus-map-block
+  si::%system-configuration-excelan-multibus-map-size
+  si::%system-configuration-excelan-owner
+  si::%system-configuration-flavors-bus-link-owner
+  si::%system-configuration-flavors-bus-link-slot
+  si::%system-configuration-global-shared-base
+  si::%system-configuration-global-shared-size
+  si::%system-configuration-grey-owner
+  si::%system-configuration-grey-slot
+  si::%system-configuration-interphase-2181-owner
+  si::%system-configuration-lmi-debug-board-owner
+  si::%system-configuration-lmi-debug-board-slot
+  si::%system-configuration-lock
+  si::%system-configuration-mti-16-line-owner
+  si::%system-configuration-mti-8-line-owner
+  si::%system-configuration-multibus-tapemaster-parameter-block
+  si::%system-configuration-newboot-idle-count
+  si::%system-configuration-newboot-version-number
+  si::%system-configuration-nubus-disk-owner
+  si::%system-configuration-number-of-processors
+  si::%system-configuration-number-of-share-tty-pages
+  si::%system-configuration-number-of-share-ttys
+  si::%system-configuration-processor-block-size
+  si::%system-configuration-quarter-inch-tape-owner
+  si::%system-configuration-sdu-interrupt-map
+  si::%system-configuration-sdu-nubus-base
+  si::%system-configuration-sdu-nubus-size
+  si::%system-configuration-sdu-rom-version-number
+  si::%system-configuration-sdu-serial-a-owner
+  si::%system-configuration-sdu-serial-b-owner
+  si::%system-configuration-second-burr-brown-owner
+  si::%system-configuration-second-flavors-bus-link-owner
+  si::%system-configuration-second-flavors-bus-link-slot
+  si::%system-configuration-second-grey-owner
+  si::%system-configuration-second-grey-slot
+  si::%system-configuration-second-lmi-debug-board-owner
+  si::%system-configuration-second-lmi-debug-board-slot
+  si::%system-configuration-share-struct-pointer
+  si::%system-configuration-share-tty-0
+  si::%system-configuration-share-tty-1
+  si::%system-configuration-share-tty-2
+  si::%system-configuration-shared-excelan-pointer
+  si::%system-configuration-size
+  si::%system-configuration-system-console
+  si::%system-configuration-tapemaster-base-multibus-map
+  si::%system-configuration-tapemaster-multibus-map-size
+  si::%system-configuration-tapemaster-owner
+  si::%system-configuration-titn-owner
+  si::%system-configuration-user-base-multibus-map
+  si::%system-configuration-user-multibus-map-size
+  si::%system-configuration-version-number
+  si::%wire-page
+  si::%wired-status?
+  si::advise-list*
+  si::allocate-multibus-mapping-registers
+  si::allocated-regions
+  si::analyze-compiled-function
+  si::apply-lambda-lambda
+  si::aref-32
+  si::args-info-from-lambda-list
+  si::array-canonicalize-type
+  si::array-from-net
+  si::array-grow-1
+  si::array-index-offset
+  si::array-indirect-to
+  si::array-size-if-made
+  si::array-to-net
+  si::array-type-subtypep
+  si::array-type-supertype
+  si::assemble-word-from-description
+  si::automatic-displace
+  si::build-nupi-command
+  si::call-macro-expander
+  si::chaos-share-dev
+  si::check-swap-recommendations-of-area
+  si::clean-dirty-pages
+  si::clear-meter
+  si::clear-unibus-channel-buffer
+  si::cold-load-stream-describe-method
+  si::cold-load-stream-rubout-handler
+  si::compare-memory-with-partition
+  si::compare-range
+  si::convert-lambda-interrupt-number-to-multibus-pointer
+  si::convert-logical-unit-to-physical-unit
+  si::copy-disk-portion
+  si::copy-value
+  si::count-changed-pages
+  si::count-dirty-pages
+  si::count-pages-in-position-for-fast-cache
+  si::count-unused-physical-pages
+  si::count-wired-pages
+  si::decode-disk-status
+  si::decode-partition-name
+  si::define-offset-byte-macros
+  si::define-rp-macros
+  si::defselect-internal
+  si::defselect-make-which-operations
+  si::defstruct-code-from-dsc
+  si::defstruct-define-ref-macros
+  si::defstruct-expand-cons-macro-1
+  si::defstruct-expand-ref-macro
+  si::defstruct-make-init-dsc
+  si::defstruct-parse-one-field
+  si::delete-area
+  si::describe-args-info
+  si::describe-array
+  si::describe-bignum
+  si::describe-character
+  si::describe-fef
+  si::describe-fef-adl
+  si::describe-flonum
+  si::describe-lexical-closure-bindings
+  si::describe-numeric-descriptor-word
+  si::describe-region
+  si::describe-small-flonum
+  si::describe-stack-group
+  si::describe-system-versions
+  si::describe-unibus-channel
+  si::disk-run
+  si::disk-save-incremental
+  si::dma-buffer-aref-32
+  si::dma-buffer-set-aref-32
+  si::dotify
+  si::encapsulation-list*
+  si::encode-partition-name
+  si::eq-hash
+  si::eql-hash
+  si::equalp-hash
+  si::estimate-dump-size
+  si::execute-iomsg
+  si::explode-stream
+  si::explorer-lod-band-logical-unit
+  si::explorer-production-kbd-convert
+  si::fasl-group
+  si::fasl-nibble-from-8bit
+  si::fasl-nibble-from-8bit-slow
+  si::fasl-op-float-float
+  si::fasl-op-float-small-float
+  si::fasl-restart
+  si::fef-calls-misc-function
+  si::fef-convert-destinations
+  si::fef-equal
+  si::fef-number-of-real-locals
+  si::fill-in-nupi-command
+  si::fill-in-nupi-simple-command
+  si::find-callers-of-symbols-aux-fef
+  si::find-max-addr
+  si::find-processor-configuration-structure
+  si::find-v2-band
+  si::fixnum-arrayp
+  si::fixnum-microsecond-time-for-scheduler-for-cadr
+  si::fixnum-process-time-meter
+  si::flavor-component-flavor-self-ref-index
+  si::flonum-exponent
+  si::flonum-mantissa
+  si::flonum-to-string
+  si::forward-sdu-interrupt-to-lambda
+  si::function-active-p
+  si::get-boot-tape-version-number
+  si::get-quad-slot
+  si::get-slot-index
+  si::get-unibus-channel
+  si::globalize-1
+  si::greekify-character
+  si::hash-array-default-rehash
+  si::hash-array-funcallable-p
+  si::hash-block-pointer
+  si::initialize-structure-handles-for-region
+  si::insure-down-bucky-bit-consistency
+  si::insure-up-bucky-bit-consistency
+  si::iomsg-buffer
+  si::iomsg-count
+  si::iomsg-done
+  si::iomsg-dummy
+  si::iomsg-offset
+  si::iomsg-value
+  si::iomsg-wakeup
+  si::kbd-convert-new
+  si::kbd-convert-newer
+  si::kbd-convert-ti
+  si::lam-copy-disk-partition
+  si::lam-disk-handler
+  si::lambda-interrupt-number-to-nubus-address
+  si::le-com-control-e-v2
+  si::lisp-reinitialize
+  si::load-lmc-file-into-arrays
+  si::load-lmc-file-into-micro-code-paging-area
+  si::loaded-ucode-partition-and-unit-explorer
+  si::local-phys-to-sdu-phys
+  si::locate-fef-debugging-info
+  si::log-aux
+  si::make-flavor-hash-array-internal
+  si::make-forms-for-sym
+  si::make-rational-from-float
+  si::make-string-from-unibus-channel-buffer
+  si::make-wireable-array
+  si::maybe-change-fef-type
+  si::method-function-spec-handler
+  si::multibus-pointer-to-nubus-address
+  si::numeric-one-argument
+  si::nupi-check-status
+  si::nupi-command-complete-p
+  si::nupi-command-error-p
+  si::nupi-command-initiate
+  si::nupi-disk-interrupt-address
+  si::nupi-disk-logical-block
+  si::nupi-disk-status
+  si::nupi-disk-transfer-count
+  si::nupi-disk-wait
+  si::nupi-list-pointer
+  si::nupi-logical-to-physical-unit
+  si::nupi-tape-command
+  si::p-bignum
+  si::pad-area-to-page-index
+  si::page-array-calculate-bounds
+  si::page-first-header
+  si::page-in-words-new
+  si::page-in-words-old
+  si::page-index
+  si::page-initial-qs
+  si::page-number
+  si::pkg-code
+  si::pkg-code-hash-code
+  si::pkg-intern-external
+  si::pkg-intern-internal
+  si::pkg-keyword-store
+  si::pkg-make-code
+  si::pkg-set-external-flag
+  si::print-areas-of-wired-pages
+  si::print-character
+  si::print-disk-label-from-rqb-v2
+  si::print-hash-array
+  si::print-intmaps
+  si::print-iomsg
+  si::print-ioport
+  si::print-nupi-command
+  si::print-processor-switches
+  si::print-raw-string
+  si::print-sysconf-entry
+  si::print-unibus-channel-buffer
+  si::print-unibus-channel-list
+  si::processor-configuration
+  si::puthash-bootstrap
+  si::read-lmc-word
+  si::read-multibus-mapping-register
+  si::read-unibus-channel
+  si::really-page-out-page
+  si::receive-partition-packet
+  si::rehash-put
+  si::report-changed-pages
+  si::require-online-numeric-unit
+  si::return-unibus-channel
+  si::room-print-area
+  si::save-disk-partition-sxhash
+  si::send-iomsg
+  si::set-%chaos-share-buf-size
+  si::set-%chaos-share-csr
+  si::set-%chaos-share-intr-addr
+  si::set-%chaos-share-pkt-length
+  si::set-%chaos-share-size
+  si::set-%processor-conf-aux-dev-0
+  si::set-%processor-conf-aux-dev-1
+  si::set-%processor-conf-base-multibus-mapping-register
+  si::set-%processor-conf-boot-command
+  si::set-%processor-conf-boot-mode
+  si::set-%processor-conf-boot-status
+  si::set-%processor-conf-chaos-address
+  si::set-%processor-conf-chaos-share-0
+  si::set-%processor-conf-chaos-share-1
+  si::set-%processor-conf-chaos-share-2
+  si::set-%processor-conf-chaos-share-3
+  si::set-%processor-conf-chaos-share-4
+  si::set-%processor-conf-console
+  si::set-%processor-conf-console-baud-rate
+  si::set-%processor-conf-excelan-multibus-map-base
+  si::set-%processor-conf-excelan-multibus-map-size
+  si::set-%processor-conf-file-band
+  si::set-%processor-conf-intmap-multibus-map
+  si::set-%processor-conf-load-band
+  si::set-%processor-conf-major-version
+  si::set-%processor-conf-memory-base-0
+  si::set-%processor-conf-memory-base-1
+  si::set-%processor-conf-memory-base-2
+  si::set-%processor-conf-memory-base-3
+  si::set-%processor-conf-memory-base-4
+  si::set-%processor-conf-memory-base-5
+  si::set-%processor-conf-memory-base-6
+  si::set-%processor-conf-memory-base-7
+  si::set-%processor-conf-memory-base-8
+  si::set-%processor-conf-memory-base-9
+  si::set-%processor-conf-memory-bytes-0
+  si::set-%processor-conf-memory-bytes-1
+  si::set-%processor-conf-memory-bytes-2
+  si::set-%processor-conf-memory-bytes-3
+  si::set-%processor-conf-memory-bytes-4
+  si::set-%processor-conf-memory-bytes-5
+  si::set-%processor-conf-memory-bytes-6
+  si::set-%processor-conf-memory-bytes-7
+  si::set-%processor-conf-memory-bytes-8
+  si::set-%processor-conf-memory-bytes-9
+  si::set-%processor-conf-micro-band
+  si::set-%processor-conf-minor-version
+  si::set-%processor-conf-n-aux-devs
+  si::set-%processor-conf-number-of-multibus-maps
+  si::set-%processor-conf-paging-band
+  si::set-%processor-conf-parity-enables
+  si::set-%processor-conf-processor-type
+  si::set-%processor-conf-rcv-chaos-share-dev
+  si::set-%processor-conf-send-chaos-share-dev
+  si::set-%processor-conf-share-interrupt-addr
+  si::set-%processor-conf-share-iopb
+  si::set-%processor-conf-share-runme
+  si::set-%processor-conf-share-slot
+  si::set-%processor-conf-share-spare-1
+  si::set-%processor-conf-share-spare-2
+  si::set-%processor-conf-share-spare-3
+  si::set-%processor-conf-share-spare-4
+  si::set-%processor-conf-share-type
+  si::set-%processor-conf-slot-number
+  si::set-%processor-conf-starting-processor-switches
+  si::set-%processor-conf-sys-conf-ptr
+  si::set-%processor-conf-vcmem-slot
+  si::set-%processor-conf-vcmem-words-per-line
+  si::set-%processor-conf-watchdog
+  si::set-%share-tty-buf-size
+  si::set-%share-tty-lam-intr
+  si::set-%share-tty-lcsr
+  si::set-%share-tty-lisp-to-unix-buffer
+  si::set-%share-tty-lisp-to-unix-in-ptr
+  si::set-%share-tty-lisp-to-unix-out-ptr
+  si::set-%share-tty-minor
+  si::set-%share-tty-owner
+  si::set-%share-tty-ucsr
+  si::set-%share-tty-unix-intr
+  si::set-%share-tty-unix-to-lisp-buffer
+  si::set-%share-tty-unix-to-lisp-in-ptr
+  si::set-%share-tty-unix-to-lisp-out-ptr
+  si::set-%system-configuration-burr-brown-owner
+  si::set-%system-configuration-chaos-sharedev-buffer-size-in-bytes
+  si::set-%system-configuration-cmos-clock-chip-owner
+  si::set-%system-configuration-debug-level
+  si::set-%system-configuration-default-grey-owner
+  si::set-%system-configuration-default-second-grey-owner
+  si::set-%system-configuration-disk-unit-0-initialized
+  si::set-%system-configuration-disk-unit-1-initialized
+  si::set-%system-configuration-disk-unit-2-initialized
+  si::set-%system-configuration-disk-unit-3-initialized
+  si::set-%system-configuration-disk-unit-4-initialized
+  si::set-%system-configuration-disk-unit-5-initialized
+  si::set-%system-configuration-disk-unit-6-initialized
+  si::set-%system-configuration-disk-unit-7-initialized
+  si::set-%system-configuration-ethernet-owner
+  si::set-%system-configuration-excelan-2-initted
+  si::set-%system-configuration-excelan-2-owner
+  si::set-%system-configuration-excelan-base-multibus-map-block
+  si::set-%system-configuration-excelan-multibus-map-size
+  si::set-%system-configuration-excelan-owner
+  si::set-%system-configuration-flavors-bus-link-owner
+  si::set-%system-configuration-flavors-bus-link-slot
+  si::set-%system-configuration-global-shared-base
+  si::set-%system-configuration-global-shared-size
+  si::set-%system-configuration-grey-owner
+  si::set-%system-configuration-grey-slot
+  si::set-%system-configuration-interphase-2181-owner
+  si::set-%system-configuration-lmi-debug-board-owner
+  si::set-%system-configuration-lmi-debug-board-slot
+  si::set-%system-configuration-lock
+  si::set-%system-configuration-mti-16-line-owner
+  si::set-%system-configuration-mti-8-line-owner
+  si::set-%system-configuration-multibus-tapemaster-parameter-block
+  si::set-%system-configuration-newboot-idle-count
+  si::set-%system-configuration-newboot-version-number
+  si::set-%system-configuration-nubus-disk-owner
+  si::set-%system-configuration-number-of-processors
+  si::set-%system-configuration-number-of-share-tty-pages
+  si::set-%system-configuration-number-of-share-ttys
+  si::set-%system-configuration-processor-block-size
+  si::set-%system-configuration-quarter-inch-tape-owner
+  si::set-%system-configuration-sdu-interrupt-map
+  si::set-%system-configuration-sdu-nubus-base
+  si::set-%system-configuration-sdu-nubus-size
+  si::set-%system-configuration-sdu-rom-version-number
+  si::set-%system-configuration-sdu-serial-a-owner
+  si::set-%system-configuration-sdu-serial-b-owner
+  si::set-%system-configuration-second-burr-brown-owner
+  si::set-%system-configuration-second-flavors-bus-link-owner
+  si::set-%system-configuration-second-flavors-bus-link-slot
+  si::set-%system-configuration-second-grey-owner
+  si::set-%system-configuration-second-grey-slot
+  si::set-%system-configuration-second-lmi-debug-board-owner
+  si::set-%system-configuration-second-lmi-debug-board-slot
+  si::set-%system-configuration-share-struct-pointer
+  si::set-%system-configuration-share-tty-0
+  si::set-%system-configuration-share-tty-1
+  si::set-%system-configuration-share-tty-2
+  si::set-%system-configuration-shared-excelan-pointer
+  si::set-%system-configuration-size
+  si::set-%system-configuration-system-console
+  si::set-%system-configuration-tapemaster-base-multibus-map
+  si::set-%system-configuration-tapemaster-multibus-map-size
+  si::set-%system-configuration-tapemaster-owner
+  si::set-%system-configuration-titn-owner
+  si::set-%system-configuration-user-base-multibus-map
+  si::set-%system-configuration-user-multibus-map-size
+  si::set-%system-configuration-version-number
+  si::set-3com-owner
+  si::set-chaos-share-dev
+  si::set-current-band-for-local-machine-v2
+  si::set-default-load-band-v2
+  si::set-default-microload-v2
+  si::set-error-mode
+  si::set-fef-debugging-info
+  si::set-nupi-disk-interrupt-address
+  si::set-nupi-disk-list-pointer
+  si::set-nupi-disk-logical-block
+  si::set-nupi-disk-status
+  si::set-nupi-disk-transfer-count
+  si::set-processor-configuration
+  si::set-share-tty
+  si::set-system-configuration
+  si::setup-intmaps
+  si::setup-multibus-map-to-rg-board-interrupt-registers
+  si::setup-structure-handles-for-area
+  si::setup-structure-handles-for-region
+  si::sg-never-run-p
+  si::share-chaos-interrupt
+  si::share-get-next-packet
+  si::share-mem-read
+  si::share-mem-write
+  si::share-packet-ready
+  si::share-send-int-pkt
+  si::share-tty
+  si::simple-make-array
+  si::simple-make-array-1d-q-short
+  si::simple-make-array-1d-string-with-fill-pointer
+  si::sin-aux
+  si::store-keyword-arg-values-internal-lambda
+  si::sxhash-disk-portion
+  si::sys-conf-structure-available-p
+  si::system-configuration
+  si::transmit-partition-packet
+  si::turn-off-sdu-interrupt
+  si::turn-on-microsecond-clock-if-present
+  si::unfasl-group
+  si::unfasl-op-character
+  si::unfasl-op-fixed
+  si::unfasl-op-float
+  si::unfasl-op-frame
+  si::unibus-channel-advance
+  si::unibus-channel-data-available
+  si::unibus-channel-not-empty
+  si::unibus-channel-not-full
+  si::unibus-channel-sp
+  si::unibus-channel-space-available
+  si::unused-space
+  si::vadr-to-nubus-phys
+  si::verify-nupi-command
+  si::wipe-structure
+  si::wire-disk-rqb
+  si::wireable-array-p
+  si::write-multibus-mapping-register
+  si::write-responsibility-comment
+  si::xr-#\-macro
+  si::xr-#^-macro
+  si::xr-cl-#\-macro
+  si::xr-doublequote-macro
+  si::xr-parse-keyboard-char
+  si::xr-xrtyi
+  si:array-data-offset
+  si:change-indirect-array
+  si:copy-object-tree
+  si:fef-flavor-name
+  si:flavor-decode-self-ref-pointer
+  si:flavor-var-self-ref-index
+  si:print-disk-error-log
+  si:print-quoted-string
+  si:process-scheduler
+  si:random-initialize
+  si:set-swap-recommendations-of-area
+  si:sg-resumable-p
+  si:system-version-info
+  sqrt
+  stack-group-preset
+  string
+  string-reverse-search
+  string-reverse-search-char
+  string-reverse-search-not-char
+  string-reverse-search-not-set
+  string-reverse-search-set
+  string-search
+  string-search-char
+  string-search-not-char
+  string-search-not-set
+  string-search-set
+  string-subst-char
+  structure-forward
+  subseq
+  substring
+  supdup::18bit-out
+  supdup::graphics-draw-bits
+  supdup::graphics-draw-line
+  supdup::graphics-draw-point
+  supdup::graphics-draw-rect
+  supdup::graphics-draw-runs
+  supdup::graphics-erase-screen
+  supdup::gt40-delete
+  supdup::gt40-display-item
+  supdup::gt40-insert
+  supdup::gt40-insert-or-delete
+  supdup::gt40-short
+  supdup::l-e-supdup-backward-char
+  supdup::l-e-supdup-backward-delete-char
+  supdup::l-e-supdup-backward-kill-word
+  supdup::l-e-supdup-backward-word
+  supdup::l-e-supdup-forward-char
+  supdup::l-e-supdup-forward-delete-char
+  supdup::l-e-supdup-forward-kill-word
+  supdup::l-e-supdup-forward-word
+  supdup::l-e-supdup-insert-char
+  supdup::l-e-supdup-set-margin
+  supdup::l-e-supdup-set-word-syntax
+  supdup::mouse-out
+  supdup::supdup-ards-long
+  supdup::supdup-ards-set
+  supdup::supdup-ards-short
+  supdup::supdup-region-down
+  supdup::supdup-region-up
+  sxhash
+  symeval-in-stack-group
+  system:delete-binding-from-closure
+  system:fasl-op-character
+  system:fasl-op-fixed
+  system:fasl-op-frame
+  system:fasl-op-initialize-array
+  system:fasl-op-large-index
+  system:fasl-op-new-float
+  system:fef-adl-length
+  system:fef-adl-origin
+  system:fef-bit-map
+  system:fef-bit-map-p
+  system:fef-debugging-info
+  system:fef-debugging-info-present-p
+  system:fef-fast-argument-option-p
+  system:fef-fast-argument-option-word
+  system:fef-initial-pc
+  system:fef-instruction
+  system:fef-instruction-length
+  system:fef-length
+  system:fef-limit-pc
+  system:fef-no-adl-p
+  system:fef-specials-bound-p
+  system:find-disk-partition-for-write
+  system:get-disk-fixnum
+  system:get-macro-arg-desc-pointer
+  system:insert-binding-in-closure
+  system:kbd-convert-to-software-char
+  system:kbd-get-hardware-char
+  system:kbd-hardware-char-available
+  system:lisp-error-handler
+  system:page-out-words
+  system:put-disk-fixnum
+  system:rp-adi-present
+  system:rp-attention
+  system:rp-binding-block-pushed
+  system:rp-delta-to-active-block
+  system:rp-delta-to-open-block
+  system:rp-destination
+  system:rp-exit-pc
+  system:rp-local-block-origin
+  system:rp-micro-stack-saved
+  system:rp-number-args-supplied
+  system:rp-pc-status
+  system:rp-trap-on-exit
+  system:sg-current-state
+  system:sg-flags-car-num-mode
+  system:sg-flags-car-sym-mode
+  system:sg-flags-cdr-num-mode
+  system:sg-flags-cdr-sym-mode
+  system:sg-flags-dont-swap-in
+  system:sg-flags-mar-mode
+  system:sg-flags-meter-enable
+  system:sg-flags-pgf-write
+  system:sg-flags-qbbfl
+  system:sg-flags-trap-enable
+  system:sg-flags-trap-on-call
+  system:sg-foothold-executing-flag
+  system:sg-in-swapped-state
+  system:sg-inst-disp
+  system:sg-processing-error-flag
+  system:sg-processing-interrupt-flag
+  system:sg-safe
+  system:sg-swap-sv-of-sg-that-calls-me
+  system:sg-swap-sv-on-call-out
+  system:store-keyword-arg-values
+  tape::recursive-file-list-local
+  tape::recursive-local-file-funcall
+  tape::set-deleted
+  tape::streamer-tape-block-request-complete
+  time-difference
+  time-increment
+  time::day-is-february-29-p
+  time::define-rtc-register-field
+  time::read-explorer-year
+  time::rtc-24-hour-mode
+  time::rtc-alarm-interrupt-enable
+  time::rtc-binary-mode
+  time::rtc-daylight-savings-mode
+  time::rtc-divider-select
+  time::rtc-get-universal-time
+  time::rtc-periodic-interrupt-enable
+  time::rtc-rate-select
+  time::rtc-set-mode
+  time::rtc-set-universal-time
+  time::rtc-square-wave-enable
+  time::rtc-update-bit
+  time::rtc-update-interrupt-enable
+  time::rtc-valid-bit
+  time::write-day-is-february-29
+  time::write-explorer-year
+  time:fixnum-microsecond-time
+  time:microsecond-time
+  time:update-timebase
+  tm::%streaming-read
+  tm::%streaming-write
+  tm::analyze-buffer
+  tm::ccb-channel-control-word
+  tm::ccb-gate
+  tm::check-for-error
+  tm::command-acknowledged?
+  tm::compare-streaming-buffer-to-string
+  tm::controller-status
+  tm::copy-streaming-buffer-to-array
+  tm::determine-tapemaster-owner
+  tm::direct-read
+  tm::direct-write
+  tm::disk-process-buffer
+  tm::examine-mapping
+  tm::execute-command
+  tm::find-error-in-streaming-buffer
+  tm::gate-open?
+  tm::get-stupid-unit
+  tm::init
+  tm::madr-points-to-buffer-index-p
+  tm::map-dma-buffer
+  tm::prepare-buffer-for-streaming-read
+  tm::prepare-buffer-for-streaming-write
+  tm::prepare-buffer-for-streaming-write-unaltered
+  tm::read-multibus-mapping-register
+  tm::reset-data-area-mapping
+  tm::setup-multibus-map
+  tm::sieze-gate
+  tm::tpb-bank-select
+  tm::tpb-buffered-read-enable
+  tm::tpb-bus-lock
+  tm::tpb-bus-width
+  tm::tpb-command-seen
+  tm::tpb-complete
+  tm::tpb-continuous
+  tm::tpb-density
+  tm::tpb-eot
+  tm::tpb-error
+  tm::tpb-file-mark
+  tm::tpb-formatter-busy
+  tm::tpb-interrupt-enable
+  tm::tpb-link
+  tm::tpb-load-point
+  tm::tpb-mailbox-interrupts
+  tm::tpb-on-line
+  tm::tpb-ready
+  tm::tpb-retry
+  tm::tpb-reverse
+  tm::tpb-skip-eot
+  tm::tpb-unit
+  tm::tpb-write-protect
+  tm::unmap-multibus-page
+  tm::vadr-to-nubus-physical-page
+  tm::wait
+  tm::write-multibus-mapping-register
+  tops20::read-word
+  tops20::write-ascii-data-word
+  tv::%draw-string
+  tv::alternate-rubout-handler
+  tv::array-bits-per-pixel
+  tv::background-stream
+  tv::blinker-clock-internal
+  tv::choose-variable-values-choice
+  tv::compute-bottom-reached
+  tv::constraint-frame-draw-blank-space
+  tv::constraint-frame-recompute-configuration
+  tv::default-rubout-handler
+  tv::draw-borders
+  tv::draw-choice-box
+  tv::draw-frobs
+  tv::draw-label
+  tv::empty-gray-hack-draw-gray
+  tv::erase-label
+  tv::erase-margins
+  tv::fef-display-list
+  tv::get-bow-mode
+  tv::kbd-esc-help
+  tv::kbd-esc-notifications
+  tv::kbd-esc-output-hold
+  tv::kbd-esc-resume
+  tv::kbd-finger
+  tv::kbd-gc-status
+  tv::kbd-hostat
+  tv::kbd-process-main-loop-internal
+  tv::kbd-sys-1
+  tv::kbd-view-mail
+  tv::lowest-sheet-under-point
+  tv::make-mouse-char
+  tv::margin-choice-region
+  tv::margin-scroll-region
+  tv::maybe-move-bottom-reached
+  tv::notify-possible-p
+  tv::peek-gs-get-from-processor-switches
+  tv::peek-gs-set-processor-switches
+  tv::peek-top-level
+  tv::reached-bottom
+  tv::rh-com-quote-character
+  tv::rh-insert-char
+  tv::screen-manage-dequeue-entry
+  tv::screen-manage-restore-area
+  tv::screen-manage-sheet
+  tv::scroll-bar-draw
+  tv::scroll-bar-erase
+  tv::scroll-redisplay
+  tv::scroll-redisplay-display-item
+  tv::sheet-backspace-1
+  tv::sheet-bits-per-pixel
+  tv::sheet-clear-between-cursorposes
+  tv::sheet-cr-not-newline-flag
+  tv::sheet-deexposed-typein-notify
+  tv::sheet-display-lozenged-string
+  tv::sheet-dont-blink-blinkers-flag
+  tv::sheet-exceptions
+  tv::sheet-force-save-bits
+  tv::sheet-handle-exceptions
+  tv::sheet-more-lock-kludge
+  tv::sheet-prepare-sheet-internal
+  tv::sheet-right-margin-character-flag
+  tv::sheet-set-exposed-position
+  tv::sheet-string-out-explicit-1
+  tv::sheet-tab-1
+  tv::sheet-time-out-on-more
+  tv::sheet-tyo
+  tv::system-set-edges
+  tv::update-current-item
+  tv::who-line-package
+  tv::who-line-string
+  tv::write-sound-reg
+  tv:careful-notify
+  tv:char-mouse-p
+  tv:complement-bow-mode
+  tv:draw-char
+  tv:kbd-asynchronous-intercept-character
+  tv:kbd-intercept-abort
+  tv:kbd-intercept-abort-all
+  tv:menu-compute-geometry
+  tv:merge-shift-keys
+  tv:mouse-button-encode
+  tv:open-blinker
+  tv:screen-manage-update-permitted-windows
+  tv:sheet-backspace-not-overprinting-flag
+  tv:sheet-character-width
+  tv:sheet-clear
+  tv:sheet-clear-char
+  tv:sheet-clear-eof
+  tv:sheet-clear-eol
+  tv:sheet-clear-string
+  tv:sheet-compute-motion
+  tv:sheet-crlf
+  tv:sheet-delete-char
+  tv:sheet-delete-line
+  tv:sheet-end-page-flag
+  tv:sheet-home
+  tv:sheet-increment-bitpos
+  tv:sheet-insert-char
+  tv:sheet-insert-line
+  tv:sheet-line-out
+  tv:sheet-more-flag
+  tv:sheet-more-handler
+  tv:sheet-output-hold-flag
+  tv:sheet-set-cursorpos
+  tv:sheet-space
+  tv:sheet-string-length
+  tv:sheet-string-out
+  tv:sheet-tab-nchars
+  tv:sheet-truncate-line-out-flag
+  type-of
+  typep
+  unexport
+  unix::find-unix-stream-internal
+  unix::unix-stream-status
+  vector-pop
+  write-meter
+  zwei::anticipate-font-pop
+  zwei::atom-under-mouse
+  zwei::background-typeout-stream
+  zwei::backward-over
+  zwei::blink-function
+  zwei::blink-matching-paren
+  zwei::bp-looking-at-list
+  zwei::build-fsm-character-set
+  zwei::build-fsm-tree-1
+  zwei::case-replace
+  zwei::change-font-interval
+  zwei::change-one-font-interval
+  zwei::char-lowercase-p
+  zwei::char-search-internal
+  zwei::char-syntax-open-coded
+  zwei::char-uppercase-p
+  zwei::clear-line-font
+  zwei::com-backward-over-matching-delimiters
+  zwei::com-bolio-into-font
+  zwei::com-canonicalize-whitespace
+  zwei::com-complete-and-exit-1
+  zwei::com-correct-spelling
+  zwei::com-delete-indentation
+  zwei::com-forward-over-matching-delimiters
+  zwei::com-frob-do
+  zwei::com-go-to-next-label
+  zwei::com-kill-terminated-word
+  zwei::com-modified-two-windows
+  zwei::com-numbers
+  zwei::com-prefix-control
+  zwei::com-prefix-control-meta
+  zwei::com-quoted-insert
+  zwei::com-show-list-start
+  zwei::com-string-search-internal
+  zwei::com-upcase-digit
+  zwei::command-lookup
+  zwei::command-store
+  zwei::complete-chunk-compare
+  zwei::defun-interval
+  zwei::delete-chars-converting-tabs
+  zwei::delimchar-p
+  zwei::document-key
+  zwei::document-prefix-char
+  zwei::document-prefix-char-table
+  zwei::expand-p
+  zwei::fasl-update-check-defun
+  zwei::fill-interval
+  zwei::find-or-create-idle-zmacs-window
+  zwei::fixup-whitespace
+  zwei::forward-defun
+  zwei::forward-over
+  zwei::forward-over-matching-delimiters
+  zwei::forward-page
+  zwei::forward-sentence
+  zwei::forward-sexp
+  zwei::fsm-expr-search
+  zwei::fsm-search
+  zwei::fsm-string-search
+  zwei::get-echo-char
+  zwei::get-keyboard-macro-definition
+  zwei::get-register-name
+  zwei::go-to-address-or-ac-field-internal
+  zwei::in-current-font
+  zwei::incremental-search
+  zwei::indent-not-function-p
+  zwei::input-font-name
+  zwei::insert-chars
+  zwei::kbd-scroll
+  zwei::key-for-command
+  zwei::line-blank-p
+  zwei::line-opens-parens
+  zwei::line-type
+  zwei::lisp-bp-syntactic-context
+  zwei::lisp-change-case
+  zwei::lisp-find-comment-start
+  zwei::lisp-parse-line
+  zwei::lisp-string-buffer-match
+  zwei::make-comtab-non-sparse
+  zwei::map-fonts-interval
+  zwei::mark-page-internal
+  zwei::match-fsm
+  zwei::mouse-char
+  zwei::parse-buffer-replace-pairs
+  zwei::parse-extended-search-string
+  zwei::parse-extended-search-string-syntax
+  zwei::reference-hash
+  zwei::region-mark-pline
+  zwei::region-unmark-range
+  zwei::reset-zmail-user
+  zwei::search-set
+  zwei::select-word
+  zwei::set-char-syntax
+  zwei::set-command-button
+  zwei::set-comtab-uppercase-indirection
+  zwei::skip-over-blank-lines-and-comments
+  zwei::stream-maybe-redisplay
+  zwei::string-to-banner-list
+  zwei::string-width
+  zwei::tab-convert
+  zwei::tabify-interval
+  zwei::unreachable-command-list-internal
+  zwei::wallchart-comtab
+  zwei::window-redisplay-dis-line
+  zwei::zmail-background-check-for-new-mail
+  zwei::zmail-background-pause
+  zwei::zmail-background-set-inbox-buffer
+  zwei::zwei-inside-changed
+  zwei::|com-make-()|
+  zwei::|com-move-over-)|
+  zwei:char-syntax
+

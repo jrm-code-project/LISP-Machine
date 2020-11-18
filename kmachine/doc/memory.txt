@@ -1,0 +1,25 @@
+                         K System Memory Layout
+
+Area   Start  Quantum  Cluster
+
+ 0      0000    0       0       0   NIL
+                                5   T
+                                41. *magic-garbage-location*
+                                42. Boot Vector
+                        1       Temporary map entry
+                        2       kbug communication
+                        3       *k-io-regs-cluster* nubus mapped
+                        4       ...
+                                free
+                        F       ...
+  1     4000     1              PCD
+        6000                    Quantum Map
+        7000                    Region Bits
+  2     8000     2              Region Data
+  3     C000                    Area Data
+  4  2000000  8000              Cold Code
+  5                             desparate consing area
+  6                             default consing area
+  7                             default code area
+  ----------------------------------------------------------------------
+  8                             special pdl area

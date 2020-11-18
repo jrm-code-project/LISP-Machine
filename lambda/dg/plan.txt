@@ -1,0 +1,261 @@
+-*- Mode: Text -*-
+
+
+                          Release Plans for 3.0
+
+                      Release Package Specification
+
+
+1)      Boot Tape (SDU and Unix Root)
+2)      Unix User Files (optional)
+3)      Lisp Band tape
+4)      Lisp source tape(s)
+5)      Documentation update package
+6)      Release notes
+7)      Cover letters
+
+Users that still require Version 7 will get a different version of
+both the Boot Tape and the User Files.
+
+
+
+
+                         Release Cycle Breakdown
+
+
+1)      Alpha Preparation - Making of Alpha Release package for testing
+2)      Alpha Test Cycle  - Explained below in detail
+3)      Beta Preparation  - Explained below in detail
+4)      Beta Test Cycle   - Explained below in detail
+5)      Final Preparation - Explained below in detail
+6)      Final Release     - Signoff and distribution
+
+
+
+                          Release plans for 3.0
+
+                           Software Test Cycle
+
+                            General Overview
+
+
+[Core System testing]
+
+        This involves testing of the basic system software.  The exact
+definition of 'core system' is outlined below.  The associated
+activities range from general use of the system facilities by the test
+person to the development and use automated test programs.  For release
+3.0, it would be immediately advantageous to develop an automated test
+program for testing Common Lisp support.  This task would take very
+little extra effort, since Common Lisp at this point is a very stable
+standard and it simply requires recording the test procedures that will
+be used during this cycle in a manner that they could be understood and
+automatically run by a simple program.  The existence of this program
+would virtually eliminate testing of Common Lisp from manpower
+considerations in all future test cycles.  This, of course, does not
+exempt consideration of bug fixing time.
+
+
+[Software Option Testing]
+
+        Testing and bug fixing here should be a bit easier than for the
+core software since the interdependencies are fewer (with the exception
+of TCP) and the functionality more isolated.  The engineers responsable
+for the existence of each particular option will likewise be responsible
+for fixing (or helping others fix) any problems encountered.  They may,
+of course, decide that a particular bug cannot be fixed in view of the
+time constraints of the release or the complexity of the bug and
+possible adverse affects (like more bugs).
+
+
+
+
+
+                          Release Plans for 3.0
+
+                           Release Test Cycle
+
+                             Critical Issues
+
+
+Stability of test machines:
+
+        This is always a critical issue, but the importance of this
+release should be reflected in the the availability of spare parts and
+repair turnaround time.  Problems in this respect will adversly effect
+the release schedule.
+
+Communications between Customer Service and Engineering:
+
+        My concern here is in terms of hardware and software support.
+The UUCP link between Andover and Cambridge is the only acceptable means
+for relaying bug reports and information, and any release schedules will
+assume its complete reliability. It is certainly possible to relay the
+necessary information by other means, but this poses such a degradation
+in efficiency that we would have to completely reevaluate all
+appropriate schedules.
+
+Constant feedback loop:
+
+        It will be important to maintain a constant flow of information
+between engineering and customer service.  This means that update
+reports (that can be automatically generated) and patches will need to
+be issued on at least a daily basis between Customer Service and
+Engineering.  This will allow the constant tracking of the test cycle by
+both Engineering and Customer Service and provide enough information to
+allow the release plan to be adjusted wherever appropriate to optimize
+the release process.
+
+Availability of people for testing and documentation verification:
+
+        The important factor here is that those who are testing the
+system and reporting bugs can identify the most efficient means for
+relaying the information to bug fixers.  This includes supplying code
+that can reproduce the bug if possible, knowing when to 'get someone who
+knows' and understanding that a vague bug report is worse than no bug
+report at all.
+
+Commitment of resources:
+
+        The management of all departments must be willing and able to
+act upon reasonable requests for resources and assistance.  This must be
+acknowledged throughout the management hierarchy, so that we can take
+advantage of any optimizations of the plan that may become apparent at
+a later date.
+
+
+
+                          Release Plans for 3.0
+
+                           Release Test Cycle
+
+                   Customer Service Activity Breakdown
+
+
+Software Testing and Bug Reporting:
+
+        - Testing
+        - Reporting and internally documenting bugs
+        - Tracking bug status
+        - Testing fixes
+        - Reporting success of fixes
+
+
+Documentation Overview:
+
+        - Reviewing entire documentation update package
+        - Submitting and tracking documentation changes
+        - Recheck changed sections of final version
+
+
+Installation Procedure Overview:
+
+        - Test installation procedures for all supported
+          system configurations
+        - Test configurations of systems with all hardware options
+        - Submit improvement requests
+
+
+Continual Tracking of Test Cycle:
+
+        - Track and analyze both CS and ENG progress
+        - Suggest improvements for test cycle
+        - Issue progress reports to ENG
+
+
+
+
+                          Release Plans for 3.0
+
+                           Release Test Cycle
+
+                     Engineering Activity Breakdown
+
+
+Bug Fixing:
+
+        - Gathering existing bug reports from Customer Service
+        - Filtering out 'non-bugs'
+        - Prioritizing bugs by complexity and severity
+        - Fixing and documenting bugs
+        - Submitting appropriate changes to documentation
+
+
+Continual re-evaluation of software:
+
+        - Documentation or fixing of possible future bugs
+        - Prediction and documentation of possible user problems
+        - Submitting changes/additions to documentation as deemed necessary
+
+
+Environment Checking:
+
+        - Test source/band continuity
+        - Environmental analysis (paging fragmentation, etc.)
+
+
+Continual Tracking of Test Cycle:
+
+        - Track and analyze both CS and ENG progress
+        - Suggest improvements for test cycle
+        - Issue progress reports to CS
+
+
+
+                          Release Plans for 3.0
+
+                        Release Preparation Cycle
+
+
+Bug Fix Finalization: (Release Group & CS)
+        1. Assess outstanding bugs
+        2. Re-run any automated tests
+        3. Set up final fix margin for critical bugs
+        4. Make final bug fixes (carefully)
+        5. Consolidate internal bug tracking documentation
+
+Documentation Update: (Documentation Group)
+        1. Add bugs fixed to Bug-Fix Notes
+        2. Make any changes to user documentation updates
+        3. Make any changes to Release Notes necessary
+
+Final Visual Examination: (Release Group & CS)
+        1. Superficial examination of system modules
+        2. Check site information
+        3. Check disk-saving, booting, initializations, etc.
+
+Distribution: (Manufacturing)
+        1. Make tapes
+        2. Make documentation packages
+        3. Write cover letters to customer
+        4* Release to Manufacturing (Final Release Only)
+
+Final Release addition: (Release & CS)
+        It would be appropriate to have an extra time period allotted
+        to a final recheck of the system, including re-test of all patches
+        made after Beta release.  This would only be for the final release.
+
+
+
+                          Release Plans for 3.0
+
+                           Software Breakdown
+
+Core System:
+        Local-file
+        Tape (and backup)
+        Zmail
+        Printer Software
+        Kermit
+        ObjectLisp
+        Gateway
+        Window Site Editor
+        Font Editor
+        General Lisp System
+
+Options:
+        Vista
+        Medium-Res Color
+        Imagen software
+        TCP/IP
+        Microcompiler (to be discussed)

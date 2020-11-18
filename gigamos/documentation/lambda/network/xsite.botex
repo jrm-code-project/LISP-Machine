@@ -1,0 +1,76 @@
+;;;-*- Mode:LISP; Package:SYSTEM-INTERNALS; Readtable:ZL; Base:10 -*-
+
+;;;Prototype site declaration for Lambdas.
+
+;;;Change CUSTOMER to your own site name.
+;;;Be sure to check the values of all the options.
+
+(DEFSITE :CUSTOMER
+
+  (:SHORT-SITE-NAME "Customer Site")
+  (:LONG-SITE-NAME "Customer Lambda Network")
+
+  ;;The host on which the system sources are located.
+  (:SYS-HOST "LM")
+
+  ;;A list of machines that have a server to provide the time and date
+  ;;to machines on the network.
+  (:CHAOS-TIME-SERVER-HOSTS '("Lambda-A" "Lambda-B" "Lambda-C"))
+
+  ;; Hosts that can provide information about non-Chaosnet hosts.
+  (:CHAOS-HOST-TABLE-SERVER-HOSTS '())
+
+  ;; Hosts that have mail servers capable of forwarding mail anywhere.
+  (:CHAOS-MAIL-SERVER-HOSTS '())
+
+  ;;The argument is the number of hours east of GMT.  EST=5, CST=6, etc.
+  (:TIMEZONE 5)
+
+  ;;Destination for mail to BUG-<list>, a mail server host name, or NIL
+  (:HOST-FOR-BUG-REPORTS '())
+
+  ;;"Local sites", used by ZMail summary display
+  (:LOCAL-MAIL-HOSTS '("Lambda-A"))
+
+  ;;A list of lists of names and printer specs. Known printer types
+  ;;include :LASER1, :LASER1+, :IMAGEN, and :TI855.
+  (:PRINTER-NAMES '((("OUR-PRINTER") (:TI855 "Lambda-A"))))
+
+  ;;This specifies the default printer for text.
+  (:DEFAULT-PRINTER "OUR-PRINTER")
+
+  ;;This specifies the default printer for screen dumps and arrays.
+  (:DEFAULT-BIT-ARRAY-PRINTER '(:TI855 "Lambda-A"))
+
+  ;;Name and number(s) of the network
+  (:NETWORK-NAMES '((("CUSTOMER-NETWORK")
+                     ((:CHAOS 7)))))
+  )
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end xsite

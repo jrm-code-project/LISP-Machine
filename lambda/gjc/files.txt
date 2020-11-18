@@ -1,0 +1,69 @@
+
+Matt Friedman (friend of gm's)                  /lmi2/mdf
+Peter Wolf,Software                             /lmi/pw
+Paul Robichaud                                  /lmi/pjr
+Mark David,Process Control,x435                 /lmi/mhd
+Pace Willisson,,x351                            /lmi/pace
+Dave Goodine                                    /lmi/dg
+Scott Lander                                    /lmi/scott
+Janet Ressler                                   /lmi3/jer
+Lisa Raphals                                    /lmi/lar
+Robert Ingria                                   /lmi3/rjpi
+Ann Thomas                                      /lmi3/act
+Dexter Pratt                                    /lmi/dexter
+Mike Travers                                    /lmi/mt
+Brian Drayton 6-12-86                           /lmi/bed
+Helen Baker                                     /lmi/hel
+Saj-Nicole Joni                                 /lmi/saj
+Bill Zettler 6-12-86                            /lmi/wrz
+Alison Woodman 6-12-86                          /lmi/aaww
+Alex                                            /lmi/alex
+Debbie Ellerin                                  /lmi/debbie
+Richard Soley                                   /lmi2/soley
+Dave Riddell                                    /lmi/dwr
+Mike Guirguis 6-12-86                           /lmi/mag
+Wendy E Rowe                                    /lmi/wer
+Rosemary Simpson                                /lmi/sky
+Jane Blancett                                   /lmi3/jb
+Dan Thomas                                      /lmi/dft
+Gary Drescher                                   /lmi/gld
+Michael Grandfield                              /lmi/mpg
+Ed                                              /lmi/elh
+Dave Custer                                     /lmi/custer
+Dean Elsner                                     /lmi/pf
+Ed Blancett                                     /lmi2/eb
+Roger Frye                                      /lmi/ref
+Joann Brooks 6-12-86                            /lmi/joann
+Dick Fernald 6-12-86                            /lmi/dick
+John Mann                                       /lmi/jcm
+Ken Kryda 6-12-86                               /lmi/kkryda
+Michelle Skorka                                 /lmi/mds
+Maury Neiburg                                   /lmi/mjn
+Cliff Vera                                      /lmi/cliff
+Dave Hoffman 6-12-86                            /lmi/ddh
+Judy Marcet                                     /lmi/jam
+Sam Pilato 6-12-86                              /lmi/sam
+Michael Levin                                   /lmi/ml
+Lowell Hawkinson                                /lmi/lh
+Andy Hoffman                                    /lmi/agh
+Rich Roth                                       /lmi/roth
+Stephen Schuster                                /lmi/sas
+Stacy Goldstein                                 /fsf/opus
+Stephen DeVoy                                   /lmi/devoy
+Mache Creeger                                   /lmi/mache
+Jonathan Pierce                                 /lmi/jap
+Naomi Diesendruck 6-12-86                       /lmi/naomi
+Jim Huang, contract writer                      /lmi3/jjh
+Terri Landers                                   /lmi/tl
+Jeff Goodine                                    /lmi/jpg
+Robert Giansiracusa                             /lmi/rsg
+Brian Matthews                                  /lmi/brian
+Troy Heindel                                    /lmi/troy
+Debbie Ellerin                                  /lmi/debbie
+Jim Jones (vienne)                              /lmi/jimj
+Susan, from Kelly                               /lmi/susan
+Mike Philips                                    /lmi2/mhp
+James Turner                                    /lmi2/jmturn
+Marguerite Moreno                               /lmi/moreno
+David Bell, Process Systems                     /lmi/davidb
+----end of list----

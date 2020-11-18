@@ -1,0 +1,556 @@
+  FROM: George Carrette
+  SUBJECT: Some RPG benchmark summaries and comparisons.
+  DATE: 3/15/85 10:31:57
+
+Here are some tables comparing such things as lambda with and without
+the cache and microcompilation, 3600 with and without the IFU, and an
+"improvement due to software" comparison, that of a lambda running the
+release 1.2 software vs one running the latest beta-test with
+microcompilation utilized.  You may recall the figures of lambda at 3-3
+vs 2-2 vs 1-1 that I showed at the last planning meeting at Steve's
+house... now that the various statistics counters are working we could do
+some more experiments to allow us to dispense with so many tables of figures
+as these and replace this knowlege with a few choice formuli giving the
+performance of the lambda with various features utilized and not
+utilized at various levels of capability. This would allow extremely
+accurate prediction of performance changes over evolutionary (or incremental)
+changes in the architecture.
+
+Nomenclature: S<number>-U<number>-<month><day> is an lmi-lambda figure.
+If -U is tagged to the name then it means "microcompilation" and if a -C
+then cache. There is a fluke in the timing for BOYER and TAK. These are
+zero because of clock problems.  (the machine i was using did not have a
+working microsecond clock).
+
+One might think that there may be some problem of interpretation of the
+TIME for the FPRINT and FREAD benchmarks. Note that we measure ourselves
+as 5.6 times slower on FPRINT and 3.45 times slower on FREAD. Perhaps
+the Symbolics timings also do not include network latency. (The
+benchmark as given by RPG has a timer around everything, opening the
+file, doing the I/O, and closing it). The reported lambda timings here
+are for remote file access, I do not know under what conditions the
+Symbolics timings were run.
+
+                 LAMBDA                       3600
+           REMOTE-FILE     LOCAL-FILE         reported
+FPRINT        14.65           6.36              2.6
+FREAD         15.86          14.8               4.6
+
+So it seems that maybe in FPRINT there are some significant latency
+considerations, but even with a timing of 6.36 and 14.8 it is obvious
+that what our users have been telling us is true, "file access on the
+lambda is *!%%$#% slow compared with what people are used to on the
+3600." A factor of 3 or 4 in an area like this is extremely visible.  On
+the other hand, one could make strong arguments that file access isnt
+one of the more important areas for an large-address-space interactive
+debugging environment like the lispmachine. However, the file access
+time here is also strongly related to the general speed of message
+passing constructs on which the I/O system is built.
+
+I did provide MCC with some utilities for implementing a disk-based
+database system which bypassed all filesystem overhead, but which can
+still be used at "applications-programmer" level in terms of ease of
+support.  As is typical for the crew at Symbolics, the user would need
+to go to a great deal more effort (in terms of initial implementation
+understanding and complexity and maintainence effort due to operating
+system changes over time) to get the same level of simple disk
+functionality from a 3600, although some day the long rumored "Symbolics
+winning new database system, solves all problems of computer science
+..." may emerge.
+
+The first table is LAMBDA-BEST and 3600-BEST, this should get the widest
+possible distribution. I have gotten reports from potential customers
+(that is people who are "looking" and "asking" about the machines) that
+symbolics has even recently been giving people papers showing the lambda
+figures from August 1984 vs the published 3600 figures; claiming that
+they represent "the figures from Richard Gabriel at Standford." We
+should probably suggest to Standford University that they may loose some
+of the credibility that Symbolics is trying to take advange of here
+through their misrepresentations.
+
+The second table is how we would look without the cache and without
+microcompilation.  The results speaks for itself.
+
+Comparision of LAMBDA-BEST and 3600-BEST
+
+These timings may be verified by anyone with Release 2.0 Beta-Test plus
+the Microcompilation-Tools tape.
+
+       test                    LAMBDA-BEST                3600-BEST   ratio
+
+    TRAVERSE-1                 10.867                    7.230         1.50
+    TRAVERSE-2                 50.200                   35.480         1.41
+     BOYER-1                   10.570                   14.600         0.72
+     BROWSE-1                  19.100                   30.130         0.63
+     DERIV-1                    3.617                   13.480         0.27
+     DESTRU-1                   2.467                    2.640         0.93
+      DIV2-1                    2.817                    4.390         0.64
+      DIV2-2                    2.634                    5.410         0.49
+      FFT-1                    24.100                    3.190         7.55
+      FFT-2                    13.200                      NIL          NIL
+     PUZZLE-1                  18.184                   11.100         1.64
+      STAK-1                    5.184                    2.300         2.25
+      TAK-1                     0.192                    0.430         0.45
+      TAKL-1                    4.984                    4.950         1.01
+     TRIANG-1                 208.634                  116.680         1.79
+     FRPOLY-1                   0.004                    0.010         0.45
+     FRPOLY-2                   0.008                    0.020         0.39
+     FRPOLY-3                   0.008                    0.010         0.80
+     FRPOLY-4                   0.043                    0.100         0.43
+     FRPOLY-5                   0.110                    0.250         0.44
+     FRPOLY-6                   0.087                    0.100         0.87
+     FRPOLY-7                   0.550                    0.930         0.59
+     FRPOLY-8                   1.567                    3.300         0.47
+     FRPOLY-9                   1.084                    1.000         1.08
+    FRPOLY-10                   3.867                    5.700         0.68
+    FRPOLY-11                  14.350                   25.080         0.57
+    FRPOLY-12                   7.667                    6.300         1.22
+      CTAK-1                    4.100                    5.080         0.81
+     DDERIV-1                   6.800                   13.870         0.49
+     FPRINT-1                  14.650                    2.600         5.63
+     FREAD-1                   15.867                    4.600         3.45
+      TAKR-1                    1.700                    0.430         3.95
+     TPRINT-1                   6.600                    4.890         1.35
+
+Giving one point for each win, the score is LMI 19, Symbolics 13.
+
+
+Comparision of S102-U753-MAR14 and 3600-BEST
+
+This may also be verified by anyone with Release 2.0. It is the DEFAULT behavior
+of the machine. What most customers would see.
+
+       test                S102-U753-MAR14                3600-BEST   ratio
+
+     BOYER-1                   32.834                   14.600         2.25
+     BROWSE-1                  33.434                   30.130         1.11
+      CTAK-1                    4.600                    5.080         0.91
+     DDERIV-1                   7.867                   13.870         0.57
+     DERIV-1                    6.917                   13.480         0.51
+     DESTRU-1                   4.700                    2.640         1.78
+      DIV2-1                    4.384                    4.390         1.00
+      DIV2-2                    6.300                    5.410         1.16
+      FFT-1                    29.717                    3.190         9.32
+      FFT-2                    17.134                      NIL          NIL
+     FPRINT-1                  15.617                    2.600         6.01
+     FREAD-1                   18.784                    4.600         4.08
+     FRPOLY-1                   0.012                    0.010         1.17
+     FRPOLY-2                   0.015                    0.020         0.75
+     FRPOLY-3                   0.016                    0.010         1.60
+     FRPOLY-4                   0.120                    0.100         1.20
+     FRPOLY-5                   0.193                    0.250         0.77
+     FRPOLY-6                   0.170                    0.100         1.70
+     FRPOLY-7                   1.300                    0.930         1.40
+     FRPOLY-8                   2.600                    3.300         0.79
+     FRPOLY-9                   2.000                    1.000         2.00
+    FRPOLY-10                   9.200                    5.700         1.61
+    FRPOLY-11                  21.684                   25.080         0.86
+    FRPOLY-12                  14.000                    6.300         2.22
+     PUZZLE-1                  33.317                   11.100         3.00
+      STAK-1                    7.850                    2.300         3.41
+      TAK-1                     1.700                    0.430         3.95
+      TAKL-1                   13.500                    4.950         2.73
+      TAKR-1                    1.950                    0.430         4.53
+     TPRINT-1                   8.034                    4.890         1.64
+    TRAVERSE-1                 24.350                    7.230         3.37
+    TRAVERSE-2                156.767                   35.480         4.42
+     TRIANG-1                 621.900                  116.680         5.33
+
+
+Giving one point for each win, the score is LMI 8, Symbolics 24.
+
+
+Comparision of LAMBDA-BEST and RPG-3600-PUB
+
+       test                    LAMBDA-BEST             RPG-3600-PUB   ratio
+
+    TRAVERSE-1                 10.867                    9.450         1.15
+    TRAVERSE-2                 50.200                   50.120         1.00
+     BOYER-1                   10.570                   18.490         0.57
+     BROWSE-1                  19.100                   41.010         0.47
+     DERIV-1                    3.617                   17.540         0.21
+     DESTRU-1                   2.467                    3.700         0.67
+      DIV2-1                    2.817                    5.530         0.51
+      DIV2-2                    2.634                    6.660         0.40
+      FFT-1                    24.100                    4.310         5.59
+      FFT-2                    13.200                      NIL          NIL
+     PUZZLE-1                  18.184                   13.940         1.30
+      STAK-1                    5.184                    2.580         2.01
+      TAK-1                     0.192                    0.590         0.33
+      TAKL-1                    4.984                    6.450         0.77
+     TRIANG-1                 208.634                  151.970         1.37
+     FRPOLY-1                   0.004                    0.010         0.45
+     FRPOLY-2                   0.008                    0.020         0.39
+     FRPOLY-3                   0.008                    0.010         0.80
+     FRPOLY-4                   0.043                    0.130         0.33
+     FRPOLY-5                   0.110                    0.320         0.34
+     FRPOLY-6                   0.087                    0.130         0.67
+     FRPOLY-7                   0.550                    1.280         0.43
+     FRPOLY-8                   1.567                    4.370         0.36
+     FRPOLY-9                   1.084                    1.290         0.84
+    FRPOLY-10                   3.867                    7.430         0.52
+    FRPOLY-11                  14.350                   33.810         0.42
+    FRPOLY-12                   7.667                    8.090         0.95
+      CTAK-1                    4.100                    7.700         0.53
+     DDERIV-1                   6.800                   18.210         0.37
+     FPRINT-1                  14.650                    2.600         5.63
+     FREAD-1                   15.867                    4.600         3.45
+      TAKR-1                    1.700                    0.590         2.88
+     TPRINT-1                   6.600                    4.890         1.35
+
+Comparision of LAMBDA-BEST and S1-U129-MAY24
+
+       test                    LAMBDA-BEST            S1-U129-MAY24   ratio
+
+    TRAVERSE-1                 10.867                   34.534         0.31
+    TRAVERSE-2                 50.200                  222.000         0.23
+     BOYER-1                   10.570                   50.150         0.21
+     BROWSE-1                  19.100                   82.684         0.23
+     DERIV-1                    3.617                   18.967         0.19
+     DESTRU-1                   2.467                    7.267         0.34
+      DIV2-1                    2.817                    6.000         0.47
+      DIV2-2                    2.634                    9.534         0.28
+      FFT-1                    24.100                   38.250         0.63
+      FFT-2                    13.200                   20.950         0.63
+     PUZZLE-1                  18.184                   46.684         0.39
+      STAK-1                    5.184                    9.700         0.53
+      TAK-1                     0.192                    3.334         0.06
+      TAKL-1                    4.984                   30.467         0.16
+     TRIANG-1                 208.634                  853.217         0.24
+     FRPOLY-1                   0.004                    0.034         0.13
+     FRPOLY-2                   0.008                    0.000          NIL
+     FRPOLY-3                   0.008                    0.000          NIL
+     FRPOLY-4                   0.043                    0.100         0.43
+     FRPOLY-5                   0.110                    0.250         0.44
+     FRPOLY-6                   0.087                    0.300         0.29
+     FRPOLY-7                   0.550                    2.534         0.22
+     FRPOLY-8                   1.567                    3.967         0.40
+     FRPOLY-9                   1.084                    3.350         0.32
+    FRPOLY-10                   3.867                   20.167         0.19
+    FRPOLY-11                  14.350                   33.450         0.43
+    FRPOLY-12                   7.667                   24.384         0.31
+      CTAK-1                    4.100                    7.200         0.57
+     DDERIV-1                   6.800                   20.450         0.33
+     FPRINT-1                  14.650                   12.517         1.17
+     FREAD-1                   15.867                   22.034         0.72
+      TAKR-1                    1.700                    3.250         0.52
+     TPRINT-1                   6.600                   18.050         0.37
+    FFDERIV-1                     NIL                   20.017          NIL
+
+
+Comparision of S102-U753-MAR14-UC and S102-U753-MAR14-C
+
+The effect of microcompilation.
+
+       test             S102-U753-MAR14-UC        S102-U753-MAR14-C   ratio
+
+    TRAVERSE-1                 10.867                   19.234         0.56
+    TRAVERSE-2                 50.200                  134.200         0.37
+     BOYER-1                    0.000                   27.250         0.00
+     BROWSE-1                  19.100                   27.434         0.70
+     DERIV-1                    3.617                    6.100         0.59
+     DESTRU-1                   2.467                    3.800         0.65
+      DIV2-1                    2.817                    3.667         0.77
+      DIV2-2                    2.634                    5.434         0.48
+      FFT-1                    24.100                   26.300         0.92
+      FFT-2                    13.200                   15.200         0.87
+     PUZZLE-1                  18.184                   27.300         0.67
+      STAK-1                    5.184                    6.300         0.82
+      TAK-1                     0.000                    1.400         0.00
+      TAKL-1                    4.984                   10.667         0.47
+     TRIANG-1                 208.634                  495.234         0.42
+     FRPOLY-1                   0.004                    0.009         0.51
+     FRPOLY-2                   0.008                    0.014         0.56
+     FRPOLY-3                   0.008                    0.012         0.67
+     FRPOLY-4                   0.043                    0.097         0.45
+     FRPOLY-5                   0.110                    0.160         0.69
+     FRPOLY-6                   0.087                    0.140         0.62
+     FRPOLY-7                   0.550                    1.100         0.50
+     FRPOLY-8                   1.567                    2.200         0.71
+     FRPOLY-9                   1.084                    1.600         0.68
+    FRPOLY-10                   3.867                    7.667         0.50
+    FRPOLY-11                  14.350                   18.167         0.79
+    FRPOLY-12                   7.667                   11.234         0.68
+      CTAK-1                      NIL                    4.100          NIL
+     DDERIV-1                     NIL                    6.800          NIL
+     FPRINT-1                     NIL                   14.650          NIL
+     FREAD-1                      NIL                   15.867          NIL
+      TAKR-1                      NIL                    1.700          NIL
+     TPRINT-1                     NIL                    6.600          NIL
+
+Comparision of S102-U753-MAR14-UC and RPG-3600IFU-PUB
+
+       test             S102-U753-MAR14-UC          RPG-3600IFU-PUB   ratio
+
+    TRAVERSE-1                 10.867                    7.230         1.50
+    TRAVERSE-2                 50.200                   35.480         1.41
+     BOYER-1                    0.000                   14.600         0.00
+     BROWSE-1                  19.100                   30.130         0.63
+     DERIV-1                    3.617                   13.480         0.27
+     DESTRU-1                   2.467                    2.640         0.93
+      DIV2-1                    2.817                    4.390         0.64
+      DIV2-2                    2.634                    5.410         0.49
+      FFT-1                    24.100                    3.500         6.89
+      FFT-2                    13.200                      NIL          NIL
+     PUZZLE-1                  18.184                   11.100         1.64
+      STAK-1                    5.184                    2.300         2.25
+      TAK-1                     0.000                    0.430         0.00
+      TAKL-1                    4.984                    4.950         1.01
+     TRIANG-1                 208.634                  116.680         1.79
+     FRPOLY-1                   0.004                    0.010         0.45
+     FRPOLY-2                   0.008                    0.020         0.39
+     FRPOLY-3                   0.008                    0.010         0.80
+     FRPOLY-4                   0.043                    0.100         0.43
+     FRPOLY-5                   0.110                    0.250         0.44
+     FRPOLY-6                   0.087                    0.100         0.87
+     FRPOLY-7                   0.550                    0.930         0.59
+     FRPOLY-8                   1.567                    3.300         0.47
+     FRPOLY-9                   1.084                    1.000         1.08
+    FRPOLY-10                   3.867                    5.700         0.68
+    FRPOLY-11                  14.350                   25.080         0.57
+    FRPOLY-12                   7.667                    6.300         1.22
+      CTAK-1                      NIL                    5.080          NIL
+      TAKR-1                      NIL                    0.430          NIL
+     DDERIV-1                     NIL                   13.870          NIL
+
+Comparision of S102-U753-MAR14-C and RPG-3600IFU-PUB
+
+
+       test              S102-U753-MAR14-C          RPG-3600IFU-PUB   ratio
+
+     BOYER-1                   27.250                   14.600         1.87
+     BROWSE-1                  27.434                   30.130         0.91
+      CTAK-1                    4.100                    5.080         0.81
+     DDERIV-1                   6.800                   13.870         0.49
+     DERIV-1                    6.100                   13.480         0.45
+     DESTRU-1                   3.800                    2.640         1.44
+      DIV2-1                    3.667                    4.390         0.84
+      DIV2-2                    5.434                    5.410         1.00
+      FFT-1                    26.300                    3.500         7.51
+      FFT-2                    15.200                      NIL          NIL
+     FPRINT-1                  14.650                      NIL          NIL
+     FREAD-1                   15.867                      NIL          NIL
+     FRPOLY-1                   0.009                    0.010         0.88
+     FRPOLY-2                   0.014                    0.020         0.70
+     FRPOLY-3                   0.012                    0.010         1.20
+     FRPOLY-4                   0.097                    0.100         0.97
+     FRPOLY-5                   0.160                    0.250         0.64
+     FRPOLY-6                   0.140                    0.100         1.40
+     FRPOLY-7                   1.100                    0.930         1.18
+     FRPOLY-8                   2.200                    3.300         0.67
+     FRPOLY-9                   1.600                    1.000         1.60
+    FRPOLY-10                   7.667                    5.700         1.35
+    FRPOLY-11                  18.167                   25.080         0.72
+    FRPOLY-12                  11.234                    6.300         1.78
+     PUZZLE-1                  27.300                   11.100         2.46
+      STAK-1                    6.300                    2.300         2.74
+      TAK-1                     1.400                    0.430         3.26
+      TAKL-1                   10.667                    4.950         2.15
+      TAKR-1                    1.700                    0.430         3.95
+     TPRINT-1                   6.600                      NIL          NIL
+    TRAVERSE-1                 19.234                    7.230         2.66
+    TRAVERSE-2                134.200                   35.480         3.78
+     TRIANG-1                 495.234                  116.680         4.24
+
+Comparision of RPG-3600IFU-PUB and RPG-3600-PUB
+
+With and without the instruction fetch unit.
+
+       test                RPG-3600IFU-PUB             RPG-3600-PUB   ratio
+
+     BOYER-1                   14.600                   18.490         0.79
+     BROWSE-1                  30.130                   41.010         0.73
+     DESTRU-1                   2.640                    3.700         0.71
+    TRAVERSE-1                  7.230                    9.450         0.77
+    TRAVERSE-2                 35.480                   50.120         0.71
+      TAK-1                     0.430                    0.590         0.73
+      STAK-1                    2.300                    2.580         0.89
+      CTAK-1                    5.080                    7.700         0.66
+      TAKL-1                    4.950                    6.450         0.77
+      TAKR-1                    0.430                    0.590         0.73
+     DERIV-1                   13.480                   17.540         0.77
+     DDERIV-1                  13.870                   18.210         0.76
+      DIV2-1                    4.390                    5.530         0.79
+      DIV2-2                    5.410                    6.660         0.81
+      FFT-1                     3.500                    4.310         0.81
+     PUZZLE-1                  11.100                   13.940         0.80
+     TRIANG-1                 116.680                  151.970         0.77
+     FRPOLY-1                   0.010                    0.010         1.00
+     FRPOLY-2                   0.020                    0.020         1.00
+     FRPOLY-3                   0.010                    0.010         1.00
+     FRPOLY-4                   0.100                    0.130         0.77
+     FRPOLY-5                   0.250                    0.320         0.78
+     FRPOLY-6                   0.100                    0.130         0.77
+     FRPOLY-7                   0.930                    1.280         0.73
+     FRPOLY-8                   3.300                    4.370         0.76
+     FRPOLY-9                   1.000                    1.290         0.78
+    FRPOLY-10                   5.700                    7.430         0.77
+    FRPOLY-11                  25.080                   33.810         0.74
+    FRPOLY-12                   6.300                    8.090         0.78
+     FPRINT-1                     NIL                    2.600          NIL
+     FREAD-1                      NIL                    4.600          NIL
+     TPRINT-1                     NIL                    4.890          NIL
+
+Comparision of S102-U753-MAR14-UC and S1-U129-MAY24-C
+
+Change over time. Same machine, but with more reasonable software. Most things
+are at least a factor of 2 better, a good deal are a factor of 3 to 5 better.
+
+       test             S102-U753-MAR14-UC            S1-U129-MAY24-C   ratio
+
+    TRAVERSE-1                 10.867                   34.534         0.31
+    TRAVERSE-2                 50.200                  222.000         0.23
+     BOYER-1                    0.000                   50.150         0.00
+     BROWSE-1                  19.100                   82.684         0.23
+     DERIV-1                    3.617                   18.967         0.19
+     DESTRU-1                   2.467                    7.267         0.34
+      DIV2-1                    2.817                    6.000         0.47
+      DIV2-2                    2.634                    9.534         0.28
+      FFT-1                    24.100                   38.250         0.63
+      FFT-2                    13.200                   20.950         0.63
+     PUZZLE-1                  18.184                   46.684         0.39
+      STAK-1                    5.184                    9.700         0.53
+      TAK-1                     0.000                    3.334         0.00
+      TAKL-1                    4.984                   30.467         0.16
+     TRIANG-1                 208.634                  853.217         0.24
+     FRPOLY-1                   0.004                    0.034         0.13
+     FRPOLY-2                   0.008                    0.000          NIL
+     FRPOLY-3                   0.008                    0.000          NIL
+     FRPOLY-4                   0.043                    0.100         0.43
+     FRPOLY-5                   0.110                    0.250         0.44
+     FRPOLY-6                   0.087                    0.300         0.29
+     FRPOLY-7                   0.550                    2.534         0.22
+     FRPOLY-8                   1.567                    3.967         0.40
+     FRPOLY-9                   1.084                    3.350         0.32
+    FRPOLY-10                   3.867                   20.167         0.19
+    FRPOLY-11                  14.350                   33.450         0.43
+    FRPOLY-12                   7.667                   24.384         0.31
+      CTAK-1                      NIL                    7.200          NIL
+     DDERIV-1                     NIL                   20.450          NIL
+    FFDERIV-1                     NIL                   20.017          NIL
+     FPRINT-1                     NIL                   12.517          NIL
+     FREAD-1                      NIL                   22.034          NIL
+      TAKR-1                      NIL                    3.250          NIL
+     TPRINT-1                     NIL                   18.050          NIL
+
+Comparision of S102-U753-MAR14-UC and RPG-3600-PUB
+
+This could be telling as a measure of amount of hardware it takes to do
+the job at a certain performance over the two architectures.
+
+       test             S102-U753-MAR14-UC             RPG-3600-PUB   ratio
+
+    TRAVERSE-1                 10.867                    9.450         1.15
+    TRAVERSE-2                 50.200                   50.120         1.00
+     BOYER-1                    0.000                   18.490         0.00
+     BROWSE-1                  19.100                   41.010         0.47
+     DERIV-1                    3.617                   17.540         0.21
+     DESTRU-1                   2.467                    3.700         0.67
+      DIV2-1                    2.817                    5.530         0.51
+      DIV2-2                    2.634                    6.660         0.40
+      FFT-1                    24.100                    4.310         5.59
+      FFT-2                    13.200                      NIL          NIL
+     PUZZLE-1                  18.184                   13.940         1.30
+      STAK-1                    5.184                    2.580         2.01
+      TAK-1                     0.000                    0.590         0.00
+      TAKL-1                    4.984                    6.450         0.77
+     TRIANG-1                 208.634                  151.970         1.37
+     FRPOLY-1                   0.004                    0.010         0.45
+     FRPOLY-2                   0.008                    0.020         0.39
+     FRPOLY-3                   0.008                    0.010         0.80
+     FRPOLY-4                   0.043                    0.130         0.33
+     FRPOLY-5                   0.110                    0.320         0.34
+     FRPOLY-6                   0.087                    0.130         0.67
+     FRPOLY-7                   0.550                    1.280         0.43
+     FRPOLY-8                   1.567                    4.370         0.36
+     FRPOLY-9                   1.084                    1.290         0.84
+    FRPOLY-10                   3.867                    7.430         0.52
+    FRPOLY-11                  14.350                   33.810         0.42
+    FRPOLY-12                   7.667                    8.090         0.95
+      CTAK-1                      NIL                    7.700          NIL
+      TAKR-1                      NIL                    0.590          NIL
+     DDERIV-1                     NIL                   18.210          NIL
+     FPRINT-1                     NIL                    2.600          NIL
+     FREAD-1                      NIL                    4.600          NIL
+     TPRINT-1                     NIL                    4.890          NIL
+
+Comparision of S102-U753-MAR14-UC and S102-U753-MAR14
+
+Microcompilation and cache vs none of either.
+
+       test             S102-U753-MAR14-UC          S102-U753-MAR14   ratio
+
+    TRAVERSE-1                 10.867                   24.350         0.45
+    TRAVERSE-2                 50.200                  156.767         0.32
+     BOYER-1                    0.000                   32.834         0.00
+     BROWSE-1                  19.100                   33.434         0.57
+     DERIV-1                    3.617                    6.917         0.52
+     DESTRU-1                   2.467                    4.700         0.52
+      DIV2-1                    2.817                    4.384         0.64
+      DIV2-2                    2.634                    6.300         0.42
+      FFT-1                    24.100                   29.717         0.81
+      FFT-2                    13.200                   17.134         0.77
+     PUZZLE-1                  18.184                   33.317         0.55
+      STAK-1                    5.184                    7.850         0.66
+      TAK-1                     0.000                    1.700         0.00
+      TAKL-1                    4.984                   13.500         0.37
+     TRIANG-1                 208.634                  621.900         0.34
+     FRPOLY-1                   0.004                    0.012         0.39
+     FRPOLY-2                   0.008                    0.015         0.52
+     FRPOLY-3                   0.008                    0.016         0.50
+     FRPOLY-4                   0.043                    0.120         0.36
+     FRPOLY-5                   0.110                    0.193         0.57
+     FRPOLY-6                   0.087                    0.170         0.51
+     FRPOLY-7                   0.550                    1.300         0.42
+     FRPOLY-8                   1.567                    2.600         0.60
+     FRPOLY-9                   1.084                    2.000         0.54
+    FRPOLY-10                   3.867                    9.200         0.42
+    FRPOLY-11                  14.350                   21.684         0.66
+    FRPOLY-12                   7.667                   14.000         0.55
+      CTAK-1                      NIL                    4.600          NIL
+     DDERIV-1                     NIL                    7.867          NIL
+     FPRINT-1                     NIL                   15.617          NIL
+     FREAD-1                      NIL                   18.784          NIL
+      TAKR-1                      NIL                    1.950          NIL
+     TPRINT-1                     NIL                    8.034          NIL
+
+Comparision of S102-U753-MAR14 and RPG-3600-PUB
+
+How the lambda fares without its cache and microcompilation. Count the winners
+vs losers.
+
+       test                S102-U753-MAR14             RPG-3600-PUB   ratio
+
+     BOYER-1                   32.834                   18.490         1.78
+     BROWSE-1                  33.434                   41.010         0.82
+      CTAK-1                    4.600                    7.700         0.60
+     DDERIV-1                   7.867                   18.210         0.43
+     DERIV-1                    6.917                   17.540         0.39
+     DESTRU-1                   4.700                    3.700         1.27
+      DIV2-1                    4.384                    5.530         0.79
+      DIV2-2                    6.300                    6.660         0.95
+      FFT-1                    29.717                    4.310         6.89
+      FFT-2                    17.134                      NIL          NIL
+     FPRINT-1                  15.617                    2.600         6.01
+     FREAD-1                   18.784                    4.600         4.08
+     FRPOLY-1                   0.012                    0.010         1.17
+     FRPOLY-2                   0.015                    0.020         0.75
+     FRPOLY-3                   0.016                    0.010         1.60
+     FRPOLY-4                   0.120                    0.130         0.92
+     FRPOLY-5                   0.193                    0.320         0.60
+     FRPOLY-6                   0.170                    0.130         1.31
+     FRPOLY-7                   1.300                    1.280         1.02
+     FRPOLY-8                   2.600                    4.370         0.59
+     FRPOLY-9                   2.000                    1.290         1.55
+    FRPOLY-10                   9.200                    7.430         1.24
+    FRPOLY-11                  21.684                   33.810         0.64
+    FRPOLY-12                  14.000                    8.090         1.73
+     PUZZLE-1                  33.317                   13.940         2.39
+      STAK-1                    7.850                    2.580         3.04
+      TAK-1                     1.700                    0.590         2.88
+      TAKL-1                   13.500                    6.450         2.09
+      TAKR-1                    1.950                    0.590         3.31
+     TPRINT-1                   8.034                    4.890         1.64
+    TRAVERSE-1                 24.350                    9.450         2.58
+    TRAVERSE-2                156.767                   50.120         3.13
+     TRIANG-1                 621.900                  151.970         4.09

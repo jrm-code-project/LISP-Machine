@@ -1,0 +1,6 @@
+;;; -*- Mode: Text; Package: lam; Fonts:(cptfont medfnb) -*-
+;;;
+
+1Interesting Breakpoints:*
+
+        QLENX   Just before lambda starts running macrocode

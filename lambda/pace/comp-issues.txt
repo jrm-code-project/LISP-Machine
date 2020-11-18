@@ -1,0 +1,30 @@
+Compiler issues:
+
+1: SETQ
+
+The ORBIT compiler goes through a process of assignment conversion
+making the use of SETQ much less efficient than would otherwise be
+possible.  However, the only reason this is in the compiler is to
+support CALL-WITH-CURRENT-CONTINUATION (basically the ability to copy
+the stack.)  We do not intend to support CALL-WITH-CURRENT-CONTINUATION,
+therefore we will remove this feature from the compiler.  We do not
+believe that this will be a difficult change.
+
+2: lexical goto
+
+The dynamic state of the program will be kept on a stack similar to the
+current special pdl.  It will contain dynamic bindings, pointers to
+unwind protect code segments, and indices for active frames in the main
+stack.  When a lexical goto requires an adjustment in the dynamic state,
+the compiler will output instructions to unwind the stack.
+
+3: catch and throw
+
+Catch tags will be kept on the extra stack mentioned above.  Therefore,
+finding a catch tag will take a number of memory cycles proportional to
+its depth (which is close to the number of dynamic bindings.)  Both
+machines then unwind the extra stack by doing about the same number of
+cycles.  Therefore, the new machine will do about 1.5 times as many
+memory cycles as the lambda.  A catch on the new machine will requires
+pushing two words on the extra stack, compared to 32 instructions on a
+lambda.

@@ -1,0 +1,184 @@
+;;; -*- Mode:LISP; Package:USER; Readtable:CL -*-
+
+;;; Ensure we have more processing.
+(setq tv::more-processing-global-enable t)
+
+(send tv:initial-lisp-listener :set-more-p nil)
+
+;;; I prefer a black screen.
+(send tv::who-line-documentation-window :set-reverse-video-p nil)
+;(push '(send tv::who-line-documentation-window :set-reverse-video-p t) logout-list)
+
+(tv:white-on-black)
+;(push '(tv:black-on-white) logout-list)
+
+;;; Get rid of GATEWAY
+(tv:remove-system-key #\g)
+
+;;; Scheduler takes too much time.
+(write-meter 'sys:%tv-clock-rate 60.)
+
+;;; Improve paging performance (maybe)
+(write-meter 'sys:%aging-depth 3.)
+
+;;; Volatility scan on swapout.  Turned on August 18
+;;; after fixing paging and hashing bugs.
+(setf (ldb (byte 1 4) sys:%disk-switches) 1)
+
+;;; Fix the world.
+(load-patches :noselective)
+
+;;; I want to use the new interpreter.
+(make-system 'new-interpreter :noconfirm)
+(load "dj:jrm;interpreter-setup.lisp")
+
+;;; Use OBJECT-HASH to print random frobs.
+
+si:
+(defun print-random-object-suffix-with-object-hash (object stream &optional no-pointer)
+  (unless no-pointer
+    (send stream :tyo (pttbl-space *readtable*))
+    (print-raw-fixnum (gc:object-hash object) si:base stream))
+  (send stream :string-out (cdr (pttbl-random *readtable*))))
+
+(fset 'si::print-random-object-suffix 'si::print-random-object-suffix-with-object-hash)
+
+;;; Add some SCHEME primitives (predicates with question marks).
+(load "dj:jrm;custom.qfasl" :package 'user)
+
+;;; Fancy mouse blinkers for zwei
+(load "dj:jrm;bobhack.qfasl")
+
+(logo-blinker) ;cons cell
+
+;;; Mac style windows.
+;;; Actually, I guess I don't like them.
+;(setq tv:*saved-bit-arrays-wipe?* nil)
+
+;;; Fix dumb speling mistakes!
+(setq si::*enable-spelling-dwim?* t)
+
+;;; Random
+(load "dj:pace;disable-page-out-words")
+
+(defun jrm-query-terminal ()
+  (case (fquery
+         (list
+           ':choices '(((p "Portrait")       #\P)
+                       ((l "Landscape")      #\L)
+                       ((f "Fancy Landscape")#\F)
+                       ((n "Leave it alone") #\END))
+           ':fresh-line 't
+           ':default-value 'f
+           ':timeout (* 30. 60.)) ;30 seconds.
+        "Screen type? ")
+    (p (tv::portrait))
+    (l (tv::landscape))
+    (f (ignore-errors
+         (make-system 'fancy-landscape :noconfirm)
+         (tv::fancy-landscape)))
+    (n nil)))
+
+(defun reversible-gc-on ()
+  (declare (special sys:%sys-com-memory-size))
+;  (let ((old-gc-state-vector #(0 0 0 0)))
+;    (copy-array-contents gc:*level-control* old-gc-state-vector)
+;    (push `(copy-array-contents ,old-gc-state-vector gc:*level-control*)
+;         logout-list)
+    (gc:gc-on :degree 3)
+    (let ((physical-memory (aref #'sys:system-communication-area sys:%sys-com-memory-size)))
+      (setq physical-memory (min physical-memory (^ 2 21.)))
+      (let* (
+             ;(level-1-size (truncate physical-memory 2))
+             ;(level-2-size (truncate level-1-size    3))
+             ;(level-3-size (truncate level-2-size    3))
+             (level-1-size 5000000)
+             (level-2-size 500000)
+             (level-3-size 50000)
+             )
+        (setf (aref gc:*level-control* 3) level-3-size)
+        (setf (aref gc:*level-control* 2) level-2-size)
+        (setf (aref gc:*level-control* 1) level-1-size)
+        (setf (aref gc:*level-control* 0) nil)))
+    ;)
+    )
+
+(proclaim '(special si:%%region-volatility))
+
+(defun adjust-volatility (area new-volatility)
+  (setf (ldb si:%%region-volatility (aref #'si:area-region-bits area)) new-volatility))
+
+;;; This var should be special.
+(defvar zwei:zwei-line-area)
+
+;;; Make ZWEI swap out things in groups.
+(si:set-swap-recommendations-of-area zwei:zwei-line-area 12.)
+
+;;; Change the default volatilities of these areas.
+(defvar *new-region-volatilities*
+   (list (list zwei:zwei-line-area 3)
+         (list fs:pathname-area    0)
+         (list tv:sheet-area       0)))
+
+(mapcar #'(lambda (new-region-volatility)
+            (apply #'adjust-volatility new-region-volatility))
+        *new-region-volatilities*)
+
+(reversible-gc-on)
+
+(defun mail-watch ()
+  (tagbody
+      wait-for-mail
+         (multiple-value-bind (mail? ignore)
+             (ignore-errors
+               (probef "ANGEL:/usr/spool/mail/jrm"))
+           (cond (mail? (tv:notify nil "You have new mail.") (go wait-for-no-mail))
+                 (t (sleep (* 60. 5.)) ;;Check every 5 minutes.
+                    (go wait-for-mail))))
+      wait-for-no-mail
+         (multiple-value-bind (mail? ignore)
+             (ignore-errors
+               (probef "ANGEL:/usr/spool/mail/jrm"))
+           (cond (mail? (sleep (* 60. 5.)) (go wait-for-no-mail))
+                 (t (go wait-for-mail))))))
+
+(process-run-function "Mail Watcher" #'mail-watch)
+
+(jrm-query-terminal)
+
+;;; Turn on the Dvorak keyboard.
+(setq tv:*default-character-translator* 'si:kbd-convert-to-software-char-dvorak-lmi)
+
+(defun change-keyboard-mode ()
+  (if (eq tv::*default-character-translator* 'si::kbd-convert-to-software-char)
+      (setq tv::*default-character-translator* 'si::kbd-convert-to-software-char-dvorak-lmi)
+      (setq tv::*default-character-translator* 'si::kbd-convert-to-software-char)))
+
+(tv:add-to-system-menu-programs-column
+  "QWERTY/DVORAK mode"
+  '(change-keyboard-mode)
+  "Toggle between qwerty and Dvorak keybord.")
+
+(login-forms
+
+  ;; Customized indentation for zwei.
+  (push '(IF 2 3) ;; Indent three after predicate.
+        zwei:*lisp-indent-offset-alist*)
+
+  )
+
+;;; Make the package system be mean!!
+(setq si::*read-single-colon-allow-internal-symbol* nil)
+
+(defun change-package-bitch-mode ()
+  (if (eq si::*read-single-colon-allow-internal-symbol* nil)
+      (setq si::*read-single-colon-allow-internal-symbol* t)
+      (setq si::*read-single-colon-allow-internal-symbol* nil))
+  (tv::who-line-clobbered))
+
+(tv:add-to-system-menu-programs-column
+  "Toggle Package Bitching"
+  '(change-package-bitch-mode)
+  "Toggle the single-colon/double-colon mode for package prefixes.")
+
+(send tv:initial-lisp-listener :set-more-p t)

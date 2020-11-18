@@ -1,0 +1,80 @@
+Date: Wednesday, 9 July 1986, 14:26-EDT
+From: Bob Braden <braden@venera.isi.edu>
+Message-ID: <8607091826.AA12301@braden.isi.edu>
+To: tcp-ip@sri-nic.arpa
+Subject: Installing tn3270
+
+
+I have recently installed the Berkeley version of tn3270 on my Sun 3 work
+station. I used the public tar file tn3270tar, mentioned in Greg Minshall's
+message copied to tcp-ip on June 6; the main program file is dated 5/13/86.
+
+The Sun environment caused some difficulties; for example, you must give
+tn3270 a Sun window of exactly the size of the emulated 3278 screen (in
+my case, 43*80; see below), or it just dies due to bad return code form
+curses.  It also took me awhile to work out a sensible mapping of the
+essential 3278 keys onto the Sun 3 keyboard, avoiding the keys that Suntools
+wants to keep to itself.
+
+In addition, there were some significant problems in tn3270 itself, when used
+to access both the Wisconsin VM code and the UCLA MVS code.  These were as
+follows:
+
+1. It has been recommended that the terminal type be updated to a 3278-2,
+   which has 24 lines of 80 characters.  However, both VM and MVS are prepared
+   to handle the more modern screen size of 43*80, so if you have a competant
+   terminal (like a Sun), I strongly suggest you use the terminal type 3278-4.
+   In this case, it is necessary to update the defined constant NUMBERLINES
+   in 3270.h to be 43.
+
+   [tn3270 really should take the terminal type (or at least a Boolean
+   selecting long/short screens) from a parameter, and NUMBERLINES should
+   be a variable set as a result.]
+
+2. tn3270 does not support the Erase Write Alternate command, which both
+   VM and MVS send.  Its effect should be exactly like Erase Write, but it
+   needs to be included in the case statement in datastream.c, or it defaults
+   to Write; the result is a failure to clear the screen sometimes, which is
+   BAD.
+
+3. tn3270 supports only the non-SNA commands, not the SNA commands.
+
+   Here's a summary of the relevant command codes:
+
+   command        non-SNA           SNA
+   ------------------------------------------
+   Erase/Write     x'05'           x'f5'
+
+   Erase/Write
+      alternate    x'0d'           x'7e'
+
+   Write           x'01'           x'f1'
+
+   Erase All
+      unprotected  x'0f'           x'6f'
+
+   Read Buffer     x'02'           x'f2'
+
+   Read Modified   x'06'           x'f6'
+
+   It happens that VM and MVS use the non-SNA and SNA commands, respectively,
+   as most appropriate to their system environment. I believe that IBM FSD
+   intends to standardize on the SNA flavor, and update the VM code to
+   send it.  In any case, any reasonable 3278 emulator should accept both
+   sets (I think the VM and MVS User Telnets do so).
+
+4. tn3270 does not properly return to NVT mode when the server negotiates
+   back to NVT mode (although the VM code doesn't do this, the MVS code
+   does).
+
+5. tn3270, when in NVT mode, carries over the egregious bug from the
+   Berkeley telnet program: in local echo, it send end-of-line as
+   LF instead of the CR LF dictated by the TELNET protocol spec. Why
+   do we have to put up with this petty protocol anarchism?
+
+Of these problems, 1-3 are the most serious and fortunately are quite
+trivial to fix.  Upon request, I will send the updates I used.
+
+________
+Bob Braden
+

@@ -1,0 +1,592 @@
+@c -*- Mode:Text; Package:USER -*-
+
+@chapter Operating Procedures
+@label[chapter-doc-operating]
+
+This chapter documents  the networking software operating procedures.
+Both system management and user procedures are included here.
+
+@section Summary of Functions and Variables
+
+The following table lists the most frequently used functions and programs
+related to network configuration, diagnostics, protocol selection, and interface.
+These items are discussed in detail in the following sections.
+
+@sp 1
+@settabs 5 @columns
+@< @\ @i(Name) @\ @\ @i(Type) @cr
+@sp 1
+@< @\ @i(Configuration:) @cr
+@sp 1
+@< @\ net:configure                     @\ @\ function @cr
+@< @\ net:deconfigure                   @\ @\ function @cr
+@< @\ si:dont-use-3com                  @\ @\ variable @cr
+@< @\ si:dont-use-excelan               @\ @\ variable @cr
+@< @\ si:set-processor-owning-ethernet  @\ @\ function @cr
+@< @\ tcpa:*network-services*           @\ @\ variable @cr
+@< @\ tcpa:*udp-rwho-server-enabled*    @\ @\ variable @cr
+@< @\ tcpa:disable-all-network-services @\ @\ function @cr
+@< @\ tcpa:disable-one-network-service  @\ @\ function @cr
+@< @\ tcpa:enable-all-network-services  @\ @\ function @cr
+@< @\ tcpa:enable-one-network-service   @\ @\ function @cr
+@< @\ tcpa:set-imagen-print-options     @\ @\ function @cr
+@need 1000
+@sp 1
+@< @\ @i(Diagnostics:) @cr
+@sp 1
+@< @\ arp:addr-stat                     @\ @\ function @cr
+@< @\ ethernet:exos-stats               @\ @\ function @cr
+@< @\ ethernet:netspy                   @\ @\ function @cr
+@< @\ finger                            @\ @\ function @cr
+@< @\ global:peek                       @\ @\ function @cr
+@< @\ icmp:ping                         @\ @\ function @cr
+@< @\ ip:list-route-table               @\ @\ function @cr
+@< @\ net:print-int-pkt-status          @\ @\ function @cr
+@need 1000
+@sp 1
+@< @\ @i(Protocol selection:) @cr
+@sp 1
+@< @\ fs:reset-file-access              @\ @\ function @cr
+@< @\ net:*network-protocols*           @\ @\ variable @cr
+@< @\ net:with-tcp-favored              @\ @\ macro    @cr
+@need 1000
+@sp 1
+@< @\ @i(Interfaces:) @cr
+@sp 1
+@< @\ ftp:ftp                           @\ @\ function @cr
+@< @\ global:mail                       @\ @\ function @cr
+@< @\ global:supdup                     @\ @\ function @cr
+@< @\ kermit:telnet-h19                 @\ @\ function @cr
+@< @\ tcpa:ruptime                      @\ @\ function @cr
+@< @\ tcpa:rwho                         @\ @\ function @cr
+@< @\ telnet:telnet                     @\ @\ function @cr
+@< @\ telnet:telnet-glass-tty           @\ @\ function @cr
+@cleartabs
+
+Network application interfaces such as @l[Telnet] are documented in subsequent chapters.
+Generic interfaces are described in Chapter @ref[chapter-doc-generic-applications].
+
+@ref[figure-lisp-packages], lists the LISP packages that contain the networking software.
+
+@need 2200
+@section Networking Functions
+@label[section-functions]
+
+This section discusses network configuration, diagnosis, and control.
+
+@need 1200
+@subsection Networking Configuration Functions
+
+@subsubsection Network Start-Up and Shut-Down
+
+@group
+@defun net:configure
+(Re)start network processes and protocols.@csubindex[network][start-up]
+@end(defun)
+@end(group)
+
+@group
+@defun net:deconfigure
+Shut down network processes and protocols.@csubindex[network][shut-down]
+@end(defun)
+@end(group)
+
+@l(net:configure) tells the local processor
+to use the currently available set of network boards
+and site information.
+Both @l(net:configure) and @l(net:deconfigure) reset TCP and UDP connections,
+but not Chaos connections.
+
+@defun chaos:reset &optional enable-p
+Turn off and reinitialize the Chaosnet software.@*
+This may unwedge it if it is not working properly.
+
+This will cause all of your currently open connections to be shut down.
+
+Specify a non-NIL @i(enable-p) to (re)enable Chaosnet after resetting the software.
+Otherwise, you can call @l(chaos:enable) @findex[chaos:enable]
+to turn Chaosnet on again;
+many user-level functions that use the network will do that for you.
+@end(defun)
+
+The use of @l(chaos:reset) for resetting the network is obsolete for most purposes,
+but it is still available for resetting Chaos connections.
+
+@defun si:set-processor-owning-ethernet &optional (operation :find) (board :all)
+
+Change which processor controls the Ethernet boards.
+@itemize -
+@item If there is no ethernet board, make sure this machine knows not to use it.
+@item If the argument is :FIND (the default) figure out who owns the board so we can
+send packets to it.  If no one currently owns it, we allocate it.
+@item If the argument is :TAKE or T, then steal it from the owner.
+@item If the argument is :GIVE-UP or NIL, then deallocate it so someone else can have it.
+@end(itemize)
+
+@end(defun)
+
+@group
+If you use @l(si:set-processor-owning-ethernet) to reassign board allocation,
+call it after deconfiguring and before reconfiguring, as follows:
+@lisp
+(net:deconfigure)
+(si:set-processor-owning-ethernet ...)
+(net:configure)
+@end(lisp)
+@end(group)
+
+If you reassign boards, you must perform this procedure on @i(all)
+the processors in the chassis.
+
+@subsubsection Protocol Selection
+
+@defmac net:with-tcp-favored &body body
+Execute a @i(body) of code using a network protocol ordering that favors @l(:INTERNET).
+
+For example:
+@lisp
+(net:with-tcp-favored
+  (si:copy-disk-partition 0 'lod2 "it" 'lod3))
+@end(lisp)
+
+@end(defmac)
+
+@defmac fs:with-ftp-access-only &rest body
+Execute a @i(body) of code with only TCP/FTP access paths defined.
+You should call @l(fs:reset-file-access) before calling this.
+@end(defmac)
+
+@defun fs:reset-file-access &optional hosts flavor @cindex[file access methods]@cindex[file access paths]
+Reset known file access path methods for each network host,
+or just for specified @i(hosts).
+
+The per-host access path list is initialized to @l(NIL), unless @i(flavor)
+is specified, in which case it is used as the initial access flavor.
+Appropriate flavors are:
+@itemize -
+@item @l(fs:ftp-access) (for TCP/FTP hosts)
+@item @l(fs:qfile-access) (for Chaosnet hosts)
+@item @l(fs:lispm-qfile-access) (for Chaosnet LISP machine hosts)
+@end(itemize)
+@end(defun)
+
+As network file-system functions communicate with remote hosts,
+the names of appropriate access flavor are associated with the corresponding host objects.
+@l(fs:reset-file-access) causes these access flavors to be ``forgotten'';
+this is useful, for example, in conjunction with @l(fs:with-ftp-access-only),
+where it is desirable to force the use of a particular access method.
+
+@subsubsection Enabling TCP Services
+@setq section-tcp-service-funcs section-page
+
+@defun tcpa:disable-all-network-services
+@defunx tcpa:disable-one-network-service service
+@defunx tcpa:enable-all-network-services &optional also-do-non-auto-enable?
+@defunx tcpa:enable-one-network-service service
+
+Disable all, or one specific, network service.@*
+(Re)enable all, or one specific, network service.
+@csubindex[network services][enabling/disabling]
+
+The variants that take a @i(service) argument expect one of
+the variables corresponding to specific
+services.@csubindex[network][services]
+The names of these variables are contained in the list @see[tcpa:*network-services*][var].
+@end(defun)
+
+@subsubsection Enabling Chaosnet Services
+@setq section-chaosnet-service-funcs section-page
+
+@defun si:enable-services &rest services
+@defunx si:disable-services &rest services
+
+Allow the Lambda to provide or refuse (Chaosnet) services.
+The @i(services) argument is currently ignored (all services are affected),
+but is provided for future enhancements.
+
+@end(defun)
+
+The functions @l(si:enable-services) and @l(si:disable-services)
+each run a corresponding initialization list:
+
+@defvar  si:enable-services-initialization-list
+@defvarx si:disable-services-initialization-list
+@end(defvar)
+
+Network managers may add functions to these lists
+by using the function @l(add-initializations)@findex[add-initializations].
+Note that the system neither enables nor disables services under automatic control;
+these functions must be executed manually or as provided by system management.
+
+@need 1000
+@subsection Networking Diagnostic Functions
+
+@defun hostat &rest hosts
+
+Prints status information from the specified Chaosnet @i(hosts).
+If no @i(hosts) are specified, all known hosts are polled.
+
+The information printed includes each host's address, pretty name,
+and the number of packets input and output from/to that host.
+
+Hosts may be specified by name or Chaos address.
+
+Examples:
+@lisp
+(hostat)
+(hostat 'lama 'lamb)
+(hostat #o3430)
+@end(lisp)
+
+Hostat can also be invoked from Peek, or by typing @termon[H].
+
+@end(defun)
+
+@defun tcpa:ruptime
+@defunx tcpa:rwho
+
+These two functions report the status of Internet hosts broadcasting
+in accordance with the @l(rwho)/@l(ruptime) protocol.
+
+For each host, @l[ruptime] lists how long it has been up (``uptime'').
+Some @l[ruptime] servers also report the number of users that are logged in.
+Some servers also report average load statistics
+(such as how many ``jobs'' have wanted to run).
+
+@l[rwho] lists information on the logged-in user(s) at each remote host,
+including what terminal they are using, the time they logged in, and how
+long their terminal has been idle.
+
+@end(defun)
+
+@defun icmp:ping host &optional (operation :echo) (data nil)
+
+@l(ping) requests an ICMP Echo, Information Request, Address Mask, or Timestamp
+from a remote Internet host.@cindex[ping]
+Valid @i(operation) arguments are, respectively,
+@l(:echo), @l(:info), @l(:address-mask), and @l(:timestamp).
+
+This function passes the specified @i(host) an ICMP request
+corresponding to @i(operation), passing @i(data) if specified.
+
+@l(ping) returns two values.
+If an answer was received, an integer value is returned
+representing the response time in clock-ticks (60 per second).
+If the remote host did not answer, NIL is returned.
+A @l(NIL) result could mean one of two things:
+
+@enumerate
+@item The remote host is not accessible (not connected to the network), or
+@item The remote host does not respond to ``Ping'' requests.
+@end(enumerate)
+
+The second value (possibly NIL) represents any data received from the remote host.
+
+For example:
+
+@lisp
+(icmp:ping 'myvax :echo "are you there")
+6
+("are you there")
+@end(lisp)
+
+@end(defun)
+
+@defun net:print-int-pkt-status &optional print-all
+
+This function prints the status of packets to be handled at interrupt level by the Lambda microcode.
+
+A fixed array of packet buffers is configured by the system.@cindex[packet buffers]@cindex[microcode]
+Each packet buffer is either on the ``free-list'' (available for use),
+the ``transmit-list'' (waiting to be transmitted), or
+the ``receive-list'' (received but not yet dispatched).
+
+With no argument, @l(net:print-int-pkt-status) lists the number of
+free, transmit, and receive packets.
+If @i(print-all) is non-NIL,
+the function displays the protocol and status for each allocated packet buffer.
+
+@end(defun)
+
+@defun ethernet:exos-stats &key reset-p
+
+This function prints Exos statistics collected by the Excelan hardware
+interface.@csubindex[network][statistics]
+If @i(reset-p) is non-NIL, the collected statistics are reset.
+
+Exos statistics are supported by the Excelan board only.
+@end(defun)
+
+@defun ethernet:netspy &key format-stream peek-level types not-types sources destinations s-or-d
+
+This function looks at all ethernet packets seen by the Excelan board.
+
+Output is directed to @i(format-stream) unless it is @l(NIL),
+in which case a dot is PRINCed for each packet;
+use @l('si:null-stream) to display no output except EXOS-STATS.
+
+@i(peek-level) controls level of peeking at packets:
+@itemize -
+@item If NIL, just show packet type and length;
+@item If non-NIL, also show destination and source;
+@item If a number @l(n), also show @l(n) data characters both as hex and as chars;
+@item If a list, (e.g. IP, UDP, TCP, data N), interpret selected headers and N data characters.
+@end(itemize)
+
+A packet will be selected if it satisfies the AND of the following specifications:
+
+@itemize -
+@item @i(types) is a list of ethernet types to be accepted.
+@item @i(not-types) is a list of ethernet types to be rejected.
+@item @i(sources) is a list of ethernet source addresses to be accepted.
+@item @i(destinations) is a list of ethernet destination addresses to be accepted.
+@item @i(s-or-d) is a list of ethernet addresses to be accepted either as source or destination.
+@end(itemize)
+
+@l(netspy) runs until @abort@  is pressed.
+Press any character to see EXOS-STATS, press character ``R'' to reset EXOS-STATS.
+@end(defun)
+
+@defun ip:list-route-table
+This function displays IP routing information, including the gateways and interfaces, for all known networks.
+@end(defun)
+
+@defun arp:addr-stat
+This function displays Ethernet address translations (from Chaosnet or Internet) for each host.
+@end(defun)
+
+@need 1000
+@section Network Control Variables
+@label[section-variables]
+
+@defvar net:*network-protocols* '(:CHAOS :INTERNET)
+
+This is a list of keywords corresponding to available network protocols
+and the preferred order of usage.
+By default, the system will ``prefer'' Chaosnet over TCP/IP.
+
+In general, this variable should not be manipulated;
+use the macro @see[net:with-tcp-favored][fun] instead.
+
+In some contexts, manipulating this list effectively can determine
+what protocol is used, but
+this does not work with all networking functions.
+See @see[fs:reset-file-access][fun] for information on specifying TCP/FTP file access.
+
+@end(defvar)
+
+@defvar si:dont-use-3com NIL
+When this variable is non-NIL, calls to @see[si:set-processor-owning-ethernet][fun]
+will ignore (or relinquish) the 3COM board.
+@end(defvar)
+
+@defvar si:dont-use-excelan NIL
+When this variable is non-NIL, calls to @l(si:set-processor-owning-ethernet)
+will ignore (or relinquish) the Excelan board.
+@end(defvar)
+
+@defvar tcpa:*network-services* @csubindex[network services][enabling/disabling]
+
+This variable is a list of names of generic servers to enable when the network is configured.
+@end(defvar)
+
+Each of the symbols in the list @l(tcpa:*network-services*)
+corresponds to a variable which defines a specific network service.
+These are:
+
+@defvar  tcpa:*tcp-finger-service*
+@defvarx tcpa:*udp-time-service*
+@defvarx tcpa:*tcp-time-service*
+@defvarx tcpa:*tcp-disk-service*
+@defvarx tcpa:*tcp-smtp-service*
+@defvarx ftp:*tcp-ftp-service*
+@defvarx telnet:*tcp-telnet-service*
+@end(defvar)
+
+These variable names may be used in calls to
+@see[tcpa:enable-one-network-service][fun]
+and
+@see[tcpa:disable-one-network-service][fun].
+
+@defvar tcpa:*udp-rwho-server-enabled* @i([T or NIL])
+Determines whether this machine broadcasts RWHO packets.
+Setting this variable to NIL disables sending UDP @l(rwho)/@l(ruptime) packets.
+@end(defvar)
+
+@need 1000
+@section Peek Display
+@label[section-peek]
+
+Several command modes within the @l(Peek) program display networking status information.
+
+@defun peek &optional initial-mode
+@end(defun)
+
+This function creates or visits a Peek frame.
+Optionally, the @i(initial-mode) indicates which display to show.
+
+Peek is available from a system key, @syson[P].
+Within Peek, select an option from the menu
+or press a key corresponding to the name of the desired option.
+
+@need 1000
+@subsection Network Display
+@csubindex[network][statistics]
+@csubindex[Peek][network]
+
+The @l(Network) command displays status and statistical information
+on each network protocol and interface.
+
+The protocols, interfaces, and connections are mouse-sensitive.
+Options include closing, resetting, inspecting, and describing
+the selected item;
+these are useful for debugging and/or resetting hung connections.
+The level of information detail may be set for each statistics display;
+options are @i(Normal), @i(Verbose), and @i(Brief).
+
+There is usually more than one full screen to the display;
+position the mouse cursor to the far left of the display and use the scrolling bar
+to move up or down within the display.
+
+@sp 1
+@textbox
+@b(Warning:) Do not close the network interfaces, drivers, or transport protocols from Peek.
+This capability is available only for debugging extreme situations.
+Use @l(net:configure) to restart the
+protocols after closing down through @l(Peek).@cindex[Network command (see Peek)]@csubindex[network][restart]
+
+@end(textbox)
+
+@need 1000
+@subsection Hostat Display
+@csubindex[Chaosnet][host status]
+@csubindex[Peek][hostat]
+
+The @l(Hostat) command displays status and statistical information
+for each Chaosnet host that responds when polled.
+This is the same information provided by @see[hostat][fun].
+
+@need 1000
+@subsection Chaosnet Display
+@csubindex[Peek][Chaosnet]
+
+The @l(Chaosnet) command displays the status of open Chaosnet connections,
+as well as Chaosnet-internal ``meters'' (statistics);
+these are not included in the @l(Network) display.
+
+The first line in each group displaying a connection is mouse-sensitive.
+By clicking on the string @l("Connection to ..."), each connection can be described, inspected, or closed.
+The host name displayed with each connection is also mouse-sensitive;
+clicking on a host brings up a menu with options including @l(hostat) and @l(qsend).
+
+@need 1000
+@section Process Run-States
+@label[section-messages]
+
+This section describes process run-states that may be seen on the Who-Line or reported by Peek.
+Sometimes a condition indicated by an abnormal run-state
+can be recovered by executing @see[net:configure][fun].
+
+@description
+@item TCP Socket I/O
+This run-state indicates that a socket-level TCP/IP connection has been established.
+It will appear during both input (listen, reply) and output.
+
+@item TCP Service Lock
+This run-state may appear when a TCP function enters
+a process wait state.
+If the function does not return, it means that a lock
+has been usurped, and the process locking the service
+may be hung.
+This may occur if protocols or drivers are closed abnormally.
+
+@item TCP Server Lock
+Similar to ``TCP Service Lock'', this run-state may appear
+while running a function that communicates directly
+with a network server process.
+If such a function does not return, it means that a lock
+has been usurped, and the process locking the server
+may be hung, or the server itself may be hung.
+
+@item Net Connect
+This run-state appears when a Chaosnet function is attempting
+to make an initial connection to a contact (server)
+on a particular host.
+A process that hangs in this state indicates that a physical connection
+cannot be established, suggesting that the two hosts are not connected via the physical Ethernet.
+
+@item Chaosnet Finish
+This run-state appears when a function is waiting for
+all terminating packets on a Chaos connection to be transmitted and acknowledged.
+If a process hangs in this state, it may indicate that the remote host has dropped
+the connection,
+or that the local connection was aborted at a delicate time.
+Press @ctrl[@abort] to force the connection to terminate.
+If no other connections are outstanding, you can use @l(fs:close-all-files)
+to force any open streams to this connection to be closed;
+alternatively, the specific connection can be closed in @l(Peek).
+
+@item Chaosnet Input, BRD In
+@comment Peter???
+Indicates that the caller is waiting to receive a Chaosnet packet.
+
+@item Chaosnet Wait
+This process state indicates that a function is
+waiting for a Chaos connection to change status; this will normally time out if no response is forthcoming.
+
+@item Poll Hosts, Hostat Reply, Host time, Uptime reply
+These run-states are associated with Chaosnet transactions
+that wait for any of a number of hosts to respond to a status poll.
+
+@item Network Buffer
+Indicates that the interrupt level packet buffers are all in use.@cindex[packet buffers]
+If functions hang here, it is probably necessary to execute @l(net:configure).
+Report persistent problems to GigaMos.
+
+@end(description)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end oper2

@@ -1,0 +1,12 @@
+           All files contained in this directory are copyright
+                       (c) LISP Machine, Inc. 1986
+                           All Rights Reserved
+
+
+Inquiries concerning copyright release or licensing should be directed
+to LMI Legal Affairs at the following address:
+
+LISP Machine, Inc.
+6 Andover Tech Drive
+Andover, Massachusetts  01810
+Phone: (617) 682-0500

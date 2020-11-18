@@ -1,0 +1,124 @@
+
+;Reading at top level in Lisp Listener 2.
+;Reading in base 8 in package USER with standard Zetalisp readtable.
+
+(load-patches :noselective)
+Checking whether site configuration has changed...
+Loading site files on account of SYS: SITE; SITE QFASL >
+Loading site files on account of SYS: SITE; HSTTBL QFASL >
+Patches for System (Current version is 125.19):
+125.8   pld:
+          (= 4\5 0.8s0) returned NIL because (floatp 0.8s0) returns T,
+          causing 4\5 to be coerced to a float for comparison, not a
+          short-float.  Unfortunately, (= 0.8 0.8s0) returns NIL,
+          which can't be easily fixed.  We CAN (correctly) coerce
+          4\5 to a short-float, however, and solve the initial
+          problem...
+125.9   pld:
+          Problems with describing an integer type.  If you do:
+              (setq a 4)
+              (check-type a (integer 5))
+          you get:
+               error: a is not an integer greater than 5
+          Fixed to be
+               error: a is not an integer greater than or equal to 5
+
+          If you then do:
+              (check-type a (integer (4)))
+          you get:
+               error: a is not an integer greater than 5
+          Fixed to be
+               error: a is not an integer greater than 4
+
+          Similar fixes for when the upper bound is specified
+          inclusively or exclusively.
+125.10  pld:
+          lam:dtp-rplacd-forward really needs to have a value.
+125.11  pld:
+          QFILE bug: (fs:host-chaos-interrupt-function) failed to match
+          asynchronous marks with their file handles.  One noticable
+          example occured when the server got a Disk Full error and the
+          user was simply left hanging.  Now you are given the debugger
+          with useful proceed options including: running Dired, calling
+          (zwei:clean-directory), expunging the directory.
+125.12  pld:
+          Fixes to Chaos routing:
+            - packets for this host always go through Loopback interface
+            - packets for other processors on same bus go through
+              Share interface, even if both this processor and
+              the other one have Ethernet interfaces.
+            - packets for other processors on same bus go
+              directly to that processor, not through the
+              Ethernet owner! (matters only to 2X2+ or 3X3)
+125.13  pld:
+          more intelligent calculation of line length for finger-arg-prompt
+125.14  pld:
+          The 3com microcode driver had a bug: the packet length returned
+          by the 3com board had 20 bytes of overhead added in that was not
+          being subtracted out before setting the int-pkt fill-pointer.
+          This fails now that set-fill-pointer does bounds checking.
+125.15  keith:
+          LOAD-PATCH-FILE used to very strictly enforce the restriction that
+          "The use of LOAD in a patch file is not supported." This was done by
+          binding the function LOAD to an error routine.  Unfortunately, this had
+          a horrible side-effect: if you warm-booted in the middle of this error,
+          the new "temporary" function value of LOAD became permanent.
+
+          Now, LOAD itself checks the value of FS:THIS-IS-A-PATCH-FILE and issues
+          a continuable, not fatal, error.  You can proceed if you dare.  I
+          believe this is correct; sometimes a patch may need to LOAD something
+          like a font file.
+125.16  keith:
+          When you get a background error with windows locked, the who-line
+          message now tells the truth about which keys to press to resolve the
+          problem.  The key for clearing window-system locks is Terminal
+          Control-Clear-Input, Not M-C-Clear-Input.  (I always wondered why that
+          didn't work.)
+125.17  keith:
+          Rationalize treatment of various READer end-of-file conditions.
+
+          1. Packages not followed by symbols -- reading things like "foo:" used
+          to blow up with a datatype comparison error from (=) . [I type things
+          like that a lot when I stay up too late.]  Now, signals a CERROR, so in a
+          listener it just prompts "EOF after package prefix".
+
+          2. Used to be, all READ-END-OF-FILE errors had the proceed option that said,
+          "Close off all unfinished lists."  What a crock - that hardly applies to strings
+          and (now) unterminated symbols.  I defined flavors and separate :NO-ACTION proceed
+          methods for these other read-end-of-file types.  Now:
+
+          a) with an unterminated string, readers offer to return the null string.
+          That's what you got before.
+          b) with an unterminated symbol, readers offer to return NIL.
+          That's new.
+          c) with an unterminated list, you get the same behavior as before.
+125.18  saz:
+          Cosmetic change to error strings as processed by QFILE-PROCESS-ERROR-NEW:
+          we now strip off any "."'s which appear at the end of qfile error
+          strings, as some of this function's callers expect to be able to append
+          text to the end of this returned string in constructing longer error
+          messages.
+125.19  pld:
+          The NETWORK package doesn't really want to import/export the
+          implementation specific variable ZUNDERFLOW -- better it
+          should use the macro WITHOUT-FLOATING-UNDERFLOW-TRAPS,
+          which is implemented in terms of ZUNDERFLOW on the Lambda,
+          but need not be on other machines...
+
+Patches for Tape (Current version is 24.1):
+24.1    keith:
+          Improvements to interface of PARTITION-SEARCHER.
+
+          1. When it drags someone into the command loop against their will (maybe
+          they mis-typed an argument), give them a message that orients them.
+
+          2. Print help note on first entering command loop.  Same after every 8
+          bogus keystrokes (they're obviously confused).
+
+          3. Print more complete info on current selections.
+
+          4. If they have sufficiently specified a partition to select, give them
+          a message telling them how to exit.
+
+T
+(dribble)

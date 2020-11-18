@@ -1,0 +1,48 @@
+*** CONFIDENTIAL ***                        Gabriel Benchmarks
+********************                        ==================
+Property of GigaMos Systems, Inc. --- Do not distribute!
+
+Benchmark         3600  w/IFU   Sun 3/260M  Sun 4/260  TI II  Fastest     K             x     K (12/23/87)
+                                      (see note)
+TAK               0.60   0.43      0.24       0.08     0.254  0.044 C    0.031  (1)    1.4    0.032
+STAK              2.58   2.30      1.14       0.66     1.621  1.13  C    0.1    (3)   11      0.726
+CTAK              7.65   5.04      0.90       0.51     0.732  0.59  C                         0.126
+TAKL              6.44   4.95      1.32                2.31   0.30  C    0.5    (1)    0.6    0.716
+TAKR              0.60   0.43      0.36                0.3043 0.06  C                         0.032
+BOYER            11.99   9.40      6.58       3.40     6.03   1.85  C    1.39   (1,2)  1.3    1.764
+BROWSE           30.80  21.43     22.1        5.09    12.60   3.84  I                          (not able to run yet)
+DESTRU            3.03   2.18      1.20       0.52     0.937  0.44  C                         0.585
+TRAVERSE Init     8.62   6.37      4.60                4.43   1.80  I                         3.212
+TRAVERSE         49.95  35.34     25.24       6.51    35.020  9.89  I                        10.274
+DERIV             5.12   3.79      1.98       1.16     2.00   1.06  I    0.39   (1)    2.7    0.727
+DDERIV            5.24   3.89      2.62       1.41     2.12   1.22  I                         0.947
+DIV2 Iterative    1.85   1.51      0.6                        0.45  I    0.23   (1)    1.9    0.367
+DIV2 Recursive    2.89   2.50      0.88                       0.42  I    0.23   (1)    1.8    0.358
+FFT               4.75   3.87     69.46                       1.57  D                          (not-able to run yet)
+PUZZLE           13.89  11.04      4.30       1.70     5.773  1.00  C                         7.857 (fast 2d-array path
+                                                                                                     will speed up)
+TRIANG          151.70 116.99     71.83      28.14    80.994 14.44  C   15.8    (3)    0.9   42.6   (new reg-alloc
+                                                                                                     will speed up)
+FPRINT            2.60    -        0.82                       0.34  I                          (not-able to run yet)
+FREAD             4.60    -        2.20                       0.40  I                          (not-able to run yet)
+TPRINT            4.89    -        0.98                       0.20  C                          (not-able to run yet)
+FRPOLY R3-10                       0.60       0.28     0.44
+
+C = PSL Cray-XMP
+I = PSL IBM 3081
+D = Xerox Dorado
+
+(1) Compiled and simulated, with primitive instruction counts:
+      ATOM = 2
+      CAR = 3
+      CADR,CDDR = 5
+      CADDR = 7
+      RPLACD = 3
+      CONS = 11
+      NCONS = 11
+      LIST(n) = 11n
+(2) Not including GC, 226K conses
+(3) Calculated from meter data
+
+Note:  Sun benchmarks using highly optimized code (full declarations).
+       Benchmark values expected to increase to multiples of TI II benchmarks under same conditions.

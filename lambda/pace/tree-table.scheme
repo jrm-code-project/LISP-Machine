@@ -1,0 +1,25 @@
+;;; -*- Mode:SCHEME; Package:SCHEME; Readtable:SCHEME; Base:10 -*-
+
+(define (make-tree-table id)
+  (let ((table-alist '()))
+    (let ((lookup
+            (lambda (key if-found if-not-found)
+              (letrec ((scan (lambda (tail)
+                               (if (null? tail)
+                                   (if-not-found)
+                                   (let ((entry (first tail)))
+                                     (if (alikev? key (first entry))
+                                         (if-found entry)
+                                         (scan (rest tail))))))))
+                (scan table-alist)))))
+      (object nil
+        ((table-entry self key) (lookup key second (lambda () nil)))
+        ((set-table-entry self key new-value)
+         (lookup key
+                 (lambda (entry)
+                   (set (second entry) new-value))
+                 (lambda ()
+                   (set! table-alist (cons (list key new-value) table-alist)))))
+        ((table? self) t)
+        ((identification self) id)
+        ((print self stream) (format stream "#{HACK-TREE-TABLE ~S}" (identification self)))))))

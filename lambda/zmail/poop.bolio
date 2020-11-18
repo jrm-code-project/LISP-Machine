@@ -1,0 +1,947 @@
+.c -*- Mode:Bolio; Package:ZWEI -*-
+
+.chapter ZMAIL
+
+ZMAIL is an extremely powerful display-oriented mail system for BABYL or
+RMAIL mail files.  This document describes most of its rather
+complicated user interface.
+
+.cindex mail file
+.cindex message
+The program mostly operates upon two types of objects, 2messages*
+and 2mail files*.  As one might suspect, a 2mail file* is a
+collection of 2messages*.  There are two kinds of 2mail files*,
+those that actually correspond to files on some file computer (whether
+they are present there or not), and collections of 2messages* which
+exist only during a particular running of the program.  For the most
+part in this document, the term 2mail file* can refer to either
+type.  When a distinction is to be made, the terms 2disk mail file*
+and 2temporary mail file* will be used, respectively.  A 2message*
+is always contained in exactly one 2disk mail file* and zero or more
+2temporary mail files*.
+
+.page
+
+.section Startup and top level configuration
+When started up via (ZMAIL), ZMAIL begins reading in your RMAIL file
+and any new mail.  This is done in a background process, so the
+display of the first message should come up rapidly.  The background
+process will continue to read in those files and write out the updated
+RMAIL file, if necessary.  You are therefore allowed some limited
+interaction while this is going on.
+
+When invoked by [SYSTEM] M, ZMAIL displays an explanatory message and
+allows commands that do not require an mail file.  Clicking on Get New
+Mail will start reading in your RMAIL file as above.
+
+.nopara
+There are three ZMAIL windows displayed while the program is at top level:
+
+.table 1
+.item the Message window
+This window displays the text of the current message itself.
+
+.item the Command menu
+A menu containing most of the useful top level commands.  See the
+section on commands for what they all do.
+
+.item the Mode line
+A one line window showing the status of the program.  For example,
+.nopara
+.exdent 240 "7ZMAIL Option AI: ZIPPY; ZIPPY RMAIL   Msg #3/57  (unseen)  {personal} --More--*"
+.br
+7Option* means the program is at top level.  Next comes the name of
+the current 2mail file*.  73* is the current message number, and
+757* the total number of messages in the current file.  7unseen*
+means this is the first time the message has been displayed; other
+things that go inside the parentheses are 7deleted*, 7recent* and
+7last*, meaning the last message in the file.  Inside the braces are
+any user keywords which have been saved on this message.
+'cindex keywords
+7--More--* is displayed when there is more text of the message below the
+end of this screenful.
+
+Some of the items in the mode line are mouse sensitive at various times.
+See the section on the various commands for what parts these are and
+what clicking on them does.
+.end_table
+
+.section Top level commands
+.nopara
+These are the commands available in the main command menu.  In general,
+clicking left on one of them does its default action and clicking right
+gets another menu of suboptions.  Whenever a command can be invoked by
+both the menu and the keyboard, the keyboard version is equivalent to
+clicking left, that is it gives the default behavior.
+
+.table
+.item Summarize
+Changes the display from just the current message and the command menu
+to the summary window, the command menu and the current message.  See
+the section on the summary window for what is displayed there.
+
+.item Select file
+Clicking left selects the 2mail file* that was last selected before
+this one.  Clicking right gives a two column menu with the 2disk mail
+files* in the left column and the 2temporary mail files* in the
+right.  Clicking on one of these selects that 2mail file*.
+
+.nopara
+In addition, there are these special options in italics in the menu:
+
+.table
+.item Find file
+Reads the name of a file from the keyboard and reads in and selects that
+mail file.
+
+.item Mark survey
+Enters marking survey mode and selects a 2temporary mail file* of the
+marked messages when exited.  See the section on marking survey mode in
+the description of the summary window, below.
+
+.item Filter
+Selects a temporary mail file of messages chosen by a filter.  See the
+section on filtering  for how this specification is done.
+
+.item Abort
+Aborts the Select File command.
+
+.end_table
+
+
+.item Delete 2also gotten by typing 3D**
+.nopara
+Deletes a message.  There are two types of deletion commands.  Clicking
+right gets a menu of the two.
+
+.table
+.item Delete
+Marks a message as deleted relative to the 2disk mail file* that is is
+contained in.  If 3zwei:*delete-after-next** is not 3nil*, then moves
+on to the next message.  This is also what clicking left does.
+
+.item Remove
+Actually immediately removes the current message from the current
+2temporary mail file*.  This is useful for getting rid of just a few
+messages for the 2Map Over* command, for example.
+
+.end_table
+.item Undelete
+Searches starting with the current message and then backward for a
+deleted message and unmarks it as deleted and selects it.
+
+.item Reply 2also gotten by typing 3R**
+Sets things up for mailing a reply to the current message.  There are
+two variables relevant to the initial setup of the reply.  These are the
+2reply mode* and the 2reply window mode*.  Clicking right gets a
+menu of these, and clicking left defaults them to
+3zwei:*default-reply-mode** and 3zwei:*default-reply-window-mode**,
+respectively.
+.nopara
+These are the possible choices for 2reply mode*, which controls to
+whom the reply is addressed.
+
+.table
+.item All
+All of the original recipients of the message.
+
+.item All-Cc
+All of the original recipients of the message, except Cc: everyone
+except the original sender, rather than To:.
+
+.item Cc-All
+All the original recipients, except Cc: the sender of the message.
+This is useful for replying to messages to mailing lists to the
+mailing list itself.
+
+.item To
+Just the sender and original To: recipients of the message.
+
+.item To-Cc
+To: the sender, and Cc: the original To: recipients.
+
+.item Cc-To
+To: the original To: recipients, Cc: the sender.
+
+.item Sender
+Just the sender of the message.
+
+.end_table
+
+.nopara
+These are the possible choices for 2reply window mode*, which controls
+how the display is initially configured.
+
+.table
+.item Two-windows
+Reply is in two windows, with the message being replied to at the top.
+
+.item One-window
+Only the reply being composed is displayed, not the original message.
+
+.item Yank
+Display only the reply, and also yank the text of the original message,
+indented, into the text of the reply.
+
+.end_table
+See the section on Sending a message for how to finish composing the reply.
+
+.item Profile
+Enters profile mode, which allows modifying ones init file.  See the
+section on this mode for how it works.
+
+.item Map Over
+.nopara
+Performs operations on all the messages in the current mail file.  The
+operation if chosen from a menu with the following items:
+
+.table
+.item Delete
+Delete all messages.
+
+.item Undelete
+Undelete all messages.
+
+.item Type
+Type out all messages, using a window with scrolls like the View File
+window in the editor.
+
+.item Find string
+Print out all lines in messages containing a string which is read from
+the terminal.  The lines printed are mouse sensitive and clicking on
+them selects that message.
+
+.item Keywords
+Add keywords to all messages.  See the Keywords command for how to
+interact with the keywords menu.
+
+.item Unkeywords
+Remove keywords from all messages.
+
+.item Move to file
+Move all messages into a file.  See the Move to File command for how to
+specify that file.
+
+.item Sort
+.nopara
+Reorder the messages by sorting.  Sort keys can be:
+
+.table
+.item Date
+Sort chronologically by date of the message.
+
+.item To
+Sort alphabetically by the To: field of the message.
+
+.item From
+Sort alphabetically by the From: field of the message.
+
+.item Subject
+Sort alphabetically by the Subject: field of the message.
+
+.item Keywords
+Sort by what keywords are present on the message.
+
+.item Text
+Sort alphabetically by the actual text of the message.
+
+.item Length
+Sort numerically by the length of the message in characters.
+
+.end_table
+.nopara
+The menu also allows specifying in which direction the messages should
+be ordered after that sort.
+.table
+.item Forward
+
+.item Backward
+
+.end_table
+.item Forward
+Forward all messages to someone.  See the forward command under the Mail
+command for how this sets things up and the section on Sending a message
+for how to finish it up.
+
+.item Concatenate
+Replace the text of the first message in this mail file with the
+concatenation of the text of all messages, and mark all messages except
+the first as deleted.  Useful for combining several messages on the same subject.
+
+.end_table
+.item Save files 2also gotten by typing 3S**
+Clicking left expunges and saves all mail files.  Clicking right gives a
+multiple choose menu, like the one the Kill or Save Buffers command in the
+editor uses, with the following options for each mail file.
+
+.table
+.item Expunge
+Remove all deleted messages from this mail file.
+
+.item Save
+Write the file back to disk if it has been changed.
+
+.item Kill
+Remove this mail file from the list of mail files that can be selected.
+
+.end_table
+.item Next 2also gotten by typing 3N**
+Move to the next undeleted message.
+
+.item Previous 2also gotten by typing 3P**
+Move to the previous undeleted message.
+
+.item Continue 2also gotten by typing 3C**
+Enter mail mode again for sending the same message.  See the section on
+sending a message.
+
+.item Quit 2also gotten by typing 3Q**
+Exits ZMAIL.  By default, first saves out all files.  Contrast the C-Z
+command.  Clicking right gives a menu with the following items:
+
+.table
+.item Don't Save
+Do not save any files before exiting.
+
+.item Ask
+Pop up the same menu as when the Save files command is clicked right to
+determine which files to save.
+
+.item Save
+The default.  Expunge and save all mail files before exiting.
+
+.end_table
+.table
+.item Quit
+Just return to the caller.
+
+.item Logout
+Logout from the Lisp machine after all saving has been done.  If you are
+daring, you can give this option and go away before the saving finishes.
+
+.end_table
+.item Survey
+Prints the summary lines for messages selected according to a filter.
+See the section on filters for how to specify one and the section on the
+summary window for the format of the lines printed out.  The lines
+printed are mouse sensitive and clicking on them selects the
+corresponding message.
+
+.item Get new mail 2also gotten by typing 3G**
+If there is new mail on the file computer, start reading it in.
+
+.item Move to file
+Moves a message into a mail file.  Since a message can only reside in
+one 2disk mail file* and any number of 2temporary mail files*,
+moving a message into a 2disk mail file* means actually copying the
+message and its text, whereas moving into a 2temporary mail file* only
+stores the 2message* into that data structure.  Clicking left moves
+into the same mail file as the last move to file command.  Clicking
+right gives a menu of all the current mail files, clicking one of them
+moves the message into that file.
+
+.nopara
+In addition, there are the following special options in italics in the menu:
+
+.table
+.item New temporary
+Read the name of a new 2temporary mail file* from the keyboard and
+start it out with this message.
+
+.item Recycled temporary
+The same 2temporary mail file* that the filter opterations would have
+used.
+
+.item New file
+Read the name of a 2disk mail file* from the keyboard, read in from
+the file computer if it exists, and add this message to it.
+
+.item Hardcopy
+Prints the message on some hardcopy device, see the section on hardcopy.
+
+.item Abort
+Abort the Move to file command.
+
+.end_table
+.item Keywords
+Change the current message's keywords.  Clicking left performs the same
+additions and substractions to this message's keywords as the last
+keywords command.  Clicking right gives the keyword menu.  This menu
+contains all the currently defined keywords.   Keywords that are
+currently on this message will be highlighted.  Clicking on a keyword
+complements the highlighting.
+
+.nopara
+In addition, there are the following special items in italics:
+
+.table
+.item Quit
+Aborts the Keywords command.
+
+.item Done
+Finishes up, the message will get all the highlighted keywords.
+
+.item New
+Reads the name of a new keyword from the keyboard, adds it to the list
+of possible keywords and to the keyword menu, and highlights it.
+
+.end_table
+.item Mail 2also gotten by typing 3M**
+Sets things up for sending a message.  See the section on sending mail for
+how to continue from there.
+
+.nopara
+Clicking right gives a menu of various special setup modes for mailing.
+
+.table
+.item Bug
+Gives a menu of possible bug-report recipients and initializes the to
+and text fields of the message the same way as the M-X Bug command in
+the editor.
+
+.item Mail
+Normal mail setup.
+
+.item Forward
+Copies the current message into the text portion of the message being composed.
+
+.end_table
+.item Other
+Gives a menu of other commands and executes the chosen one.  By default
+there are no other commands.  See the section on init files for how to
+define some commands and add them to this list.
+
+.end_table
+
+.nopara
+Typing digits accumulates an argument for the next command.  Most
+commands do not do anything with their argument.  These are the commands
+only available from the keyboard:
+.table
+.item Break 2gotten by typing 3BREAK**
+Gives a break loop.
+
+.item Delete And Up 2gotten by typing 3C-D**
+Deletes this message and moves to the previous undeleted message.
+
+.item Down To Next 2gotten by typing 3C-N**
+Moves to the next message, whether deleted or not.
+
+.item Jump 2gotten by typing 3J**
+Moves the the beginning of the file.  With an argument, moves to that message.
+
+.item Next Screen 2gotten by typing 3SPACE**
+Scrolls to the next screenful of this message.  The argument is the same
+as for the C-V command in the editor.
+
+.item Previous Screen 2gotten by typing 3BS**
+Scrolls to the previous screenful of this message.  The argument is the
+same as for the M-V command in the editor.
+
+.item Refresh 2gotten by typing 3FORM**
+Redisplays all the ZMAIL windows.
+
+.item Scroll Summary Window 2gotten by typing 3C-M-V**
+Scrolls the summary window if it is displayed.  The argument is
+interpreted the same way as the C-M-V command in the editor, except that
+an argument of 0 means scroll the line for the current message to the
+top of the summary window.
+
+.item Start Of Msg 2gotten by typing 3.**
+Scroll this text of this message so that the beginning is at the top of
+the window.  This is how the text is initially displayed.
+
+.item Up To Previous 2gotten by typing 3C-P**
+Moves to the previous message, where deleted or not.
+
+.item Quit 2gotten by typing 3C-Z**
+Returns from ZMAIL without writing any files or anything.
+
+.end_table
+
+.nopara
+These are the commands gotten by clicking on mouse senstive parts of the mode line.
+.table
+.item Keywords
+Gotten by clicking on the keywords in braces, the same as the Keywords
+command in the main command menu.
+
+.item Rename Mail File
+Gotten by clicking on the filename.  Reads a new name from the keyboard
+and changes the name of the current mail file to that.
+.end_table
+
+.nopara
+These are the commands that are not available anywhere by default.  They
+can be added to the other command's list in one's init file, or invoked
+via the M-X command.
+.table
+.item Replay Keyboard Macro
+Gets the name of a named keyboard macro from a menu, and replays it.
+Useful for setting up special cases of the Mail command, for example.
+
+.item View File
+Reads the name of a file from the keyboard and displays it like View
+file in the editor.
+
+.item Find String
+Reads a string from the keyboard and moves to the next message that contains
+that string.
+.end_table
+
+.section Mailing mode
+
+.nopara
+These are the special commands available while mailing a message.  Some
+of them are also available in the editor menu while in sending a message
+also.
+.table
+.item Abort Send 2gotten by typing 3ABORT**
+Abort sending of this message and return to top level command mode.
+
+.item Add Cc Field 2gotten by typing 3C-X C**
+Add another CC recipient, with an argument of 0, moves to the start of the CC field.
+With a negative argument, deletes the CC field.
+
+.item Add From Field 2gotten by typing 3C-X F**
+Add a from field.  The argument is interpreted the same as the Add CC Field command.
+
+.item Add More Text 2gotten by typing 3C-X A**
+Move to the end of the text window.
+
+.item Add Subject Field 2gotten by typing 3C-X S**
+Add a subject field.  The argument is interpreted the same as the Add CC Field command.
+
+.item Add To Field 2gotten by typing 3C-X T**
+Add a to field.  The argument is interpreted the same as the Add CC Field command.
+
+.item Other Window 2gotten by typing 3C-X O**
+Select another exposed window, hence equivalent to the C-X O command in the editor.
+
+.item Prune Yanked Headers 2gotten by typing 3C-X Y**
+Delete the useless headers of a message that was yanked in via C-M-Y.
+
+.item Restore Draft 2gotten by typing 3C-X C-R**
+Restore the draft of a file from the file computer, such as saved by the C-X C-S command.
+
+.item Save Draft 2gotten by typing 3C-X C-S**
+Save the message being composed on disk, such that C-X C-R will restore it.   Defaults
+the name of the file to the one used last time or HSNAME;DRAFT >.
+
+.item Send Message 2gotten by typing 3END**
+Actually send the message and return to top level command mode.
+
+.item Write Draft 2gotten by typing 3C-X C-W**
+Read a filename from the keyboard and save the message being composed on that file.
+
+.item Yank 2gotten by typing 3C-M-Y**
+Yank in the current message (i.e. the one being replied to), an argument
+means do not indent.
+
+.end_table
+
+.section The summary window
+The summary window is a scroll window which displays a single line for
+each message in the current mail file.  Each line is mouse sensitive
+and clicking left on a line selects the message corresponding to that
+line.  Clicking right gives menu of operations on that message.  (For
+exceptions to this rule, see the section on defining a new filter.)
+There are two possible formats for the summary line, one which
+displays the date, and one which does not.  This is controlled by
+3zwei:*summary-include-date**.  For example,
+.nopara
+.exdent 240 "7  3:   30 GLS(BUG ZWEI)          {feature zwei} Suggestions for C-Q (Various Quantities)*"
+.exdent 240 "7  3:   30  1-Jul GLS(BUG ZWEI)          {feature zwei} Suggestions for C-Q (Various Quan*"
+.br
+73* is the number of the message relative to this mail file.  Numbers are
+provided for counting purposes only, there are no absolute numbers.  7:* is the
+status letter of the message.
+.nopara
+Possible status letters are, in reverse order of predicate precedence:
+.table 7
+.item -
+The message is unseen, i.e. it has not been displayed yet.
+
+.item :
+The message has been seen before.
+
+.item A
+The message has been answered.
+
+.item D
+The message is deleted.
+.end_table
+730* is the number of lines in the message.  The sender and recipients
+of the message are summarized on either side of the 7*.  The keywords
+for the message are enclosed in braces.  The rest of the line is either
+the subject of the message, or the first line which appears to contain
+meaningful text.  In addition, the current message will have a small
+arrow in the leftmost column of its survey line.
+
+.subsection Marking survey mode
+Marking survey mode is the simplest way to get a set of (a small number
+of) messages for the Map Over commands.  When in marking survey mode,
+clicking on a line in the summary window complements its marked status.
+Marked messages have a small 7x*-like blob in the leftmost column.
+Typing 3END* will select a temporary mail file of the marked messages.
+Typing 3ABORT* will abort marking survey mode.  Also, mousing most any
+other command will first select the marked messages and then execute the
+command.  This is the easy way to start the Map Over command you
+presumably wanted to do.
+
+.section Filtering
+In order for the operations available in the Map Over menu to be
+generally useful, one needs to be able to collect messages which fit a
+particular predicate into a 2temporary mail file*.  This collection is
+assembled by mapping a 2filter* over a 2universe* of messages.  A
+2filter* is simply a predicate, a function on a 2message*.  A
+2universe* is just a collection of messages.  Usually it is nothing
+more than a 2mail file*, but see below.  This same filtering operation
+is performed by the Survey command to decide which messages to print.
+
+.subsection Choosing a filter
+.nopara
+When the user is called upon to select a filter, the filter selection
+frame is exposed over the rest of the window.  These are the windows in
+the filter selection frame and what they do:
+.table 1
+.item The universe button
+This window has the name of the 2universe* the 2filter* will be
+applied to.  Normally, this is the current 2mail file*.  Clicking on
+it allows choosing another 2universe*.  See the section on Choosing a
+universe below for how that works.
+
+.item The not button
+This window just says 7not* on it.  Clicking on it complements its
+highlight.  If it is highlighted when you finally select the 2filter*
+(see below), then the complement of the predicate is used instead.
+
+.item The abort button
+This window just says 7abort* on it.  Clicking on it aborts the filter
+selection, which probably aborts the current command, such as Select
+File or Survey.
+
+.item Keywords
+Each keyword that is defined is displayed in a menu.  Clicking on an
+item in that menu selects the 2filter* that gets 2messages* with that
+keyword on them.  Also, the item 2Any*, in italics, gives a 2filter*
+for all messages with any keywords at all on them.
+
+.item System filters
+.nopara
+A number of filters are pre-defined.  These are the ones displayed in
+the middle menu and what messages they filter.
+.table
+.item All
+Gives all messages.  If you don't select a different 2universe*, you
+won't get a different set of messages and won't have accomplished
+anything, so see below for how to do that.
+
+.item Deleted
+Messages marked as deleted
+
+.item Seen
+Messages which have been displayed before.
+
+.item Recent
+Messages read as new mail during this session.
+
+.item Answered
+Messages to which a reply has been sent using the Reply command.
+.end_table
+
+.item User filters
+A menu of any 2filters* that the user has defined is also given.
+Also, the item 2New filter* appears in italics.  Selecting it will let
+you define a new filter.  See below for how that works.
+.end_table
+
+.subsection Defining a new filter
+.cindex filter
+When defining a new filter, the screen is split between the summary
+window and the filter definition frame.  The summary window displays the
+current mail file.  See the section on it for the format of the display.
+Clicking on its mouse sensitive lines gives several lines of mouse
+sensitive typeout showing the sender and recipients of the corresponding
+message.  Clicking on them adds clauses to match those fields, just like
+the From or To/Cc commands below.
+
+On the right of filter definition window is an editor, which shows the
+LISP definition of the filter you are defining.  Usually it will contain
+logical expressions on pre-defined macros, gotten automatically by
+clicking on the various other windows.  However, clicking on it will
+allow you to edit the LISP itself.  See the section on filter macros to
+help interpret things there.  Here is an example of a simple filter which
+gets all deleted messages from Moon at MIT-MC.
+
+.lisp
+(define-filter foo (msg)
+  (and (get status ':deleted)
+       (msg-header-recipient-search ':from "Moon@MIT-MC")))
+.end_lisp
+
+.nopara
+The other windows in the filter definition frame are:
+.table 1
+.item Not button
+This window just says not in it, clicking it inserts code which will complement the
+next clause inserted.
+
+.item And button
+Starts an 3and* conditional, into which following clauses are filled in.
+
+.item Or button
+Starts and 3or* conditional.
+
+.item Close button
+This moves to the next higher level of nested clauses.  In fact which it
+does is what M-) does in the editor.  That is to say, if you click And,
+then Or, then some clauses for the Or, and now want to get back to
+adding the rest of the And clauses, this is how you do it.
+
+.item Sample button
+Clicking this shows what messages fit the filter as so far defined, just
+the the Survey command at top level.
+
+.item Name button
+This has the name of the filter you are defining, initially something
+like NONAME-1.  Clicking left on it lets you change the name of the new
+filter.  Clicking right gives you a menu of already defined filters
+and lets you select one which is then inserted with its definition.
+This is how you edit an existing filter definition.
+
+.item Done button
+Finishes up defining the filter.
+
+.item Abort button
+Aborts the filter definition, and probably whatever command it was called from.
+
+.item Keyword menu
+Similar to the Keyword menu in the filter selection frame, except that choosing
+something inserts a clause for matching messages with that keyword.
+
+.item System filter menu
+Similar to the menu in the filter selection frame, except that it too inserts
+clauses which match the corresponding predicate.
+.nopara
+There are also a few other items in the menu:
+.table
+.item Filed
+Gives messages which have been moved to another 2disk mail file*.
+
+.item Search
+Reads a string from the mini-buffer (over there below the editor window)
+and gives a clause which matches messages containing that string.
+.end_table
+
+.item Headers menu
+Clicking on the items in this menu reads a string from the mini-buffer
+and gives a clause for messages that match that string in the
+corresponding string.  When you are reading in that mini-buffer,
+clicking in the survey window will insert the text of the corresponding
+field in the message that corresonds to that line in the survey, giving
+a menu in the typeout window if there is more than recipient in that field.
+
+.nopara
+These are the headers that appear in the headers menu:
+.table
+.item To
+Match on the to field of the message.
+
+.item To/cc
+Match on either the to or the cc field of the message, i.e. any
+recipient of the message.
+
+.item From
+Match the from field.
+
+.item Subject
+Match the subject field.
+
+.item Other
+First reads the name of a header (presumably other than To, From, or
+Subject) and then the search string, and search that particular header
+for the string.
+.end_table
+
+.item Date menu
+.nopara
+Clicking on these items reads a date from the mini-buffer and inserts a
+clause for the corresponding time predicate.
+.table
+.item Before
+Gets messages dated before the given date.
+
+.item On
+Gets messages dated within 24 hours of the given date.
+
+.item After
+Gets messages dates after the given date.
+.end_table
+.end_table
+
+.subsection Choosing a universe
+.cindex universe
+The menu for selecting a universe contains the names of all mail files,
+and already defined universes (see below).  Clicking on one of these
+selects the correponding set of messages for the universe of in which
+the filter is conducted.  Also, the item 2All*, in italics, appears,
+which means all messages in any mail file; and the item 2New
+universe*, which allows definition of a new universe, as below.
+
+A universe which is not a mail file does not correspond to a
+particular set of messages until it is used for filtering.  It is in
+this way that it differs from a mail file.  Mail files used in it are
+specified by name, not by their messages.
+
+.subsection Defining a universe
+.cindex cosmogony
+To define a new universe, the universe definition frame pops up.  It has
+an editor window just like the Filter definition frame; in fact,
+definition works much the same way, except that set operations, rather
+than logical operations, are applied to collections of messages, rather
+than to filtering clauses.
+
+.nopara
+The other windows in the universe definition frame are:
+.table 1
+.item Name button
+This has the name of the universe you are defining, initially something
+like NONAME-1.  Clicking left on it lets you change the name of the new
+universe.  Clicking right gives you a menu of already defined universes
+and lets you select one which is then inserted with its definition.
+This is how you edit an existing universe definition.
+
+.item Done button
+When done, returns the newly defined universe
+
+.item Abort button
+Aborts the definition of the new universe, and returns to the filter
+frame probably.
+
+.item Union button
+Gives the union of the succeeding collections.  Union of no arguments is
+the empty set.
+
+.item Intersection button
+Gives the intersection of the succeeding collections.  Intersection of
+no arguments in everything, in this case all messages anywhere.
+
+.item Not button
+Gives the complement of the suceeding collection.
+
+.item Close button
+Moves up a level of union or intersection, just like the close button in
+the filter definition frame, or M-) in the editor.
+
+.item Disk mail files
+A menu of all disk mail files appears on the left.  In addition, the
+item 2Primary* in italics, which means the file that was read in to
+startup and to which your new mail is appended, i.e. your RMAIL file.
+
+.item Temporary mail files
+A menu of all temporary sets of messages appears in the middle.  In addition,
+the item 2Current*, which means the currently selected mail file.
+
+.item Universe menu
+A menu of all the universes you have already defined also appears,
+clicking it uses that collection of messages.
+.end_table
+
+.section Profile mode
+.cindex user options
+.cindex init file
+When ZMAIL starts up, it 3load*'s the file HSNAME;UNAME ZMAIL, if it
+exists.  This init file can define filters, 3setq* variables (see
+below under user options), etc.  Profile mode gives a convenient
+interface for helping to edit up this file.
+
+[More to come]
+
+.section User options
+.cindex user options
+.cindex init file
+.nopara
+These are the user options and what they mean, they are all in the ZWEI
+package.  Your init file probably should be also for convenience.
+.table 3
+.item *next-after-delete* 2boolean, default 3t**
+Whether to move to the next message after deleting the current one.
+
+.item *delete-after-move-to-file* 2boolean, default 3t**
+Whether to delete a message after moving it into a disk mail file.
+
+.item *summary-include-date* 2boolean, default 3nil**
+Whether the summary window should include the date of the message too.
+
+.item *default-initial-window-configuration* 2assoc, default 3:msg**
+.nopara
+Controls what windows are displayed when ZMAIL starts up.  Possible
+values are:
+.table 3
+.item :msg
+Just the message window is displayed.
+
+.item :both
+Both the summary window and message window are displayed.
+
+.item :summary
+Just the summary window is displayed
+.end_table
+.item *default-header-force* 2assoc, default 3:none**
+.nopara
+Controls the type of message generated by the mailing commands.
+Possible values are:
+.table 3
+.item :none
+ZMAIL does not specify the header force, but allows COMSAT to default them.
+.item :rfc733
+.item :its
+.item :network
+.end_table
+
+.item *reply-window-mode* 2assoc, default 3:two-windows**
+Controls the default for the reply command's window mode, see the reply
+command for the meaning of the possible values, which are
+3:one-window*, 3:two-windows*, and 3:yank*.
+
+.item *reply-mode* 2assoc, default 3:all**
+Controls the default for the reply command's reply mode, see the reply
+command for the meaning of the possible values, which are 3:all*,
+3:all-cc*, 3:to*, 3:to-cc*, and 3:sender*.
+
+.item *other-mail-file-names* 2filename-list, default 3nil**
+A list of files which are available in the menus for Select file and
+Move to file, even before they are read in.  Selecting them will read
+them in of course before using them.
+
+.item *dont-reply-to* 2string-list, default 3("INFO-*")**
+A list of people who are removed from the list of people to whom to send a
+reply to a message.  If a string ends with a 3**, it means that it
+will match any ending string.  Add your 3USER-ID* to this if you don't
+like copies of your replies.
+
+.item *forwarded-message-separator* 2string, default 3""**
+A string that separates several messages that are forwarded together.
+
+.item *zmail-startup-file-name* 2filename-or-nil*
+The filename that is read in initially, and to which new mail is added,
+defaults to your BABYL or RMAIL file.
+
+.item *default-draft-file-name* 2filename-or-nil*
+The name of the file where messages being composed can be saved,
+defaults to HSNAME;DRAFT >.
+.end_table
+
+.section Filter alist processing
+.cindex filter
+.cindex init file
+Some functions are defined which give an interactive scrolling display
+of the text of messages and allow putting keywords on messages, deleting
+them, at the same time.  They aren't all that well thought out yet.  If
+you want to experiment with them, look in MMcM's init file for examples
+of how to use them.
+
+[This section will get more specific someday.]
+
+.eof

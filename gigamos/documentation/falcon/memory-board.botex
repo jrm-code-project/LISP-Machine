@@ -1,0 +1,108 @@
+@c memory-board.botex
+@c
+@c 16-May-88, James Rauen
+
+@chapter Memory Board
+
+This chapter is an overview of the memory board.
+
+@section Overview
+
+
+@section Memory Control Register
+@label[MCR]
+
+The Memory Control Register (MCR) is a 32-bit register.  Its contents
+are used as control lines for various parts of the memory board.  The
+MCR may be read or written by accessing functional source/destination
+1100010.
+
+All bits in the MCR are zeroed by a reset.
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 31 @\ Master Trap Disable (0 = no trapping, 1 = trap under other masks). See below. @cr
+@< 30 @\ Asynchronous Trap Enable (0 = disable, 1 = enable) @cr
+@< 29 @\ Overflow Trap Enable (0 = disable, 1 = enable) @cr
+@< 28 @\ Data Type Trap Enable (0 = disable, 1 = enable) @cr
+@< 27 @\ Synchronous Trap Enable (0 = disable, 1 = enable) @cr
+@< 26 @\ Single step on trap exit (0 = disabled, 1 = enabled) @cr
+@< 25 @\ Spare @cr
+@< 24 @\ Reset Tap Bit (0 = reset trap bit on, 1 = normal) @cr
+@< 23:20 @\ Undefined @cr
+@< 19 @\ DRAM Parity Error Flagging (0 = disable, 1 = enable) @cr
+@< 18 @\ Boot PROM (0 = enabled, 1 = disabled) @cr
+@< 17:16 @\ Transporter RAM Mode Select @cr
+@< 15 @\ Use L or C valid/write-enable bits in map (0 = C bits, 1 = L bits) @cr
+@< 14 @\ Write Wrong Parity to DRAM (0 = normal parity, 1 = wrong parity) @cr
+@< 13 @\ 16384 microsecond interrupt (0 = disable/reset request, 1 = enable) @cr
+@< 12 @\ 1024 microsecond interrupt (0 = disable/reset request, 1 = enable) @cr
+@< 11 @\ I-Cache error clear (0 = disable/reset icache error traps, 1 = enable) @cr
+@< 10:9 @\ NuBus AD(1:0) bits for transfers @cr
+@< 8 @\ NuBus TM0 bit for transfers @cr
+@< 7 @\ LED 2 (0 = lit, 1 = unlit) @cr
+@< 6 @\ LED 1 (0 = lit, 1 = unlit) @cr
+@< 5 @\ LED 0 (0 = lit, 1 = unlit) @cr
+@< 4 @\ Statistics Source Polarity (0 = true, 1 = invert) @cr
+@< 3:1 @\ Statistics Counter Source (options listed below) @cr
+@< 0 @\ Statistics Counter Mode (0 = edge trigger, 1 = duration) @cr
+
+Note that bit 31 (Master Trap Disable) also sets/resets during trap
+exit/entry
+
+Bits 3:1 determine the statistics counter source:
+
+@settabs 6 @columns
+@sp 1
+@< @i[Value] @\ @i[Source] @cr
+@sp 1
+@< 000 @\ I-cache hit @cr
+@< 001 @\ Processor memory cycle @cr
+@< 010 @\ Instruction Status Bit @cr
+@< 011 @\ Undefined @cr
+@< 100 @\ PC in high core @cr
+@< 101 @\ Undefined @cr
+@< 110 @\ Undefined @cr
+@< 111 @\ Undefined @cr
+
+
+@section Memory Status Register
+@label[MSR]
+
+The Memory Status Register (MSR) is a 32-bit register.  It contains
+various status bits from the memory board.  The MSR may be read from
+functional source 1100110.
+
+@settabs 8 @columns
+@sp 1
+@< @i[Bit(s)] @\ @i[Meaning] @cr
+@sp 1
+@< 31:24 @\ Undefined @cr
+@< 23 @\ Amount of memory installed (0 = 32 Meg, 1 = 16 Meg) @cr
+@< 22 @\ Autoboot jumper (0 = mastership external, 1 = go for it) @cr
+@< 21 @\ Memory Parity Error (0 = error, 1 = no error) @cr
+@< 20:19 @\ Undefined @cr
+@< 18 @\ MD Transport Trap (1 = MD read will cause transporter trap) @cr
+@< 17 @\ MD Page Trap (1 = MD read will cause read fault trap) @cr
+@< 16 @\ VMA Boxedness (0 = boxed, 1 = unboxed) @cr
+@< 15 @\ MD Boxedness (0 = boxed, 1 = unboxed) @cr
+@< 14:13 @\ Transporter Mode of Last Memory Cycle (see note) @cr
+@< 12 @\ Last Memory Cycle Type (0 = write, 1 = read) @cr
+@< 11 @\ Undefined @cr
+@< 10:8 @\ Nubus Bootstrap Mode (0 = normal, 1 = short reset, 2:7 = software) @cr
+@< 7:4 @\ ECO Jumper Number @cr
+@< 3:0 @\ Nubus Slot ID @cr
+
+Bits 14:13 -- 00 = will write, 01 = no evcp, 10 = transport, 11 = no
+transport.  See the Transporter RAM chapter for details.
+
+
+@section Memory Board Hardware
+
+The MCR [Memory Board, Page 22] is implemented with four 74LS273
+registers.  The four 74LS244 buffers are used for reading the MCR.
+
+The MSR [Memory Board, Page 23] is implemented with four 74LS244
+buffers.

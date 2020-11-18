@@ -1,0 +1,195 @@
+
+    STATUS REPORT ON TCP-IP IMPLEMENTATION FOR LMI-LAMBDA
+    8/02/85 08:54:44 -George Carrette
+
+The implementation uses a Multibus board, the Excelan Exos 201
+Front-End Processor. This board is DMA, and has interrupt
+generation capability, although that is not used at this time.
+The device driver is straightforward and uses one process
+to poll the device and handle reply messages, and in chaos mode
+another process to handle incoming ethernet packets. In chaos
+mode then there are 3 actively switching process, user, message,
+and ethernet receiver when a file transfer is in process.
+
+A file access method which uses the FTP protocal to connect to
+a remote file system is sufficiently clever so as to support
+the :TRUENAME :CREATION-DATE, :BYTE-SIZE, :LENGTH-IN-BYTES messages
+that are expected by the system and user.
+
+The distribution kit for release 2.0 consists of the TCP directory
+plus all system patches up to July 31. Some of these patches are
+required in order to gain access to new device specific slots in
+the system configuration structure and to interface to ZMAIL,
+the QFILE access mechanism and other parts of the system correctly.
+The major skill required in installing the distribution kit is
+the editing of site files to include INTERNET addresses and hosts.
+
+Performance measurements.
+
+(defun tfile (filename &optional (characters t) &aux tm)
+  (with-open-file (s filename :characters characters)
+    (setq tm (time))
+    (stream-copy-until-eof s 'si:null-stream)
+    (quotient (time-difference (time) tm) 60.0)))
+
+Reading the file "SYS:SYS;EVAL.LISP" (LAM3's version) which is 131160
+bytes long and requires about 282 chaos packets to be transmitted and
+281 to be received. (Note: it would seem that due to the window size
+we should not be transmitting so many packets). We test various
+ways of receiving the file using both the chaosnet and tcp-ip protocols.
+
+Local Host! from host  ! bytes/sec ! timings        ! hardware blocks or packets/sec
+------------------------------------------------------------------------------------
+LOCAL FILE  LOCAL FILE  62.5k          2.1
+EX CHAOS    LAM3 LISPM   5.9k         22.3            12
+EX CHAOS    UNIX 750     0.7k         210 200
+UCODE 3COM  LAM3 LISPM  19.8k         10 8.9 7.6 6.6  40
+LISP  3COM  LAM3 LISPM   5.3k         27 26 24.9
+UCODE 3COM  UNIX 750     8.9k         14.7 15.8
+LISP  3COM  UNIX 750    10.5k         12.5 12.7
+TCP ASCII   UNIX 750     9.2k         14.2
+TCP BYTE 8  UNIX 750    43.7k          3              21
+TCP ASCII   BED LISPM    7.0k         22 18.5
+TCP BYTE 8  BED LISPM   22.2k          5.9            11
+
+In TCP ASCII mode the FTP user is having to utilize
+the equivalent of the VAX instruction MOVTC,
+MOVE TRANSLATED UNTIL CHARACTER. A lispm->ASCII
+translation (or Unix->ASCII) which is one-to-one
+for all except the <NEWLINE> sequence must be
+accomplished on both sides of the transfer,
+hence the usefulness of MOVTC. It is doubtfull
+that the VAX side actually uses this instruction
+(given the implementation language "C"). The lispmachine
+side doesnt have such an instruction to use at this
+time. Notice the performance difference between
+LISPM->LISPM transfers for the ASCII and BYTESIZE 8 (binary)
+transfers. More than a factor of 3. Of course, when transfering
+lispm->lispm the FTP-ACCESS method should be smart enough to
+use BYTE 8 mode and forgo the translation. In this important
+case then the TCP transfer is faster than the microcode assisted
+chaosnet transfer LISPM->LISPM.
+
+When in CHAOS MODE, each message coming from the excelan board
+will contain only 488 bytes of data, the present limit for
+chaosnet protocol imposed by the old chaosnet hardware.
+When in TCP-IP mode, each message contains about 2000 bytes of
+data, which is imposed by an arbitrarily chosen DMA buffer
+size. Hence we see the process switch overhead when in
+chaos mode but not in tcp mode. Extremely poor performance
+talking to the UNIX 750 might be due to frames lost due to
+no receive buffers. Gross amounts of packet retransmission,
+possibly some problems on the Unix side also.
+
+There is some work to be done in speeding up the process-wait's
+used. Here is a test of process switching overhead:
+
+(defvar *v1* nil)
+
+(defun time-v0 (n &aux tm)
+  (setq tm (time))
+  (dotimes (j n)
+    (setq *v1* (not *v1*)))
+  (setq tm (quotient (time-difference (time) tm) 60.0))
+  `(,(quotient n tm) per second ,tm seconds total))
+
+(defun feed-v1 ()
+ (do ((j 0 (1+ j)))
+     (nil)
+   (process-wait "-> v1" #'(lambda () (not *v1*)))
+   (setq *v1* j)))
+
+(defun time-v1 (n &aux tm)
+  (setq tm (time))
+  (dotimes (j n)
+    (process-wait "v1->" #'(lambda () *v1*))
+    (setq *v1* nil))
+  (setq tm (quotient (time-difference (time) tm) 60.0))
+  `(,(quotient n tm) per second ,tm seconds total))
+
+(defvar *v2* nil)
+
+(defun feed-v2 ()
+  (do-forever
+   (process-wait "v1 ->" #'(lambda () *v1*))
+   (let ((data *v1*))
+     (setq *v1* nil)
+     (process-wait "-> v2" #'(lambda () (not *v2*)))
+     (setq *v2* data))))
+
+
+(defun time-v2 (n &aux tm)
+  (setq tm (time))
+  (dotimes (j n)
+    (process-wait "v2->" #'(lambda () *v2*))
+    (setq *v2* nil))
+  (setq tm (quotient (time-difference (time) tm) 60.0))
+  `(,(quotient n tm) per second ,tm seconds total))
+
+(defvar *v3* nil)
+
+(defun feed-v3 ()
+  (do-forever
+   (process-wait "v1 ->" #'(lambda () *v1*))
+   (let ((data *v1*))
+     (setq *v1* nil)
+     (process-wait "-> v3" #'(lambda () (not *v3*)))
+     (setq *v3* data))))
+
+
+(defun time-v3 (n &aux tm)
+  (setq tm (time))
+  (dotimes (j n)
+    (process-wait "v3->" #'(lambda () *v3*))
+    (setq *v3* nil))
+  (setq tm (quotient (time-difference (time) tm) 60.0))
+  `(,(quotient n tm) per second ,tm seconds total))
+
+
+(defvar *a1* (make-array 1000 :type 'art-8b))
+(defvar *a2* (make-array 1000 :type 'art-8b))
+
+(defun time-copy (n &aux tm)
+  (setq tm (time))
+  (dotimes (j n)
+    (copy-array-portion *a1* 0 (length *a1*) *a2* 0 (length *a2*)))
+  (setq tm (quotient (time-difference (time) tm) 60.0))
+  `(,(quotient n tm) per second ,tm seconds total))
+
+
+(defun time-raw-copy (n &aux tm)
+  (setq tm (time))
+  (dotimes (j n)
+    (%blt (%POINTER-PLUS
+            (%POINTER *a1*)
+            (SI:ARRAY-DATA-OFFSET *a1*))
+          (%POINTER-PLUS
+            (%POINTER *a2*)
+            (SI:ARRAY-DATA-OFFSET *a2*))
+          (floor (length *a1*) 4)
+          1))
+  (setq tm (quotient (time-difference (time) tm) 60.0))
+  `(,(quotient n tm) per second ,tm seconds total))
+
+
+
+
+We run these functions in different lisp listeners.
+ TIME-V0 gets 35.9 thousand cycles per second.
+ TIME-V1 gets 27.9 cycles per second.
+ TIME-V2 gets 19.1 cycles per second.
+ TIME-V3 gets 18.6 cycles per second.
+ TIME-COPY at 114 cycles per second.
+ TIME-RAW-COPY at 939 cycles per second.
+
+The fact that we only see 12 packets per second out of
+the excelan board is not too suprising. There is also
+some extra copying going on using COPY-ARRAY-PORTION.
+DMA-BUFFER => CHAOS-INT-PKT => CHAOS-PKT. The INT-PKT
+step should be taken out, although it never was in the
+case of the old LISP 3COM code.
+
+The machine can do a straight copy of data at 114k bytes
+per second using copy-array-portion and 0.94 megabytes
+per second using %BLT.
+

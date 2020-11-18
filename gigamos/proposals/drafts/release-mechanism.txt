@@ -1,0 +1,70 @@
+
+
+10/20/88        Page 1 Proprietary and Confidential Information of
+GigaMos Systems, Inc.
+
+
+
+
+
+
+
+Internal Release Schedule GigaMos Systems, Inc.
+
+This document the internal release schedule that will be followed during
+the Falcon software development. The goals of this release schedule are
+to provide a backup of critical work, to minimize the amount of change
+between system compilations and to insure a consistent working
+environment for the technical staff.
+
+The K software currently is completely contained in a "K" directory and
+is named by a Lisp machine logical pathname. By redefining the logical
+pathname any given developer can use a different set of K sources and
+binaries.
+
+Making a release of the "K" software will consist of making a copy of
+the complete "K" hierarchy to a new directory.
+
+Compiling a release of the "K" software will consist of recompiling all
+of the lisp files in a given "K" hierarchy.
+
+The main line of development will always be in a given directory
+("JB:K;") and will NOT change.
+
+The mechanism for generating a release of the K system software involves
+running the function (make-k-system-release host version). Host is the
+name of the host on which the release is being created (We are currently
+using JB) and version is the version number of the release. To find the
+current version number one can edit JB's root directory and look for
+directories beginning with "K-" the highest numbered version is the
+current release.  To create the next version call make-k-system-release
+with the number of the version YOU WANT TO CREATE. Of course this
+release should be done when the sources in the development directory are
+quiescent, i.e. this means the last person to leave on Friday night will
+do the release.
+
+Compilations are more tricky since you don't want to recompile the
+released version and you don't want to risk stopping development by
+recompiling sources in the development directory. The current solution
+to this problem will involve making another copy of the sources for a
+trial compilation in a directory of the person doing the compilations
+choice.  Once he is sure that the monthly compilation is correct he will
+then start a compilation of the entire system in the development
+directory.
+
+The functions used in performing a recompilation are in order:
+(load-k-system :recompile) (mega-boot :compile-type :recompile) For now
+it is necessary to recompile on a machine with a lambda installed.
+
+After the system has been recompiled in a test directory, the regression
+test suite will be run.  When the regression test suite is passed the
+software in the development directory can be recompiled.  If more than a
+week has elapsed between the start of the compilation process in the
+test directory and passing of the regression test suite the process must
+start all over.
+
+Due to the limitations on disk space, we will keep online only those
+sources that a less than 3 months old or that have been given
+distinctive rather than numeric names.  An example would be
+"K-DECEMBER-DELIVERABLE" which would only be deleted after discussion
+with the creator.

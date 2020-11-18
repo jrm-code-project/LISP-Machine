@@ -1,0 +1,98 @@
+
+Before you save a running LISP world to disk, select a LOD band to overwrite.
+Execute @l[(print-disk-label)] to see a list of the existing disk partitions.
+Then execute the LISP command @l(disk-save), providing the name of another LOD band.
+When prompted, confirm that the specified band is the one you want to overwrite.
+
+The following is an example session that illustrates @l(disk-save).@cindex[disk-save]
+User input is displayed @ii(in italics).
+
+@lisp
+@ii[(disk-save 'lod2)]
+Do you really want to clobber partition LOD2 on unit 0 ()? (Yes or No) @ii(yes)
+
+@comment As of system 126.22:
+@comment The system is now running:
+@comment Experimental System 126.22
+This is now:
+ Experimental System 125.19
+ ZWEI                125.2
+ ZMail                73.0
+ Local-File           75.2
+ File-Server          24.1
+ Unix-Interface       13.0
+ Tape                 24.2
+ Lambda-Diag          17.0
+ Microcode          1762
+ SDU                   3.14
+Additional comment for herald: @ii(8/9/88)
+
+@comment as of system 126.22:
+@comment Edit the system version label (as shown); up to 16 characters allowed.
+@comment Press RETURN when done.
+@comment
+@comment > 125.19, 8/9/88 @ii(@return)
+@comment
+Beginning shutdown initializations...
+  :
+Do you wish to load LAM symbols for Lambda? (Y or N) ... @ii(Y)
+  :
+Flipping level 2 now will result in better paging ...
+Flip level two? @ii(YES)
+  :
+  : @i(system reboots on new band)
+  :
+Reading at top level in Lisp Listener 1.
+Reading in base 10 in package USER with standard Zetalisp readtable.
+
+@end(lisp)
+
+After LISP reboots on the new band, you will want to specify that
+the new band be used when booting in the future.@cindex[set current band]@cindex[booting from selected band]
+
+For example, if you disk-saved to the band LOD2, you would execute:
+@lisp
+(set-current-band 'lod2)
+@end(lisp)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end disk-save

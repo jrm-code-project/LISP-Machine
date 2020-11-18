@@ -1,0 +1,147 @@
+This is the file DJ:PACE;PROJECTS.LISP
+------
+(Future) Format:
+Name
+Difficulty
+   - design
+   - interaction
+   - microcode
+Resources
+   - machines
+   - special hardware
+   - people
+Summary
+   - relatively slang free
+   - objective
+flame log
+   - technical/implementation details
+   - undigested ideas/opinions
+   - file can be printed without this section
+schedule
+people assigned
+chronological history
+level of request
+   - urgency
+   - desirability
+   - origin
+   - quality of request
+-------
+
+incremental micro assembler - about 70K new code in 1 week real time = 50 PH
+PHm = requires microcode proficency
+
+-----
+MENU DIRED
+marketing people want this - user interface will do it
+fairly simple front end to current program
+
+SPEED UP FILE SYSTEM
+ 1. extract useful disk routines from lambda diag to replace user microcode disk ops
+    - 50 PH
+ 2. implement conventional, interrupt based block queuing for new disk routines
+    (simulate interrupts  with processes)
+    - 50 PH
+ 3. activate code to use 1K chaos buffers
+    - 25 PH
+ 4. implement a better way to delete many files at one time
+    - 20 PH
+ 5. evaluate resulting speed to see if more is required
+
+AUTO REPEAT KEYS
+ 1. make microcode store time that each character from the keyboard is put in the input buffer
+    - 5 PHm
+ 2. make clock level fuction to notice a key down for long enough and keep stuffing it in
+    - 20 PH
+ 3. deal with bad interactions - such a change will have many
+    - 20 PH
+
+DIRECT PHYSICAL QUANTUM TRANSLATIONS
+ This will allow us to do many new things.  The most important are :
+Runtime allocated shared memory between processors with
+unlimited size; multiple displays for one lisp processor
+ 1. put it in the microcode
+    - 20 PHm
+ 2. lisp functions to make shared arrays
+    - 20 PH
+ 3. unix functions to make shared arrays
+    - 20 - 100 {Bob/Greg}H
+ 4. network based rendevous protocols
+    - 30 PH
+
+FAST BOOT
+ 1. Finish DIRECT PHYSICAL QUANTUM TRANSLATIONS, above
+ 2. add microcode to specify disk areas instead of physical addresses for quantums
+    - 20 PHm
+ 3. microcode to set up quantum table
+    - 30 PHm
+ 4. microcode to move dirty quantums to PAGE area
+    - 20 PHm
+ 5. updates to keep the LAM program working
+    - 10 PH
+
+ENABLE SYSTEM TO USE SMALL PAGE BAND
+ This will allow a machine to be fully functional with a disk of around 60 Mb.
+ 1. Finish FAST BOOT
+ 2. microcode to allocate PAGE space dynamically
+    - 30 PHm
+ 3. updates for LAM program
+    - 10 PH
+
+MAKE SYSTEM BOOTABLE WITHOUT DISPLAY
+ 1. make a new kind of stream that can connect TERMINAL-IO to a pair of IO-BUFFERs
+    - 40 PH
+ 2. write TERMCAP type program to connect such a pair of IO-BUFFERs to conventional terminals
+    - 40 PH
+ 3. design and implement a "job control" type of user interface
+    - 40 PH
+ 4. install a system variable to make the cold-load-stream, initial-lisp-listener and background errors use such a stream
+    - 20 PH
+ 5. install a system variable to shut down the window system
+    - 30 PH
+ 6. make it possible to build bands without the window system at all
+    - 100 PH
+
+STATISTICS
+
+SPEED UP MACHINE
+
+common-lisp specific development tools
+restructure i/o streams
+improve rubout handling
+write book reports
+speed up compiler
+paging over network
+write printer software
+update inspector
+   make it handle all data formats
+   make it easy to call other programs, editor, etc
+make debugger understand lexical stuff
+   displaying and changing lexical variables in frames
+do a better instruction stepper
+think about improving make-system
+real regular expressions in zwei
+make window constraint language better
+speed up interpreter
+speed up reader
+new, faster qfasl format
+   update cold load builder for new format
+straighten out stupid device stuff
+new stack frame format
+more speed up arrays
+better lexical stuff
+   heap consed
+   maybe display frames
+   maybe less flattening by compiler
+bit blt faster
+microcode for iris, etc
+ieee floating point - with or without chip
+microcode for objectlisp
+microcode for matrix operations for graphics
+incremental micro assembler/loader
+get ready to do common lisp standard for windows
+multiple processors/one address space
+do redundant server protocols
+microcode simulator
+support new debug board
+update lam for AVP, new processor
+new cold load builder

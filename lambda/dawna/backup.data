@@ -1,0 +1,18 @@
+;;; -*- Mode:LISP; Package:USER; Base:10 -*-
+
+
+(setq *machines-and-dirs*
+      '(("DJ" "DAWNA")
+        ("lam15"
+         "AI"
+         "bob" "gjc" "gjc-test" "TI-IKE"
+
+         "devoy" "dwr" "agh" "brian"
+
+         "pic" "picon-demos" "picon-kb"
+
+         "pike-1" "picon-class" "picon-class-distribution")))
+
+
+(dolist (e *machines-and-dirs*)
+  (putprop (si:parse-host (car e)) (cdr e) 'DIRECTORIES-TO-BACKUP))

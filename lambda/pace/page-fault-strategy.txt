@@ -1,0 +1,78 @@
+You get to PGF-R with VMA the address you want, but
+the hardware signaled a page fault.
+
+        ((md) vma)
+        (dispatch l2-map-status-code d-pgf)
+
+This can either:
+
+        call PGF-MAP-MISS
+        jump to PGF-RDONLY
+        call PGF-RWF
+        jump to PGF-PDL
+        jump to PGF-MAR
+        ILLOP
+
+The interesting case is PGF-MAP-MISS
+
+make sure L1 map is loaded for this address
+if address was in real memory, jump to PGF-L2A,
+        otherwise, it was for a piece of hardware so do that
+
+        (call search-page-hash-table)
+        (dispatch pht1-swap-status-code md d-pgf-pht)
+
+D-PGF-PTH: (these are all jumps)
+        (SWAPIN)                ;0 PHT ENTRY INVALID, GET PAGE FROM DISK
+        (PGF-RL)                ;1 NORMAL, RELOAD PAGE MAP
+        (PGF-FL)                ;2 FLUSHABLE, CHANGE BACK TO NORMAL
+        (PGF-PRE)               ;3 PREPAGED, CHANGE TO NORMAL, WE WANT IT NOW
+        (PGF-AG)                ;4 AGE, CHANGE BACK TO NORMAL
+        (PGF-RL)                ;5 WIRED DOWN, RELOAD PAGE MAP
+        (P-BIT ILLOP)           ;6 NOT USED
+        (P-BIT ILLOP)           ;7 NOT USED
+
+SWAPIN:
+        ((A-DISK-SWAPIN-VIRTUAL-ADDRESS) DPB M-ZERO Q-ALL-BUT-POINTER A-PGF-VMA)
+        ((A-DISK-SWAP-IN-CCW-POINTER) (A-CONSTANT DISK-SWAP-IN-CCW-BASE))
+        ((A-DISK-SWAPIN-SIZE) (A-CONSTANT 1))
+
+if multi-page-swapin is disabled, jump to SWAPIN-SIZE-X
+
+otherwise, go into a loop incrementing A-DISK-SWAPIN-SIZE until:
+        we have gone around the loop the number of times specified in
+                the region-swapin-quantum
+        we get to a page that belongs to another region
+        we get to a page that is already swapped in
+        we are the scavenger, and the page under consideration
+                does not have any volatile pointers
+
+jump to swapin0-a
+
+        (call swapin0)
+
+SWAPIN0:
+        M-B <- a-findcore-scan-pointer + 1
+FINDCORE0:
+loop using M-B to scan physical-page-data looking for a flushable page
+
+a page is acceptable if:
+
+        its physical-page-data entry is not all ones
+        its swap status in PHT1 is either pre-page or flushable
+
+If there aren't any, then run the AGER one full cycle, and look again.
+
+This page has to be written if:
+        The PHT1 modified bit is on
+        It is currently READ/WRITE
+        It is a PDL page
+        It is a MAR page
+
+The other choice is to be either READ-ONLY or RWF
+
+Assuming the page has to be written out:
+        ((A-DISK-SWAP-OUT-CCW-POINTER) (A-CONSTANT DISK-SWAP-OUT-CCW-BASE))
+        ((A-DISK-PAGE-WRITE-COUNT) M+A+1 M-ZERO A-DISK-PAGE-WRITE-COUNT)
+        and put this page on the CCW list
+Then see if multiple page swapouts are enabled

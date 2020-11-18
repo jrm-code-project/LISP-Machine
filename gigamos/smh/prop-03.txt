@@ -1,0 +1,142 @@
+
+
+
+                                  Design for a
+
+                    Cross Compiler Regression Testing System
+
+                                      - - -
+
+                                  [Proposal #3]
+
+                          Original Draft 16Sep88 - smh
+
+                                      - - -
+
+The Problem.
+
+     All the Lisp code that runs on the Falcon is dependent on one or both of
+the two compilers and their underlying runtime support.  If a compiler or the
+runtime support fail to implement proper semantics in some way -- whether
+because of an original implementation error or a unintended change -- it can
+cause unrelated code to fail in ways that are difficult to debug.  Therefore, it
+will be helpful to have a testing procedure for compiled code and the runtime
+support.  This procedure can be invoked periodically, and particularly whenever
+these components have been changed, to verify that they still implement Lisp
+semantics.  Although this test cannot be expected to identify every failure that
+would effect other parts of the system, it can at least detect a large fraction
+of compiler/runtime bugs that might otherwise consume great amounts of debugging
+time.
+
+
+Alternatives and Cost.
+
+     The primary alternative is to do nothing, and find compiler and runtime
+system bugs through normal debugging.  This is seductive, since we will have to
+work this way anyway whenever a bugis not detected by the testing procedure.
+However, the testing procedure wins if it saves more debugging time than it
+costs to implement.  (This ignores the subliminal payoff of being able to debug
+dependent code with greater security that the compiler works correctly.)
+
+     There are some additional payoffs which should not be ignored, however.
+For instance, some of the tests (but not the automatic procedures for running
+them) have already been and are being created during compiler development and
+debugging.  Also, a compiler vs language test suite is a valuable future
+technical property; it will likely someday be necessary to implement a new
+compiler, or else port this compiler to a new version of the processor, and the
+established test cases will be just as valuable the next time around.  One
+immediately forseeable future use for the test suite is to check out the port of
+the cross compiler to run natively on the Falcon.
+
+     It is difficult to estimate in advance the cost, and especially, the
+payoff.  However, it ``feels'' safe that the test suite and execution support
+code would be worth at least a man-week, as it is clearly likely to save at
+least that amount of time in other debugging.
+
+
+Test System Design.
+
+     The system can fail in essentially two ways.  First, one of the numerous
+internal compiler consistency checks can be signal an error at compile time.
+Second, the code can execute incorrectly at run (or load!) time.  Run-time
+failures are usefully subdivided into two types.  For current purposes, let us
+define a ``test failure'' as an incorrect execution of a program construct --
+for instance, returning the wrong number of values from a COND clause.  A ``test
+crash'' can be defined as a test which crashes the machine when it executes.
+The nature of the Falcon as a stack-frame machine perhaps makes crashing more
+likely than failing, compared to (say) the Lambda.  For this reason it is
+necessary to design a testing procedure that will be very robust about reporting
+what it was about to do even when the execution environment gets completely
+blown away.  It should also be possible selectively to bypass certain
+conditionalized tests so that features known to be temporarily broken will not
+prevent the rest of the suite from being run without special efforts.  This is
+important because during development a compiler or runtime system can be known
+to be broken with regard to some particular capability for a considerable
+period, and one wants to be able to run the test suite during that time.
+
+     The test suite will consist of a large number of test definitions.  Most
+are expected to be DEFUNs, but DEFMACROs, DEFTYPEs, DEFSTRUCTs, and others will
+also be necessary to test these constructions.  Each ``top-level'' form in the
+suite will be wrapped inside a test-suite control macro which serves two
+purposes: First, it allows a unique identifier to be assigned to each test or
+sequence of tests; and second, it provides a hook for controlling test
+execution.  Here is a nonexhaustive illustration of some related test forms.
+Their complete specification will follow.
+
+================================================================================
+
+;; This is a useful helper function.  It is used instead of IDENTITY because
+;; the compiler does not have an a priori optimizer for it.
+(DEFTEST () :LOAD
+  (DEFUN IDENTITY-1 (X) X)
+  )
+
+;; This tests that neither the compiler nor runtime stack are corrupted by
+;; throwing out the computation of a catch tag.  Both native Lambda and
+;; Falcon cross compiler trip up over this.
+
+(DEFTEST THROW-FROM-CATCH-TAG-1 :RUN
+   (DEFUN THROW-FROM-CATCH-TAG-1 ()
+     (CATCH 'FOO
+       (IDENTITY-1
+         (CATCH (THROW 'FOO)
+           (BAR X))))))
+
+================================================================================
+
+
+     A fundamental problem in any test system is that whenever something breaks,
+it might cause a complete crash, and thereby prevent execution of the rest of
+the test.  There is no completely general solution to this problem, but it is
+possible to minimize exposure to lossage.  Failures can be divided into two
+classes, depending on when it happens: failures during compilation, and failures
+during execution.
+
+     A failure during compilation is the signalling of an error by the (cross)
+compiler.  This can be either an ``anticipated'' error from an internal
+consistency check, or else it can be an ``unanticipated'' exception in the
+compiler code.  In either case, an error is signalled and the normal error
+mechanism receives control.  The compiler's error handlers normally report the
+top-level form in which the error occurred.  While it might be nice to have some
+automatic mechanism for recording the error and continuing automatically with
+the next form, this job can easily be done by a human.  The only really
+important design consideration is that the test forms passed to the compiler be
+easily identifiable by error-handler-visible names.
+
+     A failure during execution on the Falcon is more serious, primarily because
+the Falcon software system is not very robust in the face of runtime or compiler
+bugs, and because the Falcon lacks a robust and mature debugger.
+
+     The system needs to provide (at least) the following controls
+
+     An alternative approach has been discussed in which the compiler output
+would be captured in source form and compared against previous output.  This has
+been rejected here for two reasons.  First, code details generated by the
+compiler can be expected to change from time to time, and updating the test
+result text would impose unpleasant overhead.  Secondly, this system would not
+verify correct execution of the code in conjunction with the runtime system.  It
+is precisely this guarantee of correctness that other code developers require.
+
+:compile-only
+:load
+:exec

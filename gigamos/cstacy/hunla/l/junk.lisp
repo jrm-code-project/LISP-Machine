@@ -1,0 +1,23 @@
+(DEFMACRO PRESERVING-POINT (&BODY BODY)
+  (LET (($POINT (GENSYM)))
+    `(LET ((,$POINT (COPY-BP (POINT) (BP-STATUS (POINT)))))
+       (UNWIND-PROTECT
+           (PROGN ,@BODY)
+         (MOVE-BP (POINT) ,$POINT)
+         (FLUSH-BP ,$POINT)))))
+
+(DEFMACRO PRESERVING-MARK (&BODY BODY)
+  (LET (($MARK (GENSYM)))
+    `(LET (,$MARK)
+       (WHEN (WINDOW-MARK-P *WINDOW*)
+         (SETQ ,$MARK (COPY-BP (MARK) :NORMAL))
+         (UNWIND-PROTECT
+             (PROGN ,@BODY)
+           (MOVE-BP (MARK) ,$MARK)
+           (SETF (WINDOW-MARK-P *WINDOW*) T)
+           (FLUSH-BP ,$MARK))))))
+
+#| (SETQ *LISP-INDENT-OFFSET-ALIST* (ACONS 'IF '(1 3) *LISP-INDENT-OFFSET-ALIST*)) |#
+
+(EVAL-WHEN (EVAL LOAD)
+  (SEND TV:WHO-LINE-DOCUMENTATION-WINDOW :REFRESH))     ;+++ should decache mouse-doc

@@ -1,0 +1,53 @@
+;;; -*- Mode:LISP; Package:USER; Fonts:(CPTFONT); Base:10 -*-
+
+;;;Daniel' LISPM init file
+
+(setq si:user-id "ddb")
+
+(tv:white-on-black)
+
+(login-setq *read-base* 10.                     ; Human bases
+            *print-base* 10.
+            fs:user-personal-name "Badger, Daniel"
+            fs:user-personal-name-first-name-first "Daniel D. Badger II")
+
+;;;Make WHO-LINE DOC window readable
+(SEND TV:WHO-LINE-DOCUMENTATION-WINDOW :SET-FONT-MAP '(HL10B))
+(push '(send tv:who-line-documentation-window :set-font-map '(cptfont)) logout-list)
+
+(when (format:y-or-n-p-with-timeout (* 30 60.) T "Load patches and//or site info?")
+  (load-patches :noselective))
+
+;;;Zwei
+
+(load (merge-pathnames "zwei-stuff" (fs:user-homedir)))
+
+;;;Install standard commands for my convenience
+
+(login-forms
+  zwei:(set-comtab *standard-comtab*
+              '(
+        ;;set up hand keys to work like arrow keys
+                #\hand-up com-up-real-line
+                #\hand-down com-down-real-line
+                #\hand-left com-backward
+                #\hand-right com-forward
+        ;;quick page moves
+                #\meta-hand-up com-previous-page
+                #\meta-hand-down com-next-page
+        ;;Make roman keys do useful stuff
+                #\roman-i com-backward-paragraph
+                #\roman-ii com-forward-paragraph
+                #\roman-iii com-beginning-of-line
+                #\roman-iv com-end-of-line
+                #\meta-roman-i com-correct-spelling
+        ;; Untabify (change tab to spaces)
+                #\control-i com-untabify
+        ;;Make delete do rubout
+                #\delete com-rubout
+        ;;Make byte specifiers
+                #\hyper-b COM-EVALUATE-byte-spec-AND-REPLACE-INTO-BUFFER
+                #\hyper-. com-edit-definition-next-sexp
+                #\hyper-w com-multiple-list-callers-into-buffer
+                #\hyper-f com-find-buffer
+                )))

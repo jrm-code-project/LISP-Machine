@@ -1,0 +1,104 @@
+***************************************************************************
+*** LMI CONFIDENTIAL ****** LMI CONFIDENTIAL ****** LMI CONFIDENTIAL ******
+***************************************************************************
+
+       SUN <-> LMI Interconnectivity.
+
+23-Jul-86 17:50:45 -George Carrette
+
+
+* SUN already supports diskless/terminaless processor/node configurations.
+  The SUN only uses the ethernet:
+  -> uses TFTP to get boot file Unix image. This is a IP/UDP protocol easy to implement.
+  -> uses a proprietary (i.e. undocumented) raw ethernet (presumably) protocol called
+     ND (network disk) for paging.
+  -> uses NFS for file services.
+  -> TELNET/RLOGIN type programs for user interaction.
+  -> RPC (remote procedure call) used for NFS can also be used for tape,
+     serial port and other device access.
+
+This would suggest that a SUN processor could merely be in the same box
+with an LMI processor, connect via ethernet. Perhaps having an internal
+arragement much like the ethernet MANIFOLD such as the DEC DELNI. This
+way the EXTERNAL view of the machine is reasonable. It looks like one box
+with an optional ethernet connection to the outside world. The internal
+ethernet is hidden.
+
+NOTE: The performance of such an arrangement would be better than the present
+      performance of our chaos-protocol based STREAMS implementation over the NuBus.
+      Better in 3 areas:
+      * throughput
+      * processor overhead
+      * closed loop reponse time, i.e. message turn around time.
+      [This is the highly confidential statement. In fact it is comparing
+       poorly implemented chaos via nubus with Excelan TCP, which is a highly
+       buffered DMA device.]
+However, limitations in our file system make the LMI a much less than ideal NFS
+server. This is fixable, reasonable fixes in present file system and in a moby fs.
+(Trivial in moby fs).
+
+** FASTER COUPLING **
+
+Proteon has VME bus 80-megabit fiber optic token ring, also multibus, unibus,
+and customizable-module. If we dont really need PMAP (e.g. our present PMAP
+capability is limited to 32 kbytes by hardcoded programming and
+constants in lisp microcode and nobody has complained) then this would be
+a very fast and general way to couple not only the SUN's but other computers
+as well. (CRAY's, DEC's, IBM's).
+
+** CLOSER COUPLING **
+
+Given a NuBus <-> VME coupler such that:
+
+[KIND A]. VME can master NuBus, read/write any NuBus memory it wants.
+[KIND B]. NuBus can master VME, read/write any VME memory it wants.
+[KIND C]. Both A and B capabilities.
+
+
+What is possible?
+
+With [KIND A] memory in NuBus with the help of a processor could
+simulate a 3COM-like ethernet board. That is the SUN would see a 3COM
+ethernet board on its VME bus. This board has multiple transmit and
+receive buffers, but data must be copied word by word from the board
+into the SUN's internal memory.  Given the processor power of the 68020
+on the SUN this would result in reasonable performance. Also, a user
+process in the SUN could use the PMAP system call to map certain
+VME(actual NuBus) memory into its virtual address space. The resulting
+situation is then extremely close to LMI's present LAMBDA-PLUS.
+Simulating a MULTIPLE BUFFER ethernet board would allow much better
+performance than our present situation with STREAMS/CHAOSNET.
+Requirements: Small ethernet Device driver modifications on the SUN.
+
+Side note: The IOP could perhaps do the work of simulating the 3COM-like
+ethernet interface. Then if a packet is destined to go to a processor on
+the NuBus it would do the obvious thing, and if destined to go out via
+real ethernet it would also do the obvious thing. Perhaps it could even
+handle the simple ND protocol since it also controls the disk.
+
+With [KIND B] then the NuBus processor could still pull off the
+simulated 3COM driver. Or also a driver such that a couple VME
+locations are simulated device control registers for a device
+that can DMA the data to/from the required location in arbitrary
+places in VME memory. Main Limitation: PMAP'ed memory would reside
+on the VME side, not the NuBus side. IOP may be hard pressed via side
+note. Lisp processor would have to copy the data.
+Requirements: Small ethernet Device driver modifications on the SUN.
+
+With [KIND C] then we have either A or B capabilities. Which noteably are
+not any different in results just in implementation.
+
+Either way we are looking at having some amount of either NuBus of VME bus
+memory. Both SUN and new lisp processor have private memory which is
+also available from their standard bus.
+
+The simplicity of doing a good job of the hardware (reliable, buildable) on
+[A] or [B] over [C] might justify doing it very quickly.
+
+Side note: Possible advantage to [A including NuBus clock] is that a full
+featured SUN (disk etc) could boot the present and future lisp processors
+without need for IOP, SDU etc.
+
+***************************************************************************
+*** LMI CONFIDENTIAL ****** LMI CONFIDENTIAL ****** LMI CONFIDENTIAL ******
+***************************************************************************

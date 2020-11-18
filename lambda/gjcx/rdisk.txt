@@ -1,0 +1,128 @@
+
+LMI REMOTE DISK PROTOCOL
+
+Purpose: Used to read and write arbitrary disk blocks.
+         The disks are refered to by a <unit-number> and may be actual or simulated disk
+         drives.
+
+TCP: Using PORT 101 decimal. (presently DOD assigned to random useless purpose).
+
+Operation as seen from user side:
+
+ * Connect to the server on the PORT.
+ * Invoke operations as defined.
+ * close the connection when done.
+
+Operation as seen from the server side:
+ * listen for a connection on the PORT.
+ * read opcode and execute data as defined.
+ * EXIT when connection is closed.
+
+Data Transmission format:
+
+Integer: a 32bit integer. Sent as four bytes, low byte first.
+
+String: Length sent as 32B, then data of string as 8 bit bytes.
+
+A disk block is 1024 bytes.
+
+
+Operations as seen from user side:
+
+---------------------------------------------
+NOTIFY:
+
+Transmit-character: N
+Transmit-String: <notification message>
+Receive-Character: R
+
+Purpose: To print <notification message> on operator console at server host.
+---------------------------------------------
+
+
+---------------------------------------------
+DISK-READ:
+
+Transmit-character:  R
+Transmit-Integer:    <unit-number>
+Transmit-Integer:    <number-of-blocks>
+Transmit-Integer:    <block-number>
+Receive-Character:   R
+Receive-String:      <data, result of disk-read>
+
+Purpose: To read <number-of-blocks> of disk data starting at <block-number>.
+---------------------------------------------
+
+
+---------------------------------------------
+DISK-WRITE
+
+Transmit-character: W
+Transmit-Integer:   <unit-number>
+Transmit-Integer:   <number-of-blocks>
+Transmit-Integer:   <block-number>
+Transmit-String:    <data, to be written to disk>
+Receive-Character: R
+
+Purpose: To write <number-of-blocks> of data to disk starting at <block-number>.
+---------------------------------------------
+
+
+Details of disk data, the LABEL.
+
+Starting a block 0 there is a datastructure called the disk label.
+Integers in the datastructure are 32 bits, low byte first.
+Strings in the datastructure are padded with nulls.
+The label may extend over more than one block, in which case it uses even blocks, 0,2,4... etc.
+
+ WORD   Data-Type  Description/Value
+ 0      STRING      the characters "LABL" or 1279410508 as an integer.
+ 1      INTEGER     label version number, must be 1.
+ 2      INTEGER     number of cylinders
+ 3      INTEGER     number of data heads.
+ 4      INTEGER     number of blocks per track.
+ 5      INTEGER     number of blocks per cylinder.
+ 6      STRING      name of default microcode.
+ 7      STRING      name of default load.
+ 8-15   STRING      drive name (manufacturers description, e.g. Fujistu Eagle)
+ 16-23  STRING      pack name.
+ 24-48  STRING      comment
+ 128    INTEGER     number of partitions.
+ 129    INTEGER     number of words per partition descriptor = (PN+1).
+ 130    INTEGER     start of partition descriptor table.
+
+Partition Descriptor entry:
+
+ WORD   Data-Type  Description/Value
+ 0      STRING     partition name
+ 1      INTEGER    starting block address
+ 2      INTEGER    size in blocks.
+ 3-PN   STRING     comment.
+
+
+The cylinder/head/track information is meaningful for real disks and may be used to
+in a model of head-movement rotational/latency optimization. The mapping of logical
+block numbers to [cylinder,head,track] coordinates is...
+
+The default microcode,load,drive-name,pack-name, and comment fields can be left blank.
+
+Suggested initial values for a simulated or virtual disk of N blocks.
+
+ WORD    Data-Type   Value
+ 0       STRING      "LABL"
+ 1       INTEGER     1
+ 2       INTEGER     1 (cylinder)
+ 3       INTEGER     1 (head)
+ 4       INTEGER     N (blocks per track)
+ 5       INTEGER     N (blocks per cylinder)
+ 6       STRING      ""
+ 7       STRING      ""
+ 8-15    STRING      "virtual disk drive"
+ 16-23   STRING      "anonymous"
+ 24-48   STRING      ""
+ 128     INTEGER     1
+ 129     INTEGER     7
+ 130     STRING      "DATA"
+ 131     INTEGER     6
+ 132     INTEGER     N-6
+ 133-139 STRING      "empty partition"

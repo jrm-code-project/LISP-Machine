@@ -1,0 +1,54 @@
+Specification for Project
+
+Name:   Attainment of a Falcon-compatible interpreter environment on the Lambda
+
+Date:   9/22/88
+
+Programmers:    K. Corbett, D. Saslav
+
+Est. Work:      7 weeks
+
+Project status: Under review
+
+Purpose:        This project represents part of the effort to prepare for testing and integration of the Falcon and the Lambda computing environments.  The process will yield improved compatibility between internal Lambda and Falcon mechanisms, significantly enhancing maintainability.
+
+Description:    One of the design goals of a recently written LISP evaluator was the avoidance of machine-dependent constructs.  Therefore, one possible avenue toward completing this project is:
+
+                A) Switch over to the new evaluator.
+
+        The merits of this plan lie in the highly modular and clear design of the new evaluator, the ease with which it and any extensions made to it may be maintained, the fact that no efforts need be expended to ensure Falcon compatibility, and the provision of an opportunity to rethink fundamental implementation decisions.  The disadvantages of this plan are the fact that a significant programming effort will be required to write all of the extensions required to support current Lambda features.  There is no way of telling how much work will be involved in achieving complete Lambda compatibility.
+
+        An alternative to this route is:
+
+                B) Remove Lambda-specific code from current interpreter.
+
+        The merits of this plan lie mainly in the fact that the Lambda interpreter is a relatively known quantity that has matured into a reasonably stable state.  The disadvantages of this plan lie in the amount of Lambda-specific code which has been written into the current Lambda evaluator (all such code would have to be identified as such, understood, and then rewritten in a processor-independent fashion).
+
+        In the worst case, it will be found that certain cases of incorrect behavior on the part of the current Lambda evaluator serve as necessary functionality for other parts of the Lambda system.  In these cases, both plans could entail potentially time-consuming redesign efforts.
+
+        It is unclear how robustly the new evaluator handles low-level "hooks" (program-dependent expectations of EVAL in system-critical programs such as Zwei and the error handler); locating all such hooks in all existing Lambda sources may be an open-ended proposition.  As a result, Plan A could turn into a long-term, "fix it as it breaks" scenario.
+
+Procedure:      I. Code partitioning: Separate the source files for special forms from standard interpreter functionality (two days -- completed)
+
+        II. Scope Assessment: Analyze overlap between old and new interpreters, plus the scope of additional functionality required for Falcon compatibility; also determine which Lambda routines that are machine-dependent special forms are rewritable for the Falcon. (eight days)
+
+        III. Specification Decision: If an alternative route is deemed appropriate, a separate specification will be required. (one day)
+
+        IV. Code Writing:  Assess system modules for dependencies on unique EVAL functionality, writing special-purpose code to handle each case, for example, in:
+
+                        % The Trace Facility
+                        % Stepping Mechanism
+                        % The Error Handler
+                        % ZWEI
+                        % The Window System (?) (ten days)
+
+        V. Validation: Consists of three parts:
+
+        a)              General validation of EVAL for normal system operations (two    days)
+        b)              Recompile all system modules (one day)
+        c)              Check each system module for which special-purpose code was needed in
+                        Step IV (six days).
+
+        VI. Bug Fixing: Repair all critical problems discovered in Step I, in preparation of release. (at least two days)
+
+        VII. Cold Load Construction: Make and release a band utilizing the new interpreter. (three days)

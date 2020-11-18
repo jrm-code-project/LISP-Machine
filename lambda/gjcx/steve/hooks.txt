@@ -1,0 +1,46 @@
+; -*- mode:text; -*-
+;List of implemented hooks for the NIL editor.
+;
+
+*display-matching-paren*
+        Just as in emacs.
+
+*lisp-listener*
+        When non-null this makes a close paren which matches a paren in column
+zero evaluate the defun and print the result into the buffer.
+
+LISP-INDENT property
+        When non-null should be a function of three arguments (bp type count)
+which returns a column to indent the (bp-line bp). TYPE is generally
+the first atom in the list which contains the beginning  of the line.
+It may be 'DEFUN-DEFAULT (if not inside a list.) The COUNT is the number of
+s-expressions in the list before the beginning of this line.
+Currently defined lisp-indent properties are: null-indentor (0 column always)
+defun-indentor (indent second line like defun) and default-indentor
+which indents correctly for progn (and most other LISP functions).
+
+*define-search*
+        Controls the behavior of GLOBAL DEFUN SEARCH. When null only
+the loaded buffers are searched. When non-null any FBOUND atoms will
+be handled specially. It tries to find the source file by doing
+(WHEREIS function-name) and grovelling around. If the source file is
+found, it will be loaded (find-file) and the function definition found in it.
+
+*buffer-name-completion-on-return*
+        When set non-null the buffer-name-reader will complete on RETURN.
+This makes it difficult to create buffers with names that are a prefix
+of some existing buffer name.
+
+*editor-device-mode*
+        Passall mode is controled by this flag. When passall mode is
+T there is no interrupt character at all. When passall mode is NIL
+the keys control-c control-o control-t control-x and control-y are
+trapped by VMS for special functions, thus making them unusable as editor
+keys.
+
+*single-space-sentance-delimiter*
+        When non-null only one space is needed to delimit a sentance.
+
+*paragraph-text-style*
+        When non-null a non-empty line beginning with a white space
+character begins a paragraph. Otherwise only blank lines do.

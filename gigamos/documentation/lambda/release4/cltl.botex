@@ -1,0 +1,230 @@
+@comment -*- Mode:Text; Package:User; Readtable:CL -*-
+
+@subsection Common-LISP Function
+
+Evaluating @l[(common-lisp t t)]
+now causes all new Lisp Listeners and Zwei
+Buffers without @l[:readtable] attributes to use the CommonLISP readtable by default.
+
+@subsection READ
+
+@l[SET-MACRO-CHARACTER] now signals a legible error when passed certain
+kinds of invalid character arguments.  Invalid arguments include
+any characters with special bits (font, control, meta, etc.).
+
+@l[UNREAD-CHAR] now returns NIL, in conformity with CommonLISP.
+
+The error strings and proceed types for various reader end-of-file conditions have been fixed:
+
+@enumerate
+@item When the LISP Listener encounters end-of-file immediately after a package prefix,
+it now displays the warning ``EOF after package prefix''.
+
+@item @l[READ-END-OF-FILE] errors now have proceed options appropriate to the type
+of error encountered:
+
+@itemize @bullet
+@item
+unterminated strings generate a proceed option which offers to return the
+null string;
+@item
+unterminated symbols generate a proceed option which offers to return NIL;
+@item
+unterminated lists generate a proceed option which offers to "close off all unfinished lists."
+@end(itemize)
+
+@item Both the CommonLISP and ZetaLisp versions of READ-FROM-STRING now
+report end-of-file correctly.
+
+@end(enumerate)
+
+Problems with displacing a list into a back-quoted array have been solved.
+The following now works correctly:
+
+@lisp
+(setq x '(a b c))
+`#(a ,@@x b)
+
+#(A A B C B)
+@end(lisp)
+
+@subsection Symbols
+
+@l[EXPORT] no longer reports name conflicts with external symbols which have
+been previously specified as shadowed.
+
+@subsection Numbers
+
+Negative bignums are now printable.
+
+Complex numbers
+with zero imaginary parts are no longer coerced into real numbers; functions
+which relied on this behavior will now signal errors.
+
+@subsection Output
+
+The pretty-printer now displays the @l[function] special form using
+the @l[#'] abbreviation.
+Hence, @l[(pprint '(function car))] will now display @l[#'CAR].
+
+@subsection Hash Tables
+
+Hash tables of size 1 may now be created using @l[make-hash-table],
+as may hash tables with integer @l[:rehash-threshold] and unspecified
+@l[:actual-size].
+
+HASH-TABLE is now an alias for BASIC-HASH-TABLE; that is to say,
+the following will now return T:
+@lisp
+(typep (make-hash-table) 'hash-table)
+T
+@end(lisp)
+
+Hash tables can be created using the @l[EQL] test predicate as  the @l[:TEST] keyword value to @l[MAKE-HASH-TABLE].
+These are distinguishable from hash tables using the @l(EQ) predicate.
+
+Passing an invalid @l(:TEST) keyword value to @l(MAKE-HASH-TABLE)
+now signals a legible error. For example:
+@lisp
+(make-hash-table :test "foo")
+
+>>ERROR: Test "foo" is not valid: should be one of =, STRING-EQUAL, STRING=, EQUALP, EQUAL, EQL, EQ
+
+@end(lisp)
+
+@subsection Compiler
+
+The compiler no longer mishandles the following case of local variable binding:
+
+@lisp
+(defun foo1 (x)
+  (let ((x x))
+    x))
+@end lisp
+
+When the compiler optimized PUSHNEW, it caused an error.
+The optimized code was applying the test function to
+its arguments in the wrong order.
+This problem occurred only with test functions for which
+argument order is significant.
+For example, the following now works correctly:
+
+@lisp
+(let ((x '(1 2 3))) (pushnew 4 x :test '<))
+
+(4 1 2 3)
+@end(lisp)
+
+Under certain circumstances, the compiler mis-optimized @l(=), @l(<), and @l(>) into non-existent functions;
+they are now optimized into the correct functions.
+
+@subsection String Input Streams
+
+@l[MAKE-STRING-INPUT-STREAM] now creates a stream which supports
+the following standard stream methods:
+
+@itemize @bullet
+@item :CLOSE
+@item :TYI
+@item :ANY-TYI
+@item :TYIPEEK
+@item :UNTYI
+@item :POINTER
+@item :GET-STRING-INDEX
+@item :SET-POINTER
+@item :WHICH-OPERATIONS
+@end(itemize)
+
+The generated stream calls the stream-default's handlers
+to deal with any operations other than those listed above.
+
+@subsection Sequences
+
+The @l(SETF) method for @l(CAAAR) has been implemented correctly.
+
+@l[mismatch] now behaves as advertised when the :FROM-END keyword is
+specified and the second sequence argument is shorter than the first.
+
+All modifying @l[setf] methods for @l[bit] and @l[sbit] now handle
+multi-dimensional arrays as well as one-dimensional arrays.
+
+All functions with the prefix @l[bit-] (such as @l[bit-not], @l[bit-xor],
+etc.) now operate only on arrays with similar rank and similar dimension.
+
+@l[ADJUST-ARRAY] now no longer requires the @l[:NEW-DIMENSIONS] to be a list
+for the case of one-dimensional arrays.
+
+@l[REMOVE], @l[SUBSTITUTE], @l[DELETE], and other functions which take sequences as
+arguments now respect and maintain the active lengths of array arguments with
+fill-pointers.
+
+The @l(SETF) method for the keyword argument @l[:fill-pointer] to @l[make-array]
+now performs a check with
+@l[array-has-leader-p] before assigning the fill-pointer to the front of the
+array.
+
+Error messages generated by @l[MAKE-ARRAY] now print the number of dimensions,
+array-rank-limit, and dimension lists of the array in decimal.
+
+@l(ADJUST-ARRAY) now makes the following CommonLisp-compatible error checks:
+@enumerate
+@item an array cannot be displaced to itself;
+@item an array cannot be displaced to an array which is indirected (to any level)
+to the first array;
+@item an array cannot be displaced to another array of a different type.
+@l(MAKE-ARRAY) can still displace across array types.
+This fails, however, if you try to displace an ART-Q array to an ART-STRING array.
+@end(enumerate)
+
+If the :displaced-index-offset is specified without a :displaced-to value,
+@l[MAKE-ARRAY] uses the current indirect array as the array to which to
+displace the original array.  If there is no current indirect array, an error
+is generated.  An error is also generated if more than one of
+@l[:initial-element], @l[:initial-contents], and @l[:displaced-to] is
+specified.
+
+@subsection Miscellaneous Improvements
+
+Alternate macro definitions are now provided for both @l[PROG1] and @l[PROG2],
+in conformity with the CommonLISP specification.
+The @l[defun] (function)
+definitions remain the default definitions for both @l[PROG1] and @l[PROG2].
+
+@l[PSETQ] now returns NIL, in conformity with CommonLISP.
+Also, @l[PSETQ] signals the correct error when given an odd number of arguments.
+
+The following Common LISP functions now signal an error if both
+a @l[:test] and a @l[:test-not] keyword is specified:
+
+@lisp
+ADJOIN
+ASSOC
+COUNT
+DELETE
+DELETE-DUPLICATES
+FIND
+INTERSECTION
+MEMBER
+MISMATCH
+NINTERSECTION
+NSET-DIFFERENCE
+NSET-EXCLUSIVE-OR
+NSUBLIS
+NSUBST
+NSUBSTITUTE
+POSITION
+RASSOC
+REMOVE
+REMOVE-DUPLICATES
+SEARCH
+SET-DIFFERENCE
+SET-EXCLUSIVE-OR
+SUBLIS
+SUBSETP
+SUBST
+SUBSTITUTE
+UNION
+@end lisp
+
+For structures of @l[(:type vector)], the generated type predicate
+no longer causes an error when invoked.

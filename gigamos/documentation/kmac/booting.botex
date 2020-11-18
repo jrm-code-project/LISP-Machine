@@ -1,0 +1,77 @@
+@chapter Booting the K from the Macintosh
+
+The following discussion concerns booting the K-Machine from the Macintosh application.
+
+The K/Mac boot process and the user's interface
+differ from the ``brute force'' approach used to boot the K from the Lambda.
+
+This chapter needs further research and refinement before the Montreal side can
+do much with it.
+
+@section K/Mac Boot Process
+
+K/Mac applications (those responsible for booting up the K from
+the Macintosh) use a standard boot procedure:
+
+@sp 2
+@settabs 4 @columns
+@< @\ @i(Step) @\ @i(Goal) @cr
+@sp 2
+@< @\ 1. Boot Up        @\ Mac application              @cr
+@< @\ 2. Find           @\ Bus Couplers                 @cr
+@< @\ 3. Initialize     @\ Bus Couplers                 @cr
+@< @\ 4. Scan           @\ Nubus all boards             @cr
+@< @\ 5. Find           @\ K Memory / Processors        @cr
+@< @\ 6. Pair Up        @\ K Memory / Processors        @cr
+@< @\ 7. R/W Test       @\ Bus, boards                  @cr
+@< @\ 8. Initialize     @\ K Memory Board (& disable bad sections) @cr
+@< @\ 9a. Test          @\ Low K Memory                 @cr
+@< @\ 9b. Test          @\ K Memory boundaries          @cr
+@< @\ 10. Load          @\ K Low Memory (IR cache?)     @cr
+@< @\                   @\ @ (include comms. area)      @cr
+@< @\ 11. (Optional) Test @\ Complete K memory check (is K damaged?) @cr
+@< @\ 12. Initialize    @\ K Processor                  @cr
+@< @\ 13. Start @\ K Processor                  @cr
+@< @\ 14. Allocate      @\ Screen                       @cr
+@< @\                   @\ Keyboard/Mouse               @cr
+@< @\                   @\ Paging Descriptor            @cr
+@< @\                   @\ File System Table            @cr
+@< @\                   @\ Device Table                 @cr
+@< @\ 15. Fill In       @\ Screen Descriptor            @cr
+@< @\ 16. Fill In       @\ Paging Descriptor            @cr
+@< @\ 17a. Fill In      @\ Configuration Record         @cr
+@< @\ 18a. Load Options @\ for @l(si:lisp-reinitialize) @cr
+@< @\ 19b. Read Over    @\ Initial KFSL files           @cr
+
+
+@cleartabs
+
+Late in the sequence, the K performs certain operations in series with
+steps performed by the Macintosh application.
+These K boot operations are numbered in conjunction with the Mac operations listed above.
+
+@sp 2
+@settabs 4 @columns
+@< @\ 17b. Read In      @\ Configuration Record         @cr
+@< @\ 18b. Call Options @\ @l(si:lisp-reinitialize)     @cr
+@< @\ 19a. Read In      @\ Initial KFSL files           @cr
+@cleartabs
+
+
+@textbox
+@center Montreal notes:
+
+We will need to support a Klod filetype for load bands.
+
+There should be a table in K memory of supported filetypes and their
+associated properties, which in turn will be passed back as
+arguments in calls to OPEN, etc.
+
+It will be acceptable for the Mac to make (default) assumptions about
+filetypes; however, the K will always have override power for all
+translations decisions.
+
+We should have the ability to choose load bands from the control panel,
+with double clicks, and with K functions.
+
+@end textbox

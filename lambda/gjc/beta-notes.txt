@@ -1,0 +1,164 @@
+30-Jan-86 17:28:35 -George Carrette
+
+Thoughts on beta test sites:
+
+Format is SITE:, THEY-WANT-REASON:, WE-WANT-REASON:,  ABILITY-CONDITIONS:,
+CONFLICTS:, PREVIOUS-EXPERIENCE:
+
+
+SITE: LMI PICON GROUP.
+THEY-WANT-REASON: GC will be of benefit to their in-production system.
+WE-WANT-REASON: Good test.
+COMMUNICATION: LOCAL, on-site LMI consultant, mail and file transfer via chaosnet.
+ABILITY-CONDITIONS: Experienced and well organized group.
+CONFLICTS: * Must have constomer support coordinate ECO to SDU software.
+PREVIOUS-EXPERIENCE: Good. They need a software ECO procedure though,
+because in the past they (i.e. their customers) could have benefited
+by fixes to the uCODE and LISP that they were not able to encorporate
+due to a lack of corporate direction on this issue.
+
+SITE: CMD
+THEY-WANT-REASON: Again, a GC is very good to have in a continous production system.
+WE-WANT-REASON: A moderately large system that uses networking, window system,
+and shared memory/streams.
+COMMUNICATION: CAMBRIDGE local. on-site consulting easy. mail via local telephone.
+file transfer via handcary tape.
+ABILITY-CONDITIONS: Good.
+CONFLICTS: They must use version 7 Unix kernel linked by Technology Concepts Inc.
+for DECNET.
+PREVIOUS-EXPERIENCE: Their last port, release 1 to release 2 resulted in a speed
+up of a factor of two. GJC's portaid package made the otherwise excruciating
+DEFSYSTEM problems that would have come up into a turn-key recompilation.
+They will be enthusiastic.
+
+SITE: MCC.
+THEY-WANT-REASON: Modernizations of networking software that will make TCP
+usage more general. Different subsites:
+ 1. HUMAN INTERFACE: Better code for writing device drivers is a win.
+ 2. CAD: They are shipping results to other sites now, so they should be
+    given sufficient "lead-time" on our full release schedule data.
+ 3. Parallel Processing: Built-in LAMBDA-DIAG and Microcode Assembler
+    will help their effort towards hacking lisp low-levels considerably.
+WE-WANT-REASON: *****
+COMMUNICATION: on site consultant. mail and file transfer via ARPANET.
+ABILITY-CONDITIONS: good.
+CONFLICTS: Unknown.
+PREVIOUS-EXPERIENCE: yes. They could make use of PORTAIDs this time.
+
+
+SITE: Los Alamos, JIM O'DELL.
+THEY-WANT-REASON: Serious Macsyma work requires the GC.
+WE-WANT-REASON:   DOE-Macsyma is a good test. And they need lead time on new distribution.
+ABILITY-CONDTIONS: expert.
+COMMUNICATION: mail and file transfer via ARPANET.
+CONFLICTS: none.
+PREVIOUS-EXPERIENCE: none.
+
+SITE: MITRE, WASH DC.
+THEY-WANT-REASON: the GC will allow them to finally be able to run their system for
+longer than 5 (simulated) minutes.
+WE-WANT-REASON: maybe too late to save this as an dedicated LMI customer, but we can try.
+COMMUNICATION: no machine->machine possible. (VAULT) This may be a very good start
+for our new washingon dc area tech rep.
+ABILITY-CONDITIONS: depends on personel assigned.
+PREVIOUS-EXPERIENCE: Good, need portaids.
+CONFLICTS: system might not be ready to port at the time. personel to port may
+not be available. however, 1->2 was a bigger jump than 2->3.
+
+
+SITE: SILICART
+THE-WANT-REASON: The GC will allow them to design bigger chips.
+WE-WANT-REASON: large system is good testing ground.
+ABILITY-CONDITIONS: good.
+COMMUNICATION: we could set up a UUCP between their UNIX VAX and our UNIX VAX.
+PREVIOUS-EXPERIENCE: yes.
+CONFLICTS: unknown.
+
+
+SITE: THINKING MACHINES.
+THEY-WANT-REASON: see if LMI can do anything decent.
+WE-WANT-REASON: see if we can give them anything they think is decent software.
+Stark comparision here between Symbolics and LMI.
+ABILITY-CONDITIONS: good. Need landscape monitors to make it fly or else they
+wont be able to run their simulator software (which requires large screen area)
+PREVIOUS-EXPERIENCE: not much usage.
+COMMUNICATION: mail and file transfer via arpanet.
+CONFLICTS: unknown.
+
+SITE: BRL
+THEY-WANT-REASON: not determined.
+WE-WANT-REASON: machine is first LMI-LAMBDA listed as ARPANET host. test network software
+under real live arpanet conditions.
+COMMUNICATION: mail and file transfer via arpanet.
+ABILITY-CONDITIONS: good.
+PREVIOUS-EXPERIENCE: no.
+CONFLICTS: probably not since they have just started using the machine.
+
+
+Network Software Status:
+
+New function NETWORK:NETWORK-PATH-AVAILABLE and NETWORK:DEFINE-NETWORK-FUNCTION.
+Purpose: keying off NETWORK:*NETWORK-PROTOCOLS* = (:CHAOS :INTERNET)
+  :CHAOS is only protocol available then non-chaos protocols wont get used.
+  :INTERNET is only protocol available (e.g. when only an EXCELAN board)
+  then :CHAOS protocols wont get used.
+Hooked into:
+* DEFINE-FILE-ACCESS, so that TCP-only sites such as MCC Human Interface
+  wont need 'custom' site file kludge as set up by Jim Mynett.
+* DECODE-UNIT-ARGUMENT, so that PRINT-DISK-LABEL and COPY-DISK-PARTITION
+  will work invariant across protocols.
+Need to hack:
+ - HOSTAT this will be chaos only, FIXED. WONT TRY NON-CHAOS HOSTS.
+ - FINGER/NAME, USER END FIXED. :INTERNET SERVER implimented, patched into system.
+ - QSEND/CONVERSE USER END FIXED. QSEND :INTERNET USER implemented. Server also, but
+   doesnt handle SI:*other-processors* yet.
+ - TELNET/SUPDUP very chaos specific, weird hostname parsing, so punted on this.
+
+DONT NEED TO HACK:
+ - MAIL. There is already a site-file-specified MAIL SERVER HOST and MAIL METHOD.
+   So the system manager (site-configuration-manager) can specify the right thing
+   to do for his site.
+ - HARDCOPY. again is already specified by site-configuration-manager.
+
+
+The duplication of functionality and interface in SUPDUP/TELNET, SYSTEM-U (Unix)
+and KERMIT are as yet unresolved. NEED: A terminal emulator program (SYSTEM-T)
+that has selectable MODES that can take the place off all of these.
+The KERMIT interface handles all of these functions except SUPDUP, and subdup would
+be just another terminal mode, such as ANSI and VT-100 if it were generalized as
+such.
+ * STRONGLY SUGGEST. That an able person in the USER-INTERFACE group be given
+   as a task to complete during the beta-test period (1 month is well enough
+   for a good person to do this) a universal terminal interface program
+   that subsumes all the functionality of our present ad-hoc interfaces.
+
+
+TCP-KERNEL optimization:
+ * tcp works by user processes sending messages to the network-front-end-processor,
+   and receving replies. It is an interprocessor function call mechanism with
+   call-by-reference (for dma buffer arrays). Because both the lispmachine and the
+   front-end-board are running realtime multiprocessing operating systems each lispm
+   process must process-wait on the reply status from the board. The demultiplexing
+   of replies from the board is handled in general by a background process in the
+   lispmachine.
+  ** The optimization: To busy loop (a few milliseconds worth) in the user process
+     before going to the full process-wait.
+  Example benchmark:
+  MACHINE: VAX 11/750
+  OPERATING: VMS 4.2
+  TCP: EXCELAN EXOS
+  FILE: LISP.EXE
+     Busy Loops   KBytes/Sec      Handle Own     Estimated overhead, milliseconds
+       NIL         47.5             0%
+       10          47.5             5%                  2
+       50          38.9            10%                  8
+       60          61.2            72%                 10
+       75          68.6            92%                 12
+      100          77.2            99%                 16
+      200          77.2            99%                 32
+
+  *** Explaination:
+      Performance goes down at N = 50 because the hit ratio is only 5% and yet we are expending
+      time in the busy loop.
+  *** We chose a busy loop count of 100, the overhead of 16 milliseconds is also the minimum
+      value which TV:CLOCK-RATE may take.

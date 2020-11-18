@@ -1,0 +1,62 @@
+
+Name:   Porting the Common LISP test suite to the Falcon
+
+Date:   9/30/88
+
+Participants:   K. Corbett, D. Saslav
+
+Est. Work:      Two-four days
+
+Project Status: Under review
+
+Purpose: This project is necessary to ensure the existence of as
+complete and correct an implementation of the Common LISP specification
+for the Falcon as possible; the purpose of this specification is to give
+an overview of existing regression tests, hopefully suggesting a
+resource allocation scheme that will afford maximal Common LISP testing
+without undue strain on concurrent programming efforts.
+
+Description:    This project entails the review and revision of a number
+of Lambda functions which have been devised for testing Common LISP on
+the Lambda.  In the Lambda version of the test suite, various
+interpreting, display, logging, and automating mechanisms surround
+examples of Common LISP code which have been compiled as examples of,
+and deviations from the 1985 specification of Common LISP, as set forth
+by Guy Steele in Common LISP, the Language.  We hope to use these
+mechanisms along with a more complete set of tests to run relatively
+complete regression tests on the Falcon implementations of Common LISP
+routines.
+
+Procedure:      This project requires detailed analysis and potential
+revision of the various utilities employed by the Common LISP test
+suite; in each case, all LISP functions must be guaranteed to be
+Falcon-compatible.  The utilities involved may be classified into four
+categories:
+
+        1.      LISP-Interpreting Mechanisms
+        These are the LISP functions which actually run (i.e., evaluate
+        or compile) the examples in a test suite.
+
+        2.      Display Mechanisms
+        These are interactive stream macros used to display the results
+        of individual Common LISP tests on the screen for immediate view
+        by the programmer running the test suite.
+
+        3.      Logging Mechanisms
+        These are file stream macros used to record the results of
+        entire sequences of Common LISP tests for later examination by
+        the Common LISP tester.
+
+        4.      Automating Mechanisms
+        These are the mechanisms which have been devised for automating
+        the process of running, displaying, and logging the results of
+        Common LISP tests.
+
+Assessment: It would appear that roughly 50% of the nearly 800 Common
+LISP identifiers currently have adquate regression tests.  Given a
+knowledge of the underlying issues involved in testing for correct
+Common LISP behavior, tests could be written covering the majority of
+the remaining areas.  Clearly, a complete test bed is out of the
+question; however, careful prioritizing of the test subjects could
+result in expeditious test-writing, covering a great deal of the
+remaining areas, in the time given at the beginning of this report.

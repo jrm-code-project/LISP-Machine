@@ -1,0 +1,61 @@
+;;; -*- Mode:LISP; Package:USER; Base:10 -*-
+
+(if (= 102 (si:get-system-version))
+    (sstatus feature release-2))
+
+#+(AND LMI (NOT RELEASE-2))
+(PROGN
+;; in lmi system (not TI).
+(let ((physical-memory (aref #'si:system-communication-area si:%sys-com-memory-size)))
+  ;;(virtual-memory si:virtual-memory-size)
+  (setf (aref gc:*level-control* 3) (floor (* physical-memory 0.05)))
+  (setf (aref gc:*level-control* 2) (floor (* physical-memory 0.15)))
+  (setf (aref gc:*level-control* 1) nil)
+  (setf (aref gc:*level-control* 0) nil)
+  (gc:status))
+
+(when (eq si:local-host (si:parse-host "DJ"))
+  (setq fs:*disk-space-warner-threshold* 2000)
+  (fs:start-disk-space-warner-process)
+  t)
+
+(defun info ()
+  (time:print-uptime)
+  (gc:status)
+  (gc:print-statistics)
+  (and (fboundp 'fs:print-server-lossages)
+       (fs:print-server-lossages)))
+
+
+
+)
+
+#+TI
+(PROGN
+
+(or (get 'si:parse-host 'losing-definition)
+    (putprop 'si:parse-host #'si:parse-host 'losing-definition))
+
+(defun winning-parse-host (host &optional no-error-p (unknown-ok t))
+  (funcall (get 'si:parse-host 'losing-definition)
+           host no-error-p unknown-ok))
+
+
+(fset'si:parse-host 'winning-parse-host)
+
+)
+
+#+LMI
+(when (eq si:site-name :lmi)
+  (or (fboundp'macsyma-howfar)
+      (load "lam3:doe-macsyma.lispmenvir;gjc-tools" :set-default-pathname nil)))
+
+
+(setf (getf tcp-application:*imagen-paper* :landscape-h-offset) 0.5)
+(setf (getf tcp-application:*imagen-paper* :landscape-v-offset) 10.5)
+
+
+(fs:set-logical-pathname-host "PICON" :physical-host "LAM15"
+                              :translations '(("PICON;" "PIC;")
+                                              ("PICON-KB;" "PICON-KB;")))
+

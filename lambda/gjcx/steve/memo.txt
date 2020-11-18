@@ -1,0 +1,87 @@
+ -*- mode:bolio; package: steve; readtable:cl; -*-
+
+This is a list of things I will try to do before I leave. You probably
+want to test these later since some of them may be done hastily. Others
+may not be done at all, and they are reasonable things to work on later.
+Also look at the file [nil.steve]bugs.lsp which is a text file
+which I use to keep the current list of known bugs/misfeatures/schedule
+of what to do. It is not really in english, it is just shorthand to
+remind myself, but you will probably be able to decode most of it.
+
+(1) List of files to look at for further pointers to problems and
+unfinished projects.
+ Bugs.lsp
+ docvar.lsp ;M-X list-redefinitions, M-X List-Options [Now finished]
+        These can be used as the basis for M-X Edit-Options
+ syn.lsp ;M-X Syntax-Modification (edit syntax table)
+        This can be used as another basis for M-X Edit-Options and
+        also Dired.
+ [editopt.lsp contains edit-options.]
+
+(2) List of things to do.
+        (1) Document extentions better.
+                Major modes.
+                        The file modes.lsp defines the major
+                        modes, using the functions defined in mode.lsp.
+                        modes.lsp is very easy to understand.
+                Minor modes.
+                        Barely implemented. Not pretty to use yet.
+                        See autofill.
+                Variable Binding in a buffer. (Is this documented yet?)
+                        See functions local-bind and bind-in-buffer
+                        (In mxcom.lsp)
+                Key binding in a buffer
+                        Not implemented yet. (!) I will work on this.
+                        [See (3) below.] [Now implemented]
+                Recursive editing. [O.k. now. See recurse.lsp]
+                        Recursive editing is in bad shape. I have not
+                        yet done enough with it to see what functionality
+                        has to be implemented to make it reasonable.
+                        Look at syn.lsp & info.lsp for examples of
+                        of recursive subsystems.
+                ???
+
+        (2) Make minor-modes easier to use.
+
+        (3) Define a function to bind keys locally to one buffer.
+                While working on this I redid the entire key binding scheme
+                The new one should be easy to interface to the VMS ECHOIN
+                protocol. (GJC) It is also faster and handles inheritance
+                of control-x sub-commands correctly. (A new feature.)
+                Because it memo-izes the key bindings there is no longer
+                a penalty for many levels deep of modes built on each other,
+                so binding in a buffer will simply add one more level of
+                indirection.
+                Debugging note: Because I modified ECHOIN (now editor-echoin
+                and echoin-primitive) there may be bugs in keyboard macros.
+                Look at (functions): editor-echoin, string-read&save and
+                ed-command-interpret if you find bugs. [Now tested.]
+
+                The function (bind-key-in-buffer buffer key-seq binding)
+                should now work. (It is not yet tested.)
+
+        (4) Perhaps separate M-X names and functions more.
+
+        (5) Perhaps look at the Zwei perfect backward parsing algorithm
+            again.
+
+        (6) Try to integrate the standout feature of searches with the
+            redisplay so it is done faster. This would make searches even
+            more pleasant than they are now. This probably has high
+            priority since it is a major user frienlieness feature, and
+            I am the best person to try to hack the redisplay. Unfortunately
+            the redisplay was designed to be very fast, not to be hacked so
+            this may not be possible. I will at least comment the redisplay
+            where I think it needs to be hacked.
+
+        (7) Think about, document and eventually implement some better scheme
+            for initializing the many variables dynamically bound in the
+            function ED (from file ed.lsp). The problem is that many of these
+            should be cusomization variables, but there are many computational
+            dependancies so just setting a variable may not work right. On
+            top of that they must be set at run time, because many of them
+            depend upon the terminal size, which is not known until then.
+                Bletch.
+
+        (8) Perhaps change the redisplay so that just-expand-line is
+            a line method. Implement suppressed text. Implement fonts.

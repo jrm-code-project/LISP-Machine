@@ -1,0 +1,140 @@
+-*- Mode:Text; Package:USER; Fonts:(CPTFONT CPTFONTB) -*-
+
+
+                              1FOREIGN-SYMBOL*
+
+                             (A Modest Proposal)
+
+                           Compiling References to
+                      Foreign (Target Processor) Symbols
+
+                                    - - -
+
+                                [Proposal #8]
+
+                               Keith M. Corbett
+
+                                 Oct. 5, 1988
+
+
+A. INTRODUCTION:
+
+To continue my effort toward rebuilding the Lambda software, I need a
+mechanism that allows references to "foreign" (processor-specific) symbols to
+be accessed and compiled independently of actual knowledge of the symbols at
+compile time.
+
+Currently, compiling system files that refer to foreign symbols -- notably,
+symbols located in packages that are not known to the compile-time processor
+during compilation -- causes an error and produces erroneous symbol
+references.
+
+This problem was first encountered when compiling the compiler, on and for
+the Lambda, after patches had been made to accomodate the cross-compiler.
+But the problem could become more general during the Falcon software port;
+the potential for trouble occurs whenever Lambda system files refer to
+symbols in Falcon packages that are not known to the Lambda.
+
+The existing customization mechanisms do not address such situations.  Other
+alternatives have been discussed, and the following appears to be the
+"cleanest" and most agreeable solution.
+
+The code in Example 1 (below) illustrates the problem.  This will not compile
+successfully on the Lambda unless the Falcon packages are defined.  For
+various reasons it is NOT desirable to force the system maintainers to load
+the Falcon software in order to compile the Lambda system software in place.
+
+-----------------------------------------------------------------------------
+Example 1:  Direct Reference to Foreign Symbols
+1
+ (do-something-with
+  (if (eq *target-computer* 'k)
+      #+lambda k-array:art-q
+      #+falcon array:art-q
+     ''art-q))*
+-----------------------------------------------------------------------------
+
+Using the read-time #+TARGET mechanism will not help either; the problem is
+to compile a reference to the symbol, relative to the target computer that is
+known at run-time.
+
+B. PROPOSAL:
+
+The thrust of the proposed solution is to maintain a database of foreign
+symbols that can be retrieved as a function of processor type and a tag, such
+as a keyword.
+
+The macro DEF-FOREIGN-SYMBOL will be used to enter a processor-specific
+symbol/tag entry.  Note that a compiled file containing such definitions can
+make use of read-time constructs such as #+LAMBDA and #+(TARGET LAMBDA); but
+the mechanism will not require definitions to be centralized in any way.
+
+The function FOREIGN-SYMBOL, given the tag and processor type (e.g.  :LAMBDA
+or :FALCON), will locate the desired symbol reference. The compiled call to
+FOREIGN-SYMBOL is kept separate from the definition of the foreign symbol
+provided by each processor.  The actual symbol need not be known when the
+call to FOREIGN-SYMBOL is compiled. It seems consistent with normal variable
+usage to expect that the required foreign symbols be entered in the database
+before they are referenced by run-time code.  An error will be signalled if
+an undefined foreign symbol is referred to at run-time.
+
+Example 2 shows how the earlier code example would be fixed.
+
+-----------------------------------------------------------------------------
+Example 2:  Abstract Reference to Foreign Symbols
+
+A.1: Define the Lambda version, e.g., in "SYS:SYS;TYPES":
+
+1   #+lambda
+   (def-foreign-symbol :art-q 'ZL:ART-Q)*
+
+A.2: Define the Falcon version elsewhere:
+
+1   (def-foreign-symbol :art-q*
+                          1#+lambda 'K-ARRAY:ART-Q*
+                          1#+falcon 'ARRAY:ART-Q)*
+
+B: Refer to the foreign symbol:
+
+1  (do-something-with (foreign-symbol :art-q))*
+
+-----------------------------------------------------------------------------
+
+C. IMPLEMENTATION:
+
+The run-time database will be established as a global variable, probably
+associated with the compiler software.  The database will be a hash table,
+indexed by foreign symbol tag (keyword).  Each element of the table will be a
+property list indexed by processor symbol.
+
+Steve suggested using a hash table for performance reasons.
+
+FOREIGN-SYMBOL, aside from error handling, is just:
+
+        (GETF (GETHASH <tag> <*table*>) <processor>)
+
+For the convenience of the cross-compiler, the target interface symbol --
+e.g. LAMBDA-INTERFACE -- will be used as the index, rather than the processor
+code such as :LAMBDA.  Other applications of this technique would perform the
+standard mapping of processor symbol to target interface.
+
+DEF-FOREIGN-SYMBOL  does a SETF of FOREIGN-SYMBOL with its arguments.
+
+D. ISSUES:
+
+Source-file recording and redefinition warning could be handled by
+DEF-FOREIGN-SYMBOL as appropriate.
+
+Bob suggested that I provide a handy Zwei command to List Foreign Symbols,
+displayed in sort order by tag, with columns for each processor.
+
+E. PLEASE REVIEW THIS PROPOSAL!
+
+The developmental version of the FOREIGN-SYMBOL macro will be located in the
+file DJ:KEITH;FOREIGN-SYMBOL.  I will be testing this in a "live" system
+file, the cross-compiler's "SYS:SYS;QCOPT.LISP".  This should alert me fairly
+quickly to any major flaws in this strategy.
+
+[Note: Steve, where should these functions live in the sources? -- Keith]
+
+

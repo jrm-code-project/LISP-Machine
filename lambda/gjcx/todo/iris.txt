@@ -1,0 +1,40 @@
+;;; -*- Mode:LISP; Package:TELNET-USER; Base:10 -*-
+
+#|
+
+
+An IRIS workstation may connect to an LMI-LAMBDA (having TCP-IP)
+using either the "telnet" or "wsiris" commands.
+Both of these commands connect to the TELNET server on the LMI-LAMBDA
+which gives a lisp listener.
+
+If you use "wsiris" then GL2 commands may be sent through the telnet
+connection. example:
+
+|#
+
+
+(defun ltyo (&rest l)
+  (let ((s (symeval-in-instance *terminal-io* 'tcp-application:output)))
+    (dolist (c l)
+      (send s :tyo c))))
+
+
+
+;;Before sending any commands we must send the XGINIT:
+
+(defun xginit ()
+  (ltyo 16 51 33))
+
+;;Then other commands may be sent, e.g. CLEAR:
+
+(defun clear ()
+  (ltyo 16 56 32))
+
+(defun ringbell ()
+  (ltyo 16 34 35))
+
+;; The next thing to do:
+;; modify "iris:iris;io" to have a switch so that *command-stream* will go
+;; to the telnet connection and FORCE-OUTPUT-GRAPHICS-STREAM
+;; will do a :string-out to *command-stream*.

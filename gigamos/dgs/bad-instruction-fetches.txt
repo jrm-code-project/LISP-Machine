@@ -1,0 +1,41 @@
+During the course of debugging Pace's Marching Functions test, we came
+upon a hard (i.e. repeatable) error in the hardware, in which incorrect
+instruction data was fetched from memory and subsequently executed in
+the instruction register, causing the program to crash.  We have seen
+this type of failure before, although typically the failure happens only
+once or twice before disappearing.  This failure involved k-MEM s/n 012.
+
+Analysis with the logic analyzer revealed that the instruction fetch was
+referencing the wrong physical page (0 rather than 1), and that the page
+address was correct for the unused banks of DRAM.  Closer examination
+revealed that the address driver for the bank 0 DRAM array (a 74AS841
+at location H3 on the K Memory card) was failing to drive ALM0 (address
+bit 0, A bank) high enough, although the latch-enable, output-enable and
+signal inputs were all correct.  Previous instruction fetches to the
+same page had completed properly, so the driver was theoretically able
+to drive the address line high.
+
+I had come across a similar problem with the same address driver, same
+location, but a different bit (ALM3) in a previous problem with a different
+board.  In that case, too, the address line was not driven high enough,
+although all the relevant device inputs were correct.  In that case, I
+initially suspected a short to another driver, or another driver on the
+node being enabled at the wrong time, but a systematic search for a short
+failed to find one.  I finally replaced the driver, and the problem cleared
+up immediately thereafter.
+
+Noticing that the output to the unused bank was correct, and remembering
+the aforementioned previous experience with the driver in H3, I immediately
+replaced the driver, and the problem immediately cleared up.  Within 24 hours
+of completing the repair, I came upon another memory board (the original V2
+board, without s/n) with an identical problem.  Again I investigated with the
+logic analyzer, and again ALM0 was not being driven high enough by the driver.
+I have not yet changed this driver.
+
+I am beginning to suspect that we have a bad batch of chips here:
+
+    Texas Instruments 74AS841NT (plastic package, made in Malaysia)
+    date code 8714XF
+    other number 6191061
+
+Both of the devices with problems driving ALM0 belonged to this lot.

@@ -1,0 +1,25 @@
+;Reading at top level in Editor Typeout Window 1.
+;Reading in base 10 in package USER with standard Common-Lisp readtable.
+
+(check-list proc-wire-list)
+No outputs driving ALU_RS:
+    pin B14 of AM29332 at E27; PIN-IN, RSTAT, @PROC_BD-ALU-1
+No outputs driving BNU_RESET~:
+    pin 13 of 74F374 at H20; PIN-IN, 5D, @PROC_BD-CLOCK-1
+NIL
+(check-list mem-wire-list)
+No outputs driving AUTOBOOT:
+    pin 15 of 74LS244 at I28; PIN-IN, 2A3, @MEM_BD-MISC-3
+No outputs driving LM_MEMOP1:
+    pin 6 of 16R8B at C28; PIN-IN, I5, @MEM_BD-NUBUS-4
+No outputs driving MD_BOXED~:
+    pin 4 of 74AS805 at E18; PIN-IN, I1, @MEM_BD-MFO-1
+    pin 17 of 74LS244 at H28; PIN-IN, 2A4, @MEM_BD-MISC-3
+No outputs driving TRAP_STACKOVF~:
+    pin 9 of 74AS1004 at J13; PIN-IN, I1, @MEM_BD-MISC-4
+    pin 11 of 74AS30 at I16; PIN-IN, I7, @MEM_BD-MISC-4
+No outputs driving VMA_BOXED~:
+    pin 1 of 74AS805 at E18; PIN-IN, I1, @MEM_BD-MFO-1
+    pin 2 of 74LS244 at I28; PIN-IN, 1A1, @MEM_BD-MISC-3
+NIL
+(dribble)

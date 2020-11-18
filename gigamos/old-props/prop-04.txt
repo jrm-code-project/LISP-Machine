@@ -1,0 +1,119 @@
+
+
+                                 A Proposal for
+
+                          Flagging Source File Changes
+
+                                      - - -
+
+                                  [Proposal #4]
+
+                           Revised Draft 22Sep88 - smh
+
+                                      - - -
+
+
+The Problem.
+
+     Whenever one of the several Falcon implementors makes a change to any
+source code, there is always a chance that the change wil be incorrect, or at
+least will impact some other part of the system in an unanticipated way.  It is
+important to be readily able to identify recent changes (and even not-so-recent
+changes), because as the ancient programming adage says: "The bug is usually the
+last thing you fixed."
+
+     If we were only a single person, it might be possible to rely upon memory
+to identify changes.  However, we are many people, and therefore need a
+mechanism to make changes visible.  M-X Source Compare is one such mechanism,
+but unfortunately, it requires an act of commission, and is clumsy if there are
+many scattered changes in a file.
+
+
+The Proposal.
+
+     Whenever anyone makes a source change to a Falcon source file, he should
+flag the change with a comment containing (at least) the following string:
+
+          ||| <userid> <dd><mon><yy>
+
+The three vertical bars are intended to make these comments easily findable
+someday when we might want to delete them.  It is of course helpful to include
+some brief comment about what was changed.  To make the format clearer, here is
+a sample:
+
+          ;; made pkg optional - ||| smh 19sep88
+          (defvar lisp-symbols '(
+             ...
+             array::length                      ;added ||| smh 19sep88
+             ... )
+
+     Although it has been discussed that these comments should appear on
+separate lines to facilitate automatic purgation, others have held the position
+that this additional formatting requirement will cruftify the code more than it
+necessary.  Therefore, these ||| markers may where appropriate be put in
+comments on the same line as the code affected.
+
+     The intention is that when a few, small, localized changes are made to a
+file, they will be flagged individually using this mechanism.  However, when
+extensive systemic changes are made it is reasonable to place a single flag near
+the top of each file affected.  If nothing else, this will provide a better
+handle for efficiently using M-X Source Compare.
+
+     This proposal is intended to apply to *all* Falcon source files, i.e., all
+files which are pointed to by the master K-SYS: K; SYSTEM.LISP file.  This even
+includes those lambda files which the cross compiler shares with the native
+Lambda compiler.  We might or might not extend it someday to Mac support files,
+but they are not presently at issue.
+
+     It should be further understood that edit history comments in code are
+intended to be temporary.  Anyone is free to flush uninteresting ones after four
+to six months have elapsed.  Discretion is needed.  Obviously, the history of
+some changes becomes uninteresting relatively quickly (but *never* so soon as a
+month or two!!) while comments about the motivation for other changes may become
+an important part of the design record, and may be worthy of permanent
+retention.
+
+
+
+
+
+Comments:
+
+Jim:
+
+I like the intent of this proposal but am concerned about the long term effect
+of having comments like
+;;; ||| I moved this macro to the head of the file
+litter the code for years to come. I also agree that it is dangerous to try to
+have a tool automatically edit code.
+
+Instead I simply suggest that we agree that after an appropriate period of time
+(I suggest 6 months) that the comments can be edited to reflect the true state
+of the exiting code and comments in place simply to note that a change has taken
+place can be removed.
+
+Smh:  I agree with this, and have edited the proposal accordingly.
+
+
+Oct 3, 1988
+
+Jim:
+
+I would like to propose that this proposal be modified to discuss the coding
+conventions discussed below.
+    Subject: Coding conventions
+
+         If you see a place in the code which could be optimized:
+        ;; @@@ Turn this into a macro later when stablized.  --wkf
+         If you see a place in the code which is broken:
+        ;; +++ This does not handle boundary cases properly.  --wkf
+
+    I was just going through my old mail and saw this.
+    What do people think about merging this into
+    smh's prop-04?
+
+Accordingly when the code has been corrected to be a macro (for @@@)
+or handles boundary cases correctly (for +++) that a ||| comment be
+left behind for later deletion as per normal practice for ||| comments
+
+Status: Accepted 23sep88

@@ -1,0 +1,148 @@
+                        1
+
+
+        Communications    Proposal
+
+
+    To provide:
+
+ * Least-cost routing of electronic mail via auto-dial modems over
+   normal telephone lines between all LMI operations centers that
+   have at least one LAMBDA-PLUS.
+
+ * Reliable continuous network communications between
+   - LMI Andover Facility
+   - LMI Cambridge Facility
+   - MIT and arpanet.
+
+ * Maximally economic utilization of resources of workstations, printers,
+   disks and timesharing computers in the LMI east coast facilities.
+
+ * A model system in-house that will be similar to what our customers
+   will ideally want to have.
+
+ * Use of our own equipment for these purposes will enable us to see
+   first-hand any reliability problems our customers may be having.
+
+    Implementation:
+
+ * The least-cost routing of electronic mail can be simply accomplished
+   by utilizing the UUCP (Unix to Unix Copy Program) facility that
+   comes with every LAMBDA-PLUS.
+
+   - Suitable auto-dial modems (such as a Hayes smart modem or equivalent)
+     need to be purchased.
+
+   - These need to be connected to the LAMBDA-PLUS, ideally through an MTI.
+
+   - Technical representatives need to be trained in setting up the
+     tables of phone numbers and time-of-day-to-transmit information.
+
+   - These tables and mailing-list information need to be coordinated,
+     presumably through US mail as a bootstrapping procedure.
+
+   - Administrative personal such as secretaries need to have H19's
+     to connect to the LAMBDA-PLUS so that they can send and receive mail.
+
+   - Use of MacIntosh and IBM pc's in a network hooked up to the LAMBDA's
+     is also a possiblility.
+
+
+                          2
+
+          Communications    Proposal
+
+  * The cost per page of printing and the cost per byte of disk
+    (counting real cost, maintanence, etc) is much less, and the
+    quality much greater when you have a few large well-maintained
+    printers or disk than it is when you have many less-used
+    smaller printers and disks.
+
+    - This is addressed in a most excelent fasion by the TCP/IP software
+      available on the IBM PC that customer support has a copy of now.
+
+    - Files may be queued to be printed via the ethernet using a printer
+      that LMI is an OEM for: the imagen. The queuing process is much
+      faster than the actual printing, which would otherwise tie-up the
+      IBM-PC for the entire length of printing the document.
+
+    - A larger, cheaper, and faster amount of disk space is available on
+      mainframes and minicomputers such as the VAX. This resource can be
+      shared in two ways using the TCP/IP software on the IBM-PC.
+
+       + Via an ETHERDISK simulation. E.G. Disk "D:" would actual reside
+         in an area on a much bigger disk on the VAX.
+
+       + Via the TFTP, a file-transfer protocol. This allows data and reports
+         to be kept on a central file server that all workstations can
+         access.
+
+    - Backup of data to tape is much faster an more reliable on a minicomputer
+      such as a VAX than on a microcomputer.
+
+ * Transmision of files between IBM-PC's and LAMBDA-PLUS, VAX,
+   can take place via dial-up modems using a procedure that is not much more
+   complicated than the use of the FAX.
+
+ * Cambridge-MIT communication takes place now using UUCP.
+
+ * Propose to have an additional line between LMI-Cambridge and MIT Technology
+   Square, to connect to an arpanet TCP/IP gateway. This would give LMI a link
+   that is conceptually on-par with that of Symbolics, except at a much
+   lower cost and speed.
+
+ * The serial line between Andover and Cambridge could run UUCP, CHAOSNET,
+   or TCP/IP. Duplicating the MIT-designed serial protocol for TCP/IP
+   (which presently runs on IBM-PC's and PDP-11's) would be a good thing to do.
+
+ * An ETHERNET loop should be run all over the Andover facility.
+
+    - All of the companies local serial and network communications needs
+      can be met either directly with Ethernet, or via Ethernet/Serial
+      gateways which either are or can be implemented on the available
+      hardware: IBM-PC, PDP-11, VAX, LAMBDA-PLUS.
+
+    - Hardware we have that has direction ethernet connection capability at this time
+      includes:
+
+      + LAMBDA
+
+      + VAX
+
+      + IBM-PC
+
+      + LMI LASERPRINTER (LASER2, OEM IMAGEN).
+
+
+
+                                3
+
+Immediate practical steps to take:
+
+  * A 56Kb line from Andover<->Cambridge.
+  * Port the BRL IP gateway code (written in C) from the pdp-11 to the NuMachine.
+    This port uses newly written code by BobP and Pace for the development of
+    stand-alone operating systems on the 68000.
+  * Modify a serial port of the QUAD VIDEO card, or build a special purpose serial
+    card, perhaps by adding a UART and MICROPROCESSOR to a DEBUG card, to
+    support the 56kb syncronous data stream.
+  * Set up three machines, (or dedicate three 6800 processors in other machines)
+    to be network gateways in Cambridge, Andover, and MIT.
+
+Results:
+  * A reliable network between the two LMI facilities.
+  * A reliable access to MIT.
+  * Arpanet community visibility.
+
+Bring up the Seagateway from Standford:
+ * Make an 8-chip multibus card as per stanfords wirelist.
+ * obtain the SUMACC Mac C cross development kit (which is based
+   on our own NuMachine C compiler of course).
+ * port standfords TCP/IP-appletalk gateway software to our own 68010.
+
+Results:
+ * Allows internet UDP access to the Applebus.
+ * MacIntosh...
+ * laserprinters...
+ * MacMail...
+

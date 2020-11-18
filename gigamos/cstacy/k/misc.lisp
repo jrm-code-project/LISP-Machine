@@ -1,0 +1,6 @@
+(defun array-displaced-to (array)
+  (let ((rank (array-rank array))
+        (long-length-flag (si:%p-ldb-offset si:%%array-long-length-flag array 0)))
+    (when (and (array-displaced-p array)
+               (not (array-indirect-p array)))
+      (si:%p-contents-offset array (+ rank long-length-flag)))))

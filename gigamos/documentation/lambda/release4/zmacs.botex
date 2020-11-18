@@ -1,0 +1,212 @@
+@comment -*- Mode:Text; Package:USER; Readtable:CL -*-
+
+@subsection Changes to ZMacs Functionality
+
+@metax[Edit Definition] (also invoked with @meta[.])
+now accepts mouse-sensitive items as minibuffer input:
+
+@itemize @bullet
+
+@item
+A left mouse click on a highlighted symbol
+selects it as the function whose definition to edit;
+@item
+A right mouse click inserts the highlighted string into the
+minibuffer for manual confirmation (or editing).
+@end(itemize)
+
+@metax[Source Compare] and
+@metax[Source Compare Merge]
+now use the advertised file or buffer defaults properly.
+
+@metax[Kill Some Buffers]
+now waits to ask about the current buffer until after all other buffers
+have been resolved.
+
+@ctrlx[k] (Kill Buffer)
+now allows any buffer to be killed, even if no others exist.  In case
+the user kills the last buffer, a new, empty buffer is automatically
+generated for immediate use.
+
+@ctrlx[Control-F] (Find File)
+now probes for the existence of the specified file even if an associated
+buffer already exists for it.  If the file was deleted after its
+contents were read into the associated buffer, a note to that effect is
+printed out in the minibuffer window.
+
+@metax[Install Command]
+now searches other packages for a definition of the command specified,
+in case it fails to find a definition in the current package.
+
+@metax[Copy File] and
+@metax[Rename File],
+when given wildcarded pathnames, now print out the
+intended source and destination pathnames during the confirmation
+request.
+
+@ctrl[S] (Incremental Search) and
+@ctrl[R] (Reverse Incremental Search)
+accept a new sub-command keystroke.
+During the course of a search, both functions now interpret a @ctrl[W]
+as a command to append the word currently at point to the end of the
+target string.
+
+@metax[Find System Files] and
+@metax[Select System as Tags Table]
+have been fixed to find files in the order in which they are
+defined by DEFSYSTEM.
+Component subsystems and their files are also
+found in the proper order.
+
+@ctrlx[d] and @cctrlx[d],
+with a numeric argument of 1, correctly list only those files in the
+default directory with the same first name as the current file.
+
+@subsection New ZMacs Commands
+
+@metax[Evaluate And Print Into Buffer]
+reads the s-expression
+beginning at point, replacing it with whatever is printed to
+@l[*STANDARD-OUTPUT*] over the course of its evaluation.
+
+@metax[Create One Buffer To Go]
+creates a new, empty buffer.
+
+@metax[Common Lisp Mode]
+sets the @l(:readtable) attribute to @l("CL") (see below).
+
+@subsection New Common LISP Mode for ZMacs
+
+When a buffer's attributes specify Common LISP syntax, incompatible global symbols
+receive Common Lisp definitions.
+It is important to set the readtable attribute properly for CommonLISP code
+to work correctly.
+
+To support this better,
+There is now a Common Lisp Mode command for ZMacs, invoked with @metax[Common Lisp Mode].
+The command puts the buffer into LISP Mode and sets its @l(:SYNTAX) and @l(:READTABLE) attributes to @l("CL").
+
+The @l(:READTABLE) and @l(:SYNTAX) attributes of a file are
+set to "CommonLISP" before the file's contents are read in.
+It is recommended, however, that the user always execute
+the @metax[Update Attribute List] command after reading in any Common LISP files written
+in non-Lambda environments.
+ZMacs understands both
+"CommonLisp" and "Common-Lisp" as spellings for the Common LISP attribute.
+
+@subsection Changes to DIRED
+
+When marking multiple files for deletion upon exiting DIRED, only those
+that have been successfully deleted are marked with a "d" or removed
+from the display (when expunging has been selected).
+
+The DIRED commands for copying (`C'), renaming (`R'), and source
+comparing (`=') files now respect the full default filenames they
+display.
+
+DIRED's ``Next Hogs'' command  (`N') which seeks out files with excessive numbers of
+versions has been improved:
+
+@itemize @bullet
+
+@item Directories are no longer considered to be hogs;
+
+@item The first file group in a DIRED listing is no longer exempt from the
+search for hogs;
+
+@item Typing `N' on any blank line in a DIRED listing no longer
+generates an error.
+@end(itemize)
+
+@subsection Improved Tags Searching Capabilities
+
+Users may now perform parallel tags searches through different tag
+tables.  The @metax[Select Tag Table] command records the status of the
+current Tags Search before beginning a new one.  To resume any previous
+search, type @metax[Select Tag Table], and specify the tag table
+associated with the desired searching context, by name.  Subsequent
+@ctrl[.] keystrokes will continue that tags search, using the string
+which was being sought when the search was suspended.
+
+Alternatively, the user may wish to undertake a new Tags Search
+operation, for a new string altogether, beginning at the point where a
+previous tags search was suspended.  To do this, simply supply a
+@ctrl[u] argument to @metax[Tags Search]; the current tag table will be
+used, and subsequent @ctrl[.]'s will search for the newly-specified string.
+The keystroke @cm[Space] attempts to return the user to the
+point at which the change of search context took place, without resuming
+either search operation.
+When selecting and defining a new tag table,
+the previously active search string is the default search string for the new tag table.
+
+When defining a new tag table with @metax[Select Some Buffers As Tag
+Table] command, the user now has the option of typing @endkey@  at any
+time during the query sequence.  This finishes off
+the current tag table without including the current buffer (or any
+further buffers).
+
+Mouse-sensitive items may now be used to provide target strings to
+@metax[Tags Search] invocations.  A left mouse-click chooses the
+highlighted symbol as the one on which to perform a tags search, and a
+right mouse-click inserts the highlighted symbol into the minibuffer for
+confirmation or editing.
+
+In addition, Select Tag Table now
+supports the standard @cs[Y]  mechanism,  placing the default tag table name
+(displayed in the ensuing prompt) into the minibuffer for confirmation
+or editing.
+
+All Tag Tables must now have unique names.  The commands @metax[Select
+Some Buffers As Tag Table] and @metax[Select All Buffers As Tag Table]
+prompt the user for a name for the newly-created tag table after all
+appropriate buffers have been located.
+
+A new command, @metax[List Tag Buffers], displays all buffers read in
+for a specified tag table.  The buffer names in this display are all
+mouse sensitive, much like the buffers listed in
+a @cctrlx[b] (List Buffers) display.  List Tag Buffers also indicates
+which buffer contains the most recently found occurrence of the current
+tags search string, as well as the string itself.
+
+Finally, the @metax[List Tag Tables] display has been made more readable; in
+addition, the display indicates which of the known tag tables is
+currently selected.  A new command, @metax[Current Tag Table], prints
+out the name of the current tag table in the minibuffer. If no
+tag tables have been defined, the string "Done." appears in the
+minibuffer only; a typeout window is not used unless one or more tag
+tables have been defined.
+
+@subsection Set Package
+
+Various problems with the behaviour of @metax[Set Package] have been resolved.
+
+The method of finding a default package has been improved.
+The default is taken from either
+@enumerate
+@item ZMac's current "default package",
+which is set (for example) by a buffer's attribute list; or
+@item the current setting of *PACKAGE*; or
+@item the USER package as a last resort.
+@end(enumerate)
+
+Now, if the user presses @return@  without entering a package, ZMacs will use the displayed default.
+Pressing @cs[Y] brings the default package into the minibuffer.
+
+To specify a package that doesn't already exist, exit the
+first prompt with @ctrl[@return], or press @return@  twice.
+Then confirm by typing ``YES''.
+
+@subsection Miscellaneous Improvements
+
+Buffer sections containing DEFSTRUCTs in a buffer are now correctly
+parsed by all Zwei commands which manipulate sections of code (List
+Sections, List Changed Sections, etc.)
+
+The command Set Pop Mark (@ctrl[@spacekey]) now works as advertised with numeric arguments.
+
+The function @l(ZWEI:DOCUMENT-KEY) now displays its output on *STANDARD-OUTPUT*
+regardless of the type of stream.
+
+@cs[Y] now generates the warning ``There is no default in this context''
+when there is no default for the current command.
+

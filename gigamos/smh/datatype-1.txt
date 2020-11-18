@@ -1,0 +1,330 @@
+
+
+
+           Considerations of Datatype Support in the Phoenix Hardware
+
+
+                           [smh, wkf, jod -- 4 Oct 88]
+
+
+                               = = = = = = = = = =
+
+These are sketches for alternative datatype checking and dispatching schemes for
+the Phoenix.  The purpose is to sketch what compiled and runtime support code
+would look like so we can focus on the hardware requirements of alternative
+schemes and on their various speed/space/cache tradeoffs.  The items here are
+not all internally consistent, not all completely worked out, and certainly not
+all compatible.
+
+
+                          = = = = = Wish List = = = = =
+
+First, a wish list, which is an extraction of features used by various of the
+datatyping schema below.  This list really doesn't belong here because none of
+the wish items are useful and/or essential to all of the schema.  However, it is
+nice to have these hardware features collected in one place.
+
+(1) The call hardware return destination should support an open reg.  This would
+allow some slight code-generation efficiency in some cases.  It probably isn't
+ever essential, however, if it would impose unreasonable hardware cost.
+
+(2) Some sort of a computed dispatch on datatype.  Dispatch on datatype is done
+all over the place in the runtime system, and it would be really neat to have
+some instructions that magically did the right thing.  There are several forms
+it could reasonably take, perhaps depending on other choices that are made.
+[These should be spelled out here.]
+
+(3) Reinstantiate tail calling using the frame-dirty bit.
+
+(4) Additional functional sources.  More integers?  Anything else?
+
+(5) A datatype-skip check which skips if left and right datatype are the same,
+regardless what they are.
+
+                               = = = = = = = = = =
+
+Scheme: Datatype Comparison as an Alternative to Datatype Traps
+
+This scheme flushes the 3-bit instruction datatype trap code (along with the two
+bits of left and right tagness) and requires seven bits in the instruction.
+
+The right source would always be checked against a 6-bit literal datatype,
+except for one "reserved" datatype code (either #x00 or #x3f ??) which would
+imply no datatype checking.  The seventh bit would control whether the datatype
+check should also apply to the left source.  Thus, there would be three
+possibilities:
+
+   (1) No datatype check.
+   (2) Check right source equal to the given datatype.
+   (3) Check right and left wources both equal to the given datatype.
+
+
+Let us define the comparison to be either "successful" or "unsuccessful."
+Furthermore, "unsuccessful" in the fixnum case is defined to include overflow,
+just as in the datatype trap scheme.  [We still need to work out whether we
+actually need both fixnum overflow and no-overflow cases.]
+
+If an instruction's datatype comparison is successful, the PC skips the next
+instruction.  This would seem to require some sort "NEXT-PC+2" path in the
+hardware.  A serious question is whether the pipeline architecture permits the
+choice between NEXT-PC-+1 and NEXT-PC-+2 to be made late enough?
+
+The pseudo-Lisp fragment (SETQ A3 (+ A5 A9)) would generate the following
+two-instruction sequence in pseudo assembly code:
+
+                        (ADD32 (A3 <- A5 A9) DT-FIXNUM DT-BOTH)
+                        (OPEN-CALL 2OP+-A5 (O0 <- A9))
+
+Remember, if the 32-bit fixnum add succeeds -- i.e., the datatypes are correct
+and no overflow occurs -- the second instruction is skipped because the next-pc
+source is PC+2.
+
+2OP+-A5 is one of a family of (approximately) 17 entry points to 2OP+.  Note
+that the single OPEN-CALL instruction can move either the left or right source
+into a known place, i.e., O0, but without executing another instruction it is
+impossible also to collect the other arbitrary argument.  Therefore, we adopt
+the convention that the left source to a generic call will always be moved to
+O0, and the right source will be encoded by the particular entry point to the
+generic routine.  There are at least 17 possible right sources: the sixteen
+active-frame registers, plus the MD.  [There may be others.  In particular, the
+sixteen open-frame registers, or some subset of them, might be useful.  In any
+case, each entry point only costs one instruction word.]
+
+        ;; These depend on the call-hardware artifact that after the call the
+        ;; called routine sees the caller's active frame as its open frame.
+        2OP+-MD         (JUMP 2OP+- (A0 <- MD))
+        2OP+-A15        (JUMP 2OP+- (A0 <- O15))
+        2OP+-A14        (JUMP 2OP+- (A0 <- O14))
+        2OP+-A13        (JUMP 2OP+- (A0 <- O13))
+         ...                     ...
+        2OP+-A6         (JUMP 2OP+- (A0 <- O6))
+        2OP+-A5         (JUMP 2OP+- (A0 <- O5))
+         ...                     ...
+        2OP+-A0         (A0 <- O0)
+
+        2OP+
+
+[Question: Do unconditional jumps impose an extra cycle wait?]
+
+The actual body of 2OP+- could be done in several ways.  The goal is to make the
+important cases that are supported by hardware (i.e. floats, especially
+immediate floats) run really fast.  This first possibility for doing so depends
+in a curious way on a hardware that might or might not be implementable.  As
+before, successful datatype comparisons cause a PC skip:
+
+        ;; At this point the two arguments are in A0 and A1.  They may be
+        ;; any data types whatever, even two fixnums if called for overflow.
+
+        2OP+            (NOP <- A0 A1 DT-BOTH DT-SINGLE-FLOAT)
+                        (JUMP 2OP+-NOT-1FLOAT (NOP <- A0 A1) DT-DOUBLE-FLOAT)
+                        ... do single float addition ...
+                        (RETURN <- whatever)
+        2OP+-NOT-1FLOAT (JUMP 2OP+-NOT-2FLOAT (NOP <- A0 A1) DT-DOUBLE-FLOAT)
+                        ... do double float addition ...
+                        (RETURN <- whatever)
+        2OP+-NOT-2FLOAT
+                        [etc., but how to do mixed cases??]
+                        [This sketch of the branch tree needs to be completed so
+                         we can tell how long it takes for the bad cases.]
+
+An alternative to using a complicated brach tree to handle all the mixed cases
+owuld be to implement a hardware type dispatch.  This potentially trades off
+execution cycles [how many] for infrequently-executed instructions.  Postulate a
+next PC source called NEXT-PC+1+RGHT-DT, which does just what it says.  Then the
+code for 2OP+ would be clearer and faster:
+
+        2OP+            (NOP <- A0 NEXT-PC+1+RGHT-DT)
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 0 = nil
+                        (JUMP 2OP+FIXNUM)       ; 1 = fixnum
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 2 = cons
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 3 = symbol
+                        (JUMP 2OP+BIGNUM)       ; 4 = bignum
+                        (JUMP 2OP+SHORTF)       ; 5 = short-float
+                        (JUMP 2OP+SINGLEF)      ; 6 = single-float
+                        (JUMP 2OP+DOUBLEF)      ; 7 = double-float
+                         ...
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 27 = select-method
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 28 = unused dt ???
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 29 = unused dt ???
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 30 = unused dt ???
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 31 = unused dt ???
+
+        2OP+FIXNUM      (NOP <- A1 NEXT-PC+1+RGHT-DT)
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 0 = nil
+                        (JUMP 2OP+FIXNUM+FIXNUM)        ; 1 = fixnum
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 2 = cons
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 3 = symbol
+                        (JUMP 2OP+FIXNUM+BIGNUM)        ; 4 = bignum
+                        (JUMP 2OP+FIXNUM+SHORTF)        ; 5 = short-float
+                        (JUMP 2OP+FIXNUM+SINGLEF)       ; 6 = single-float
+                        (JUMP 2OP+FIXNUM+DOUBLEF)       ; 7 = double-float
+                         ...
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 27 = select-method
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 28 = unused dt ???
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 29 = unused dt ???
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 30 = unused dt ???
+                        (JUMP 2OP-ILLEGAL-ARG)  ; 31 = unused dt ???
+
+        2OP+BIGNUM      ...                     ;ditto
+
+
+It would be nice if the first instruction of each of these inner dispatches
+could be merged into the above 32 JUMP instructions.  This would require the
+next PC computation to add the type code to the immediate JUMP address rather
+than the PC+1.  The code would then look like this:
+
+        2OP+    (NOP <- A0 NEXT-PC+1+RGHT-DT)
+                (JUMP 2OP-ILLEGAL-ARG (NOP <- A1) NEXT-PC-JMP+RGHT-DT)  ; 0
+                (JUMP 2OP+FIXNUM (NOP <- A1) NEXT-PC-JMP+RGHT-DT)       ; 1
+                (JUMP 2OP-ILLEGAL-ARG)                                  ; 2
+                (JUMP 2OP-ILLEGAL-ARG)                                  ; 3
+                (JUMP 2OP+BIGNUM (NOP <- A1) NEXT-PC-JMP+RGHT-DT)       ; 4
+                (JUMP 2OP+SHORTF (NOP <- A1) NEXT-PC-JMP+RGHT-DT)       ; 5
+                (JUMP 2OP+SINGLEF (NOP <- A1) NEXT-PC-JMP+RGHT-DT)      ; 6
+                (JUMP 2OP+DOUBLEF (NOP <- A1) NEXT-PC-JMP+RGHT-DT)      ; 7
+                 ...
+                (JUMP 2OP-ILLEGAL-ARG)                                  ; 27
+                (JUMP 2OP-ILLEGAL-ARG)                                  ; 28
+                (JUMP 2OP-ILLEGAL-ARG)                                  ; 29
+                (JUMP 2OP-ILLEGAL-ARG)                                  ; 30
+                (JUMP 2OP-ILLEGAL-ARG)                                  ; 31
+
+        2OP+FIXNUM      (JUMP 2OP-ILLEGAL-ARG)          ; 0 = nil
+                        (JUMP 2OP+FIXNUM+FIXNUM)        ; 1 = fixnum
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 2 = cons
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 3 = symbol
+                        (JUMP 2OP+FIXNUM+BIGNUM)        ; 4 = bignum
+                        (JUMP 2OP+FIXNUM+SHORTF)        ; 5 = short-float
+                        (JUMP 2OP+FIXNUM+SINGLEF)       ; 6 = single-float
+                        (JUMP 2OP+FIXNUM+DOUBLEF)       ; 7 = double-float
+                         ...
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 27 = select-method
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 28 = unused dt ???
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 29 = unused dt ???
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 30 = unused dt ???
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 31 = unused dt ???
+
+For cycle counting purposes, here is a sketch for one of the interesting (i.e.
+fast) cases, that of adding two SHORT-FLOATs:
+
+        2OP+SHORTF-SHORTF
+                (FLOAT
+
+[Note: The ability to skip on DT comparison provides very efficient implementation
+of primitive datatypes, e.g. CONSP.]
+
+[Note: It is unclear whether the dt dispatch should be defined only over the 32
+5-bit user-visible data types, or over the full 6-bit 64 datatypes.  The cost is
+making all these tables everywhere in the system twice as big.  This would only
+lower page (not cache) efficiency.  However, this feature could reasonably be
+used by the compiler to compile TYPECASE efficiently, in which case the user
+could code lots of them, and therefore it would be nicer if they were small.]
+
+[Still need some cycle counts for these variations.]
+
+ ... Lots more to fill in here ...
+
+                               = = = = = = = = = =
+
+Scheme: Code Modification to Cache Datatype.
+
+This scheme exploits certain statistical properties of the occurrences of
+datatypes seen by a particular instance of a generic operation in Lisp code.
+For instance, consider a particular instance of the binary arithmetic addition
+operator compiled inside a certain Lisp function.  Most often the datatypes of
+the two arguments on a particular invocation will be the same as for the last
+invocation.  This statistical correlation is more likely to hold in code that is
+executed with high relative frequency (e.g. code inside a loop) than in code
+executed relatively infreqently.  Fortunately, it is mostly code executed with
+high freqency that dominates run time and therefore matters most.
+
+The basic idea is to make compiled code for generic operations self-modifying
+such that it is always optimized for the case that the argument datatypes are
+the same as for the previous invocation.  There are a number of different ways
+this could be worked out making various demands on the hardware, and having
+various cost/benefit effects on speed and code density.  The variations are
+explored below.
+
+[The statistical behavior of argument datatypes is part of lisp folklore, and
+additionally can be inferred from hand analysis of, for example, benchmark code.
+However, we have never undertaken any systematic gathering of statistics.
+Without doing so we cannot develop much less prove hard measurements for the
+anticipated benefit of this scheme.  While processors and compilers should not
+be designed entirely intuitively, it may be the best we can do in the short
+term.]
+
+For purposes of comparison, the current Falcon scheme would be to compile at
+least addition, subtraction, and the simple bitwise booleans as inline fixnum
+operations.  If the argument types are not both fixnum, or if the result
+overflows a fixnum, a datatype trap is always taken.  This is very fast for the
+fixnum case since it requires only a single cycle, and achieves the highest
+possible code density, i.e. only a single instruction word per operaton.
+However, requiring a trap for all other datatype cases unconditionally imposes a
+severe overhead.  In particular, entry to and exit from the trap handler costs
+at *least* [handwaving!!!] 20 cycles, even if trap-handler dispatching can be
+done with great efficiency.  Remember that the trap handler may have to do
+significant work to extract the data arguments.  This immediately swamps the
+time to do hardware-supported operations such as short- and single- float
+arighmetic, which a floating coprocessor can do in perhaps 4 [??] cycles.  Since
+the coprocessor speed is seen to be irrelevant, it is clear that trap handling
+is a bottleneck limiting machine speed for non-fixnum arithmetic.
+
+=== The following not yet comprehensible ...
+
+The first variation is simplest.  All generic operations would be encoded as a
+single function call, with the identity of the called routine changing.  The
+called routine would be responsible for checking that the data types are indeed
+valid, and if incorrect, calling some generic routine which changes the address
+in the original call instruction in addition to doing the operation.  Here's a
+sketch, again for (SETQ A3 (+ A5 A9)), assuming the previous execution had been
+passed two short-float data.
+
+                (OPEN O0 <- A5)
+                (CALL 2OP+-SHORT-FLOAT A3 (O1 <- A9))
+
+The called code would look something like this:
+
+        2OP+-SHORT-FLOAT
+                        (NOP <- A0 A1 DT-BOTH DT-SINGLE-FLOAT)
+                        (JUMP 2OP+-TYPE-FAILURE)
+                         ... do short float addition ...
+                        (RETURN <- whatever)
+
+        [Need cycle count for the success case.]
+
+        ;; This is the common code used by all the 2OP+ handlers when the
+        ;; arg datatypes are not the the ones expected, i.e., the same as
+        ;; appeared in the previous call.
+        2OP+-TYPE-FAILURE
+                (NOP <- A0 NEXT-PC+1+RGHT-DT)
+                (JUMP 2OP-ILLEGAL-ARG)                                  ; 0
+                (JUMP 2OP+FIXNUM (NOP <- A1) NEXT-PC-JMP+RGHT-DT)       ; 1
+                (JUMP 2OP-ILLEGAL-ARG)                                  ; 2
+                (JUMP 2OP-ILLEGAL-ARG)                                  ; 3
+                (JUMP 2OP+BIGNUM (NOP <- A1) NEXT-PC-JMP+RGHT-DT)       ; 4
+                (JUMP 2OP+SHORTF (NOP <- A1) NEXT-PC-JMP+RGHT-DT)       ; 5
+                (JUMP 2OP+SINGLEF (NOP <- A1) NEXT-PC-JMP+RGHT-DT)      ; 6
+                (JUMP 2OP+DOUBLEF (NOP <- A1) NEXT-PC-JMP+RGHT-DT)      ; 7
+                 ...
+
+        2OP+SHORTF      (JUMP 2OP-ILLEGAL-ARG)          ; 0 = nil
+                        (JUMP 2OP+FIXNUM+FIXNUM)        ; 1 = fixnum
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 2 = cons
+                        (JUMP 2OP-ILLEGAL-ARG)          ; 3 = symbol
+                        (JUMP 2OP+FIXNUM+BIGNUM)        ; 4 = bignum
+                        (JUMP 2OP+FIXNUM+SHORTF)        ; 5 = short-float
+                        (JUMP 2OP+FIXNUM+SINGLEF)       ; 6 = single-float
+                        (JUMP 2OP+FIXNUM+DOUBLEF)       ; 7 = double-float
+                         ...
+
+
+
+#|
+
+Combining this with the skip-if-dt-ok idea from above, it is possible to remove
+an instruction: [or maybe it isn't]
+
+                (OPEN O0 <- A5)
+                (CALL 2OP+-SHORT-FLOAT NEXT-PC+1+RGHT-DT  [HUH??]
+
+|#

@@ -1,0 +1,14 @@
+;;-*-Mode:LISP;Package:ZWEI;Base:10;ReadTable:CL-*-
+
+(login-setq *zmail-startup-file-name* "ANGEL: /lmi/dgs/mail.bb")
+
+(login-setq *from-user-id* "dgs")
+
+(login-setq *from-host* (si:parse-host "GSI-CAM"))
+
+(login-setq fs:user-personal-name-first-name-first "Doug Schumacker")
+
+(login-setq zwei:*zmail-usual-mail-file-directory* "ANGEL: /lmi/dgs/")
+
+(login-setq zwei:*zmail-homedir-real-new-mail-filename* "ANGEL: /usr/spool/mail/dgs")
+

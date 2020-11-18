@@ -1,0 +1,69 @@
+@c K Machine Technical Manual
+@c
+@c Created 31-Mar-88, James Rauen
+
+@c Questions for Kent...
+@c
+@c Loading of previous O,A,R registers in call-hardware
+@c unimplemented =?= undefined =?= spare in functional-io
+@c x in opcode?
+@c ALU shift field in call-dispach instruction
+@c why is return-pc-return-dest a functional destination?
+@c why yyyyyX functional destination for VMA and MD?
+
+@parindent 0in
+@parskip .25in
+@c library(lisp)
+@library(patbo)
+@library(byf1)
+@begin document
+
+@include title-page
+@include copyright-page
+@include introduction
+@include editors-note
+@include notation-conventions
+@include architecture-overview
+
+@c ----------------------------------------
+@c Processor Board Hardware
+@c ----------------------------------------
+@majorpart Processor Board Hardware
+@include timing
+@include instruction-set
+@include program-counter
+@include register-memory
+@include call-hardware
+@include instruction-cache
+@include alus
+@include datatype-ram
+@include alu-opcodes
+
+@c ----------------------------------------
+@c Memory Board Hardware
+@c ----------------------------------------
+@majorpart Memory Board Hardware
+@include memory-board
+@include memory-access
+@include traps
+@include transporter-ram
+@include gc-ram
+@include spy
+
+@c ----------------------------------------
+@c Lisp Software
+@c ----------------------------------------
+@majorpart Lisp Software
+@include storage-conventions
+
+@c ----------------------------------------
+@c Appendices
+@c ----------------------------------------
+@include register-list
+@include functional-io
+
+@c include still-to-write
+
+@summarycontents
+@contents
+@end document

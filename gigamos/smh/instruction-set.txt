@@ -1,0 +1,372 @@
+
+
+
+;;; ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;;; ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;;;
+;;;                          64 bit instruction-format
+;;;
+;;;   This file contains information on the new and improved
+;;;                     SILK LISP PROCESSOR CHIP.
+;;;
+;;;
+;;;                     ------ PRELIMINARY ------
+;;;
+;;; ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;;; ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+
+                           [From jpl 14oct88]
+
+
+1. Introduction
+
+The machine instruction size remains 64 bits. Machine instructions
+are stored in memory with the word containing the low 32 bits occuring at
+an even address, followed by the word containing the high 32 bits.
+Instructions can be tagged.
+
+A single instruction can perform several different actions simultaneously.
+For example, an instruction might do an alu operation and a conditional branch.
+
+2. Bit fields
+
+The meaning of the bit fields are explained in this section. Note that certain
+instruction do not use all the bit fields.
+
+ 6 6   6 5               4 4       4 3       3 3     2 2       1 1             0
+ 3 2   0 9               9 8       0 9       1 0     4 3       5 4             0
+--------------------------------------------------------------------------------
+|T| FOR | Datatype Check  | DEST    | right   | ALUOP | Left    | Branch       |
+|R| MAT |                 |         | source  |       | Source  | Address      |
+|A|     |                 |         |         |       |         |              |
+|P|     |                 |         |         |       |         |              |
+| | 000 |                 |         |         |       |         |              |
+--------------------------------------------------------------------------------
+
+ 6 6   6 5        5 5    4 4       4 3       3 3     2 2       1 1             0
+ 3 2   0 9        3 2    9 8       0 9       1 0     4 3       5 4             0
+--------------------------------------------------------------------------------
+|T| FOR | OPCODE   | COND | DEST    | right   | ALUOP | Left    | Branch       |
+|R| MAT |          |      |         | source  |       | Source  | Address      |
+|A|     |          |      |         |         |       |         |              |
+|P|     |          |      |         |         |       |         |              |
+| | 001 |          |      |         |         |       |         |              |
+--------------------------------------------------------------------------------
+
+ 6 6   6 5        5 5    4 4       4 3       3 3     2 2       1 1             0
+ 3 2   0 9        3 2    9 8       0 9       1 0     4 3       5 4             0
+--------------------------------------------------------------------------------
+|T| FOR | OPCODE   | COND | DEST    | right   | ALUOP | Left    | ALUOP        |
+|R| MAT |          |      |         | source  |       | Source  | extended     |
+|A|     |          |      |         |         |       |         |              |
+|P|     |          |      |         |         |       |         |              |
+| | 001 |          | 0000 |         |         |       |         |              |
+--------------------------------------------------------------------------------
+
+ 6 6   6 5        5 5    4 4       4 3       3 3     2 2       1 1             0
+ 3 2   0 9        3 2    9 8       0 9       1 0     4 3       5 4             0
+--------------------------------------------------------------------------------
+|T| FOR | OPCODE   | COND | DEST    | right   | ALUOP | Left    | left source  |
+|R| MAT |          |      |         | source  |       | Source  | extended     |
+|A|     |          |      |         |         |       |         |              |
+|P|     |          |      |         |         |       |         |              |
+| | 001 |          | 0000 |         |         |       |111xxxxxx|              |
+--------------------------------------------------------------------------------
+
+ 6 6   6 5        5 5    4 4       4 3       3 3     2 2       1 1             0
+ 3 2   0 9        3 2    9 8       0 9       1 0     4 3       5 4             0
+--------------------------------------------------------------------------------
+|T| FOR | OPCODE   | COND | DEST    | right   | JUMP Address                   |
+|R| MAT |          |      |         | source  |                                |
+|A|     |          |      |         |         |                                |
+|P|     |          |      |         |         |                                |
+| | 010 |          |      |         |         |                                |
+--------------------------------------------------------------------------------
+
+ 6 6   6 5        5 5    4 4       4 3       3 3     2 2       1 1             0
+ 3 2   0 9        3 2    9 8       0 9       1 0     4 3       5 4             0
+--------------------------------------------------------------------------------
+|T| FOR | OPCODE   | COND | DEST    | right immediate data                     |
+|R| MAT |          |      |         |                                          |
+|A|     |          |      |         |                                          |
+|P|     |          |      |         |                                          |
+| | 011 |          | 0000 |         |                                          |
+--------------------------------------------------------------------------------
+
+ 6 6   6 5   5 5         4 4       4 3       3 3     2 2       1 1             0
+ 3 2   0 9   8 7         9 8       0 9       1 0     4 3       5 4             0
+--------------------------------------------------------------------------------
+|T| FOR | OP  |   RDEST   | DEST    | right   | ALUOP | Left    | CALLZ        |
+|R| MAT |     |           |         | source  |       | Source  | Address      |
+|A|     |     |           |         |         |       |         |              |
+|P|     |     |           |         |         |       |         |              |
+| | 101 |     |           |         |         |       |         |              |
+--------------------------------------------------------------------------------
+
+ 6 6   6 5   5 5         4 4       4 3       3 3     2 2       1 1             0
+ 3 2   0 9   8 7         9 8       0 9       1 0     4 3       5 4             0
+--------------------------------------------------------------------------------
+|T| FOR | OP  |   RDEST   | DEST    | right   | CALL address                   |
+|R| MAT |     |           |         | source  |                                |
+|A|     |     |           |         |         |                                |
+|P|     |     |           |         |         |                                |
+| | 110 |     |           |         |         |                                |
+--------------------------------------------------------------------------------
+
+
+
+2.1 Instruction Trap bit (bit 63)
+
+If this bit is set, it will cause a trap. This feature can be used to implement
+fast dynamic linking. It can also be used by the garbage collector to identify
+code in oldspace.
+
+2.2 Format Field (bits 62 to 60)
+
+FORMAT          Instruction type
+
+000             ALU-Datatype
+001             ALU-branch
+010             jump
+011             LOAD-immediate
+
+100             reserved
+101             ALU-CALLZ
+110             CALL
+111             Reserved
+
+2.3 DATATYPE field (bits 59 to 49)
+
+This field determines the datatype check to be performed on the left and right
+sources of the ALU. The format field must be 000.  When the datatype check is
+correct, normal execution proceeds.  When the datatype check fails,
+        - the WRITE back phase of the instruction is cancelled
+        - three clock ticks are wasted
+        - execution is resumed at PC+IR[14:0]
+
+Bits 59 to 54 specify a 6 bit datatype.
+        - A datatype of 111111 means check overflow.
+        - A datatype of ?????? means check for LEFT=RIGHT only.
+
+Bit 53 specifies if the LEFT source is to be checked.
+        0 does not check the LEFT input
+        1 checks the LEFT input.
+
+Bits 52 to 49 qualify the datatype check.       ; to be determined
+
+        Possibly: disable 4 LSB of datatype check.
+
+2.4 OPCODE field (bits 59 to 49)
+
+This field determines the current instruction opcode if format is not 000.
+
+If the format is ALU-CALLZ or CALL (i.e. 101 or 110)
+then the opcode field is interpreted as follows:
+
+BIT(s)          VALUE           MEANING
+
+59              1               OPEN (if multiple frame are enabled)
+58              1               ANNUL next instruction
+57-49           ddddddddd       Return restination of called function
+                                See the destination field for interpretation.
+
+If the format is BRANCH, LOAD or LOAD (i.e. 001, 010, or 011)
+then the opcode field is interpreted as follows:
+
+BIT(s)          VALUE           MEANING
+
+59              1               OPEN (if multiple frame are enabled)
+58-57           01              ANNUL if condition is met
+                10              annul if condition is not met
+                11              annul next instruction
+56              1               RETURN: PC = RPC
+55              1               close frame
+54              1               Save register frame (16 registers)
+53              1               Restore register frame (16 registers)
+52-49           cccc            Branch/jump if condition (see table below) true
+                                   BRANCH: PC = PC + sign-extend( IR[14:0] )
+                                   JUMP:   PC = IR[31:0]
+
+
+CCCC            TEST                    MNEMONIC
+
+0000            0                       never
+0001            1                       always
+0010            Z                       equal
+0011            ~Z                      not equal
+0100            Z or (N xor V)          less or equal
+0101            Z nor (N xor V)         greater
+0110            (N xor V)               less
+0111            (N xnor V)              greater or equal
+1000            ~C or Z                 less or equal unsigned
+1001            ~C nor Z                        greater unsigned
+1010            C                       Carry set, greater or equal unsigned
+1011            ~C                      Carry clear, less unsigned
+1100            N                       Negative
+1101            ~N                      Positive
+1110            V                       Overflow set
+1111            ~V                      Overflow clear
+
+
+NOTE: The CARRY bit is the carry of an addition or
+      the complement of the borrow for subtraction.
+
+        i.e.    5 + FFFFFFFF    --> C=1
+                5 + 00000000    --> C=0
+
+                5 - 3           --> C=1 , no Borrow
+                5 - 6           --> C=0 , Borrow
+
+
+2.5 Destination Field (bits 48 to 40)
+
+This field determines where the output of the ALU is stored.
+The bits can be interpeted in two modes: frame or direct.
+
+The meaning of this field in NORMAL mode:
+
+MODE            VALUE                   MEANING
+
+frame           0 0 xxx  RRRR           Reg RRRR in the current active frame
+
+frame           0 1 xxx  RRRR           Reg RRRR in the current open frame
+
+direct          0 DDDDDDDD              Reg DDDDDDDD in the internal frame stack
+
+any             10 GGGGGGG              Global Register GGGGGGG
+
+any             11 FFFFFFF              Functional destination FFFFFFF.
+
+2.6 Right source (bits 39 to 31)
+
+This field determines where the input of the right side of the ALU comes from.
+These bits can be interpeted in two modes: NORMAL (frames) or DIRECT.
+
+The meaning of this field in NORMAL mode:
+
+MODE            VALUE                   MEANING
+
+normal          0 0 xxx RRRR            Reg RRRR in the current active frame
+normal          0 1 xxx RRRR            Reg RRRR in the current open frame
+
+direct          0 DDDDDDDD              Reg DDDDDDDD in the internal frame stack
+
+any             10 GGGGGGG              Global Register GGGGGGG
+
+any             11 FFFFFFF              Functional Source FFFFFFF.
+
+2.7 ALU opcode (bits 30 to 24)
+
+This field determines the ALU instruction in use.
+
+BIT 30          MEANING
+
+0               alu[39:32] = left[39:32]
+1               alu[39:32] = right[39:32]
+
+BIT 29          MEANING
+
+0               Don't change condition codes
+1               Modify the condition codes
+
+
+BIT 28          MEANING
+
+0               ARITHMETIC function
+1               LOGICAL function
+
+WHEN LOGICAL FUNCTION
+
+BITS[27:24] specify the logical function of two variables performed.
+
+
+WHEN Arithmetic function
+
+BITS[27:24]     MEANING
+
+0000            ADD
+0001            ADDC
+0010            SUB
+0011            SUBC
+0100            SUBR
+0101            SUBRC
+0110            ?????
+0111            ?????
+
+1000            SHIFT 1 bit right, 0 fill               ; subject to change
+1001            SHIFT 1 bit right, 1 fill               ; subject to change
+1010            SHIFT 1 bit right, l fill               ; subject to change
+1011            SHIFT 1 bit right, arithmetic fill      ; subject to change
+1100            SHIFT 1 bit left, 0 fill                ; subject to change
+1101            SHIFT 1 bit left, 1 fill                ; subject to change
+1110            SHIFT 1 bit left, l fill                ; subject to change
+1111            ?????
+
+2.6 Left source (bits 23 to 15)
+
+This field determines where the input of the right side of the ALU comes from.
+The bits can be interpreted in two modes: NORMAL (i.e. frames) or direct.
+
+The meaning of this field in NORMAL mode:
+
+MODE            VALUE                   MEANING
+
+normal          0 0 xxx RRRR            Reg RRRR in the current active frame
+normal          0 1 xxx RRRR            Reg RRRR in the current open frame
+
+direct          0 DDDDDDDD              Reg DDDDDDDD in the internal frame stack
+
+x               10 GGGGGGG              Global Register GGGGGGG
+
+x               11 1xxxxxx              21 bit sign extended constant IR[20:0]
+x               11 0xxxxxx              6 bit sign extended constant IR[20:15]
+
+2.7 BRANCH address (bits 14 to 0)
+
+When doing a branch instruction
+        this field specifies the relative displacement of the branch.
+
+2.8 CALLZ Address (bits 14 to 0)
+
+When doing a CALLZ instruction this field specifies the LOW bits of the next PC.
+
+2.9 JUMP address field (bits 31 to 0)
+
+When doing a jump instruction, the JUMP address is specified as IR[30:0].
+
+2.10 CALL address field (bits 31 to 0)
+
+When doing a  call instruction, the CALL address is specified as IR[30:0].
+
+2.11 Immediate data
+
+When doing a LOAD instruction, the destination is loaded with IR[39:0].
+
+
+2.12 ALU opcode extension (bits 14 to 0)
+
+When OPCODE = 000x and COND = 00000 and LEFT-SOURCE is not 111xxxxxx,
+this field further specifies the ALU opcode.
+
+For Logical Functions:
+
+BITS            Meaning
+
+14:10           Amount to barrel upshift (LEFT)
+
+ 9:5            Position of last bit of the pass-mask
+
+ 4:0            Position of the first bit of the pass-mask
+
+NOTE: All bits outside of the pass-mask are masked out,
+      the masked-out bits are taken
+                from the left input if IR[30] = 0
+                from the right input if IR[30] = 1
+
+
+For Arithmetic Functions: to be determined.
+
+Possibly:
+                - datatype shifts
+                - arithmetic masking

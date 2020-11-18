@@ -1,0 +1,371 @@
+
+Evaluation took 4.63 seconds (1.30 disk wait).
+(D74)                                                LAM6: GJC; SIN.OUT#>
+
+
+(C76) INTEGRATE(X,X);
+
+Evaluation took 0.02 seconds (0.00 disk wait).
+                                                               2
+                                                              X
+(D76)                                                         --
+                                                              2
+
+(C77) INTEGRATE(SINH(X)*COSH(X),X);
+
+Evaluation took 0.12 seconds (0.05 disk wait).
+                                                               2
+                                                           COSH (X)
+(D77)                                                      --------
+                                                              2
+
+(C78) INTEGRATE(SIN(X)*COS(X),X);
+
+Evaluation took 0.08 seconds (0.00 disk wait).
+                                                                2
+                                                             COS (X)
+(D78)                                                      - -------
+                                                                2
+
+(C79) INTEGRATE(X*%E^(X^2),X);
+
+Evaluation took 0.12 seconds (0.00 disk wait).
+                                                                2
+                                                               X
+                                                             %E
+(D79)                                                        ----
+                                                              2
+
+(C80) INTEGRATE(X*SQRT(1+X^2),X);
+
+Evaluation took 0.08 seconds (0.00 disk wait).
+                                                            2     3/2
+                                                          (X  + 1)
+(D80)                                                     -----------
+                                                               3
+
+(C81) INTEGRATE(%E^X/(1+%E^X),X);
+
+Evaluation took 0.17 seconds (0.00 disk wait).
+                                                               X
+(D81)                                                    LOG(%E  + 1)
+
+(C82) INTEGRATE(X^(3/2),X);
+
+Evaluation took 0.12 seconds (0.06 disk wait).
+                                                               5/2
+                                                            2 X
+(D82)                                                       ------
+                                                              5
+
+(C83) INTEGRATE(COS(2*X+3),X);
+
+Evaluation took 0.33 seconds (0.00 disk wait).
+                                                         SIN(2 X + 3)
+(D83)                                                    ------------
+                                                              2
+
+(C84) INTEGRATE(2*Y*Z*%E^(2*X),X);
+
+Evaluation took 0.22 seconds (0.00 disk wait).
+                                                             2 X
+(D84)                                                      %E    Y Z
+
+(C85) INTEGRATE(COS(%E^X)^2*SIN(%E^X)*%E^X,X);
+
+Evaluation took 0.48 seconds (0.07 disk wait).
+                                                               3   X
+                                                            COS (%E )
+(D85)                                                     - ---------
+                                                                3
+
+(C86) INTEGRATE(CSC(X),X);
+
+Evaluation took 0.08 seconds (0.00 disk wait).
+(D86)                                               - LOG(CSC(X) + COT(X))
+
+(C87) INTEGRATE(%E^X/(2+3*%E^(2*X)),X);
+
+Evaluation took 1.00 seconds (0.09 disk wait).
+                                                                   X
+                                                               3 %E
+                                                         ATAN(-------)
+                                                              SQRT(6)
+(D87)                                                    -------------
+                                                            SQRT(6)
+
+(C88) INTEGRATE(%E^(2*X)/(A+B*%E^(4*X)),X);
+Is  A B  positive or negative?
+
+Evaluation took 4.33 seconds (0.00 disk wait).
+                                                                  2 X
+                                                              B %E
+                                                        ATAN(---------)
+                                                             SQRT(A B)
+(D88)                                                   ---------------
+                                                          2 SQRT(A B)
+
+(C89) INTEGRATE(%E^(X+1)/(1+%E^X),X);
+
+Evaluation took 0.45 seconds (0.00 disk wait).
+                                                                 X
+(D89)                                                   %E LOG(%E  + 1)
+
+(C90) INTEGRATE(10^X*%E^X,X);
+
+Evaluation took 0.20 seconds (0.00 disk wait).
+                                                               2 X
+                                                             10
+(D90)                                                      ---------
+                                                           2 LOG(10)
+
+(C91) INTEGRATE(X^3*SIN(X^2),X);
+
+Evaluation took 1.92 seconds (0.04 disk wait).
+                                                          2     2      2
+                                                     SIN(X ) - X  COS(X )
+(D91)                                                --------------------
+                                                              2
+
+(C92) INTEGRATE(X^7/(X^12+1),X);
+
+Evaluation took 1.15 seconds (0.00 disk wait).
+                                                                   4
+                                                                2 X  - 1
+                                             8    4        ATAN(--------)        4
+                                        LOG(X  - X  + 1)        SQRT(3)     LOG(X  + 1)
+(D92)                                   ---------------- + -------------- - -----------
+                                               24            4 SQRT(3)          12
+
+(C93) INTEGRATE(COS(SQRT(X)),X);
+
+Evaluation took 2.15 seconds (0.05 disk wait).
+(D93)                                       2 (SIN(SQRT(X)) SQRT(X) + COS(SQRT(X)))
+
+(C94) INTEGRATE(X*SQRT(X+1),X);
+
+Evaluation took 0.42 seconds (0.04 disk wait).
+                                                           5/2            3/2
+                                                  2 (X + 1)      2 (X + 1)
+(D94)                                             ------------ - ------------
+                                                       5              3
+
+(C95) INTEGRATE(1/(X^(1/2)-X^(1/3)),X);
+
+Evaluation took 0.92 seconds (0.07 disk wait).
+                                                          1/3      1/6
+                                           2 SQRT(X) + 3 X    + 6 X           1/6
+(D95)                                   6 (--------------------------- + LOG(X    - 1))
+                                                        6
+
+(C96) INTEGRATE(X^4*(1-X^2)^(-5/2),X);
+
+Evaluation took 1.10 seconds (0.05 disk wait).
+                                                    2
+                                                   X               2                X
+(D96)                             ASIN(X) + X (----------- - -------------) - --------------
+                                                     2 3/2           2 3/2                2
+                                               (1 - X )      3 (1 - X )       3 SQRT(1 - X )
+
+(C97) INTEGRATE(X^(1/2)*(1+X^2)^5/2,X);
+
+Evaluation took 0.70 seconds (0.09 disk wait).
+                            23/2           19/2           15/2           11/2           7/2           3/2
+                     43890 X     + 265650 X     + 672980 X     + 917700 X     + 721050 X    + 336490 X
+(D97)                ------------------------------------------------------------------------------------
+                                                           1009470
+
+(C98) INTEGRATE(SQRT(A^2+B^2-B^2*X^2)/(1-X^2),X);
+Is  A  zero or nonzero?
+
+     4    2  2
+Is  B  + A  B   positive or zero?
+
+Evaluation took 13.80 seconds (0.70 disk wait).
+                                2  2    2    2           2
+         2     2 ABS(A) SQRT(- B  X  + B  + A )       2 A         2
+        A  LOG(-------------------------------- + ------------ + B )
+                         ABS(2 X + 2)             ABS(2 X + 2)
+(D98) - ------------------------------------------------------------
+                                  2 ABS(A)
+
+                                                                                                                     2
+                                                               2  2    2    2           2              2            B  X
+                                        2     2 ABS(A) SQRT(- B  X  + B  + A )       2 A         2    B  ASIN(----------------)
+                                       A  LOG(-------------------------------- + ------------ - B )                 4    2  2
+                                                        ABS(2 X - 2)             ABS(2 X - 2)                 SQRT(B  + A  B )
+                                     + ------------------------------------------------------------ + -------------------------
+                                                                 2 ABS(A)                                      ABS(B)
+
+(C99) INTEGRATE(SIN(X)^2,X);
+
+Evaluation took 0.32 seconds (0.00 disk wait).
+                                                             SIN(2 X)
+                                                         X - --------
+                                                                2
+(D99)                                                    ------------
+                                                              2
+
+(C100) INTEGRATE(1/(1+COS(X)),X);
+
+Evaluation took 0.68 seconds (0.05 disk wait).
+                                                            SIN(X)
+(D100)                                                    ----------
+                                                          COS(X) + 1
+
+(C101) INTEGRATE(SIN(3*X)*COS(7*X),X);
+
+Evaluation took 0.98 seconds (0.06 disk wait).
+                                                     COS(4 X)   COS(10 X)
+(D101)                                               -------- - ---------
+                                                        8          20
+
+(C102) INTEGRATE(SIN(X)^5*COS(X)^8,X);
+
+Evaluation took 0.62 seconds (0.08 disk wait).
+                                                  13             11             9
+                                            99 COS  (X) - 234 COS  (X) + 143 COS (X)
+(D102)                                    - ----------------------------------------
+                                                              1287
+
+(C103) INTEGRATE(X/(X^3+1),X);
+
+Evaluation took 0.52 seconds (0.05 disk wait).
+                                                                2 X - 1
+                                              2            ATAN(-------)
+                                         LOG(X  - X + 1)        SQRT(3)    LOG(X + 1)
+(D103)                                   --------------- + ------------- - ----------
+                                                6             SQRT(3)          3
+
+(C104) INTEGRATE(1/(X^6-1),X);
+
+Evaluation took 1.07 seconds (0.15 disk wait).
+                                                            2 X + 1         2 X - 1
+                        2                 2            ATAN(-------)   ATAN(-------)
+                   LOG(X  + X + 1)   LOG(X  - X + 1)        SQRT(3)         SQRT(3)    LOG(X + 1)   LOG(X - 1)
+(D104)           - --------------- + --------------- - ------------- - ------------- - ---------- + ----------
+                         12                12            2 SQRT(3)       2 SQRT(3)         6            6
+
+(C105) INTEGRATE(1/((B^2-A^2)*X^2-A^2*B^2+A^4),X);
+
+Evaluation took 0.98 seconds (0.11 disk wait).
+                                                  LOG(X - A)      LOG(X + A)
+(D105)                                           ------------- - -------------
+                                                      2      3        2      3
+                                                 2 A B  - 2 A    2 A B  - 2 A
+
+(C106) INTEGRATE(X*LOG(X),X);
+
+Evaluation took 0.07 seconds (0.00 disk wait).
+                                                         2           2
+                                                        X  LOG(X)   X
+(D106)                                                  --------- - --
+                                                            2       4
+
+(C107) INTEGRATE(X^2*ASIN(X),X);
+
+Evaluation took 0.72 seconds (0.05 disk wait).
+                                                        2           2                2
+                                                       X  SQRT(1 - X )   2 SQRT(1 - X )
+                                         3           - --------------- - --------------
+                                        X  ASIN(X)            3                3
+(D107)                                  ---------- - ----------------------------------
+                                            3                        3
+
+(C108) INTEGRATE(LOG(X^2+2*X)/(X^2+2*X+1),X);
+
+Evaluation took 0.72 seconds (0.06 disk wait).
+                                                    2
+                                               LOG(X  + 2 X)
+(D108)                                       - ------------- - LOG(X + 2) + LOG(X)
+                                                   X + 1
+
+(C109) INTEGRATE(X*(COS(X)+SIN(X)),X);
+
+Evaluation took 3.68 seconds (0.23 disk wait).
+(D109)                                       X SIN(X) + SIN(X) - X COS(X) + COS(X)
+
+(C110) INTEGRATE((X+%E^X)/%E^X,X);
+
+Evaluation took 0.85 seconds (0.08 disk wait).
+                                                                  - X
+(D110)                                                (- X - 1) %E    + X
+
+(C111) INTEGRATE(X*(1+%E^X)^2,X);
+
+Evaluation took 1.07 seconds (0.12 disk wait).
+                                                         2 X                    2
+                                             (2 X - 1) %E                  X   X
+(D111)                                       --------------- + 2 (X - 1) %E  + --
+                                                    4                          2
+
+(C112) INTEGRATE(X*COS(X),X);
+
+Evaluation took 1.73 seconds (0.15 disk wait).
+(D112)                                                 X SIN(X) + COS(X)
+
+(C113) INTEGRATE(X*LOG(X)^2,X);
+
+Evaluation took 0.77 seconds (0.10 disk wait).
+                                                  2       2
+                                                 X  (2 LOG (X) - 2 LOG(X) + 1)
+(D113)                                           -----------------------------
+                                                               4
+
+(C114)
+Batch spent 44.72 seconds in evaluation.
+Evaluation took 62.38 seconds (3.62 disk wait).
+(D114)                                                       FALSE
+
+
+TI Explorer System, band 2 of EXP2. (Hal1.100atoolkit)
+4 MB of physical memory, 94 MB of virtual memory.
+**********************************************************************
+                       RESTRICTED RIGHTS LEGEND
+
+Use,  duplication,  or  disclosure  by  the  Government  is subject to
+restrictions as  set forth in subdivision (b)(3)(ii)  of the Rights in
+Technical Data and Computer Software clause at 52.227-7013.
+
+                   TEXAS INSTRUMENTS INCORPORATED
+                            P.O. Box 2909
+                        Austin, Texas  78769
+
+Copyright (c) 1985, Texas Instruments. All Rights Reserved.
+Explorer is a trademark of Texas Instruments Incorporated.
+**********************************************************************
+ Experimental HAL                                  1.100
+ Experimental Error Handler                        1.9
+ Experimental Font Editor                          1.1
+ Experimental ZMACS                                1.32
+ Experimental Universal Command Loop               6.44
+ Experimental Compiler                             2.21
+ Experimental ZMail                                1.14
+ Experimental Suggestions                          1.52
+ Experimental Local-File                           5.31
+ Experimental Explorer Streamer Tape               5.48
+ Experimental Glossary                             2.7
+ Experimental VT100                                1.7
+ Experimental Explorer Serial & Parallel Ports     1.6
+ Experimental PRINTER                              1.3
+ Experimental Window System                        1.44
+ Experimental Utilities                            1.23
+ Experimental Input Editor                         1.13
+ Experimental HAL-A                                1.6
+ Experimental Net-Config                           4.11
+ Experimental Formatter                            2.13
+ Experimental Grasper                              2.6
+ Experimental Graphics Window                      2.10
+ Experimental Graphics Editor                      2.11
+ Experimental Tree Drawing Utility                 2.2
+ Experimental NLMenu                               2.21
+ Experimental Relational Table Management System   1.0
+ Experimental NLMenu-RTMS-Interface                4.8
+ Experimental PROLOG                               1.6
+ Experimental User Profile Utility                 3.0
+ Experimental DOE-Macsyma                          1.0
+ Microcode                                       186
+LMI LMI-EXPLORER-2, with associated machine EXP2.
+Evaluation took 8.80 seconds (6.63 disk wait).
+(D114)                                                       FALSE
+

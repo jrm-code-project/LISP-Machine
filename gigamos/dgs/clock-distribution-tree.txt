@@ -1,0 +1,188 @@
+In preparation for attempting to terminate and de-skew the various local
+clocks distributed throughout the K processor board set, this document
+will describe the existing clock distribution tree.  It will indicate
+how the loads are distributed and which clocks have the greatest chance
+of occurring at different times, as well as implying which runs are
+physically the longest.
+
+CP      H17.15  Gated slow clock source at CLOCK PAL
+
+ ECP1-          H15.3   Inverted, gated distribution line 1
+
+  C-RIGHT       A24.6   Right ALU operand clock
+                  D24.9
+                  D23.9
+                  D22.9
+                  D21.9
+                  E24.9
+                  E23.8
+                  E20.9
+                  E21.9
+                  E22.9
+
+  C-LEFT        A24.3   Left ALU operand clock
+                  B24.9
+                  B23.9
+                  B22.9
+                  B21.9
+                  C24.9
+                  C23.9
+                  C20.9
+                  C21.9
+                  C22.9
+
+  C-ALU         A30.3   ALU clock
+                  E27C.13
+                  C27G.2
+                  A27G.2
+
+  C-32          A30.6   Jump condition clock
+                  C33.3
+                  C33.11
+
+  C-OUTREG      A30.11  ALU Output Register clock
+                  E19.11
+                  E17.11
+                  E18.11
+                  E16.11
+                  F32.9
+                  F29.9
+                  F26.9
+                  F28.9
+                  F31.9
+                  F33.9
+                  F30.9
+                  F27.9
+                  F25.9
+
+  C-ALUOP       A30.14  ALU instruction clock
+                  D33.9
+                  D32.9
+                  D31.9
+                  E33.11
+                  E32.11
+                  D30.9
+                  B20.1
+
+ ECP2-          H15.6   Inverted, gated distribution line 2
+
+  C-RM2         A5.6    Read/Write address selector for registers
+                  C6.11
+
+  C-REGA        A5.3    Destination register address clock
+                  E8.11
+                  E9.11
+                  C13.3
+                  C13.11
+                  C14.3
+                  B16.4 - Enable for register write pulse
+
+  C-OPC         G15.3   Old PC register clock
+                  J12.1
+                  J11.1
+                  J10.1
+
+  C-OAR         A5.11   Frame pointer clock
+                  E2.11
+                  E1.11
+                  E6.11
+                  E4.11
+                  E5.11
+                  F9.11
+                  F10.11
+
+  C-CSTACK      A5.14   Call stack clock
+                  H6.9 Return PC register clock - lsp
+                  H5.9       .
+                  H4.9       .
+                  H3.9       .
+                  H2.9       .
+                  H1.9 Return PC register clock
+                  F14.11 Return Destination register clock
+                  D9.9   Global
+                  F12.9  Return Immediate register clock
+
+  C-CHCTL       A5.17   Call hardware control clock
+                  B2.2  HP counter clock - lsp
+                  B1.2  HP counter clock - msp
+                  F1.2  CSP counter clock - msp
+                  F2.2  CSP counter clock - lsp
+                  C1.3  Stack overflow trap FF clock
+                  F18.1 CH! PAL clock
+                  F17.1 CH2 PAL clock
+
+  C-PCINC       J13.11  PC-incrementer clock
+                  K4.1 lsp
+                  K3.1
+                  K2.1
+                  K1.1 msp
+
+ ECP3-          H15.8   Inverted, gated distribution line 3
+
+  C-DIR         G15.6   Delayed IR clock precursor
+                  H25.11 Delayed IR clock
+                  F23.12 Term in FDEST3 transition table (???)
+
+  C-FRCHIT      J13.3   FORCEHIT FF clock
+                  L5.3
+
+ ECP4-          H15.11  Inverted, gated distribution line 4 (MEM - C22A TERM)
+
+  C-TRAP        C22.11  Trap logic processor clock
+                  H19.18 TSM0 clock
+                  H20.18 TSM1 clock
+                  I13.1  TRAPE clock
+                  I14.1  Term in TRAPR
+
+  C-HIST        C23.8   History RAM clock - AS1000 DRIVER
+                  J23.1 Address counter - msp
+                  J24.1 Address counter - lsp
+                  K27.13 History RAM WE - lsp
+                  K26.13
+                  K25.13
+                  K24.13
+                  K23.13
+                  K22.13 History RAM WE - msp
+
+  C-FDEST       C22.6   Functional Dest Decoder processor clock
+                  H1.15 These are inputs to a chain of AS805's used
+                  H1.16   to delay the transition until after the real edge
+
+  C-NUST        C22.17  clock to NuBus Status Register (effectively unused)
+                  K28.13 Status level (!!)
+
+C2P     H17.14  Gated fast clock source at CLOCK PAL
+
+ EC2P1-         H16.3   (NOT USED)
+
+ EC2P2-         H16.6   Inverted, gated fast clock distribution line 2
+
+  C2-CHCTL      G15.11 Call HW control fast clock
+                  C6.1 Heap WE FF clock
+                  D10.13 CS-O&A WE FF clock
+                  D10-1 CS-RPC&D WE FF clock
+
+  (REG-WP)      B16.1 Enable for register array write pulse
+
+  C2-REGADR     A5.9
+                  B15.9 Left Address (lsp)
+                  B14.9
+                  B13.9 Left Address (msp)
+                  C6.13 Read/Write Address Select clock ()
+                  B19.9 Right Address (lsp)
+                  B18.9
+                  B17.9 Right Address (msp)
+
+ EC2P3-         H16.8   Inverted, gated fast clock distribution line 3
+  C-FD3         G15.9   FDEST3 clock precursor
+                  F23.1 FDEST3 clock
+
+ EC2P4-         H16.11  Inverted, gated fast clock distribution line 4 (MEM - C22B TERM)
+
+  C2-TRAP       C22.14
+                  I16.9 ALU Freeze Control Register clock
+                  I17.9 OPC/JSTAT Freeze Control Register clock
+
+  C2-MFO        C22.9
+                  I3.1 FDEST1
+                  I4.1 FDEST2

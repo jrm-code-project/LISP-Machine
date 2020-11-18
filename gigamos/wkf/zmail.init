@@ -1,0 +1,32 @@
+;;-*-Mode:LISP;Package:ZWEI;Base:10;ReadTable:CL-*-
+
+(login-setq *zmail-startup-file-name* "ANGEL: /lmi/wkf/mail.bb")
+
+(login-setq *from-user-id* "wkf")
+
+(login-setq *from-host* (si:parse-host "GSI-CAM"))
+
+(login-setq fs:user-personal-name-first-name-first "William K. Foster")
+
+(login-setq zwei:*zmail-usual-mail-file-directory* "ANGEL: /lmi/wkf/")
+
+(login-setq zwei:*zmail-homedir-real-new-mail-filename* "ANGEL: /usr/spool/mail/wkf")
+
+(LOGIN-SETQ *PRUNE-HEADERS-AFTER-YANKING* T)
+
+(LOGIN-SETQ *REPLY-WINDOW-MODE* ':YANK)
+
+(pushnew '("FALCON"
+            :value "FALCON"
+            :documentation "Report an issue for the Falcon development group")
+         zwei:*zmail-bug-list*
+         :key #'car
+         :test #'string-equal)
+
+(pushnew '("FALCON-COMPILER"
+            :value "FALCON-COMPILER"
+            :documentation "Report an issue for the Falcon Compiler development group")
+         zwei:*zmail-bug-list*
+         :key #'car
+         :test #'string-equal)
+

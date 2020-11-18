@@ -1,0 +1,271 @@
+
+
+To:     WARD  MACKENZIE
+
+From:   DAVE GOODINE
+
+Cc:     DAN THOMAS
+
+Subject: Customer Software Support
+
+Date:   October 22, 1985
+
+
+
+
+        After talking to several members of the Software Support group
+in Customer Service and gaining a greater understanding of the Lambda
+software environment during the last two years, I have become aware of
+several problems that currently limit the effectiveness of LMI's support
+of the customer's software needs.  I have closely analyzed these
+problems and considered possible solutions.  The enclosed proposal will
+solve these problems and offer LMI the best possible growth in software
+support.  This plan has the support of the majority of the Engineering
+software and interdisciplinary staff along with members of the current
+Software Support Group.
+
+        I would appreciate your prompt consideration of this proposal,
+as it may have a noticeable effect on the success of the pending software
+release.
+
+
+   PROPOSAL FOR THE FORMATION OF A SOFTWARE RELEASE AND SUPPORT GROUP
+
+                          David M. Goodine Jr.
+
+
+
+
+
+
+        The following is a proposal to form a Software Release and
+Support group as part of Engineering from the existing Software Support
+group in the Customer Service division and the current Software Release
+group in Engineering.  As LMI is a growing company, with increasing
+responsibility for the support if its customers, it has become evident
+that we must likewise increase the resources and efficiency of both the
+release and support functions.  The current Software Support group is
+encountering obstacles which are impeding their progress toward a better
+scheme for supporting the needs of the customer.  The current Release
+group simply suffers from a lack of manpower.  Solutions for both of
+these problems are provided by this proposal, along with promised growth
+for LMI by more effectively and efficiently addressing the software
+needs of the customer.
+
+
+                  NEEDS FOR EFFECTIVE SOFTWARE SUPPORT
+
+
+
+
+1) Qualifications of the support personnel:
+
+        The personnel in this group must be knowledgable about the
+workings of the system in order to formulate reasonable bug reports and
+help the user interactively with bugs that constitute a barrier to the
+productivity of the customer.
+
+
+2) Engineering as a source of Education:
+
+        The experience which qualifies someone for a support position
+depends on communication with engineering on technical issues.  A fast
+and reliable means of passing not only technical information but
+knowledge about the system is of paramount importance.
+
+
+3) Ability to support future releases:
+
+        In order to make the transition as smooth as possible during a
+release, the software support group should continually track development
+of the system.
+
+
+4) Feedback of general design problems with software:
+
+        As the group follows the development of software, they should
+offer feedback on functionality and usability of the software which
+would originate from the members of the group and the customer.
+
+
+5) Ability to improve support:
+
+        The group should be able to continually increase support of the
+system software by improving the efficiency and effectiveness of its
+operations.
+
+
+6) Stimulating environment for members of the group:
+
+        Members of the group require a rewarding and technically
+stimulating environment in order to be productive in solving the
+problems of the customer.
+
+
+
+     THE PROPOSAL: AN ENGINEERING SOFTWARE RELEASE AND SUPPORT GROUP
+
+
+        The justifications for combining the the release and support
+functions for software under Engineering are the following:
+
+
+Software Support as an Engineering Function:
+
+        The integration of Software Support into Engineering will
+greatly improve the effectiveness of the function in the following ways:
+
+        1) providing an environment in which the support people
+           can develop expertise in fixing bugs and programming in
+           general
+
+        2) improving communications with engineers that can fix
+           more difficult bugs and inherent design problems
+
+        3) insuring better communication of customer feedback to
+           engineers for future designs of the system
+
+
+Software Support beyond bugs:
+
+        As the members of the Software Support group develop expertise
+with the system, they will be able to help customers better understand
+the system and how to solve their particular problem.  This will not
+only improve customer relations in a direct way, but it will also
+strengthen our market position as a supplier of problem solving tools.
+The physical separation of Engineering from Software Support severely
+limits the levels of support that can be provided to the customer.
+
+
+Interfacing to Field Service:
+
+        This scheme will greatly improve the effectiveness of Field
+Service by improving the documentation of known software problems and
+creating field available diagnostics that will allow the service person
+to more reliably determine the cause of a machine crash.  Also the
+members of the group will be of more assistance to the field engineer
+since they will be more able to debug problems over the phone.  This
+group can also improve field diagnosis by developing a course in
+collaboration with Education to teach the service people the basics
+necessary to debug problems in the field that may be software related.
+
+
+Interrelation of Release and Support:
+
+        There is an obvious redundancy within these functions.  Two
+areas of concern of software support are making sure that bugs are fixed
+for future releases and assuring that the system will evolve according
+to the customer's needs, both of which are also concerns for the
+software release group.  Not only would this proposal eliminate the
+redundancy of concerns, but it would allow the combined group the
+ability to actually fix some of the bugs and affect the changes that the
+customer needs by integrating the support group into the sofware
+development effort.
+
+
+Conservation of manpower and resources:
+
+        The integration of the new group into Engineering will allow
+more effective support of the customer with less manpower and resources
+which are consumed by redundant work and the inefficiency of
+communication that the separation presents.
+
+
+        This plan offers a growth in the efficiency and effectiveness of
+software support in the following ways:
+
+
+Improvement in bug fixing turnaround:
+
+        Having the Release/Support group investigate and fix bugs will
+improve the responsiveness to customers tremendously.  And an
+experienced support person will be able to track down problems more
+easily and offer immediate solutions to the customer.  Developing the
+ability for LMI to identify a bug, find the appropriate fix and release
+this fix customers within a matter of hours will put us far ahead of our
+competetors in the software support area.
+
+
+An enriching environment for its members:
+
+        As the members of the group improve their understanding of the
+internals of the system, they become a valuable information and manpower
+resource to the software development effort in their ability to provide
+insight from the technical and customer points of view.  And integrating
+the group with Engineering will allow them to help design and code the
+new systems.
+
+         INITIAL PLAN FOR THE SOFTWARE RELEASE AND SUPPORT GROUP
+
+
+        Note: This is only a rough draft composed by the author of this
+              proposal.
+
+
+Resource requirements: (immediate)
+
+        1) One 2x2 plus with landscape monitors and Z29
+        2) Two offices
+        3) Typical support services and supplies
+
+
+Resource requirements: (eventual  - (within 4 months))
+
+        1) Administrative support (partial)
+        2) Two inexperienced trainees
+        3) A full time unix support person
+        4) An additional 2x2+ (same configuration)
+        5) One 515mb CDC drive (non-removable) to upgrade first machine
+        6) One each of every peripheral to be supported
+        7) Plenty of magtapes
+        8) Full direct mailing (Fed. Ex.) capability for tapes
+
+
+Step by step plan:
+
+
+1) Establish communications with Customer Service:
+        This will involve at least one person in Customer Service to act
+        as an interface.
+
+2) Set up communications with Customers:
+        Install Watts line for software support at Cambridge facility
+        and contact all customers (by phone and letter).
+
+3) Move current Software Support Group to Engineering in Cambridge:
+        The move date will be highly dependent upon existence of the
+        immediate resource requirements.  Prompt implementation of this
+        plan will allow the group to contribute to the 2.1 release,
+        improving its quality and allowing us to get a better start
+        on supporting the system.
+
+4) Bring group back up to speed:
+        Depending on when the proposal is accepted, this may be
+        during or after the pending software release.  The next step
+        will not be taken until full support at previous levels has been
+        attained.
+
+5) Assess problems and forge new plans for growth: (quarterly)
+        An assessment of the current problems encountered by the group,
+        including feedback from other departments, will be crucial to
+        planning for the next quarter.  The resultant plans will be a
+        product of input and consensus of every member of the group.
+        The aspects of the group's future to be determined will include:
+
+        - structure and operation of the group
+        - breakdown of expected growth into incremental goals
+        - task priority assignments
+        - personal responsibility assignments
+        - assessment of support software needed
+        - additional resources and manpower requirements
+
+        After the plans are completed by the group, a quarterly progress
+        report and the new plans will be submitted to Engineering for
+        approval.
+
+6) Careful implementation of the quarterly plans.
+
+
+The financial logistics of this operation are yet to be determined,
+though I feel that with a fair Software Maintenance Contract this group
+should be self sufficient.

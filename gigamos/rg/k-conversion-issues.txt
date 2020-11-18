@@ -1,0 +1,827 @@
+stack frame format issues and goals:
+
+overall:
+(1)     The "simple" case should use just the hardware provided features.
+        It is very highly desirable not to impinge at all on the code
+        sequence, although a tiny bit of compromise might be acceptable.
+
+(2)     the stack frame format must provide for all the features of common lisp
+        including fluid variables, catch and throw, rest-args.
+
+(3)     it must be possible to write a "reasonable" error handler.
+        this means providing for.
+          stack must be "decodable" by error handler.  In particular,
+             if there are several stacks, it must be possible to
+             correctly associated the various frames on the various stacks.
+             For example, you must be able to tell (somehow) which variables
+             on the special stack go with a main stack frame, etc.
+             There error handler must be able to determine how many slots in
+             each stack frame are in fact used for args.
+          trap on exit
+        In all cases having to do with the error handler, efficiency is not a prime
+        concern.  So there may well be several different ways of handling things, it is
+        only necessary that it works somehow.
+
+(4)     upward lexical closures have to work.  This can get sticky since it may well involve
+        linked lists of pointers at stack frames.  This may well mean that any frame involved
+        in an upward funarg must be a "slow" case.  If an argument variable passed in the
+        hardware is lexcially closed over, it is probably necessary to move the variable to
+        a main memory location so it can be pointed at by the lexical stuff.
+
+necessary or highly desirable for compatibility with old stuff:
+
+(5)     deal with self map provided
+
+maybe desirable for compatibility or other reasons.
+(6)     ability to have ADI.  may not be necessary if all uses for it are handled by other means.
+
+
+basic scheme:
+  it looks like we need 3 stacks per stack group:
+
+(1)  the hardware stack and a memory area for it to overflow/get-written-out into.
+     this has 16 words per frame, always.
+
+(2)  A special stack used for dynamic bindings.  Different from 3 because:
+        (1)  some cases (fairly rare, but these absolutely have to work) involve variable numbers of bindings
+        or bindings created after main frame has been entered while it is running.
+
+        (2)  the stack-group swapping mechanism involves scanning this, traversing it in both
+        directions.  It is highly desirable that the loop involved in doing this be as
+        tight as possible (i.e. minimum figuring out and skipping over stuff that is not bindings).
+
+(3)  an auxillary stack used in a large number of various (hopefully rare) cases.
+        the following cases (at least) are candidates for "requiring a slow frame".
+
+        (1) more that 16 (or maybe 15, etc)  args on call.
+        (2) more than 16 (") combinded args and local variable which need to persist across call boundaries.
+        (3) frame binds fluid variables
+        (4) frame contains errorset type stuff
+        (5) frame is lexically closed over  (needs to be capable of being pointed at, in some sense).
+
+        (6) (maybe)
+            frame is entered via a "computed function" (rather than directly statically linked).
+            in this case we may well need a LP-FEF type word to keep track of what function
+            we are trying to call.  Alternative might be to use just call hardware
+            with LP-FEF word in a separate funny volatile register.  This might lead to non-optimal
+            code or order-of-evaluation problems, however.
+
+        (7) (maybe) frame returns multiple values.
+        (8) (maybe) some cases involving &rest or &keyword args.
+
+
+some points:
+   lexical closed-over variables need to be on the aux-stack (because they need to be pointable at,
+        i.e. referencable by %LOAD-FROM-HIGHER-CONTEXT, etc).  This causes a substantual
+          slowdown compared to having them in the hardware stack (assuming they fit, etc).
+     alternatives: (but it doesnt seem either of these win)
+         (1)  leave 16 (or 15, etc) slots in aux stack for the hardware frame variables to be stored
+          when the frame is not active. -- not clean tho because you have to make sure they are really there.
+         (2)  be able to "dig out" hardware stack variables, starting from pointer to aux stack frame
+          (or component thereof).  Slows down %LOAD-FROM-HIGHER-CONTEXT to check for this.  Form of pointer
+          from aux-stack frame to hardware stack frame is unclear and would have to deal with the case
+          hardware stack frame has been scrolled out.
+
+(DEFCONST LINEAR-PDL-FIELDS-VALUES '(
+  ;LPCLS (%LP-CALL-STATE).  Stored when this call frame is created.
+  ;; Set if any of the following bits are set (used for fast check when returning from call):
+  ;;   TRAP-ON-EXIT, ADI-PRESENT, MICRO-STACK-SAVED, BINDING-BLOCK-PUSHED,
+  ;;   ENVIRONMENT-POINTER-POINTS-HERE, or function exit/entry metering is enabled,
+  ;;   or this frame just needs to be unwound.
+---corresponding thing probably needed.
+  %%LP-CLS-ATTENTION 3001
+  ;; If set, need not compute SELF-MAPPING-TABLE
+  ;;  because our caller has done so.
+---  %%LP-CLS-SELF-MAP-PROVIDED 2701
+  ;; If set, get error before popping this frame.
+---  %%LP-CLS-TRAP-ON-EXIT 2601
+  ;; ADI words precede this call-block
+---  %%LP-CLS-ADI-PRESENT 2401    (maybe.  lexper-call, multiple-value, multiple-value-list)
+  ;; Where in the caller to put this frame's value
+OK  %%LP-CLS-DESTINATION 2004
+  ;; This includes the destination field and ADI bit.
+OK  %%LP-CLS-DESTINATION-AND-ADI 2005
+  ;; Offset back to previous open or active block
+  ;; An open block is one whose args are being made
+Ok  %%LP-CLS-DELTA-TO-OPEN-BLOCK 1010
+  ;; Offset back to previous active block
+  ;;  An active block is one that is executing
+Ok  %%LP-CLS-DELTA-TO-ACTIVE-BLOCK 0010
+  ;LPEXS (%LP-EXIT-STATE).  Stored when this frame calls out.
+  ; bits 22'-27' not used in LPEXS
+  ;; A microstack frame exists on special pdl
+OK  %%LP-EXS-MICRO-STACK-SAVED 2101
+  ;; Same as below
+  %%LP-EXS-PC-STATUS 2001
+  ;; M-QBBFL STORED HERE IN MACRO EXIT OPERATION
+---  %%LP-EXS-BINDING-BLOCK-PUSHED 2001
+  ;; LC as offset in halfwords from FEF
+  ;;  Meaningless if %LP-FEF not a fef.
+  ;;  Don't change %%LP-EXS-EXIT-PC ---  the numerical value is known by UCADR
+OK  %%LP-EXS-EXIT-PC 0017
+  ;LPENS (%LP-ENTRY-STATE).  Stored when this frame entered.
+  ; bits 21'-27' not used in LPENS
+  ;; This is nonzero if an explicit rest arg is passed.
+OK  %%LP-ENS-LCTYP 2001
+  ;; Here are the fields that the entry state normally contains.
+  ;; This is 1 if this frame has a rest arg living on the stack.
+  ;; Means this frame cannot be flushed for tail recursion.
+OK  %%LP-ENS-UNSAFE-REST-ARG 1701
+  ;; This includes the number-of-args field and the unsafe field.
+  %%LP-ENS-NUM-ARGS-AND-UNSAFE-FLAG 1010
+  ;; This is a pointer to the unsafe flag, within the byte that goes
+  ;; into the %%lp-ens-num-args-and-unsafe-flag field.
+OK  %%LP-ENS-UNSAFE-REST-ARG-1 0701
+??  %%LP-ENS-ENVIRONMENT-POINTER-POINTS-HERE 1601
+--perhaps could be done via table indexed off return PC
+--  %%LP-ENS-NUM-ARGS-SUPPLIED 1006
+OK  %%LP-ENS-MACRO-LOCAL-BLOCK-ORIGIN 0010
+  ))
+
+;specpdl.   (?store hardware frame on stack-group-switch?)
+;           ADI.
+;           used for args above what will fit in call hardware
+;           locals above call hardware
+;           anything that needs to be addressible
+;           specpdl
+
+;values:
+;  if one.
+;  multi-value-call
+;  multi-value-return
+;  multi-value-list
+
+
+;page-fault.
+
+
+;k compiler outline:
+
+;240 241 FREE
+(DEFMIC (CAR . M-CAR) 242 (X) T T)
+(DEFMIC (CDR . M-CDR) 243 (X) T T)
+(DEFMIC (CAAR . M-CAAR) 244 (X) T T)
+(DEFMIC (CADR . M-CADR) 245 (X) T T)
+(DEFMIC (CDAR . M-CDAR) 246 (X) T T)
+(DEFMIC (CDDR . M-CDDR) 247 (X) T T)
+(DEFMIC CAAAR 250 (X) T)
+(DEFMIC CAADR 251 (X) T)
+(DEFMIC CADAR 252 (X) T)
+(DEFMIC CADDR 253 (X) T)
+(DEFMIC CDAAR 254 (X) T)
+(DEFMIC CDADR 255 (X) T)
+(DEFMIC CDDAR 256 (X) T)
+(DEFMIC CDDDR 257 (X) T)
+(DEFMIC CAAAAR 260 (X) T)
+(DEFMIC CAAADR 261 (X) T)
+(DEFMIC CAADAR 262 (X) T)
+(DEFMIC CAADDR 263 (X) T)
+(DEFMIC CADAAR 264 (X) T)
+(DEFMIC CADADR 265 (X) T)
+(DEFMIC CADDAR 266 (X) T)
+(DEFMIC CADDDR 267 (X) T)
+(DEFMIC CDAAAR 270 (X) T)
+(DEFMIC CDAADR 271 (X) T)
+(DEFMIC CDADAR 272 (X) T)
+(DEFMIC CDADDR 273 (X) T)
+(DEFMIC CDDAAR 274 (X) T)
+(DEFMIC CDDADR 275 (X) T)
+(DEFMIC CDDDAR 276 (X) T)
+(DEFMIC CDDDDR 277 (X) T)
+
+Hand code (DEFMIC %LOAD-FROM-HIGHER-CONTEXT 300 (ENVPTR) T)
+ may be function of compiler
+          (DEFMIC %LOCATE-IN-HIGHER-CONTEXT 301 (ENVPTR) T)
+          (DEFMIC %STORE-IN-HIGHER-CONTEXT 302 (VALUE ENVPTR) T)
+triv (DEFMIC %DATA-TYPE 303 (X) T)
+triv (DEFMIC %POINTER 304 (X) T)
+probably flush. not really used, however new style rest args always safe. (DEFMIC %MAKE-REST-ARG-SAFE 305 () T)
+;(DEFMIC %PERMIT-TAIL-RECURSION 306 () NIL T)
+hand code (DEFMIC INTERNAL-FLOAT 307 (NUMBER) NIL)
+triv      (DEFMIC %MAKE-POINTER 310 (DTP ADDRESS) T)
+hand code (DEFMIC %SPREAD 311 (LIST) NIL T)
+triv hand (DEFMIC %P-STORE-CONTENTS 312 (POINTER VALUE) T)
+triv      (DEFMIC %LOGLDB 313 (PPSS WORD) T)            ;These don't complain about loading/clobbering
+triv      (DEFMIC %LOGDPB 314 (VALUE PPSS WORD) T)      ; sign bit. Result is always a fixnum
+hand code (DEFMIC LDB 315 (PPSS WORD) T)
+hand code (DEFMIC DPB 316 (VALUE PPSS WORD) T)
+triv      (DEFMIC %P-STORE-TAG-AND-POINTER 317 (POINTER MISC-FIELDS POINTER-FIELD) T)
+
+lisp      (DEFMIC INTERNAL-GET-2 320 (SYMBOL PROPERTY) NIL)
+lisp      (DEFMIC GETL 321 (SYMBOL PROPERTY-NAME-LIST) T)
+lisp      (DEFMIC ASSQ 322 (X ALIST) T)
+lisp      (DEFMIC LAST 323 (LIST) T)
+lisp      (DEFMIC LENGTH 324 (LIST-OR-ARRAY) T)
+lisp      (DEFMIC 1+ 325 (N) T)
+lisp      (DEFMIC 1- 326 (N) T)
+triv      (DEFMIC RPLACA 327 (CONS NEW-CAR) T)
+triv      (DEFMIC RPLACD 330 (CONS NEW-CDR) T)
+triv      (DEFMIC ZEROP 331 (NUMBER) T)
+triv      (DEFMIC SET 332 (SYMBOL VALUE) T)
+triv      (DEFMIC INTEGERP 333 (X) T)
+          (DEFMIC (FIXP . INTEGERP) 333 (X) T)
+triv      (DEFMIC FLOATP 334 (X) T)
+lisp      (DEFMIC EQUAL 335 (X Y) T)
+hand code (DEFMIC %SET-SELF-MAPPING-TABLE 336 (MAPPING-TABLE) T)   ;sets mapping table provided bit in call state
+--flush this? (DEFMIC PDL-WORD 337 (N) NIL T)
+triv    (DEFMIC FALSE 340 () T)
+triv    (DEFMIC TRUE 341 () T)
+triv    (DEFMIC NOT 342 (X) T)
+        (DEFMIC (NULL . NOT) 342 (X) T)
+(DEFMIC ATOM 343 (X) T)
+(DEFMIC ODDP 344 (NUMBER) T)
+(DEFMIC EVENP 345 (NUMBER) T)
+(DEFMIC %HALT 346 () T)
+(DEFMIC GET-PNAME 347 (SYMBOL) T)
+(DEFMIC (SYMBOL-NAME . GET-PNAME) 347 (SYMBOL) T)
+(DEFMIC LSH 350 (N NBITS) T)
+(DEFMIC ROT 351 (N NBITS) T)
+(DEFMIC *BOOLE 352 (FN ARG1 ARG2) T)
+(DEFMIC NUMBERP 353 (X) T)
+(DEFMIC PLUSP 354 (NUMBER) T)
+(DEFMIC MINUSP 355 (NUMBER) T)
+(DEFMIC \ 356 (X Y) T)
+(DEFMIC MINUS 357 (NUMBER) T)
+(DEFMIC %SXHASH-STRING 360 (STRING CHARACTER-MASK) T)
+(DEFMIC VALUE-CELL-LOCATION 361 (SYMBOL) T)
+(DEFMIC FUNCTION-CELL-LOCATION 362 (SYMBOL) T)
+(DEFMIC PROPERTY-CELL-LOCATION 363 (SYMBOL) T)
+(DEFMIC NCONS 364 (CAR) T)
+(DEFMIC NCONS-IN-AREA 365 (CAR AREA) T)
+(DEFMIC CONS 366 (CAR CDR) T)
+(DEFMIC CONS-IN-AREA 367 (CAR CDR AREA) T)
+(DEFMIC XCONS 370 (CDR CAR) T)
+(DEFMIC XCONS-IN-AREA 371 (CDR CAR AREA) T)
+(DEFMIC %SPREAD-N 372 (LIST N) NIL)
+(DEFMIC SYMEVAL 373 (SYMBOL) T)
+(DEFMIC (SYMBOL-VALUE . SYMEVAL) 373 (SYMBOL) T)
+(DEFMIC POP-M-FROM-UNDER-N 374 (NUM-POPS NUM-TO-KEEP) NIL)
+(DEFMIC GET-LEXICAL-VALUE-CELL 375 (ENV-LIST SYMBOL-CELL-LOCATION) T)
+(DEFMIC %CALL-MULT-VALUE 376 () NIL T)
+(DEFMIC %CALL0-MULT-VALUE 377 () NIL T)
+(DEFMIC %RETURN-2 400 () NIL T)
+(DEFMIC %RETURN-3 401 () NIL T)
+(DEFMIC %RETURN-N 402 () NIL T)
+(DEFMIC RETURN-NEXT-VALUE 403 (VALUE) NIL)
+(DEFMIC RETURN-LIST 404 (VALUES) NIL T)
+(DEFMIC UNBIND-TO-INDEX-UNDER-N 405 (N) NIL)
+(DEFMIC %BIND 406 (POINTER VALUE) NIL)
+(DEFMIC (BIND . %BIND) 406 (POINTER VALUE) NIL)
+(DEFMIC %NWAY-BRANCH 407 (INDEX LIMIT) NIL T)
+(DEFMIC MEMQ 410 (X LIST) T)
+(DEFMIC (INTERNAL-< . M-<) 411 (NUM1 NUM2) T)
+(DEFMIC (INTERNAL-> . M->) 412 (NUM1 NUM2) T)
+(DEFMIC (INTERNAL-= . M-=) 413 (NUM1 NUM2) T)
+(DEFMIC INTERNAL-CHAR-EQUAL 414 (CH1 CH2) T)
+(DEFMIC %STRING-SEARCH-CHAR 415 (CHAR STRING START END) T)
+(DEFMIC %STRING-EQUAL 416 (STRING1 INDEX1 STRING2 INDEX2 COUNT) T)
+(DEFMIC NTH 417 (N LIST) T)
+(DEFMIC NTHCDR 420 (N LIST) T)
+(DEFMIC (*PLUS . M-+) 421 (NUM1 NUM2) T)
+(DEFMIC (*DIF . M--) 422 (NUM1 NUM2) T)
+(DEFMIC (*TIMES . M-*) 423 (NUM1 NUM2) T)
+(DEFMIC (*QUO . M-//) 424 (NUM1 NUM2) T)
+(DEFMIC (*LOGAND . M-LOGAND) 425 (NUM1 NUM2) T)
+(DEFMIC (*LOGXOR . M-LOGXOR) 426 (NUM1 NUM2) T)
+(DEFMIC (*LOGIOR . M-LOGIOR) 427 (NUM1 NUM2) T)
+(DEFMIC ARRAY-LEADER 430 (ARRAY INDEX) T)
+(DEFMIC STORE-ARRAY-LEADER 431 (VALUE ARRAY INDEX) T)
+(DEFMIC GET-LIST-POINTER-INTO-ARRAY 432 (ARRAY) T)
+(DEFMIC ARRAY-PUSH 433 (ARRAY VALUE) T)
+(DEFMIC INTERNAL-APPLY 434 (FN ARGS) NIL)       ;was APPLY with NO-QINTCMP
+(DEFMIC %MAKE-LIST 435 (INITIAL-VALUE AREA LENGTH) T)
+; these next four have been moved to macrocode --- leave this in for now in case of some weird screw. Mly
+(DEFMIC LIST 436 (&REST ELEMENTS) T T)
+(DEFMIC LIST* 437 (FIRST &REST ELEMENTS) T T)   ;(&REST ELEMENTS LAST)
+(DEFMIC LIST-IN-AREA 440 (AREA &REST ELEMENTS) T T)
+(DEFMIC LIST*-IN-AREA 441 (AREA FIRST &REST ELEMENTS) T T)   ;(AREA &REST ELEMENTS LAST)
+(DEFMIC LOCATE-IN-INSTANCE 442 (INSTANCE SYMBOL) T)
+(DEFMIC %P-CDR-CODE 443 (POINTER) T)
+(DEFMIC %P-DATA-TYPE 444 (POINTER) T)
+(DEFMIC %P-POINTER 445 (POINTER) T)
+(DEFMIC %PAGE-TRACE 446 (TABLE) T)
+(DEFMIC THROW-N 447 (TAG &REST VALUES-AND-COUNT) NIL T)
+(DEFMIC %P-STORE-CDR-CODE 450 (POINTER CDR-CODE) T)
+(DEFMIC %P-STORE-DATA-TYPE 451 (POINTER DATA-TYPE) T)
+(DEFMIC %P-STORE-POINTER 452 (POINTER POINTER-TO-STORE) T)
+(DEFMIC FLOAT-EXPONENT 453 (FLONUM) T)
+(DEFMIC FLOAT-FRACTION 454 (FLONUM) T)
+(DEFMIC SCALE-FLOAT 455 (FLONUM INTEGER) T)
+(DEFMIC %CATCH-OPEN 456 () NIL T)
+(DEFMIC %CATCH-OPEN-MV 457 () NIL T)
+(DEFMIC INTERNAL-FLOOR-1 460 (DIVIDEND DIVISOR) NIL T)
+;;; due to lossage, this INTERNAL-FLOOR-1 is pretty weird.
+;;; does not store in its destination.  Instead, destination field decodes:
+;;;  0 => FLOOR, 1 => CEIL, 2 => TRUNC, 3 => ROUND
+
+(DEFMIC %DIV 461 (DIVIDEND DIVISOR) T)
+(DEFMIC %FEXPR-CALL 462 () NIL T)
+(DEFMIC %FEXPR-CALL-MV 463 () NIL T)
+(DEFMIC %FEXPR-CALL-MV-LIST 464 () NIL T)
+(DEFMIC %CATCH-OPEN-MV-LIST 465 () NIL T)
+(DEFMIC *CATCH 466 (TAG &REST FORMS) T T)
+(DEFMIC (CATCH . *CATCH) 466 (TAG &REST FORMS) T T)
+(DEFMIC %BLT 467 (FROM-ADDRESS TO-ADDRESS COUNT INCREMENT) T)
+(DEFMIC *THROW 470 (TAG VALUE) NIL T)
+(DEFMIC (THROW . *THROW) 470 (TAG VALUE) NIL T)
+(DEFMIC %XBUS-WRITE-SYNC 471 (IO-ADDR WORD DELAY SYNC-LOC SYNC-MASK SYNC-VAL) T)
+(DEFMIC %P-LDB 472 (PPSS POINTER) T)
+(DEFMIC %P-DPB 473 (VALUE PPSS POINTER) T)
+(DEFMIC MASK-FIELD 474 (PPSS FIXNUM) T)
+(DEFMIC %P-MASK-FIELD 475  (PPSS POINTER) T)
+(DEFMIC DEPOSIT-FIELD 476 (VALUE PPSS FIXNUM) T)
+(DEFMIC %P-DEPOSIT-FIELD 477 (VALUE PPSS POINTER) T)
+(DEFMIC COPY-ARRAY-CONTENTS 500 (FROM TO) T)
+(DEFMIC COPY-ARRAY-CONTENTS-AND-LEADER 501 (FROM TO) T)
+(DEFMIC %FUNCTION-INSIDE-SELF 502 () T)
+(DEFMIC ARRAY-HAS-LEADER-P 503 (ARRAY) T)
+(DEFMIC COPY-ARRAY-PORTION 504 (FROM-ARRAY FROM-START FROM-END TO-ARRAY TO-START TO-END) T)
+(DEFMIC FIND-POSITION-IN-LIST 505 (ELEMENT LIST) T)
+(DEFMIC %GET-SELF-MAPPING-TABLE 506 (METHOD-FLAVOR-NAME) T)
+(DEFMIC G-L-P 507 (ARRAY) T)
+(DEFMIC INTERNAL-FLOOR-2 510 (DIVIDEND DIVISOR) NIL T)
+;;; takes two args on stack, two values also to stack.
+;;; destination of this one also weird. See INTERNAL-FLOOR-1.
+(DEFMIC EQL 511 (X Y) T)
+(DEFMIC AR-1 512 (ARRAY SUB) T)
+(DEFMIC AR-2 513 (ARRAY SUB1 SUB2) T)
+(DEFMIC AR-3 514 (ARRAY SUB1 SUB2 SUB3) T)
+(DEFMIC AS-1 515 (VALUE ARRAY SUB) T)
+(DEFMIC AS-2 516 (VALUE ARRAY SUB1 SUB2) T)
+(DEFMIC AS-3 517 (VALUE ARRAY SUB1 SUB2 SUB3) T)
+(DEFMIC %INSTANCE-REF 520 (INSTANCE INDEX) T)
+(DEFMIC %INSTANCE-LOC 521 (INSTANCE INDEX) T)
+(DEFMIC %INSTANCE-SET 522 (VAL INSTANCE INDEX) T)
+(DEFMIC %BINDING-INSTANCES 523 (LIST-OF-SYMBOLS) T)
+(DEFMIC %EXTERNAL-VALUE-CELL 524 (SYMBOL) T)
+(DEFMIC %USING-BINDING-INSTANCES 525 (BINDING-INSTANCES) T)
+(DEFMIC %GC-CONS-WORK 526 (NQS) T)
+(DEFMIC %P-CONTENTS-OFFSET 527 (POINTER OFFSET) T)
+(DEFMIC %DISK-RESTORE 530 (PARTITION-HIGH-16-BITS LOW-16-BITS) T)
+(DEFMIC %DISK-SAVE 531 (MAIN-MEMORY-SIZE PARTITION-HIGH-16-BITS LOW-16-BITS) T)
+(DEFMIC %ARGS-INFO 532 (FUNCTION) T)
+(DEFMIC %OPEN-CALL-BLOCK 533 (FUNCTION ADI-PAIRS DESTINATION) NIL)
+(DEFMIC %PUSH 534 (X) NIL)
+(DEFMIC %ACTIVATE-OPEN-CALL-BLOCK 535 () NIL)
+(DEFMIC %ASSURE-PDL-ROOM 536 (ROOM) NIL)
+(DEFMIC STACK-GROUP-RETURN 537 (X) T)
+(DEFMIC AS-2-REVERSE 540 (VALUE ARRAY INDEX2 INDEX1) T)
+;Perhaps the next one should be flushed.
+(DEFMIC %MAKE-STACK-LIST 541 (N) NIL)
+(DEFMIC STACK-GROUP-RESUME 542 (SG X) T)
+(DEFMIC %CALL-MULT-VALUE-LIST 543 () NIL T)
+(DEFMIC %CALL0-MULT-VALUE-LIST 544 () NIL T)
+(DEFMIC %GC-SCAV-RESET 545 (REGION) T)
+(DEFMIC %P-STORE-CONTENTS-OFFSET 546 (VALUE POINTER OFFSET) T)
+(DEFMIC %GC-FREE-REGION 547 (REGION) T)
+(DEFMIC %GC-FLIP 550 (new-region-offset) T)
+(DEFMIC ARRAY-LENGTH 551 (ARRAY) T)
+(DEFMIC ARRAY-TOTAL-SIZE 551 (ARRAY) T)
+(DEFMIC ARRAY-ACTIVE-LENGTH 552 (ARRAY) T)
+(DEFMIC %COMPUTE-PAGE-HASH 553 (ADDR) T)
+(DEFMIC THROW-SPREAD 554 (TAG VALUE-LIST) T)
+(DEFMIC %UNIBUS-READ 555 (UNIBUS-ADDR) T)
+(DEFMIC %UNIBUS-WRITE 556 (UNIBUS-ADDR WORD) T)
+(DEFMIC %GC-SCAVENGE 557 (WORK) T)
+(DEFMIC %CHAOS-WAKEUP 560 () T)
+(DEFMIC %AREA-NUMBER 561 (X) T)
+(DEFMIC *MAX 562 (NUM1 NUM2) T)
+(DEFMIC *MIN 563 (NUM1 NUM2) T)
+(DEFMIC CLOSURE 565 (SYMBOL-LIST FUNCTION) T)
+(DEFMIC AR-2-REVERSE 566 (ARRAY INDEX2 INDEX1) T)
+(DEFMIC LISTP 567 (X) T)
+(DEFMIC NLISTP 570 (X) T)
+(DEFMIC SYMBOLP 571 (X) T)
+(DEFMIC NSYMBOLP 572 (X) T)
+(DEFMIC ARRAYP 573 (X) T)
+(DEFMIC FBOUNDP 574 (SYMBOL) T)
+(DEFMIC STRINGP 575 (X) T)
+(DEFMIC BOUNDP 576 (SYMBOL) T)
+(DEFMIC INTERNAL-\\ 577 (NUM1 NUM2) T)
+(DEFMIC FSYMEVAL 600 (SYMBOL) T)
+(DEFMIC (SYMBOL-FUNCTION . FSYMEVAL) 600 (SYMBOL) T)
+(DEFMIC AP-1 601 (ARRAY SUB) T)
+(DEFMIC AP-2 602 (ARRAY SUB1 SUB2) T)
+(DEFMIC AP-3 603 (ARRAY SUB1 SUB2 SUB3) T)
+(DEFMIC AP-LEADER 604 (ARRAY INDEX) T)
+(DEFMIC %P-LDB-OFFSET 605 (PPSS POINTER OFFSET) T)
+(DEFMIC %P-DPB-OFFSET 606 (VALUE PPSS POINTER OFFSET) T)
+(DEFMIC %P-MASK-FIELD-OFFSET 607 (PPSS POINTER OFFSET) T)
+(DEFMIC %P-DEPOSIT-FIELD-OFFSET 610 (VALUE PPSS POINTER OFFSET) T)
+(DEFMIC %MULTIPLY-FRACTIONS 611 (NUM1 NUM2) T)
+(DEFMIC %DIVIDE-DOUBLE 612 (HIGH-DIVIDEND LOW-DIVIDEND DIVISOR) T)
+(DEFMIC %REMAINDER-DOUBLE 613 (HIGH-DIVIDEND LOW-DIVIDEND DIVISOR) T)
+(DEFMIC HAULONG 614 (INTEGER) T)
+(DEFMIC %BETTER-GC-SCAVENGE 615 (IDLE-P WORK) T)
+;(DEFMIC %ALLOCATE-AND-INITIALIZE-ARRAY 616 (HEADER INDEX-LENGTH LEADER-LENGTH AREA NQS) T)
+(DEFMIC %MAKE-POINTER-OFFSET 617 (NEW-DTP POINTER OFFSET) T)
+(DEFMIC ^ 620 (NUM EXPT) T)
+(DEFMIC %CHANGE-PAGE-STATUS 621 (VIRT-ADDR SWAP-STATUS ACCESS-AND-META) T)
+(DEFMIC %CREATE-PHYSICAL-PAGE 622 (PHYS-ADDR) T)
+(DEFMIC %DELETE-PHYSICAL-PAGE 623 (PHYS-ADDR) T)
+(DEFMIC %24-BIT-PLUS 624 (NUM1 NUM2) T)
+(DEFMIC %24-BIT-DIFFERENCE 625 (NUM1 NUM2) T)
+(DEFMIC %24-BIT-TIMES 626 (NUM1 NUM2) T)
+(DEFMIC ABS 627 (NUM) T)
+(DEFMIC %POINTER-DIFFERENCE 630 (PTR1 PTR2) T)
+(DEFMIC %P-CONTENTS-AS-LOCATIVE 631 (POINTER) T)
+(DEFMIC %P-CONTENTS-AS-LOCATIVE-OFFSET 632 (POINTER OFFSET) T)
+(DEFMIC (EQ . M-EQ) 633 (X Y) T)
+(DEFMIC %STORE-CONDITIONAL 634 (POINTER OLD NEW) T)
+(DEFMIC %STACK-FRAME-POINTER 635 () T)
+(DEFMIC *UNWIND-STACK 636 (TAG VALUE FRAME-COUNT ACTION) T)
+(DEFMIC %XBUS-READ 637 (IO-ADDR) T)
+(DEFMIC %XBUS-WRITE 640 (IO-ADDR WORD) T)
+(DEFMIC ELT 641 (SEQUENCE INDEX) T)
+(DEFMIC MOVE-PDL-TOP 642 NIL NIL T)
+(DEFMIC SHRINK-PDL-SAVE-TOP 643 (VALUE-TO-MOVE N-SLOTS) NIL T)
+(DEFMIC SPECIAL-PDL-INDEX 644 NIL T)
+(DEFMIC UNBIND-TO-INDEX 645 (SPECIAL-PDL-INDEX) NIL T)
+(DEFMIC UNBIND-TO-INDEX-MOVE 646 (SPECIAL-PDL-INDEX VALUE-TO-MOVE) NIL T)
+(DEFMIC FIX 647 (NUMBER) T)
+;; Changed in 95 to exist only for old code. -- now use INTERNAL-FLOAT
+(DEFMIC FLOAT 650 (NUMBER OTHER) NIL T)
+(DEFMIC SMALL-FLOAT 651 (NUMBER) T)
+(DEFMIC %FLOAT-DOUBLE 652 (LOW HIGH) T)
+(DEFMIC BIGNUM-TO-ARRAY 653 (BIGNUM BASE) T)
+(DEFMIC ARRAY-TO-BIGNUM 654 (ARRAY BASE SIGN) T)
+(DEFMIC %UNWIND-PROTECT-CONTINUE 655 (VALUE TAG COUNT ACTION) NIL T)
+(DEFMIC %WRITE-INTERNAL-PROCESSOR-MEMORIES 656 (CODE ADR D-HI D-LOW) T)
+(DEFMIC %PAGE-STATUS 657 (PTR) T)
+(DEFMIC %REGION-NUMBER 660 (PTR) T)
+(DEFMIC %FIND-STRUCTURE-HEADER 661 (PTR) T)
+(DEFMIC %STRUCTURE-BOXED-SIZE 662 (PTR) T)
+(DEFMIC %STRUCTURE-TOTAL-SIZE 663 (PTR) T)
+(DEFMIC %MAKE-REGION 664 (AREA BITS SIZE) T)  ;new incarnation, old thing had two args.
+(DEFMIC BITBLT 665 (ALU WIDTH HEIGHT FROM-ARRAY FROM-X FROM-Y TO-ARRAY TO-X TO-Y) T)
+(DEFMIC %DISK-OP 666 (RQB) T)
+(DEFMIC %PHYSICAL-ADDRESS 667 (PTR) T)
+(DEFMIC POP-OPEN-CALL 670 NIL NIL T)
+(DEFMIC %BEEP 671 (HALF-WAVELENGTH DURATION) T)
+(DEFMIC %FIND-STRUCTURE-LEADER 672 (PTR) T)
+(DEFMIC BPT 673 NIL T)
+(DEFMIC %FINDCORE 674 () T)
+(DEFMIC %PAGE-IN 675 (PFN VPN) T)
+(DEFMIC ASH 676 (N NBITS) T)
+(DEFMIC %MAKE-EXPLICIT-STACK-LIST 677 (LENGTH) NIL T)
+(DEFMIC %DRAW-CHAR 700 (FONT-ARRAY CHAR-CODE X-BITPOS Y-BITPOS ALU-FUNCTION SHEET) T)
+(DEFMIC %DRAW-RECTANGLE 701 (WIDTH HEIGHT X-BITPOS Y-BITPOS ALU-FUNCTION SHEET) T)
+(DEFMIC %DRAW-LINE 702 (X0 Y0 X Y ALU DRAW-END-POINT SHEET) T)
+(DEFMIC %DRAW-TRIANGLE 703 (X1 Y1 X2 Y2 X3 Y3 ALU SHEET) T)
+(DEFMIC %COLOR-TRANSFORM 704 (N17 N16 N15 N14 N13 N12 N11 N10 N7 N6 N5 N4 N3 N2 N1 N0
+                              WIDTH HEIGHT ARRAY START-X START-Y) T)
+(DEFMIC %RECORD-EVENT 705 (DATA-4 DATA-3 DATA-2 DATA-1 STACK-LEVEL EVENT MUST-BE-4) T)
+(DEFMIC %AOS-TRIANGLE 706 (X1 Y1 X2 Y2 X3 Y3 INCREMENT SHEET) T)
+(DEFMIC %SET-MOUSE-SCREEN 707 (SHEET) T)
+(DEFMIC %OPEN-MOUSE-CURSOR 710 () T)
+(DEFMIC SETELT 711 (SEQUENCE INDEX VALUE) T)
+(DEFMIC %BLT-TYPED 712 (FROM-ADDRESS TO-ADDRESS COUNT INCREMENT) T)
+(DEFMIC %DRAW-PATTERNED-LINE 713 (PATTERN-ARRAY FROM-X FROM-Y TO-X TO-Y ALU-FUNCTION DRAW-LAST-POINT-P CURRENT-SHEET) T)
+;(DEFMIC %ETHER-WAKEUP 711 (RESET-P) T)
+;(DEFMIC %CHECKSUM-PUP 712 (ART-16B-PUP START LENGTH) T)
+;(DEFMIC %DECODE-PUP 713 (ART-BYTE-PUP START LENGTH STATE SUPER-IMAGE-P) T)
+(DEFMIC AR-1-FORCE 714 (ARRAY INDEX) T)
+(DEFMIC AS-1-FORCE 715 (VALUE ARRAY INDEX) T)
+(DEFMIC AP-1-FORCE 716 (ARRAY INDEX) T)
+(DEFMIC AREF 717 (ARRAY &REST SUBSCRIPTS) T T)
+(DEFMIC ASET 720 (VALUE ARRAY &REST SUBSCRIPTS) T T)
+(DEFMIC ALOC 721 (ARRAY &REST SUBSCRIPTS) T T)
+
+(DEFMIC EQUALP 722 (X Y) T)
+(DEFMIC %MAKE-EXPLICIT-STACK-LIST* 723 (LENGTH) NIL T)
+(DEFMIC SETCAR 724 (CONS NEWCAR) T)
+(DEFMIC SETCDR 725 (CONS NEWCDR) T)
+(DEFMIC GET-LOCATION-OR-NIL 726 (SYMBOL PROPERTY) T)
+(DEFMIC %STRING-WIDTH 727 (TABLE OFFSET STRING START END STOP-WIDTH) NIL)
+(DEFMIC AR-1-CACHED-1 730 (ARRAY SUBSCRIPT) T)
+(DEFMIC AR-1-CACHED-2 731 (ARRAY SUBSCRIPT) T)
+
+(DEFMIC %MULTIBUS-READ-16 732 (MULTIBUS-BYTE-ADR) T)
+(DEFMIC %MULTIBUS-WRITE-16 733 (MULTIBUS-BYTE-ADR WORD) T)
+(DEFMIC %MULTIBUS-READ-8 734 (MULTIBUS-BYTE-ADR) T)
+(DEFMIC %MULTIBUS-WRITE-8 735 (MULTIBUS-BYTE-ADR WORD) T)
+(DEFMIC %MULTIBUS-READ-32 736 (MULTIBUS-BYTE-ADR) T)
+(DEFMIC %MULTIBUS-WRITE-32 737 (MULTIBUS-BYTE-ADR WORD) T)
+
+(DEFMIC SET-AR-1 740 (ARRAY SUBSCRIPT VALUE) T)
+(DEFMIC SET-AR-2 741 (ARRAY SUBSCRIPT1 SUBSCRIPT2 VALUE) T)
+(DEFMIC SET-AR-3 742 (ARRAY SUBSCRIPT1 SUBSCRIPT2 SUBSCRIPT3 VALUE) T)
+(DEFMIC SET-AR-1-FORCE 743 (ARRAY SUBSCRIPT VALUE) T)
+(DEFMIC SET-AREF 744 (ARRAY &REST SUBSCRIPTS-AND-VALUE) T T)
+(DEFMIC SET-ARRAY-LEADER 745 (ARRAY INDEX VALUE) T)
+(DEFMIC SET-%INSTANCE-REF 746 (INSTANCE INDEX VALUE) T)
+(DEFMIC VECTOR-PUSH 747 (NEW-ELEMENT VECTOR) T)
+(DEFMIC ARRAY-HAS-FILL-POINTER-P 750 (ARRAY) T)
+(DEFMIC ARRAY-LEADER-LENGTH 751 (ARRAY) T)
+(DEFMIC ARRAY-RANK 752 (ARRAY) T)
+(DEFMIC ARRAY-DIMENSION 753 (ARRAY DIMENSION) T)
+;Moved to macrocode. KHS 2/85
+;(DEFMIC ARRAY-IN-BOUNDS-P 754 (ARRAY &REST SUBSCRIPTS) T T)
+;(DEFMIC ARRAY-ROW-MAJOR-INDEX 755 (ARRAY &REST SUBSCRIPTS) T T)
+
+(DEFMIC RETURN-N-KEEP-CONTROL 756 (&REST VALUES N) NIL T)
+(DEFMIC RETURN-SPREAD-KEEP-CONTROL 757 (VALUE-LIST) NIL T)
+(DEFMIC COMMON-LISP-LISTP 760 (OBJECT) T)
+
+(DEFMIC %NUBUS-READ 761 (NUBUS-SLOT SLOT-BYTE-ADR) T)
+                                ;SLOT is really the high 8 bits.
+                                ;the "top F" can be supplied via slot, avoiding bignums.
+(DEFMIC %NUBUS-WRITE 762 (NUBUS-SLOT SLOT-BYTE-ADR WORD) T)
+(DEFMIC %MICROSECOND-TIME 763 () T)             ; Returns 32 bits maybe as a bignum
+(DEFMIC %FIXNUM-MICROSECOND-TIME 764 () T)
+(DEFMIC %IO-SPACE-READ 765 (IO-ADDR) T)
+                                ;32 bit read from HARDWARE-VIRTUAL-ADDRESS space.
+                                ;actual ucode is identical to that for %XBUS-READ on CADR.
+(DEFMIC %IO-SPACE-WRITE 766 (IO-ADDR WORD) T) ;actual microcode is identical to %XBUS-WRITE
+                                ;on CADR.
+(DEFMIC %NUBUS-PHYSICAL-ADDRESS 767 (APPARENT-PHYSICAL-PAGE) T)
+                                ;arg is "apparent" physical page number (gotten, for example,
+                                ;by shifting value from %PHYSICAL-ADDRESS).
+                                ;value is 22 bit NUBUS page number.
+
+(DEFMIC VECTORP 770 (OBJECT) T)
+(DEFMIC SIMPLE-VECTOR-P 771 (OBJECT) T)
+(DEFMIC SIMPLE-ARRAY-P 772 (OBJECT) T)
+(DEFMIC SIMPLE-STRING-P 773 (OBJECT) T)
+(DEFMIC BIT-VECTOR-P 774 (OBJECT) T)
+(DEFMIC SIMPLE-BIT-VECTOR-P 775 (OBJECT) T)
+(DEFMIC NAMED-STRUCTURE-P 776 (OBJECT) T)
+(DEFMIC NAMED-STRUCTURE-SYMBOL 776 (OBJECT) T)
+(DEFMIC TYPEP-STRUCTURE-OR-FLAVOR 777 (OBJECT TYPE) T)
+(DEFMIC FIXNUMP 1000 (OBJECT) T)
+(DEFMIC SMALL-FLOATP 1001 (OBJECT) T)
+(DEFMIC CHARACTERP 1002 (OBJECT) T)
+
+(DEFMIC CAR-SAFE 1003 (OBJECT) T)
+(DEFMIC CDR-SAFE 1004 (OBJECT) T)
+(DEFMIC CADR-SAFE 1005 (OBJECT) T)
+(DEFMIC CDDR-SAFE 1006 (OBJECT) T)
+(DEFMIC CDDDDR-SAFE 1007 (OBJECT) T)
+(DEFMIC NTHCDR-SAFE 1010 (N OBJECT) T)
+(DEFMIC NTH-SAFE 1011 (N OBJECT) T)
+(DEFMIC CARCDR 1012 (LIST) NIL)
+(DEFMIC ENDP 1013 (X) T)
+(DEFMIC CONSP-OR-POP 1014 (OBJECT) NIL)
+(DEFMIC INDICATORS-VALUE 1015 (OBJECT) NIL T)
+(DEFMIC %POINTER-TIMES 1016 (POINTER1 POINTER2) T)
+(DEFMIC COMMON-LISP-AREF 1017 (ARRAY &REST INDICES) T T)
+(DEFMIC COMMON-LISP-AR-1 1020 (ARRAY INDEX) T)
+(DEFMIC COMMON-LISP-AR-1-FORCE 1021 (ARRAY INDEX) T)
+(DEFMIC INTERNAL-GET-3 1022 (SYMBOL PROPERTY DEFAULT) NIL T)
+
+(DEFMIC CHAR-INT 1023 (CHAR) T)
+(DEFMIC INT-CHAR 1024 (INTEGER) T)
+(DEFMIC ALPHA-CHAR-P 1025 (CHAR) T)
+(DEFMIC UPPER-CASE-P 1026 (CHAR) T)
+(DEFMIC ALPHANUMERICP 1027 (CHAR) T)
+(DEFMIC PACKAGE-CELL-LOCATION 1030 (SYMBOL) T)
+(DEFMIC MEMBER-EQL 1031 (ELT LIST) T)
+(DEFMIC RATIONALP 1032 (OBJECT) T)
+(DEFMIC RATIOP 1033 (OBJECT) T)
+(DEFMIC COMPLEXP 1034 (OBJECT) T)
+(DEFMIC %RATIO-CONS 1035 (NUMERATOR DENOMINATOR) T)
+(DEFMIC %COMPLEX-CONS 1036 (REALPART IMAGPART) T)
+(DEFMIC BOTH-CASE-P 1037 (CHAR) T)
+(DEFMIC CHAR-UPCASE 1040 (CHAR) T)
+(DEFMIC CHAR-DOWNCASE 1041 (CHAR) T)
+(DEFMIC LOWER-CASE-P 1042 (CHAR) T)
+
+(defmic %micro-paging 1100 (arg) t)
+(defmic %processor-switches 1101 (arg) t)
+(defmic %cold-boot 1102 () t)
+
+(defmic %test-multiply-return-low 1103 (n1 n2) t)       ;these changed from sys 94 defs.
+(defmic %test-multiply-return-high 1104 (n1 n2) t)
+(defmic %mult-16 1105 (n1 n2) t)
+(defmic %mult-32 1106 (n1 n2) t)
+
+(defmic %quart-transfer 1107 (quart-flags array n-blocks) t)
+;; quart-flags bit0 0-> read, 1-> write. value is number blocks transferred
+(defmic %nubus-read-8 1110 (nubus-slot slot-byte-adr) t)
+;; SLOT is really the high 8 bits. The "top F" can be supplied via slot, avoiding bignums.
+(defmic %nubus-write-8 1111 (nubus-slot slot-byte-adr word) t)
+
+(defmic %lambda-rg-quad-slot 1112 () t)
+(defmic %lambda-tv-quad-slot 1113 () t)
+(defmic %lambda-sdu-quad-slot 1116 () t)
+
+(defmic %lambda-sys-conf-virtual-to-phys 1114 (virtual-address) t)
+(defmic %lambda-sys-conf-phys-to-virtual 1115 (physical-address) t)
+(defmic %lambda-sys-conf-virtual-adr 1117 () t)
+
+;; Gets mouse button state directly out of a-memory.
+(defmic %lambda-mouse-buttons 1120 () t)
+
+(defmic member 1121 (target list) t)
+(defmic (member-equal . member) 1121 (target list) t)
+(defmic assoc 1122 (target list) t)
+(defmic (assoc-equal . assoc) 1122 (target list) t)
+
+;; Don't bind %meter-micro-enables anymore... use this instead.
+(defmic %set-meter-enables 1123 (n) t)
+
+(defmic invalidate-cons-caches 1124 () nil)
+
+(defmic %internal-list 1125 (&rest lists) nil t)
+(defmic %internal-list* 1126 (&rest lists) nil t)
+(defmic %internal-list-in-area 1127 (&rest lists) nil t)
+(defmic %internal-list*-in-area 1130 (&rest lists) nil t)
+(defmic %internal-mapc 1131 (f l) nil t)
+(defmic %internal-mapcar 1132 (f l) nil t)
+(defmic %internal-append-2 1133 (a b) t)
+(defmic %internal-nconc-2 1134 (a b) t)
+
+;; Fast FEFs bypass the old trap-on-next-call-within-this-stack-group mechanism.
+;; Call this for BREAKON.
+(defmic %trap-on-next-call 1135 () t)
+
+(defmic %blt-boole 1136 (ALU FROM-ADDRESS TO-ADDRESS COUNT INCREMENT) T)
+(defmic %findcore-hexadec 1137 (hexadec) T)  ;find core with specified 4 bits of physical page num
+
+(defmic %sxhash-substring 1140 (string mask start end) t)
+
+(defmic %stat-counter 1141 (op-code value) t)
+
+(defmic %internal-delq 1142 (item list times) t)
+
+(defmic %make-structure 1143 (pointer-tag header-tag header second-word area total boxed) t)
+(defmic %make-array 1144 (header-word index-length leader-length area total-size boxed-size) t)
+
+(defmic %pointer-info 1145 (address) nil)  ;leaves one value on stack plus returns one!
+                        ;if invalid-region,   NIL on stack,                  returns 0
+                        ;if to unboxed,       obj origin as fixnum on stack, returns 1
+                        ;if to boxed,         obj origin as fixnum on stack, returns 2
+
+(defmic %pointer-lessp 1146 (p1 p2) t)
+(defmic %pointer-greaterp 1147 (p1 p2) t)
+
+(defmic %io-cmd-run 1150 (io-cmd) t)
+
+(defmic %advance-free-pointer-and-wipe 1151 (region data-type pointer nwords) t)
+        ;used to initialize MOBY areas.
+
+(defmic %string-translate 1152
+  (source source-start destination destination-start characters table)
+  nil)
+
+(defmic %multibus-blt-16 1153 (alu starting-vadr starting-phase width-in-16s rows skip-in-16s multibus-adr) t)
+(defmic %regular-pdl-index 1154 () ())
+
+(defmic %store-conditional-double 1155 (pointer old new-pointer new) t)
+
+(defmic %p-store-data-type-and-pointer 1156 (address data-type pointer-to-store) t)
+(defmic %nubus-read-safe 1157 (NUBUS-SLOT SLOT-BYTE-ADR) T)
+(defmic %nubus-read-8-safe 1160 (NUBUS-SLOT SLOT-BYTE-ADR) T)
+(defmic %nubus-write-safe 1161 (NUBUS-SLOT SLOT-BYTE-ADR WORD) T)
+(defmic %nubus-write-8-safe 1162 (NUBUS-SLOT SLOT-BYTE-ADR WORD) T)
+
+(defmic %set-mouse-arrays 1163 (cursor-pattern buttons-buffer x-scale y-scale) t)
+
+(defmic %map-device-quantum 1164 (quantum-number nubus-page nubus-words l2-control) t)
+
+(DEFPROP CALL 0 QLVAL)
+
+(DEFPROP CALL0 1000 QLVAL)
+
+(DEFPROP MOVE 2000 QLVAL)
+
+(DEFPROP CAR 3000 QLVAL)
+
+(DEFPROP CDR 4000 QLVAL)
+
+(DEFPROP CADR 5000 QLVAL)
+
+(DEFPROP CDDR 6000 QLVAL)
+
+(DEFPROP CDAR 7000 QLVAL)
+
+(DEFPROP CAAR 10000 QLVAL)
+
+;ND1
+(DEFPROP MAKE-CLOSURE-TOP-LEVEL 11000 QLVAL)
+(DEFPROP *PLUS 31000 QLVAL)                     ;These used to be called +, -, etc,
+(DEFPROP *DIF 51000 QLVAL)                      ; but those are now n-arg, while these seven
+(DEFPROP *TIMES 71000 QLVAL)                    ; are two-arguments-only (instructions).
+(DEFPROP *QUO 111000 QLVAL)
+(DEFPROP *LOGAND 131000 QLVAL)
+(DEFPROP *LOGXOR 151000 QLVAL)
+(DEFPROP *LOGIOR 171000 QLVAL)
+
+;ND2
+(DEFPROP INTERNAL-= 12000 QLVAL)
+(DEFPROP INTERNAL-> 32000 QLVAL)
+(DEFPROP INTERNAL-< 52000 QLVAL)
+(DEFPROP EQ 72000 QLVAL)
+;;; SETE CDR 112000
+;;; SETE CDDR 132000
+;;; SETE 1+ 152000
+;;; SETE 1- 172000
+
+;ND3
+;;; 13000 unused, used to be BIND.
+(DEFPROP BINDNIL 33000 QLVAL)
+(DEFPROP BINDPOP 53000 QLVAL)
+(DEFPROP SETNIL 73000 QLVAL)
+(DEFPROP SETZERO 113000 QLVAL)
+(DEFPROP PUSH-E 133000 QLVAL)
+(DEFPROP MOVEM 153000 QLVAL)
+(DEFPROP POP 173000 QLVAL)
+
+;BRANCH is 14
+
+;MISC
+(DEFPROP MISC 15000 QLVAL)
+(DEFPROP MISC1 34000 QLVAL)                     ;MISC code 1000 turns into insn 35000,
+                                                ; by adding 34000
+
+;; ND4
+(DEFPROP CLOSURE-DISCONNECT 16000 QLVAL)
+(DEFPROP CLOSURE-UNSHARE 36000 QLVAL)
+(DEFPROP MAKE-CLOSURE 56000 QLVAL)
+(DEFPROP PUSH-NUMBER 76000 QLVAL)
+(DEFPROP CLOSURE-DISCONNECT-FIRST 116000 QLVAL)
+(DEFPROP PUSH-CDR-IF-CAR-EQUAL 136000 QLVAL)
+(DEFPROP PUSH-CDR-STORE-CAR-IF-CONS 156000 QLVAL)
+
+;; AREFI
+(DEFPROP AREFI 20000 QLVAL)
+(DEFPROP AREFI-LEADER 20100 QLVAL)
+(DEFPROP AREFI-INSTANCE 20200 QLVAL)
+(DEFPROP AREFI-COMMON-LISP 20300 QLVAL)
+(DEFPROP AREFI-SET 20400 QLVAL)
+(DEFPROP AREFI-SET-LEADER 20500 QLVAL)
+(DEFPROP AREFI-SET-INSTANCE 20600 QLVAL)
+
+
+;;; - MISCELLANEOUS FUNCTIONS -  these all obsolete.
+(DEFPROP ASETI 100 QLVAL)
+(DEFPROP ASETI-LEADER 120 QLVAL)
+(DEFPROP ASETI-INSTANCE 140 QLVAL)
+
+(DEFPROP UNBIND 200 QLVAL)
+(DEFPROP POPPDL 220 QLVAL)
+;The rest of these come from the DEFMIC table above.
+
+;QIND5 group (only 4 opcodes here)
+(defprop 1+-to-pdl 21000 qlval)
+(defprop 1--to-pdl 61000 qlval)
+(defprop single-address-zerop 121000 qlval)
+
+;; QID1 destination group.
+(defprop %reference-simple-q-vector 22000 qlval)   ;array pointer on stack, index from inst.
+(defprop %set-simple-q-vector 22100 qlval)   ;data to store in -1(pp), array pointer in 0(pp)
+
+;;;Source address types
+
+(DEFPROP FEF 0 QLVAL)
+
+(DEFPROP CONST-PAGE 400 QLVAL)
+
+(DEFPROP LOCAL 500 QLVAL)
+
+(DEFPROP ARG 600 QLVAL)
+
+;OBSOLETE NAME
+(DEFPROP LPDL 700 QLVAL)
+
+;Following word holds the actual source address
+(DEFPROP EXTEND 776 QLVAL)
+
+(DEFPROP PDL-POP 777 QLVAL)
+
+;DESTINATIONS
+(DEFCONST %%MACRO-DEST-FIELD 1602)
+
+(DEFPROP D-IGNORE 0 QLVAL)
+
+(DEFPROP D-INDS 0 QLVAL)
+
+(DEFPROP D-PDL 40000 QLVAL)
+(DEFPROP D-NEXT 40000 QLVAL)
+
+(DEFPROP D-RETURN 100000 QLVAL)
+
+(DEFPROP D-LAST 140000 QLVAL)
+
+
+;args
+;  call:
+;   args 1-14
+;   any additional.
+;   optional:
+;  temps:
+;  values:
+
+;refs
+;  function     (internal callable)
+;  value-cells
+;  lexical refs
+;  upward closures.
+
+;internal call:  no extra stuff at all!
+
+;special frame registers:  valid in full call.
+;  15 <in active frame:>   specpdl block pointer (or nil if none would be nice..)
+;  16  number args  plus ADI flag.
+;  17  funcall pointer.   equivalent to LP-FEF on lambda.
+

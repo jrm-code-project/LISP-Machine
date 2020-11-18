@@ -1,0 +1,18 @@
+@comment -*- Mode:Text; Package:USER; Readtable:CL -*-
+
+Some of @l(FORMAT)'s directives have been fixed to work as advertised:
+
+@itemize @bullet
+@item The @l[~\time\] and @l[~\datime\] directives now behave identically;
+
+@item The @l[~\scientific\] directive now prints out "pico", "femto", and
+"atto" when supplied with arguments of the appropriate magnitudes;
+
+@item The sequence @l[~:@@P] now backs up one argument in the control
+string's argument sequence;
+
+@item The sequence @l[~0&] no longer outputs a fresh-line.
+
+@end(itemize)
+
+

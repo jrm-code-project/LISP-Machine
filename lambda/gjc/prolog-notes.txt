@@ -1,0 +1,75 @@
+;;; -*- Mode:LISP; Fonts:(METSI); Base:10 -*-
+
+Some comments about LM-PROLOG (... vs other prologs)
+
+ FEATURES THAT SHOULD BE STRESSED.
+ LM-Prolog is reasonably fast (14K LIPS on a 200ns
+ Lambda, 25K LIPS microcompiled), but more importantly,it
+ has various enhancing features, such as:
+
+*       Coroutining facilities, so that the execution is driven
+        by the instantiation of variables rather by sequential
+        flow of control.
+        This feature is essential for the implementation of
+        *sound* negation and
+        inequality (lacking in most Prologs), which in turn
+        are critical for
+        the expressive power of Prolog.  It is essential for
+        being able to handle potentially infinite data structures
+       (the list of all primes etc.)
+        The feature is also needed for a logical implementation
+        of graphics.
+        It is generally useful for a wide range of programming
+        techniques
+        (`constraints', `spontaneous computations', `perpetual
+        processes', etc.)
+        Its implementation is very efficient.
+
+*       A `lazy' and an `eager' way of finding all solutions to
+        a query are provided as alternatives to the coroutining
+        facilities.
+
+*       Multiple databases (worlds), so that parts of the
+        knowledge base can be
+        dynamically turned off and on by programs or by
+        the user.  Good for
+        `knowledge engineering', hypothetical reasoning, trace
+        packages, etc.
+
+*       User-controllable indexing of predicates.
+        Very important in database-like applications.
+        Predicates can be indexed on zero or more arguments or
+        their subparts.
+        Given a query to an indexed predicate, each index
+        yields a set of hits.
+        Then only the intersection of these hits is actually tried.
+
+*       Prolog's control and data structures are implemented in
+        terms of Lisp's,
+        which makes interfacing between the languages have
+       no overhead.
+
+*       Debugging facilities includes a trace package in the
+        flavor of DEC-10 Prolog
+        which can trace selective predicates with various
+        options, or single step
+        an execution or parts of it.
+
+*       Miscellaneous features:
+        Predicates can have variable number of arguments.
+        Prevention or full handling of cyclic structures can
+        be turned on.
+        The unifier and the compiler are user extendable.
+        A large library of built-in predicates and demo programs
+        is included.
+        The language Concurrent Prolog is included as a subsystem.
+
+*       DEC-10 syntax is not supported but a translating program
+       (written in DEC-10 Prolog) is included, as well as a
+       library of compatibility predicates.
+
+
+Wish List Items:
+
+* An explanation feature of the proofs.
+

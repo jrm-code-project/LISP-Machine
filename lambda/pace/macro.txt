@@ -1,0 +1,338 @@
+;;; -*- Mode:LISP; Package:LAMBDA; Base:8 -*-
+
+M-FEF means "The register (available as a functional source & dest) that points to
+             the current function."
+
+Addressing modes:
+
+  9 bits, 3 bits of base register, 6 bits of displacement
+
+  base registers:
+    0 FEF
+    1 FEF+64.
+    2 FEF+128.
+    3 FEF+192.
+    4 CONSTANT
+    5 LOCAL
+    6 ARG
+    7 PDL-POP
+
+Effective address computation:
+
+FEF
+    VMA-START-READ <- M-FEF + displacement
+    Follow "all" invisible pointers leaving VMA pointing to final cell, and MD with its contents
+
+FEF+64.
+    VMA-START-READ <- M-FEF + 64. + displacement
+
+FEF+128. same
+FEF+192. same
+
+CONSTANT
+    VMA-START-READ <- A-V-CONSTANTS-PAGE + displacement
+    no invisible pointer following needed
+
+LOCAL
+    PDL-INDEX <- A-LOCALP + displacement
+    EA is PDL-INDEX, value is PDL-INDEX-INDIRECT
+
+ARG
+    PDL-INDEX <- M-AP + displacement + 1
+    EA is PDL-INDEX, value is PDL-INDEX-INDIRECT
+
+PDL-POP
+    displacement is unused
+    can't be used as a destination, so EA is meaningless
+    value is top of PDL
+    PDL is popped
+
+
+Destinations:
+D-IGNORE
+  for side effects only
+D-PDL
+  push on stack
+D-LAST
+  activate a function call
+D-RETURN
+  return this value from this function
+
+The main instructions are written 4 times, each customized to the particualr case.
+MISC instructions arrange to do their work, the return to routines to store into
+the destination.
+
+class I, with destination
+ CALL
+ CALL0
+  Address is usually FEF, destination will be used much later
+
+Simple data movement
+ MOVE
+ CAR
+ CDR
+ CADR
+ CDDR
+ CDAR
+ CAAR
+  All move from address to destination.  All combinations of address and destination are
+enumerated.
+
+Class II
+
+Simple binary ops
+ +
+ -
+ *
+ //
+ LOGAND
+ LOGXOR
+ LOGIOR
+ =
+ >
+ <
+ EQ
+
+E.g.  Top-of-stack <- Top-of-stack + (EA)
+Stack level is not changed.  EA may be in stack (ARG, LOCAL), or in memory.
+
+"Loop steppers"
+ SETE-CDR
+ SETE-CDDR
+ SETE-1+
+ SETE-1-
+Read the EA, do the op, write the EA.
+
+ BIND-NIL  - Bind the EA to NIL,  stack is unused
+ BIND-POP  - Bind the EA to value on top of stack, pop stack
+ SET-NIL   - Set EA to NIL
+ SET-ZERO  - Set EA to 0
+ PUSH-E    - Push virtual address of EA on stack
+ MOVEM     - Move value on top of stack to EA, stack height unchanged
+ POP       - POP stack into EA
+
+
+Branch conditional on result of last instruction.  We don't keep condition bits.
+Instead, the value of the last instruction is always stored in M-T (a random M register),
+and it is tested as necessary during a branch instruction.
+Part of the branch instruction is a 9 bit two's complement displacement.  0 = branch
+to the next instruction (where you would go if this were a normal instruction.)
+All ones (which would mean jump to the jump instruction itself) means this is a long
+branch, and the next word contains the branch offset as a 16 bit two's complement number.
+ BR
+ BR-NIL
+ BR-NOT-NIL
+ BR-NIL-POP     branch if NIL, otherwise, POP stack (discard the result)
+ BR-NOT-NIL-POP same
+ BR-ATOM        jump if data type of M-T is not DTP-LIST
+ BR-NOT-ATOM    similar
+
+MISC
+Misc instructions have a destination, plus a 10. bit misc number.  (actually, the
+10. bits are split into 9 bits and 1 bit in the current instructions)
+If the dest is not D-IGNORE, we push the micro-address of an exit routine onto
+the microstack, then in any case, jump to MACRO-IR-DECODE[misc-number].
+Some misc instructions pop the micro-control-stack if the destination is not
+D-IGNORE so they can use those 2 bits for other purposes.
+
+Conditional stack manipulations
+ PUSH-CDR-IF-CAR-EQUAL          If the top of stack is a CONS, and its car is EQ to (EA),
+                                then replace the top-of-stack with its cdr, and put T in M-T.
+                                Otherwise just put NIL in M-T
+
+ PUSH-CDR-STORE-CAR-IF-CONS     If the top-of-stack is a CONS, store its car in the EA,
+                                and replace the top-of-stack with its cdr, and put T in M-T.
+                                Otherwise just put NIL in M-T
+
+
+Stack closure stuff
+ STACK-CLOSURE-DISCONNECT
+ STACK-CLOSURE-UNSHARE
+ MAKE-STACK-CLOSURE
+ STACK-CLOSURE-DISCONNECT-FIRST
+Do random stack closure stuff.  The whole REG/DISPLACEMENT field is used for immediate data.
+
+ PUSH-NUMBER
+Push the whole 9 bit REG/DISPLACEMENT file on the stack as a positive fixnum.
+
+Below "overlap" with Class I instructions, so are decoded strangely:
+
+AREF/IREF IMMEDIATE
+These use the normal meaning for destination, but REG/DISPLACEMENT field is immediate data.
+ AR-1
+ ARRAY-LEADER
+ %INSTANCE-REF
+ COMMON-LISP-AR-1
+ SET-AR-1
+ SET-ARRAY-LEADER
+ SET-%INSTANCE-REF
+
+
+
+These three use one class I "overlap" opcode, and use the dest field as an opcode.
+All read the EA, operate, then store the EA
+ 1+
+ 1-
+ ZEROP
+
+
+;---------------------
+  details...
+
+
+  (DEF-BIT-FIELD-IN-REG MACRO-IR-DEST 2 16 MACRO-IR)
+  (DEF-BIT-FIELD-IN-REG MACRO-IR-SUB-OPCODE 3 15 MACRO-IR)
+  (DEF-BIT-FIELD-IN-REG MACRO-IR-OP 5 11 MACRO-IR)
+  (DEF-BIT-FIELD-IN-REG MACRO-IR-REGISTER 3 6 MACRO-IR)
+  (def-bit-field-in-reg macro-ir-2-bit-sub-opcode 2 16 macro-ir)
+
+(defvar macro-ir-dest (byte 2 16))
+(defvar macro-ir-sub-opcode (byte 3 15))
+(defvar macro-ir-op (byte 5 11))
+(defvar macro-ir-register (byte 3 6))
+(defvar macro-ir-2-bit-sub-opcode (byte 2 16))
+
+Class I, destination, opcode, base reg, displacement
+
+  17   16   15   14   13   12   11   10    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|   dest  |         opcode         |   base-reg   |         displacement        |
+ MACRO-IR-DEST   MACRO-IR-OP         MACRO-IR-REGISTER
+ MACRO-IR-2-BIT-SUB-OPCODE
+
+ 0 ignore      0 CALL
+ 1 PUSH        1 CALL0
+ 2 RETURN      2 MOVE
+ 3 LAST        3 CAR
+               4 CDR
+               5 CADR
+               6 CDDR
+               7 CDAR
+              10 CAAR
+
+Class II, no destination, opcode, base reg, displacement
+
+  17   16   15   14   13   12   11   10    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|  sub-opcode  |       opcode      |   base-reg   |         displacement        |
+ MACRO-IR-SUB-OPCODE
+
+Class III, branch
+
+  17   16   15   14   13   12   11   10    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|  condition   |  opcode for jump  |               branch offset                |
+
+Class IV, misc
+
+  17   16   15   14   13   12   11   10    7    6    5    4    3    2    1    0
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |
++----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+----+
+|  dest   |  opcode for MISC[1,2]  |                 misc number                |
+
+
+Examine (byte 5 11)
+
+ class I, with destination
+  0 CALL
+  1 CALL0
+  2 MOVE
+  3 CAR
+  4 CDR
+  5 CADR
+  6 CDDR
+  7 CDAR
+ 10 CAAR
+
+ 11, 31 Non-destination 1  (QIND1)
+    examine sub-opcode (byte 3 15)
+    0 ND1-UNUSED
+    1 +
+    2 -
+    3 *
+    4 //
+    5 LOGAND
+    6 LOGXOR
+    7 LOGIOR
+
+ 12, 32 non-destionation 2 (QIND2)
+   (byte 3 15)
+   0 =
+   1 >
+   2 <
+   3 EQ
+   4 SETE-CDR
+   5 SETE-CDDR
+   6 SETE-1+
+   7 SETE-1-
+
+ 13, 33 non-destination 3 (QIND3)
+   0 BIND-OBSOLETE?
+   1 BIND-NIL
+   2 BIND-POP
+   3 SET-NIL
+   4 SET-ZERO
+   5 PUSH-E
+   6 MOVEM
+   7 POP
+
+ 14, 34 branch
+   0 BR
+   1 BR-NIL
+   2 BR-NOT-NIL
+   3 BR-NIL-POP
+   4 BR-NOT-NIL-POP
+   5 BR-ATOM
+   6 BR-NOT-ATOM
+   7 BR-ILL-7
+
+ 15, 35 MISC1
+   destination, plus 9 bit misc number
+
+ 16, 36 non-destination 4 (QIND4)
+   only 5 and 6 use normal meaning of register/displacement field, rest use it as immediate data
+   0 STACK-CLOSURE-DISCONNECT
+   1 STACK-CLOSURE-UNSHARE
+   2 MAKE-STACK-CLOSURE
+   3 PUSH-NUMBER
+   4 STACK-CLOSURE-DISCONNECT-FIRST
+   5 PUSH-CDR-IF-CAR-EQUAL
+   6 PUSH-CDR-STORE-CAR-IF-CONS
+   7 error
+
+ 17, 37 unused
+
+ 20, aref/iref immediate
+    has destination, but uses reg/displacement as immediate data
+
+   0 AR-1
+   1 ARRAY-LEADER
+   2 %INSTANCE-REF
+   3 COMMON-LISP-AR-1
+   4 SET-AR-1
+   5 SET-ARRAY-LEADER
+   6 SET-%INSTANCE-REF
+   7 unused
+
+
+ 21 QIND5
+   destination used as opcode
+   0 1+
+   1 1-
+   2 ZEROP
+   3 error
+
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 30

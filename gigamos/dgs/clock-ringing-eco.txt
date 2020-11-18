@@ -1,0 +1,24 @@
+Ron Everett of Silicart visited on November 7th and 8th, 1988 to consult
+with me on the prospects for curing the K processor boards' tendency to
+die mysteriously at random places in the system code.  For the most part,
+he spent his time examining clock signals for "noise" and signs of
+ringing, and found several signals with undershoots of in excess of 2 V.
+
+If I may attempt to paraphrase his recommendation, it was that the
+undershoot observed was excessive, and that such undershoot might be a
+cause of erratic behavior in the K processor board sets, and that we
+should make an attempt to reduce the ringing on critical signals through
+the installation of terminating resistors on one or two dozen of the
+worst-ringing clocks (or other critical signals), with the expectation that
+this will produce an improvement in the behavior of the boards.
+
+I substantially agree with this recommendation.  I have spent several weeks
+now in attempting to establish a pattern to the observed erroneous behavior
+of several of these board sets which implies a common failure mechanism or
+failing structure in the hardware.  I have been unable to discern any such
+pattern, because: (a) the state of the system software and debugging tools
+is such that a precise description of the circumstances of a particular
+failure case is "impossible," or "requires too much work;" (b) given our
+inability to precisely describe any particular failure case, it is impossible
+to tell if a particular set of circumstances recurs in a subsequent
+failure,

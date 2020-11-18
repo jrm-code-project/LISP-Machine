@@ -1,0 +1,108 @@
+It has come to light that there is a critical timing path violation in
+the K processor design that may possibly introduce errors when reading
+values from some functional sources using an instruction which is not
+in cache.
+
+The failure was first noticed in conjunction with the cold boot function
+which causes a debugger trap by performing a NuBus write to the interrupt
+register of the K processor on the NuBus.  In determining the address of
+the interrupt register (and thus the destination of the write), the function
+combines the slot number of the K memory board with an offset associated
+with the interrupt register.  The function reads the slot number from a
+field of the Memory Status register, but in some cases the function got
+an incorrect slot number from the status register.
+
+Analysis of the problem revealed that the data from the Memory Status
+register had not stabilized on the MFI bus at the time of the strobing
+clock edge when the instruction reading the register had to be fetched
+from DRAM, although it would work if the instruction had been in cache.
+
+The reason for the difference is that the MFI bus is commandeered during
+cache misses to pass instruction data between the memory system and the
+cache as the cache line is filled.  Once the cache line has been filled,
+the MFI bus is re-deployed as a data path to the ALU input registers.
+Propagation delays associated with the re-deployment of the MFI bus as
+an ALU source added to propagation delays between the Memory Status
+register and the ALU exceed (in the worst case) the clock cycle time of
+80 nS.  More specifically, the cache-line-fill FSM asserts JAMHIT at the
+conclusion of a cache line fill, which negates ICACHE-LOAD, which negates
+DISABLE, which asserts R-MEMSTATUS and MFIO-IN, which enable the Memory
+Status data through the MFIO drivers, then through the MFIO->MFI buffers,
+then through the MFI multiplexer, and finally setup on the left and right
+ALU operand registers.  The numbers follow:
+
+         Event                               Device         Delay
+                                                          typ   max
+    clock -> JAMHIT asserted                 16R6B         12    15 nS
+          -> WMODE negated                   F74 S -> /Q    7    11
+          -> ICACHE-LOAD negated             AS1000         3     5
+          -> DISABLE negated                 16L8B         12    15
+          -> R-MEMSTATUS asserted            F538 E -> O   11    17
+          -> MFIO valid                      LS244         20    30
+          -> MFI valid                       F244           5     8
+          -> MFI-MUX outputs valid           F157           5     7
+          -> setup time on L/R registers     F399           3     3
+                                                          ----  ----
+                                                           78   111  nS
+
+The immediate problem was solved by extending the clock period from 80 nS
+to 91 nS by substituting a 44 MHz oscillator for the 50 MHz oscillator
+called for in the design.  However this adjustment still does not
+accommodate worst-case conditions, and the basic propagation path applies
+as well to other functional sources within the machine -- the Trap
+register, the Statistics counter and microsecond clock, the Memory Control
+Register, the GC and MAP memories, and the VMA and MD.
+
+The largest single component of the cited delay chain is contributed by
+the LS244 driver component, which for other reasons as well was an
+unfortunate choice.  By substituting a 74F244 for these devices, the
+probability of trouble from this path would be all but eliminated.
+
+Among the remaining functional sources, the VMA, the Trap Register,
+and the Memory Control register also use LS-series drivers in virtually
+identical propagation paths.  RG has proposed that all these devices be
+replaced with corresponding FAST devices, in order that no worst-case
+critical-path violations of this sort should remain in the design.
+
+The affected devices include:
+
+    Memory Status Register          Trap Register
+        H31  74LS244                    H24  74LS534
+        I31  74LS244                    H25  74LS534
+        J31  74LS244                    H26  74LS374
+                                        H27  74LS374
+
+    Memory Control Register         VMA Register
+        H30  74LS244                    D23  74LS373
+        I30  74LS244                    E23  74LS373
+        J30  74LS244                    F23  74LS373
+        K30  74LS244                    G23  74LS373
+ 
+Rework to K Memory Board   - D. G. Schumacker, 2 November, 1988
+
+
+The following rework is intended to reduce the access time for reading
+the Memory Status register, the Memory Control register, the Trap register
+and the VMA register.
+
+    I. Remove the following ICs:
+
+        H30  74LS244                    D23  74LS373
+        I30  74LS244                    E23  74LS373
+        J30  74LS244                    F23  74LS373
+        K30  74LS244                    G23  74LS373
+        H31  74LS244                    H24  74LS534
+        I31  74LS244                    H25  74LS534
+        J31  74LS244                    H26  74LS374
+                                        H27  74LS374
+
+    II. Install the following ICs in the locations indicated:
+
+        H30  74F244                    D23  74F373
+        I30  74F244                    E23  74F373
+        J30  74F244                    F23  74F373
+        K30  74F244                    G23  74F373
+        H31  74F244                    H24  74F534
+        I31  74F244                    H25  74F534
+        J31  74F244                    H26  74F374
+                                       H27  74F374

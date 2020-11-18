@@ -1,0 +1,23 @@
+;;; -*- Mode:LISP; Package:LAMBDA -*-
+
+;;; INIT FILE FOR LAM HACKING COLD LOADS.
+
+(DEFFLAVOR SENSITIVE-LISTENER
+         ()
+         (SENSITIVE-LISP-LISTENER TV:LISP-LISTENER)
+  )
+
+
+(TV:ADD-SYSTEM-KEY #\D 'SENSITIVE-LISTENER "SENSITIVE LISP LISTENER")
+
+(COMPILE-FLAVOR-METHODS SENSITIVE-LISTENER)
+
+(DEFUN USER:LAMGO ()
+  (PKG-GOTO'LAM)
+  (SETQ BASE 8. IBASE 8.)
+  (SIGNAL EH:ABORT-OBJECT))
+
+(defsystem cold-make
+  (:patchable "dj:gjcx;" "cold-make"))
+
+(make-system 'cold-make :noconfirm)

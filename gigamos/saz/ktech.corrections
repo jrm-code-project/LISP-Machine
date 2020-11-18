@@ -1,0 +1,27 @@
+From wkf@GSI-CAM Thu Aug 11 15:15:03 1988
+Received: from GSI-JACK-FLANDERS (lmi-jack-flanders.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA25613; Thu, 11 Aug 88 15:14:55 edt
+Date: Thursday, 11 August 1988, 15:14-EDT
+From: William K. Foster <wkf@GSI-CAM>
+Subject: K tecnical manual
+To: saz@GSI-CAM
+Message-Id: <[GSI-JACK-FLANDERS].11-Aug-88 15:14:34.wkf>
+
+
+Section 20.7.4.2 Fill pointer
+
+If present, it is the first leader word.
+
+Section 20.7.4.4 Leaders
+
+The offset from the main header to the number-of-leader-words word is in the leader-offset field.
+
+Section 20.8 Compiled Functions
+
+In the diagram:
+
+        p + 6 -> Data Type  Compiled Function Code Pointer (CP)
+
+
+--wkf
+
+

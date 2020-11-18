@@ -1,0 +1,22 @@
+;;; -*- Mode:LISP; Package:USER; Base:10; Readtable:CL -*-
+
+(defsystem new-interpreter
+  (:name "NEW-INTERPRETER")
+  (:pathname-default "dj:rauen;")
+  (:module packages    "interpreter-packages")
+  (:module k-lisp      "jb:k;k-lisp")
+  (:module imports     "interpreter-imports")
+  (:module gobble      "gobble")
+  (:module interpreter "interpreter")
+  (:module macros      "interpreter-macros")
+  (:module hooks       "interpreter-hooks")
+  (:module parsers     "jb:k;lambda-list")
+  (:compile-load packages)
+  (:compile-load k-lisp)
+  (:compile-load imports)
+  (:compile-load gobble      (:fasload packages k-lisp imports))
+  (:compile-load parsers     (:fasload packages k-lisp imports))
+  (:compile-load interpreter (:fasload packages k-lisp imports))
+  (:compile-load macros      (:fasload packages k-lisp imports))
+  (:compile-load hooks       (:fasload packages k-lisp imports))
+  )

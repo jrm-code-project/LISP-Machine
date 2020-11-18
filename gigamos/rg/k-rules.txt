@@ -1,0 +1,62 @@
+ LMI Falcon Processor Special Cases for Coding     KHH  12/17/86
+----------------------------------------------------------------------------
+
+1.      Functional Ports - The effect of the pipeline becomes significant
+                when using functional I/O. To guarantee that nothing will
+                get trampled on the MFIO bus, you must guarantee that
+                the MFIO bus is never a source and destination at the same
+                time. The case where this happens is as follows:
+
+                        (alu (dest_functional MFIO))
+                        (NOP)
+                        (alu (rsource_functional MFIO))
+
+                If the data is read on the instruction after the dest, no
+                conflict will occur, but the write will not have occured
+                yet. By the third instruction after the write, the register
+                will be updated and can be read safely. The functional
+                registers on the MFIO bus basically consist of all the
+                functional ports except the following:
+                        VMA, MD-R, MD-W, NOP, RDEST, TRAPOFF, NO-OVF
+                These ports will not conflict with the MFIO ever.
+
+2.      VMA I/O - The VMA timing varies somewhat from other functional
+                I/O. It is implemented using transparent latches so the
+                data being written to it can flow through and start being
+                used on the same cycle. This is done to speed up memory.
+                Because of this the VMA can be read on the second instruction
+                after a write to it.
+
+                Early VMA loads will cause the VMA to be loaded directly
+                from the right source register one tick earlier than normal.
+                When this is done the previous instruction must NEVER use
+                any functional destination other than NOP, NO-OVF, or RDEST.
+
+                If a datatype error occurs during a VMA start read early, the
+                VMA will still be loaded, but the memory read will be aborted.
+                This effectively changes the dest to just VMA early. This is to
+                prevent reading something that is garbage because the type
+                hasn't been checked yet.
+
+
+3.      Use of the TRAP-PC and TRAP-PC+1 functional sources for funny
+        subroutine calling. The TRAP-PC+1 register if read at any time
+        except the trap entry sequence wil contain the PC of the instruction
+        doing the read. The TRAP-PC register is dangerous since it will either
+        contain the address of the previous instruction, or the address of the
+        end of the trap exit code if a trap was just taken. It can be safely
+        used only if global trapping is disabled:
+
+           (jump (unconditional) (rsource-functional TRAPOFF) (addr subr))
+                        ...
+           subr:
+           (alu (aluop INC) (dest return-pc) (rsource-functional TRAP-PC))
+
+4.      Memory cycles - When a normal late memory cycle is started, the
+        lock on the VMA and MD for sourcing doesn't happen until the
+        MFO output begins, so the instruction after the memory start
+        must not source the VMA or MD. It may however use the VMA or
+        MD as a destination since this happens later and will get locked.
+
+        The problem does not occur with VMA-START-READ-EARLY cycles, and
+        the next instruction may try to source the VMA or MD safely.

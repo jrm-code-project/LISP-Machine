@@ -1,0 +1,36 @@
+@chapter Stream I/O
+@c
+@c Deleted
+@c
+@c Raw disk commands should be similar to FileSystem major commands,
+@c and should be used to establish, utilize, and maintain raw disk
+@c partitions.  These partitions will be used by LISP for paging,
+@c world-loading, and metering.  To the MAC, these partitions might
+@c look like large native files.
+
+Multibuffering:
+@itemize @bullet
+@item Need to pool resources
+@item Spec must be inferred from Montreal
+@item Mac must maintain consistent state for each buffer.
+@item Buffer state transitions from Montreal exist
+@end(itemize)
+
+We must support (K/Mac must implement) the methods to SI:BUFFERED-OUTPUT-STREAM-MIXIN:
+
+@itemize @bullet
+@item SETUP-NEXT-INPUT-BUFFER
+@item SETUP-NEXT-OUTPUT-BUFFER
+@item DISCARD-INPUT-BUFFER
+@item DISCARD-CURRENT-OUTPUT-BUFFER
+@item SEND-OUTPUT-BUFFER
+@item (SET-BUFFER-POINTER?)
+@end(itemize)
+
+@textbox
+@center Montreal notes:
+
+Buffer lengths should be device dependent, Lisp-controlled; Lisp feeds
+in the information as needed.
+
+@end textbox

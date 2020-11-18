@@ -1,0 +1,100 @@
+
+			       DG and LMI
+
+
+
+Accomplishments: (in roughly chronological order)
+
+
+Multibus Driver Guide:
+	This serves as basic documentation for users wishing to write
+drivers for mulibus devices.  This area needs much work in the
+way of software support, which I am now qualified to do.  (Thanks to the
+research that went into writing the guide.)  I feel that this was a
+good experience for learning about something from scratch, motivated by
+the need to produce documentation for the customer.
+
+
+Tape Software Documentation:
+	This was simply the creation of user documentation that didn't
+exist, although it served as good practice for developing my abilities
+to write documentation.
+
+
+Release 2.1:
+	This experince made several of LMI's needs clear to me:
+
+	1) better tracking and fixing of bugs reported by the customer
+
+	2) support software for release and software support
+
+	3) an evolution of the system towards design modularity
+	   to aid in maintenance
+
+	4) a cooperative effort in engineering toward redesigning
+	   major facilities within the system
+
+
+New Quarter inch tape software:
+	I rewrote this in attempt to solve the problems we had
+encountered.  It seems that it is a harware problem.
+
+
+Burn In Software:
+	This was a reorganization of the software, along with fixing
+some of the testing software to be more user friendly and more reliable.
+
+
+Fairly Complete Backup Facility:
+	This was my first major design project. The major concern in the
+design of this facility is upon the user interface.  The goal was to
+provide a multi-purpose, extensable and bug-free window interface that
+would allow the user to backup files from any machine to any tape drive
+or to another machine, and in any supported tape format.  Unfortunately,
+our window system and its facilities do not allow flexible design of
+software, which complicates this task greatly.  When it came time to
+design the interface to the tape software, it became evident that
+redesign of the tape software was sorely needed, which is what I am
+presently doing.  When I am finished with the new tape software, I will
+finish the backup facility, as task of perhaps one week.  Though my
+expectations of the backup facility may not be met, we will have an
+easy to use interface for backing up filesystems, along with a design
+that will allow me to meet the original design intent as soon as
+some major improvements are made to the window system.  (See Pipe
+Dreams)
+
+
+CARRY TAPE and TAR support for quarter inch tape:
+	Support for Symbolics Carry Tape and Tar formats was a quick
+hack to translate a customer's tape in-house.  This did, though, allow
+me to understand the requirements of other tape formats, which has
+become important in the design of the new tape software.
+
+
+New Tape Software:
+	The redesign of tape support for the Lambda is becoming
+complete.  The goals of the design are:
+
+	1) modularity
+		to allow easier maintenance and optimization
+
+	2) extensability
+		support for any tape format is very easy to add to the
+		system, and is transparent to the user
+
+	3) abstraction of operations
+		this allows the user to interact directly with the
+		devices or through an easily interfaced front end
+		(like the backup facility)
+
+
+Various System Patching and Customer Support:
+	As always, I have been available to aid customers with problems,
+both in our system software and their own programs.  In fact I hope to
+make this an important part of the new release group.
+
+
+Aiding other groups in Software Design:
+	I have been intermittently working with various people in the
+user interface group, lending whatever experience and knolwedge about
+the system, to improve their design.

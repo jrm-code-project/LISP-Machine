@@ -1,0 +1,1875 @@
+From smh@GSI-CAM Wed Jun 29 17:24:09 1988
+Received: from GSI-ALEX (lmi-alex.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA11372; Wed, 29 Jun 88 17:24:02 edt
+Date: Wednesday, 29 June 1988, 17:23-EDT
+From: Steve Haflich <smh@GSI-CAM>
+Subject: DEFUN is not a macro
+To: bug-lispm@GSI-CAM
+Message-Id: <[GSI-ALEX].29-Jun-88 17:23:57.smh>
+
+CLtL says that it is legal for an implementation to implement any
+standard CL macro as a special form, but it is required that macro
+`equivalent' definitions be provided and that MACROEXPAND use them.  On
+the Lambda this just returns the defun, making it impossible for code
+walkers to grokkle a defun:
+
+(macroexpand '(defun foo (x) x))
+
+
+
+From smh@GSI-CAM Thu Jun 30 15:47:15 1988
+Received: from GSI-ALEX (lmi-alex.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA00414; Thu, 30 Jun 88 15:47:08 edt
+Message-Id: <8806301947.AA00414@gsi-cam.UUCP>
+Date: Thursday, 30 June 1988, 15:47-EDT
+From: Steve Haflich <smh@GSI-CAM>
+Subject: NTH, NTHCDR -- bogus error message
+To: BUG-LISPM@GSI-CAM
+
+In LMI Experimental System 124.112, Experimental Local-File 74.3,
+Experimental File-Server 23.1, Experimental Unix-Interface 12.0,
+Experimental ZMail 72.1, Experimental Tape 23.6,
+Experimental Lambda-Diag 16.2, microcode 1756, SDU Boot Tape 3.12,
+SDU ROM 102, Kenv 27jun88, on Alex (LAMBDA):
+
+If NTHCDR, NTH, and probably others are given a negative first argument,
+they complain as they should.  However, the message produced is:
+	"The function expected a fixnum greater than 1."
+This isn't even close.  Actually it should be something like:
+	"The function expected a nonnegative fixnum."
+
+
+
+From wkf@GSI-CAM Fri Jul  1 12:06:03 1988
+Received: from GSI-LOVE (lmi-love.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA01642; Fri, 1 Jul 88 12:05:56 edt
+Date: Friday, 1 July 1988, 12:05-EDT
+From: William K. Foster <wkf@GSI-CAM>
+Subject: K technical manual typo
+To: saz@gsi-cam
+Message-Id: <[GSI-LOVE].1-Jul-88 12:05:41.wkf>
+
+In the section on Simple Arrays
+
+The diagram of its memory representation has number of elements, N and
+P + S entries.  Either both should be S or N.
+
+--wkf
+
+
+
+
+From saz@GSI-CAM Tue Jul  5 19:22:26 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA00600; Tue, 5 Jul 88 19:22:16 edt
+Message-Id: <8807052322.AA00600@gsi-cam.UUCP>
+Date: Tuesday, 5 July 1988, 19:22-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+To: BUG-LISPM@GSI-CAM
+
+In LMI Experimental System 124.124, Experimental Local-File 74.3,
+Experimental File-Server 23.1, Unix-Interface 12.0,
+Experimental ZMail 72.1, Experimental Tape 23.6,
+Experimental Lambda-Diag 16.2, Tiger 28.0, microcode 1761,
+SDU Boot Tape 3.14, SDU ROM 103, Beta 3 plus patches,
+on Brahms' First (LAMBDA):
+
+
+Insert your description of the circumstances here:
+
+Strange compiler behavior encountered while trying to compile a
+zmail.lisp (init) file from ZMAIL's profile editor.  Should
+fasd-form be treating (login-setq ... ) like it does (setq ... )?
+
+>>ERROR: The object #FS::UNIX-HOST "GSI-CAM" received a :RECONSTRUCTION-INIT-PLIST message, which went unclaimed.
+ The rest of the message was ().
+Backtrace from the debugger:
+
+#FS::UNIX-HOST "GSI-CAM":
+   Arg 0: :RECONSTRUCTION-INIT-PLIST
+
+
+SI::INSTANCE-HASH-FAILURE (P.C. = 162)
+
+ Arg 0 (OP): :RECONSTRUCTION-INIT-PLIST
+ Rest arg (ARGS): NIL
+ Local 1 (HARRY): #<SI::HASH-ARRAY 87/88 :test EQ (Funcallable) 7344542>
+ Local 2 (FN-LOCATION): NIL
+ Local 3 (FUNC): NIL
+ Local 4 (.POINTER.): #<DTP-LOCATIVE 7344527>
+ Local 5 (.ALREADY.MINE.): NIL
+ Local 6 (TEM): 0
+ Local 7 (NEW): NIL
+ Local 8: NIL
+
+
+COMPILER::FASD-CONSTANT (P.C. = 185)
+
+ Arg 0 (S-EXP): #FS::UNIX-HOST "GSI-CAM"
+   --Defaulted args:--
+ Arg 1 (LIST-OP): 4
+ Local 0 (TEM): NIL
+
+
+COMPILER::FASD-FORM (P.C. = 77)
+
+ Arg 0 (FORM): (QUOTE #FS::UNIX-HOST "GSI-CAM")
+   --Defaulted args:--
+ Arg 1 (OPTIMIZE): NIL
+
+
+COMPILER::FASD-SETQ (P.C. = 50)
+
+ Arg 0 (SETQ-FORM): (LOGIN-SETQ *FROM-HOST* (QUOTE #FS::UNIX-HOST "GSI-CAM"))
+ Local 0 (PAIRS): (*FROM-HOST* (QUOTE #FS::UNIX-HOST "GSI-CAM"))
+
+
+Remainder of stack:
+
+COMPILER::FASD-FORM (P.C. = 89)
+COMPILER::QC-FILE-FASD-FORM (P.C. = 61)
+COMPILER::QC-FILE-FORM (P.C. = 105)
+COMPILER::QC-FILE-COMMON (P.C. = 96)
+COMPILER:COMPILE-DRIVER (P.C. = 586)
+COMPILER::QC-FILE-WORK-COMPILE (P.C. = 36)
+COMPILER:COMPILE-STREAM (P.C. = 586)
+(:INTERNAL (:INTERNAL QC-FILE COMPILER::DOIT) COMPILER::.CONTINUATION.) (P.C. = 77)
+(:INTERNAL QC-FILE COMPILER::DOIT) (P.C. = 78)
+QC-FILE (P.C. = 613)
+...
+(:SELECT-METHOD ZMAIL-COMMAND-LIST :MENU) (P.C. = 26)
+(:METHOD ZMAIL-FRAME :PROCESS-SPECIAL-COMMAND) (P.C. = 21)
+(:METHOD ZMAIL-COMMAND-LOOP-MIXIN :COMMAND-LOOP) (P.C. = 170)
+(:INTERNAL (:METHOD ZMAIL-FRAME :COMBINED :COMMAND-LOOP) 0) (P.C. = 40)
+FUNCALL (P.C. = 21)
+(:METHOD ZMAIL-COMMAND-LOOP-MIXIN :AROUND :COMMAND-LOOP) (P.C. = 47)
+(:METHOD ZMAIL-FRAME :COMBINED :COMMAND-LOOP) (P.C. = 39)
+ZMAIL-PROCESS-TOP-LEVEL (P.C. = 79)
+SI::PROCESS-TOP-LEVEL (P.C. = 113)
+
+
+
+From smh@GSI-CAM Wed Jul  6 17:39:41 1988
+Received: from GSI-ALEX (lmi-alex.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA00205; Wed, 6 Jul 88 17:39:34 edt
+Date: Wednesday, 6 July 1988, 17:39-EDT
+From: Steve Haflich <smh@GSI-CAM>
+Subject: asin 2
+To: bug-lispm@GSI-CAM
+Message-Id: <[GSI-ALEX].6-Jul-88 17:39:30.smh>
+
+On the lambda evaluate (ASIN 2).  The imaginary part of the
+complex-number result is accurate only to two significant digits.
+
+Do the PICON people know??
+
+
+
+
+From saz@GSI-CAM Thu Jul  7 14:21:51 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA01803; Thu, 7 Jul 88 14:21:43 edt
+Date: Thursday, 7 July 1988, 14:21-EDT
+From: <saz@GSI-CAM>
+Subject: Zwei's Correct (Word) Spelling feature needs a better existence verification hook
+To: bug-lispm@GSI-CAM
+Message-Id: <[GSI-BRAHMS].7-Jul-88 14:21:33.saz>
+
+
+A) Meta-X Correct Spelling bombs (because no code bothers to check for
+   existence of a loaded ISPELL system when it is invoked)
+
+B) The mechanism for invoking the spell checker should do a
+   (find-system-named 'ispell t) before blindly trying a
+   (make-system 'ispell), in case a given site doesn't have
+   the needed system files, and also should have an
+   (inhibit-style-warnings ...) wrapped around any calls to
+   possibly non-existent functions (such as spell-word).
+
+saz
+
+
+
+From smh@GSI-CAM Thu Jul  7 15:42:16 1988
+Received: from GSI-ALEX (lmi-alex.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA01922; Thu, 7 Jul 88 15:42:08 edt
+Date: Thursday, 7 July 1988, 15:42-EDT
+From: Steve Haflich <smh@GSI-CAM>
+Subject: suggested optimizations
+To: bug-lispm@GSI-CAM
+Message-Id: <[GSI-ALEX].7-Jul-88 15:42:05.smh>
+
+The lambda compiler should be smart enough to turn MEMBER into MEMQ in
+all of the following:
+
+	(member 'foo ...)
+	(member ... '(x y z))
+
+Specifically, if the first arg to MEMBER is a constant SYMBOL, or if the
+second arg is a constant list of SYMBOLs, then the transformation is
+legitimate.  Numbers could be special cased as well, but this is less
+frequently useful.
+
+This would improve both lambda and K code speed.
+
+
+
+From saz@GSI-CAM Fri Jul  8 10:26:00 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA03275; Fri, 8 Jul 88 10:25:52 edt
+Date: Friday, 8 July 1988, 10:25-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: Next Hogs behavior
+To: bug-lispm@GSI-CAM
+Message-Id: <[GSI-BRAHMS].8-Jul-88 10:25:39.saz>
+
+
+Typing `h' while on the line for file foo.text#n produces:
+
+D foo.text #n
+D foo.text #n+1
+D foo.text #n+2
+D foo.text #n+3
+  foo.text #n+4
+  foo.text #n+5
+
+but typing `h' while on the line for file foo.text#n+3 produces only:
+
+  foo.text #n
+  foo.text #n+1
+  foo.text #n+2
+D foo.text #n+3
+  foo.text #n+4
+  foo.text #n+5
+
+and typing `h' while on the line for file foo.text#n+4 or n+5
+marks no files for deletion at all.
+
+Perhaps this is correct behavior, but it strikes me as counterintuitive.
+Perhaps a particular numeric arg to the `h' command could mean "start
+here and delete all the way up to the last two versions of this file."
+
+saz
+
+
+
+
+From saz@GSI-CAM Fri Jul  8 13:53:34 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA04111; Fri, 8 Jul 88 13:53:27 edt
+Date: Friday, 8 July 1988, 13:53-EDT
+From: <saz@GSI-CAM>
+Subject: Tag Tables now selectable by pathnames (with wildcards)
+To: info-lispm@GSI-CAM
+Message-Id: <[GSI-BRAHMS].8-Jul-88 13:53:13.saz>
+
+
+;;;Feature: Reads in all files currently without zmacs buffers in the
+;;;background after accepting tag table name as unique.  Alerts when
+;;;done.
+;;;
+;;;Feature: Allows specification of identical sets of files for multiple
+;;;tag tables (as long as they are given different names).
+;;;
+;;;Caveat (not specific to this code): Tag table names are not case sensi-
+;;;tive!
+;;;
+;;;Warning: Full defaulting is in effect here, so all versions of a file are used
+;;;if you do not specify otherwise!
+;;;
+
+(defcom com-select-files-as-tag-table "Prompts for and selects files to use as a tag table,
+  reading in any specified files currently without ZMACS buffers in the background." ()
+  (let ((file-list
+	  (mapcar #'car				;just the pathnames
+	    (cdr (fs:directory-list		;cdr to strip off first entry (which lists the directory's attributes)
+		   (READ-DIRECTORY-NAME "File or files to use as tag table:" (DEFAULT-PATHNAME))))))
+	(tag-table-name (typein-line-readline "Name for this tag table:")))
+    (SELECT-FILE-LIST-AS-TAG-TABLE
+      file-list
+      (do ((used-name tag-table-name (typein-line-readline
+			     (string-append
+			       "/"" used-name "/""
+			       " is already the name of a tag table.  Please enter another name for this new one:"))))
+	  (nil)
+	(if (not (ass #'string-equal used-name *zmacs-tag-table-alist*))
+	    (return used-name))))
+    (process-run-function (format nil "Load the files of ~A into ZMACS" tag-table-name)
+			  (lambda (files window)
+			    (dolist (file files) (load-file-into-zmacs file nil))
+			    (tv:notify window "The files of ~A have been loaded into Zmacs and selected as current tag table."
+				       tag-table-name))
+			  file-list		;arguments to the above function
+			  *window*))
+  DIS-NONE)
+
+
+
+
+
+From smh@GSI-CAM Mon Jul 11 11:09:30 1988
+Received: from GSI-ALEX (lmi-alex.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA09176; Mon, 11 Jul 88 11:09:22 edt
+Message-Id: <8807111509.AA09176@gsi-cam.UUCP>
+Date: Monday, 11 July 1988, 11:09-EDT
+From: <smh@GSI-CAM>
+Subject: bogus lambda lists
+To: BUG-LISPM@GSI-CAM
+
+In LMI Experimental System 124.129, Experimental Local-File 74.3,
+Experimental File-Server 23.1, Unix-Interface 12.0,
+Experimental ZMail 72.1, Experimental Tape 23.6,
+Experimental Lambda-Diag 16.2, microcode 1756, SDU Boot Tape 3.12,
+SDU ROM 102, Kenv 27jun88, on Alex (LAMBDA):
+
+The lambda list for the following function is probably not legal.  It
+certainly doesn't make any sense.  I believe that if &OPTIONAL appears
+it must come before any other lambda keywords.
+
+(DEFUN HARDCOPY-STREAM (STREAM &REST OPTIONS
+			&KEY &OPTIONAL (PRINTER *DEFAULT-PRINTER*)
+			&ALLOW-OTHER-KEYS)
+  ...)
+
+It probably should be this:
+
+(DEFUN HARDCOPY-STREAM (STREAM &OPTIONAL (PRINTER *DEFAULT-PRINTER*)
+			&REST OPTIONS
+			&KEY &ALLOW-OTHER-KEYS)
+  ...)
+
+
+
+
+
+From saz@GSI-CAM Tue Jul 12 20:47:35 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA02463; Tue, 12 Jul 88 20:47:26 edt
+Message-Id: <8807130047.AA02463@gsi-cam.UUCP>
+Date: Tuesday, 12 July 1988, 20:47-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: Dired loses while trying to edit empty subdirectories
+To: BUG-LISPM@GSI-CAM
+
+In LMI System 125.1, ZWEI 125.0, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.0, Lambda-Diag 17.0,
+microcode 1761, SDU Boot Tape 3.14, SDU ROM 103,
+on Brahms' First (LAMBDA):
+
+The
+
+ (FILE-RETRY-NEW-PATHNAME (PATHNAME FS:FILE-ERROR)
+	:
+	:
+	:
+
+which exists inside the function ZWEI:DIRECTORY-EDIT-REVERT has an
+unfortunate pathological case.  If this code executes as a result of
+trying to do a recursive Dired on an empty subdirectory, the user
+encounters the following prompt in the minibuffer (note incorrect
+punctuation):
+
+"File not found. for <subdirectory>...Pathname to use instead
+(default FOO:/lmi/usr/bar), or <End> to enter the debugger:"
+
+At this point, there seems to be no way for the user to say "Forget I
+asked," and return to the top level Dired listing gracefully.  Pressing
+the <Abort> key leaves a blank screen and an empty Dired buffer (1 line
+long, according to COM-LIST-BUFFERS), which is named after the empty
+subdirectory (i.e., *Dired-/lmi/usr/-1*). Typing `q' here (which the
+mode line promises will exit) generates an ugly error:
+
+	NIL <- DIRED-PROCESS-FILES <- COM-DIRED-EXIT
+
+Pressing the <Abort> key (instead of the `q') brings the user back to
+the original Dired buffer, with the cursor on the line representing the
+empty subdirectory, and, with the exception of the continued existence
+of the useless empty buffer, everything is back to normal.
+
+saz
+
+
+
+
+From mosart!marc Wed Jul 13 00:09:32 1988
+Received: by gsi-cam.UUCP (4.12/4.7)  id AA02722; Wed, 13 Jul 88 00:09:28 edt
+Received: by mosart.uucp (4.12/smail2.5/02-18-88)
+	id AA10657; Tue, 12 Jul 88 12:57:51 edt
+Date: Tue, 12 Jul 88 12:57:51 edt
+From: Marc P. Rinfret <mosart!marc>
+Message-Id: <8807121657.AA10657@mosart.uucp>
+To: saz@gsi-cam
+In-Reply-To: <Saz%gsi-cam.ARPA@gsi-cam>'s message of Monday, 20 June 1988, 15:36-EDT <8806201936.AA13862@gsi-cam.ARPA>
+Subject: Mailing addresses for Mac Group in Montreal
+
+
+	Finally, things have been set up so renaud et al. have an
+electroninc mailing address.
+
+	It currently is 'renaud%curly@mosart'. As they are currently
+not working on the project, I haven't seen them and haven't been able
+to check if they want individual addresses or not.  They have been
+included in the bug-falcon mailing list.
+
+						Marc.
+
+
+
+From keith@GSI-CAM Thu Jul 14 17:34:19 1988
+Received: from GSI-GLASS (lmi-fishfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05830; Thu, 14 Jul 88 17:34:10 edt
+Message-Id: <8807142134.AA05830@gsi-cam.UUCP>
+Date: Thursday, 14 July 1988, 17:33-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: unexpected keystroke in the middle of zwei:zwei-correct-spelling
+To: BUG-LISPM@GSI-CAM
+
+In LMI System 125.4, ZWEI 125.0, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.0, Lambda-Diag 17.0,
+microcode 1761, SDU Boot Tape 3.14, SDU ROM 103,
+on Breaking Glass (LAMBDA):
+
+
+Insert your description of the circumstances here:
+
+Used Meta-$ to check the spelling of a word.  I was presented with
+possibilities.  Then I forgot what I was doing, and pressed
+Control-Shift-U.  That caused:
+
+>>TRAP 7818 (ARGTYP NUMBER M-T 1 QIGRP0)
+The second argument to >, NIL, was of the wrong type.
+The function expected a number.
+Backtrace from the debugger:
+
+<= (P.C. = 24)
+
+ Rest arg (NUMBERS): (#\0 85 NIL)
+ Local 1 (A): 85
+ Local 2 (B): (NIL)
+ Local 3 (C): NIL
+
+
+ZWEI::SELECT-WORD (P.C. = 133)
+
+ Arg 0 (BAD-WORD): "co"
+ Arg 1 (WORD-LIST): ("c" "cod" "coo" "cop" ...)
+ Local 0 (WIDTH): 127
+ Local 1 (TAB1): 32
+ Local 2 (I): 9
+ Local 3 (WORDS): ("to")
+ Local 4 (CHAR): 85
+
+
+ZWEI::ZWEI-CORRECT-SPELLING (P.C. = 101)
+
+ Arg 0 (BP1): ("co" 0)
+ Arg 1 (BP2): ("co" 2)
+   --Defaulted args:--
+ Arg 2 (INITIAL-CHOICES): NIL
+ Arg 3 (WHOLE-BUFFER-P): NIL
+ Local 0 (WORD): "co"
+ Local 1 (RESULT): ("c" "cod" "coo" "cop" ...)
+ Local 2 (CHOICE): NIL
+
+
+ZWEI::COM-CORRECT-WORD-SPELLING (P.C. = 84)
+
+ Local 0 (BP1): ("co" 0)
+ Local 1 (BP2): ("co" 2)
+ Local 2 (WORD): "co"
+
+
+Additional information supplied with call:
+ Expecting 3 values
+
+ZWEI::COMMAND-EXECUTE (P.C. = 86)
+
+ Arg 0 (COMMAND): ZWEI::COM-CORRECT-WORD-SPELLING
+ Arg 1 (CHAR): #\m-$
+ Arg 2 (PREFIX-CHAR): NIL
+ Arg 3 (HOOK-LIST): NIL
+ Local 0 (HOOK-SUCCESS): T
+ Local 1: NIL
+ Local 2 (HOOK): NIL
+
+
+Remainder of stack:
+
+ZWEI::PROCESS-COMMAND-CHAR (P.C. = 57)
+(:METHOD ZWEI:WINDOW :PROCESS-COMMAND-CHAR) (P.C. = 20)
+(:METHOD ZWEI:WINDOW :EDIT) (P.C. = 323)
+(:INTERNAL (:METHOD ZWEI:ZMACS-WINDOW :COMBINED :EDIT) 0) (P.C. = 60)
+FUNCALL (P.C. = 21)
+(:METHOD ZWEI::DISPLAYER :AROUND :EDIT) (P.C. = 25)
+(:METHOD ZWEI:ZMACS-WINDOW :COMBINED :EDIT) (P.C. = 39)
+ZWEI::ZMACS-WINDOW-TOP-LEVEL (P.C. = 38)
+SI::PROCESS-TOP-LEVEL (P.C. = 113)
+
+
+
+From saz@GSI-CAM Thu Jul 14 17:52:40 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05856; Thu, 14 Jul 88 17:52:26 edt
+Date: Thursday, 14 July 1988, 17:52-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: GigaMos Cambridge electronic mailing list
+To: Marc P. Rinfret <mosart!marc@GSI-CAM>
+Cc: saz@gsi-cam, renaud%curly@mosart
+In-Reply-To: <8807121657.AA10657@mosart.uucp>
+Message-Id: <[GSI-BRAHMS].14-Jul-88 17:52:15.saz>
+
+Well, I've finally managed to squeeze out a list of active
+electronic addresses here in Cambridge.  Titles, unfortunately,
+are not so clear...
+
+Corbett, Keith		    	keith@gsi-cam
+Greenblatt, Rick		rg@gsi-cam
+DeWolf, Peter			pld@gsi-cam
+Philipp, Chris			cp@gsi-cam
+Compter, Henry			hlc@gsi-cam
+O'Dell, Jim			jim@gsi-cam
+Cerrato, Peter			pfc@gsi-cam
+Foster, William			wkf@gsi-cam
+Kerns, Bob			rwk@gsi-cam
+Saslav, David			saz@gsi-cam
+Haflich, Steve			smh@gsi-cam
+Schumacker, Doug		dgs@gsi-cam
+Badger, Dan			ddb@gsi-cam
+
+The following lists should prove far more useful; they are the Cambridge
+mailing lists for technical issues and questions on Lisp Machines, the
+falcon, and documentation.  Info-falcon should be used for questions
+about the K/Mac interface.
+
+info-falcon: bug-falcon-gsi-cam, bug-falcon-mosart
+bug-falcon: info-falcon, /lmi/bugs/bug-falcon
+bug-falcon-gsi-cam: jim, rg, pld, keith, rwk, pfc, wkf, smh, saz, dgs
+bug-falcon-mosart: bug-falcon-mosart@mosart.uucp
+bug-falcon-compiler: jim, rg, rwk, pfc, wkf, smh
+
+info-lispm: keith, pld, saz, smh, jim
+bug-lispm: info-lispm, /lmi/bugs/bug-lispm
+
+doc-changes: /lmi/doc/mail/doc-changes, lispdoc,docgroup
+docgroup: keith,saz
+
+Take care, and thanks for your patience!
+
+saz
+
+
+From MAILER-DAEMON Thu Jul 14 17:52:46 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05858; Thu, 14 Jul 88 17:52:26 edt
+Date: Thursday, 14 July 1988, 17:52-EDT
+From: Mail Delivery Subsystem <MAILER-DAEMON>
+Subject: Returned mail: Host unknown
+Message-Id: <8807142152.AA05858@gsi-cam.UUCP>
+To: <saz@GSI-CAM>
+
+   ----- Transcript of session follows -----
+550 <renaud%curly@mosart>... Host unknown
+
+   ----- Unsent message follows -----
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05856; Thu, 14 Jul 88 17:52:26 edt
+Date: Thursday, 14 July 1988, 17:52-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: GigaMos Cambridge electronic mailing list
+To: Marc P. Rinfret <mosart!marc@GSI-CAM>
+Cc: saz@gsi-cam, renaud%curly@mosart
+In-Reply-To: <8807121657.AA10657@mosart.uucp>
+Message-Id: <[GSI-BRAHMS].14-Jul-88 17:52:15.saz>
+
+Well, I've finally managed to squeeze out a list of active
+electronic addresses here in Cambridge.  Titles, unfortunately,
+are not so clear...
+
+Corbett, Keith		    	keith@gsi-cam
+Greenblatt, Rick		rg@gsi-cam
+DeWolf, Peter			pld@gsi-cam
+Philipp, Chris			cp@gsi-cam
+Compter, Henry			hlc@gsi-cam
+O'Dell, Jim			jim@gsi-cam
+Cerrato, Peter			pfc@gsi-cam
+Foster, William			wkf@gsi-cam
+Kerns, Bob			rwk@gsi-cam
+Saslav, David			saz@gsi-cam
+Haflich, Steve			smh@gsi-cam
+Schumacker, Doug		dgs@gsi-cam
+Badger, Dan			ddb@gsi-cam
+
+The following lists should prove far more useful; they are the Cambridge
+mailing lists for technical issues and questions on Lisp Machines, the
+falcon, and documentation.  Info-falcon should be used for questions
+about the K/Mac interface.
+
+info-falcon: bug-falcon-gsi-cam, bug-falcon-mosart
+bug-falcon: info-falcon, /lmi/bugs/bug-falcon
+bug-falcon-gsi-cam: jim, rg, pld, keith, rwk, pfc, wkf, smh, saz, dgs
+bug-falcon-mosart: bug-falcon-mosart@mosart.uucp
+bug-falcon-compiler: jim, rg, rwk, pfc, wkf, smh
+
+info-lispm: keith, pld, saz, smh, jim
+bug-lispm: info-lispm, /lmi/bugs/bug-lispm
+
+doc-changes: /lmi/doc/mail/doc-changes, lispdoc,docgroup
+docgroup: keith,saz
+
+Take care, and thanks for your patience!
+
+saz
+
+
+From saz@GSI-CAM Thu Jul 14 18:24:49 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05945; Thu, 14 Jul 88 18:24:35 edt
+Message-Id: <8807142224.AA05945@gsi-cam.UUCP>
+Date: Thursday, 14 July 1988, 18:24-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: Just a test
+To: bug-falcon@GSI-CAM
+
+
+
+
+From saz@GSI-CAM Thu Jul 14 18:28:55 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05976; Thu, 14 Jul 88 18:28:50 edt
+Message-Id: <8807142228.AA05976@gsi-cam.UUCP>
+Date: Thursday, 14 July 1988, 18:28-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: test
+To: saz@GSI-CAM
+
+
+
+
+
+
+From root  Thu Jul 14 18:44:56 3888
+Received: by gsi-cam.UUCP (4.12/4.7)  id AA06028; Thu, 14 Jul 88 18:44:48 edt
+Date: Thu, 14 Jul 88 18:44:48 edt
+From: Super User <root>
+Message-Id: <8807142244.AA06028@gsi-cam.UUCP>
+To: bug-falcon
+Subject: test -- please ignore
+
+foo foo foo
+
+
+From mosart!MAILER-DAEMON Fri Jul 15 00:18:13 1988
+Received: by gsi-cam.UUCP (4.12/4.7)  id AA06428; Fri, 15 Jul 88 00:18:07 edt
+Received: by mosart.uucp (4.12/smail2.5/02-18-88)
+	id AA24267; Fri, 15 Jul 88 00:13:01 edt
+Message-Id: <8807150413.AA24267@mosart.uucp>
+Received: from VEGA by CURLY.SILINET (5.9/4.7) with CHAOS id AA00420; Fri, 15 Jul 88 00:10:36 EDT
+Date: Thursday, 14 July 1988, 18:24-EDT
+From: Mail Delivery Subsystem <mosart!MAILER-DAEMON>
+Subject: Returned mail: User unknown
+To: David M.J. Saslav <saz%GSI-CAM.UUCP@gsi-cam>
+
+   ----- Transcript of session follows -----
+550 renaud@curly... User unknown: Not a typewriter
+
+   ----- Unsent message follows -----
+Received: from VEGA by CURLY.SILINET (5.9/4.7) with CHAOS id AA00417; Fri, 15 Jul 88 00:10:36 EDT
+Received: by mosart.uucp (4.12/smail2.5/02-18-88)
+	id AA24246; Fri, 15 Jul 88 00:12:23 edt
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05945; Thu, 14 Jul 88 18:24:35 edt
+Message-Id: <8807142224.AA05945@gsi-cam.UUCP>
+Date: Thursday, 14 July 1988, 18:24-EDT
+From: David M.J. Saslav <saz%GSI-CAM.UUCP@gsi-cam>
+Subject: Just a test
+To: bug-falcon@GSI-CAM
+
+
+
+
+
+From mosart!MAILER-DAEMON  Fri Jul 15 00:18:38 3888
+Received: by gsi-cam.UUCP (4.12/4.7)  id AA06451; Fri, 15 Jul 88 00:18:35 edt
+Date: 15 Jul 88 00:18:11 EDT (Fri)
+From: mosart!MAILER-DAEMON
+Subject: failed mail
+To: GSI-CAM!gsi-cam!saz
+Message-Id: <8807150018.AA24347@mosart.UUCP>
+
+=======     command failed      =======
+
+ COMMAND: /usr/bin/uux -r - curly!rmail '(renaud)'
+
+======= standard error follows  =======
+bad system name: curly
+uux failed. code 101
+======= text of message follows =======
+>From gsi-cam!saz%GSI-CAM.UUCP
+Received: by mosart.uucp (4.12/smail2.5/02-18-88)
+	id AA24246; Fri, 15 Jul 88 00:12:23 edt
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05945; Thu, 14 Jul 88 18:24:35 edt
+Message-Id: <8807142224.AA05945@gsi-cam.UUCP>
+Date: Thursday, 14 July 1988, 18:24-EDT
+From: David M.J. Saslav <saz%GSI-CAM.UUCP@gsi-cam>
+Subject: Just a test
+To: bug-falcon@GSI-CAM
+
+
+
+
+From keith@GSI-CAM Fri Jul 15 00:53:17 1988
+Received: from GSI-GLASS (lmi-fishfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA06488; Fri, 15 Jul 88 00:53:10 edt
+Date: Friday, 15 July 1988, 00:52-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: Zwei Set Base with default <return> sets base to '*eof...
+To: BUG-ZWEI@GSI-CAM
+Message-Id: <[GSI-GLASS].15-Jul-88 00:52:56.keith>
+
+In LMI ZWEI in System 125.4, ZWEI 125.0, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.0, Lambda-Diag 17.0,
+microcode 1761, SDU Boot Tape 3.14, SDU ROM 103,
+on Breaking Glass (LAMBDA):
+
+Try Meta-X Set Base and press <return>.  Sets Base to *eof*, with humorous results...
+
+
+
+From mosart!marc Fri Jul 15 10:20:17 1988
+Received: by gsi-cam.UUCP (4.12/4.7)  id AA07232; Fri, 15 Jul 88 10:20:13 edt
+Received: by mosart.uucp (4.12/smail2.5/02-18-88)
+	id AA26556; Fri, 15 Jul 88 10:15:36 edt
+Date: Fri, 15 Jul 88 10:15:36 edt
+From: Marc P. Rinfret <mosart!marc>
+Message-Id: <8807151415.AA26556@mosart.uucp>
+To: saz@gsi-cam
+Subject: OOOOPPPSSS!
+
+
+	Looks like I goofed and renaud's account wasn't correctly set up
+so mail you sent him bounced.  Sorry about that.  I have corrected things
+and really tested this time!
+
+						Marc.
+
+
+
+
+From saz@GSI-CAM Fri Jul 15 14:31:00 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA07647; Fri, 15 Jul 88 14:30:52 edt
+Date: Friday, 15 July 1988, 14:30-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: Experimental version of Meta-X Kill or Save Buffers
+To: info-lispm@GSI-CAM
+Message-Id: <[GSI-BRAHMS].15-Jul-88 14:30:34.saz>
+
+
+New version of Meta-X Kill Or Save Buffers (found in "DJ:SAZ;ZMACS.PATCHES"):
+
+1. Uses up to a full screen of height for buffer menu (as opposed to displaying
+   only about 20), thus showing all buffers at once (if possible).
+2. Understands numeric argument control-u, which, if passed in, brings up the
+   menu with all buffers marked to be killed (after saving, if necessary).
+
+You still must click on "DO IT" in order to cause anything to happen.
+Let me know if you like these modifications.
+
+saz
+
+
+
+
+From saz@GSI-CAM Fri Jul 15 16:48:47 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA07811; Fri, 15 Jul 88 16:48:35 edt
+Message-Id: <8807152048.AA07811@gsi-cam.UUCP>
+Date: Friday, 15 July 1988, 16:48-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: Zwei windows and the Window Label attribute
+To: BUG-LISPM@GSI-CAM
+
+In LMI System 125.5, ZWEI 125.1, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.0, Lambda-Diag 17.0,
+microcode 1761, SDU Boot Tape 3.14, SDU ROM 103,
+on Brahms' First (LAMBDA):
+
+Insert your description of the circumstances here:
+
+While in the editor, attempting to set the current window's label to something other than
+NIL using the system menu's "Attributes" command generates the following error in the
+background and alerts with [16:46 Process System Menu got an error].  As far as I can
+tell, this only happens with Zwei windows.
+
+>>TRAP 4779 (ARGTYP CONS M-S 0 RPLACA)
+The first argument to SYSTEM:SETCAR, NIL, was of the wrong type.
+The function expected a cons.
+Backtrace from the debugger:
+
+TV::SCREEN-EDITOR-EDIT-ATTRIBUTES (P.C. = 404)
+
+ Arg 0 (WINDOW): #<ZWEI::ZMACS-WINDOW-PANE Zmacs Window Pane 2 73731635 exposed>
+ Local 0 (BORDERS-P): T
+ Local 1 (LABEL-P): T
+ Local 2 (NAME-P): NIL
+ Local 3 (OLD-CURRENT-FONT-VALUE): #<FONT CPTFONT 6146403>
+ Local 4 (OLD-MORE-P-VALUE): T
+ Local 5 (OLD-REVERSE-VIDEO-P): NIL
+ Local 6 (OLD-VSP): 2
+ Local 7 (OLD-IN-ACTION): :NORMAL
+ Local 8 (OLD-OUT-ACTION): :NORMAL
+ Local 9 (OLD-OTHER-OUT-ACTION): NIL
+ Local 10 (OLD-CHAR-ALU-FCN): 7
+ Local 11 (OLD-ERASE-ALU-FCN): 2
+ Local 12 (OLD-PRIORITY-VALUE): NIL
+ Local 13 (OLD-SAVE-BITS-VALUE): T
+ Local 14 (OLD-LABEL-OR-NAME): NIL
+ Local 15 (OLD-BORDERS-SPEC): ((TV::DRAW-RECTANGULAR-BORDER 0 0 10 ...) (TV::DRAW-RECTANGULAR-BORDER 10 0 0 ...) (TV::DRAW-RECTANGULAR-BORDER -10 10 0 ...) (TV::DRAW-RECTANGULAR-BORDER 10 -10 -10 ...))
+ Local 16 (OLD-BORDER-MARGIN-WIDTH-VALUE): 10
+ Local 17: NIL
+ Local 18: NIL
+ Local 19: NIL
+ Local 20: NIL
+
+
+TV::SYSTEM-MENU-EDIT-WINDOW-ATTRIBUTES (P.C. = 20)
+
+ Arg 0 (WINDOW): #<ZWEI::ZMACS-WINDOW-PANE Zmacs Window Pane 2 73731635 exposed>
+ Arg 1 (IGNORE): 453
+ Arg 2 (IGNORE): 215
+
+
+(:METHOD TV:WINDOW-HACKING-MENU-MIXIN :EXECUTE-WINDOW-OP) (P.C. = 26)
+  (SELF is #<TV:DYNAMIC-MULTICOLUMN-MOMENTARY-WINDOW-HACKING-MENU Dynamic Multicolumn Momentary Window Hacking Menu 1 15114500 deactivated>)
+
+ Arg 0 (.OPERATION.): :EXECUTE-WINDOW-OP
+ Arg 1 (FUNCTION): TV::SYSTEM-MENU-EDIT-WINDOW-ATTRIBUTES
+
+
+(:METHOD TV:MENU-EXECUTE-MIXIN :EXECUTE) (P.C. = 120)
+  (SELF is #<TV:DYNAMIC-MULTICOLUMN-MOMENTARY-WINDOW-HACKING-MENU Dynamic Multicolumn Momentary Window Hacking Menu 1 15114500 deactivated>)
+
+ Arg 0 (.OPERATION.): :EXECUTE
+ Arg 1 (ITEM): ("Attributes" :WINDOW-OP TV::SYSTEM-MENU-EDIT-WINDOW-ATTRIBUTES :DOCUMENTATION ...)
+ Local 0 (OP): :WINDOW-OP
+ Local 1 (ARG): TV::SYSTEM-MENU-EDIT-WINDOW-ATTRIBUTES
+ Local 2 (BINDINGS): NIL
+ Local 3: NIL
+ Local 4 (RESULT): NIL
+ Local 5 (DONE): NIL
+
+
+(:METHOD TV:MOMENTARY-MENU :COMBINED :EXECUTE) (P.C. = 42)
+  (SELF is #<TV:DYNAMIC-MULTICOLUMN-MOMENTARY-WINDOW-HACKING-MENU Dynamic Multicolumn Momentary Window Hacking Menu 1 15114500 deactivated>)
+
+ Rest arg (.DAEMON-CALLER-ARGS.): (:EXECUTE ("Attributes" :WINDOW-OP TV::SYSTEM-MENU-EDIT-WINDOW-ATTRIBUTES :DOCUMENTATION ...))
+ Local 1 (.DAEMON-MAPPING-TABLE.): #<ART-16B 5 leader-length 21 16102546>
+
+
+Remainder of stack:
+
+(:METHOD TV:BASIC-MENU :CHOOSE) (P.C. = 52)
+(:INTERNAL (:METHOD TV:DYNAMIC-MULTICOLUMN-MOMENTARY-WINDOW-HACKING-MENU :COMBINED :CHOOSE) 0) (P.C. = 60)
+(:METHOD TV:BASIC-MOMENTARY-MENU :AROUND :CHOOSE) (P.C. = 50)
+(:METHOD TV:DYNAMIC-MULTICOLUMN-MOMENTARY-WINDOW-HACKING-MENU :COMBINED :CHOOSE) (P.C. = 39)
+(:INTERNAL TV:MOUSE-CALL-SYSTEM-MENU 0) (P.C. = 34)
+SI::PROCESS-RUN-FUNCTION-INTERNAL (P.C. = 64)
+SI::PROCESS-TOP-LEVEL (P.C. = 113)
+
+
+
+
+
+From keith@GSI-CAM Tue Jul 19 16:07:14 1988
+Received: from GSI-GLASS (lmi-fishfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA01279; Tue, 19 Jul 88 16:07:01 edt
+Message-Id: <8807192007.AA01279@gsi-cam.UUCP>
+Date: Tuesday, 19 July 1988, 15:37-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: instance-ref error in lisp/edit window running lam doing :set-cursorpos
+To: BUG-LISPM@GSI-CAM
+
+In LMI System 125.7, ZWEI 125.2, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.0, Lambda-Diag 17.0,
+Experimental Kermit 36.2, microcode 1761, SDU Boot Tape 3.14,
+SDU ROM 103, 7/19, on Breaking Glass (LAMBDA):
+
+
+Insert your description of the circumstances here:
+
+Got this running Lam in a LISP/Edit window.  Same function
+(starting LAM:LAM) ran immediately following in a regular listener.
+Turns out zwei:*interval* is NIL inside a :SET-CURSORPOS method.
+
+>>TRAP 13743 (ARGTYP INSTANCE PP 0 AREFI-INSTANCE-RESTART-TYPE %INSTANCE-REF)
+The first argument to SYSTEM:%INSTANCE-REF, NIL, was of the wrong type.
+The function expected an instance.
+Backtrace from the debugger:
+
+ZWEI::BP-FROM-COORDS (P.C. = 100)
+
+ Arg 0 (WINDOW): #<ZWEI:EDITOR-TOP-LEVEL Editor Top Level 1 50117462 exposed>
+ Arg 1 (X): 0
+ Arg 2 (Y): 1150
+ Local 0 (SHEET): #<ZWEI:EDITOR-TOP-LEVEL Editor Top Level 1 50117462 exposed>
+ Local 1 (LINE): NIL
+ Local 2 (PLINE): 54
+ Local 3 (CHAR-POS): NIL
+ Local 4 (LH): 16
+ Local 5 (REAL-PLINE): 54
+ Local 6 (START): NIL
+ Local 7 (END): NIL
+ Local 8 (I): 11
+ Local 9 (P): 43
+ Local 10 (LAST-BP): NIL
+ Local 11 (J): NIL
+ Local 12: NIL
+ Local 13 (BP): NIL
+
+
+(:METHOD ZWEI::EDITOR-STREAM-MIXIN :SET-CURSORPOS) (P.C. = 84)
+  (SELF is #<ZWEI:EDITOR-TOP-LEVEL Editor Top Level 1 50117462 exposed>)
+
+ Arg 0 (.OPERATION.): :SET-CURSORPOS
+ Arg 1 (X): 0
+ Arg 2 (Y): 1150
+ Arg 3 (UNITS): :CHARACTER
+
+
+LAM-CONSOLE-STATUS-DISPLAY (P.C. = 83)
+
+ Arg 0 (DONT-TOUCH-MACHINE): T
+ Local 0 (SAVE-CURSOR-POS): (43 . 0)
+ Local 1 (PC): NIL
+ Local 2 (IR): NIL
+ Local 3 (TEM): NIL
+
+
+LAM (P.C. = 191)
+
+   --Defaulted args:--
+ Arg 0 (FLUSH-STATE): NIL
+ Local 0: ("Restart LAM from top level")
+ Local 1: (EH:DEBUGGER-CONDITION ("Restart LAM from top level") T ("Restart LAM from top level") ...)
+ Local 2 (LAM-ARG): NIL
+ Local 3 (LAM-SYL): NIL
+ Local 4 (LAM-VAL): NIL
+ Local 5 (COM-CH): NIL
+ Local 6 (TEM): NIL
+
+
+SYSTEM:EVAL1 (P.C. = 418)
+
+ Arg 0 (FORM): (LAM)
+   --Defaulted args:--
+ Arg 1 (NOHOOK): NIL
+ Local 0 (ARGNUM): NIL
+ Local 1 (ENV): (NIL NIL T NIL ...)
+ Local 2 (TEM): NIL
+ Local 3 (FINAL-FUNCTION): #<GLOBAL:DTP-FEF-POINTER LAM 25310112>
+ Local 4 (CALL-FUNCTION): #<GLOBAL:DTP-FEF-POINTER LAM 25310112>
+ Local 5 (ARG-DESC): 1
+ Local 6 (NUM-ARGS): 0
+ Local 7: NIL
+ Local 8: NIL
+ Local 9 (ARGL): NIL
+ Local 10 (ARG): NIL
+
+
+Remainder of stack:
+
+SI:EVAL-SPECIAL-OK (P.C. = 81)
+SI:EVAL-ABORT-TRIVIAL-ERRORS (P.C. = 38)
+SI:LISP-TOP-LEVEL1 (P.C. = 250)
+SI::PROCESS-TOP-LEVEL (P.C. = 113)
+
+
+
+From RWK@GSI-CAM Tue Jul 19 23:30:30 1988
+Received: from GSI-ALEX (lmi-alex.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA01963; Tue, 19 Jul 88 23:30:21 edt
+Message-Id: <8807200330.AA01963@gsi-cam.UUCP>
+Date: Tuesday, 19 July 1988, 23:02-EDT
+From: RWK@GSI-CAM, SMH@GSI-CAM
+Sender: smh@GSI-CAM
+Subject: In the grand tradition of breaking Source Compare Merge
+To: BUG-LISPM@GSI-CAM
+
+In LMI System 125.5, ZWEI 125.0, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.0, Lambda-Diag 17.0,
+microcode 1761, SDU Boot Tape 3.12, SDU ROM 102, Kenv 7/15/88,
+on Alex (LAMBDA):
+
+I did a Source Compare Merge, and after accepting accepting
+the second version, when offered a chance to do c-R and edit,
+I edited in some stuff.  Then I hit End, and it blew out with
+BP's out of order, trying to delete the header.  In fact,
+what it did was to delete the entire >>godamned<, buffer from that
+point on, thus trashing our entire work in that buffer.
+
+There's a grand tradition of this command being flakey and dangerous,
+but it's pretty important that it work, because it's so important to
+doing team development.  Can we have a priority on fixing it?  I'll
+help if needed.
+
+Thanks.
+
+
+
+
+
+From saz@GSI-CAM Wed Jul 20 11:49:23 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA02734; Wed, 20 Jul 88 11:49:15 edt
+Date: Wednesday, 20 July 1988, 11:49-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: Terminal-F incompletely documented
+To: bug-lispm@GSI-CAM
+Message-Id: <[GSI-BRAHMS].20-Jul-88 11:49:10.saz>
+
+
+Terminal-help claims that an arg of 0 asks
+and implies that anything else fingers Lisp Machines.
+
+In actuality, 0 asks, NO arg fingers LispMs,
+and any other arg fingers file-server GSI-DJINN...
+
+saz
+
+
+
+
+
+
+
+
+From pld Wed Jul 20 11:58:37 1988
+Received: by gsi-cam.UUCP (4.12/4.7)  id AA02763; Wed, 20 Jul 88 11:58:32 edt
+Date: Wed, 20 Jul 88 11:58:32 edt
+From: Peter L. DeWolf <pld>
+Message-Id: <8807201558.AA02763@gsi-cam.UUCP>
+To: saz
+Subject: Symbolics machines
+
+
+------- Forwarded Message
+
+Received: by lmi-angel.ARPA (4.12/4.7)  id AA26004; Wed, 18 Feb 87 02:13:06 est
+Received: from mx.lcs.mit.edu by EDDIE.MIT.EDU (5.31/4.7) id AA19879; Tue, 17 Feb 87 23:29:25 EST
+Date: Tue, 17 Feb 87 23:28:10 EST
+From: "George J. Carrette" <@EDDIE.MIT.EDU:GJC%MX.LCS.MIT.EDU@MC.LCS.MIT.EDU>
+Subject: clever note from an mit-ai person
+To: lmi-angel!bruce@EDDIE.MIT.EDU, lmi-angel!bug-lispm@EDDIE.MIT.EDU,
+        lmi-angel!efh@EDDIE.MIT.EDU, lmi-angel!jrm@EDDIE.MIT.EDU
+Cc: GJC%MX.LCS.MIT.EDU@MC.LCS.MIT.EDU
+Message-Id: <970391.870217.GJC@MX.LCS.MIT.EDU>
+
+Symbolics Rel 7 reminds me of one of these fancy expensive American cars that
+has a lot of chrome on it and racing stripes and hubcaps that make it
+look like you have alloy wheels and a wing on the back that doesn't
+actually do anything and retractable headlights and power steering and
+power brakes and automatic transmission and an electric sunroof and
+power seats and remote-control locks and a little fan that sucks smoke
+out of the ashtrays and sheepskin seatcovers and cruise control and a
+wiper on the rear window and electric trunk release and a 555 timer to
+turn out the inside lights if you forget and cellular car phone
+adaptor and a quadrophonic am/fm tape player (with a keypad for
+digital presets) and a voice synthesizer that says "Please fasten your
+seat belts" and warns you if you are are low on gas or oil or going
+too fast and a CB and air conditioning and thermostatic comfort
+control (with separate sensors for front and rear seats) and a
+dashboard with a lot of little blinky lights and all-digital readouts
+(with tachometer! and antifreeze level!) and and and and and
+
+And it doesn't go very fast, because the engine was underpowered to
+start with and with all the options it weighs about two and a half
+tons, and it has this incredibly sqoodgy suspension so you can't
+actually drive it, you sort of more steer it, something like maybe a
+twenty-eight foot cabin cruiser, you point it left and it goes left
+once it gets round to it, and the microprocessor-controlled brakes are
+a trifle hard to get used to because they know much better than you do
+how hard you actually want to brake, and the remote-control locks tend
+to freeze up at unopportune moments, and you sort of can't help the
+fact that the sunroof opens whenever you use the lighter (someone
+thought it was a feature, and they now admit it was a mistake, so it
+will be fixed in next year's model) and the controls for the power
+windows are so hairy it's easier just to leave them up and use the air
+conditioning (or light a cigarette to get the roof open).
+
+Where's Dr. Porsche when we need him?
+
+
+
+------- End of Forwarded Message
+
+
+From saz@GSI-CAM Wed Jul 20 13:15:25 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA03053; Wed, 20 Jul 88 13:15:16 edt
+Date: Wednesday, 20 July 1988, 13:15-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: Acknowledging receipt of your diagrams
+To: pfc@GSI-CAM
+Cc: info-falcon@GSI-CAM
+Message-Id: <[GSI-BRAHMS].20-Jul-88 13:15:02.saz>
+
+
+Thanks for creating the two information sheets entitled "K Memory
+Management" and "K Virtual Address Architecture", copies of which
+William just gave me.  Both will be included in the next draft of
+the "K Technical Manual".
+
+Saz
+
+
+From pld@gsi-cam Wed Jul 20 15:52:52 1988
+Received: from GSI-CTHULHU (lmi-cthulhu.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA03191; Wed, 20 Jul 88 15:52:45 edt
+Message-Id: <8807201952.AA03191@gsi-cam.UUCP>
+Date: Wednesday, 20 July 1988, 15:52-EDT
+From: pld@gsi-cam
+Subject: (float 0.8s0)  0.8
+To: BUG-LISPM@GSI-CAM
+
+In LMI System 125.7, ZWEI 125.2, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.0, Lambda-Diag 17.0,
+Experimental Kermit 36.2, microcode 1761, SDU Boot Tape 3.14, SDU ROM 8,
+on Cthulhu (LAMBDA):
+
+I've been investigating why
+   (= 4\5 0.8s0) --> NIL
+
+This, I can fix.
+
+Unfortunately,
+   (= 0.8 0.8s0) --> NIL
+because (float 0.8s0) --> 0.8000030518
+
+and I don't see how to fix this...
+
+
+From wkf@GSI-CAM Wed Jul 20 20:58:01 1988
+Received: from GSI-JACK-FLANDERS (lmi-jack-flanders.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA03551; Wed, 20 Jul 88 20:57:50 edt
+Date: Wednesday, 20 July 1988, 20:57-EDT
+From: William K. Foster <wkf@GSI-CAM>
+Subject: Loading the K software
+To: BUG-FALCON@GSI-CAM
+Message-Id: <[GSI-JACK-FLANDERS].20-Jul-88 20:57:05.wkf>
+
+
+You will need to (load "jb:k;simulation-sysdef") and (update-k-system) for your old world to work.
+
+--wkf
+
+
+From pld@GSI-CAM Thu Jul 21 14:50:34 1988
+Received: from GSI-CTHULHU (lmi-cthulhu.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA04619; Thu, 21 Jul 88 14:50:23 edt
+Date: Thursday, 21 July 1988, 14:50-EDT
+From: Peter L. DeWolf <pld@GSI-CAM>
+Subject: NTH, NTHCDR -- bogus error message
+To: smh@GSI-CAM
+Cc: BUG-LISPM@GSI-CAM
+In-Reply-To: <8806301947.AA00414@gsi-cam.UUCP>
+Message-Id: <[GSI-CTHULHU].21-Jul-88 14:50:06.pld>
+
+System patch 125.9 and Microcode 1762 together fix this.
+
+
+
+
+From pld@GSI-CAM Thu Jul 21 17:03:29 1988
+Received: from GSI-CTHULHU (lmi-cthulhu.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA04761; Thu, 21 Jul 88 17:03:19 edt
+Date: Thursday, 21 July 1988, 17:03-EDT
+From: Peter L. DeWolf <pld@GSI-CAM>
+Subject: Connectionist Air Guitar
+To: saz@gsi-cam, keith@gsi-cam
+Message-Id: <[GSI-CTHULHU].21-Jul-88 17:03:10.pld>
+
+Message-ID: <8703110538.AA02240@GOANNA>
+To: noah, billb, paul, ajericks, mit-eddie!lmi-angel!pld
+Date: Wednesday, 11 March 1987, 00:38-EST
+From: Mark Colan <mit-athena!mtc@ATHENA.MIT.EDU>
+
+
+------- Forwarded Message
+
+Received: by E40-PO.MIT.EDU (5.45/4.7) id AA16876; Tue, 10 Mar 87 21:47:22 EST
+Received: by ATHENA (5.45/4.7)
+	id AA19954; Tue, 10 Mar 87 21:44:57 EST
+Message-Id: <8703110244.AA19954@ATHENA>
+Received: from prophet.bbn.com by .BFLY-VAX.BBN.COM id a008574;
+          10 Mar 87 17:55 EST
+Date:     Tue, 10 Mar 87 17:39:45 EST
+From: Dan Franklin <dan@prophet.bbn.com>
+To: silent-tristero@prophet.bbn.com
+Subject:  Connectionist Air Guitar
+
+[From the NEURON DIGEST, V2 #7 - dan]
+
+- ----- Forwarded message # 1:
+
+Date:   27-FEB-1987 11:18
+From:	COTTRELL%ICS%SDCSVAX.UCSD.EDU@C.CS.CMU.EDU
+Subject:   Seminar: The Connectionist Air Guitar
+
+[forwarded from Connectionists digest - MTG]
+
+                               SEMINAR
+
+                    The Connectionist Air Guitar:
+                         A Dream Come True
+
+                        Garrison W. Cottrell
+                      Department of Air Science
+        Condominium Community College of Southern California
+
+       A major problem faced by many Cognitive Scientists has  been
+  the latent desire to be a rock'n'roll star, without the requisite
+  talent[1].  Recent advances in connectionist learning  mechanisms
+  (Sutton,  1987) have obviated this need.  In this work we present
+  the design for the connectionist air guitar[2] -  the  first  air
+  guitar to actually produce the notes played.
+
+       This work was motivated by the observation that  it  is  not
+  hard  for  people  to  play the songs of their favorite groups on
+  their internal phonograph[3] (Kosslyn, 1977).  Thus  the  problem
+  may simply be one of poor mapping hardware.  This  suggests  that
+  augmentation  by  cognitive models may be useful.  PDP models are
+  the  obvious  candidate  for  this  task,  given  that  they  are
+  "neurally-inspired", or "brain-like"[4].  In this talk we present
+  the first true augmentation of the mind by a connectionist model,
+  called Neuro-Acoustic Programming.
+
+       We use a  three-layer  system  as  follows:  Electrodes  are
+  placed  on  the  subject's  scalp  using  the International 10-20
+  system and amplified by Grass 7P511 preamplifiers[5].  These  are
+  the  inputs  to  the  hidden units.  The output layer is simply a
+  localist representation of the notes.  These are then  interfaced
+  with a standard guitar synthesizer.
+
+       In training, the subject listens to Springsteen  while  "air
+  guitaring"  the lead.  The EEG drives the network, resulting in a
+  set of outputs.  This result is  then  compared  to  the  correct
+  output  (the  music  teacher  signal)  at  small  delta t's using
+  Sutton's temporal difference method, and  the  errors  are  back-
+  propagated  in  the  usual  way.   After  two albums, the network
+  learns to produce the desired notes from the EEG.  Of  note  here
+  is  that  the  hidden units develop a distributed encoding of the
+  qualia of the notes, including coarsely-coded features sufficient
+  to distinguish Jerry  Garcia  from  Conway  Twitty[6].   However,
+  myogram  noise  in the EEG often leads to noise in the output, so
+  it appears necessary to  implant  arrays  of  silicon  electrodes
+  (developed  by  Jim  Bower at CalTech) directly into the temporal
+  lobes, eliminating interference from  muscle  signals.   In  this
+  case, the network must actually be borne to run.
+
+  ____________________
+
+     [1]One approach is to ignore this  and  form  a  band  anyway.
+  People who took this tack started the punk movement.
+     [2]An  air guitar is a conceptual representation of a guitar,
+  played in synchrony with actual music.  A cult has formed  around
+  this  endeavor,  with many contests currently being held in local
+  bars.
+     [3]Some  people  claim that they actually can't play the songs
+  internally as well as they hear them.  This is the "bad cognitive
+  needle"  problem,  or,  in  the  case  of Kosslyn's more advanced
+  internal cassette player model, "air heads." As long as the  sig-
+  nal  uniquely  specifies  the  song,  it  still maps to the right
+  notes, so this technique is useful for the hard of thinking.
+     [4]This  is  to  be  contrasted  with  "neurally-expired",  or
+  "brain-dead" models.
+     [5]Other types of Grass amplifiers produce  a  more  "sixties-
+  like" sound.
+     [6]Some hidden units convert six into nine, the so-called Jimi
+  Hendrix units (Easy Rider, 1969).
+
+- ---------------------------------------------------------------------
+
+------- End of Forwarded Message
+
+
+
+
+
+From keith@GSI-CAM Thu Jul 21 20:51:32 1988
+Received: from GSI-GLASS (lmi-fishfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05190; Thu, 21 Jul 88 20:51:26 edt
+Date: Thursday, 21 July 1988, 20:51-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: Feedback on patch {Zwei Set Base and Common LISP Mode}
+To: saz@GSI-CAM
+In-Reply-To: <[GSI-BRAHMS].15-Jul-88 15:10:12.saz>
+Message-Id: <[GSI-GLASS].21-Jul-88 20:51:18.keith>
+
+
+
+These are not really nits you're picking.  But I can only say
+that I feel I implemented Common Lisp Mode correctly.  It's
+different from LISP mode, in that it makes an assumption about
+the readtable; the confirmation is there to ask whether you want
+to make the change "permanent", i.e. for the file.
+
+As to the dash printed by Set Base, well, it was a matter of (poor)
+taste.  I think I thought (?) that the "-" would precede the following
+message on the same line.  So I just fixed it, and terminated that
+message with a ".", which seems like the right thing.
+
+"Thank you for your support."
+
+
+From keith@GSI-CAM Thu Jul 21 20:56:45 1988
+Received: from GSI-GLASS (lmi-fishfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05195; Thu, 21 Jul 88 20:56:35 edt
+Date: Thursday, 21 July 1988, 20:56-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: In the grand tradition of breaking Source Compare Merge
+To: RWK@GSI-CAM, SMH@GSI-CAM, BUG-LISPM@GSI-CAM
+In-Reply-To: <8807200330.AA01963@gsi-cam.UUCP>
+Message-Id: <[GSI-GLASS].21-Jul-88 20:56:29.keith>
+
+Re: message below.
+
+Sounds like a major rewrite is in order.
+
+I think Control-R should be continuable; that is, after editing some stuff,
+I usually want to go back to Source Compare Merge.
+
+This could be implemented nicely with a command I've thought of creating
+(maybe it exists?) which would let you edit one S-expression in an
+auxiliary buffer.  This command (Edit Expression? Edit Thing?) would be
+"smart" about the type of thing you're editing.  For instance, it would
+indentify after editing a list form; strings would be entered as data,
+without having to worry about escapes, and get fixed before being put
+into the buffer.
+
+Anyway, I suspect this is a fairly big job, and my only priority right
+now is in getting rel 4 out the door.  *Then* we can tackle jobs in
+priority order of internal need...
+
+-------
+    Message-ID: <8807200330.AA01963@gsi-cam.UUCP>
+    Date: Tuesday, 19 July 1988, 23:02-EDT
+    From: RWK@GSI-CAM, SMH@GSI-CAM
+    Sender: smh@GSI-CAM
+    Subject: In the grand tradition of breaking Source Compare Merge
+    To: BUG-LISPM@GSI-CAM
+
+    In LMI System 125.5, ZWEI 125.0, ZMail 73.0, Local-File 75.0,
+    File-Server 24.0, Unix-Interface 13.0, Tape 24.0, Lambda-Diag 17.0,
+    microcode 1761, SDU Boot Tape 3.12, SDU ROM 102, Kenv 7/15/88,
+    on Alex (LAMBDA):
+
+    I did a Source Compare Merge, and after accepting accepting
+    the second version, when offered a chance to do c-R and edit,
+    I edited in some stuff.  Then I hit End, and it blew out with
+    BP's out of order, trying to delete the header.  In fact,
+    what it did was to delete the entire >>godamned<, buffer from that
+    point on, thus trashing our entire work in that buffer.
+
+    There's a grand tradition of this command being flakey and dangerous,
+    but it's pretty important that it work, because it's so important to
+    doing team development.  Can we have a priority on fixing it?  I'll
+    help if needed.
+
+    Thanks.
+
+
+
+
+
+
+From saz@GSI-CAM Fri Jul 22 14:02:30 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA00379; Fri, 22 Jul 88 14:02:22 edt
+Date: Friday, 22 July 1988, 14:02-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: Killing off last buffer screws up file defaults
+To: BUG-ZWEI@GSI-CAM
+Message-Id: <[GSI-BRAHMS].22-Jul-88 14:02:09.saz>
+
+In LMI ZWEI in System 125.17, ZWEI 125.2, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.1, Lambda-Diag 17.0,
+microcode 1761, SDU Boot Tape 3.14, SDU ROM 103, 7/19,
+on Brahms' First (LAMBDA):
+
+Killing off your last buffer places you in a new, empty buffer called
+*Buffer-n*, n an integer one greater than m, where m was the highest
+integer found in the name of a buffer named *Buffer-m* before the
+last buffer was killed off.
+
+All this is well and good; however, in this case ^X^F should probably
+not default to "*Buffer-n*.lisp" when asked to do a find-file.
+
+saz
+
+
+From rwk@GSI-CAM Mon Jul 25 09:02:12 1988
+Received: from GSI-CLAUDE-DEBUSSY (lmi-claude-debussy.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA04204; Mon, 25 Jul 88 09:02:00 edt
+Date: Monday, 25 July 1988, 09:01-EDT
+From: Robert W. Kerns <rwk@GSI-CAM>
+Subject: Various and sundry progress and changes
+To: Bug-Falcon@gsi-cam
+Message-Id: <[GSI-CLAUDE-DEBUSSY].25-Jul-88 09:01:42.RWK>
+
+I've created SYS:SYS;K-SYSDEF, which is a modified SYS:SYS;SYSDEF
+hacked to eliminate various non-Falcon code.  I also made it load
+the cross compiler.
+
+In JB:JIM;QCFILE-CHANGES I've added the :FOR-FALCON keyword to
+MAKE-SYSTEM.  When cross-compiling it will skip loading the compiled
+files.  (Actually, it will sometimes say it is loading them, but it's
+really just the null operation.  It's too hard to make MAKE-SYSTEM say
+anything conditional).
+
+I defined the :FAZL canonical pathname type to be the Falcon equivalent of
+QFASL.
+
+I compiled DEFSEL (the first file to be loaded) and most of the cross compiler
+using the cross compiler.  (There's a problem with a hairy combo of unwind-protect's,
+special variables, and multiple-value-prog1's that needs to be investigating that
+keeps it from getting past QCFASD).
+
+I discovered that in this world, PRIMS:BYTE, PRIMS:BYTE-SIZE, and PRIMS:BYTE-WIDTH
+were running interpreted!  Bletch!
+
+This depends on various fixes in the split-up files derived from CROSS-NP2,
+so if you're still using CROSS-NP2 you won't win as much.
+
+
+
+
+
+From keith@GSI-CAM Tue Jul 26 12:25:46 1988
+Received: from GSI-GLASS (lmi-fishfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA01859; Tue, 26 Jul 88 12:25:37 edt
+Date: Tuesday, 26 July 1988, 12:25-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: We should provide method for compiling references to host objects
+To: keith@GSI-CAM, BUG-LISPM@GSI-CAM
+In-Reply-To: <[GSI-GLASS].11-Jul-88 17:41:55.keith>
+Message-Id: <[GSI-GLASS].26-Jul-88 12:25:23.keith>
+
+
+The pseudo-bug (actually, an auto- or self-reported pseudo-bug) noted
+below is fixed:
+
+    2. You can't compile explicit references to host objects via the
+    printable form. Looking at the error message, it would be nice to have a
+    reconstruction form for host objects.  That is, when compiling a
+    reference such as #FS:UNIX-HOST "GSI-CAM", the proper reconstruction
+    is as noted above, (SI:PARSE-HOST "GSI-CAM").
+
+
+
+From wkf@GSI-CAM Tue Jul 26 13:18:57 1988
+Received: from GSI-JACK-FLANDERS (lmi-jack-flanders.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA01911; Tue, 26 Jul 88 13:18:46 edt
+Date: Tuesday, 26 July 1988, 13:18-EDT
+From: William K. Foster <wkf@GSI-CAM>
+Subject: K crash in First Hot file
+To: BUG-FALCON@GSI-CAM
+Message-Id: <[GSI-JACK-FLANDERS].26-Jul-88 13:18:31.wkf>
+
+K-Cold Loaded 7/21/88,
+
+If the K hangs on the first hot file in the first 4096 bytes downloaded
+and you get the follownig error:
+
+  0 *38029420, $$DTP-ARRAY "Not a string to %string="
+  1 *3806B676, $$DTP-ARRAY "NC"
+  2 *50069B03, $$DTP-STRUCTURE #S(PACKAGE ...)
+  3 *00000000, $$DTP-NIL NIL
+  4 *00000000, $$DTP-NIL NIL
+  5 *00000000, $$DTP-NIL NIL
+  6 *00000000, $$DTP-NIL NIL
+  7 *00000000, $$DTP-NIL NIL
+  8 *00000000, $$DTP-NIL NIL
+  9 *00000000, $$DTP-NIL NIL
+ 10 *00000000, $$DTP-NIL NIL
+ 11 *00000000, $$DTP-NIL NIL
+ 12 *00000000, $$DTP-NIL NIL
+ 13 *00000000, $$DTP-NIL NIL
+ 14 *00000000, $$DTP-NIL NIL
+ 15 *00000000, $$DTP-NIL NIL
+
+It means that the warm-boot did not complete its interning of symbols before
+being interrupted by the Lambda for the Hot files.  The lambda did not sleep
+long enough.  We need to fix this so that the lambda can verify that the K has
+finished before continuing to avoid this and other obtuse bugs.
+
+-- wkf, pfc
+
+
+
+From keith@GSI-CAM Tue Jul 26 20:16:36 1988
+Received: from GSI-GLASS (lmi-fishfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA00340; Tue, 26 Jul 88 20:16:27 edt
+Date: Tuesday, 26 July 1988, 20:16-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: DO-EXTERNAL-SYMBOLS's foolish mistake: "Symbols inherited by PKG are included."
+To: BUG-LISPM@GSI-CAM
+Message-Id: <[GSI-GLASS].26-Jul-88 20:16:23.keith>
+
+In LMI System 125.19, ZWEI 125.4, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.2, Lambda-Diag 17.0,
+Experimental Kermit 37.0, microcode 1762, SDU Boot Tape 3.14,
+SDU ROM 103, 7/21/88, on Breaking Glass (LAMBDA):
+
+We suspect the use of PKG-USE-LIST to acquire inherited symbols
+that are external to used packages:
+
+(defmacro do-external-symbols ((variable pkg result-form) &body body)
+  "Executes BODY repeatedly with VARIABLE being each external symbol available in package PKG.
+Finally RESULT-FORM is evaluated and its value(s) returned.
+Symbols inherited by PKG are included."
+  (let ((index (gensym))
+	(limit (gensym))
+	(pkg-list-var (gensym))
+	(pkg-var (gensym)))
+    (once-only (pkg)
+      `(do ((,pkg-list-var (cons ,pkg (pkg-use-list ,pkg))  <---wrong?
+	     (cdr ,pkg-list-var)))
+	   ((null ,pkg-list-var)
+	    ,result-form)
+	 (do*-named t ((,index 0 (1+ ,index))
+		       (,pkg-var (car ,pkg-list-var))
+		       (,limit (pkg-number-of-slots ,pkg-var)))
+		      ((= ,index ,limit))
+	   (when (and (pkg-code-valid-p (pkg-slot-code ,pkg-var ,index))
+		      (pkg-code-external-p (pkg-slot-code ,pkg-var ,index)))
+	     (let ((,variable (pkg-slot-symbol ,pkg-var ,index)))
+	       . ,body)))))))
+
+
+
+From saz@GSI-CAM Wed Jul 27 11:25:35 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA01998; Wed, 27 Jul 88 11:25:27 edt
+Message-Id: <8807271525.AA01998@gsi-cam.UUCP>
+Date: Wednesday, 27 July 1988, 11:25-EDT
+From: <saz@GSI-CAM>
+Subject: More "Guess That Conversant!"
+To: keith@GSI-CAM
+Cc: SAZ@angel
+
+
+Me: (stirring coffee) I'll bet you could get one more small
+    cup out of that pot...
+Mystery Conversant: No, I'd better not...
+Me: I'm sure it's fresh...
+MC: That's not it -- it's just that if I finish it off I'll
+    have to make the next pot...
+Me: (aghast) THAT'S no algorithm!
+MC: Huh?
+Me: Come on, <MC-NAME>, that's one of the best rules we have
+    around here -- why exempt yourself from it?
+MC: Oh,...well,...okay...
+
+ ***********************************************************
+BUT WAIT THERE'S MORE
+ ***********************************************************
+
+(nothing happens for a while, I go back to desk, MC stands
+ around the coffee table)
+
+Me (going back over): Do you know how to make coffee, <MC-
+   NAME>?  I once avoided taking last cups myself because
+   I didn't know how to refill the pot.
+MC: Well, I guess I really don't...
+Me: Here I'll show you...
+<time passes, coffee gets made>
+Me: See how easy that was?
+MC: GEE THANKS, SAZ!
+
+ *********************************************************
+
+saz
+
+ps: In case you were wondering, the last line was made up to
+make the game more challenging.
+
+
+
+From saz@GSI-CAM Wed Jul 27 12:43:40 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA02119; Wed, 27 Jul 88 12:43:31 edt
+Message-Id: <8807271643.AA02119@gsi-cam.UUCP>
+Date: Wednesday, 27 July 1988, 12:43-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: Window exposure while in the Button whostate
+To: BUG-LISPM@GSI-CAM
+Cc: SAZ@angel
+
+In LMI System 125.19, ZWEI 125.3, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.2, Lambda-Diag 17.0,
+microcode 1762, SDU Boot Tape 3.14, SDU ROM 103, 7/26/88 4.0,
+on Brahms' First (LAMBDA):
+
+While choosing the top left corner of a new window (being created from
+the system menu), I suddenly got a pop-up window from a background
+process requesting typein (Yes or No). The System Menu process refused
+to relinquish control of the mouse, and I had to finish creating the
+window before I could mouse the pop up window and type in my response.
+Inhibit exposure of background windows until they can be attended to.
+
+Also, in attempting to reproduce this behavior, I discover in addition
+that after clicking to place the top left corner (which as we all know
+turns the mouse immediately into a bottom-right corner choosing icon),
+one had better not switch system programs (e.g., System-P) before
+clicking to place that other corner!  (The mouse remains a lower-right
+corner icon in the new frame, and the icon representing the upper left
+corner remains visible).
+
+saz
+
+
+From saz@GSI-CAM Wed Jul 27 13:19:48 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA02154; Wed, 27 Jul 88 13:19:41 edt
+Message-Id: <8807271719.AA02154@gsi-cam.UUCP>
+Date: Wednesday, 27 July 1988, 13:19-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: Trivially modified version of two-windows
+To: info-lispm@GSI-CAM
+Cc: SAZ@angel
+
+
+;;; Trivially modified version of TWO-WINDOWS: takes two windows
+;;; (structures, not sheets) and makes them share the area
+;;; originally occupied by the first of the two, except that
+;;; this version makes two side-by-side VERTICAL windows
+;;; rather than one on top of the other.  Very nice for text
+;;; editing (with narrow fill columns).
+
+(DEFUN TWO-WINDOWS (ZWEI-WINDOW-1 ZWEI-WINDOW-2)
+  (REDISPLAY ZWEI-WINDOW-1 ':NONE)
+  (LET ((W1 (WINDOW-SHEET ZWEI-WINDOW-1))
+	(W2 (WINDOW-SHEET ZWEI-WINDOW-2))
+	(FRAME (WINDOW-FRAME ZWEI-WINDOW-1)))
+    (MULTIPLE-VALUE-BIND (LEFT TOP RIGHT BOTTOM)
+	(SEND FRAME ':INSIDE-EDGES-WITHOUT-MODE-LINE-WINDOW)
+      (TV:PRESERVE-SUBSTITUTE-STATUS (SEND W1 ':SUPERIOR)
+	(TV:DELAYING-SCREEN-MANAGEMENT
+	  (SEND W1 ':DEEXPOSE)
+	  (SEND W2 ':DEEXPOSE)
+	  (LET ((width (TRUNCATE (- right left) 2)))
+	    (SEND W1 ':SET-EDGES LEFT TOP (+ width left) bottom)
+	    (SEND W2 ':SET-EDGES (+ width left) TOP RIGHT BOTTOM)
+	  (SEND W1 ':SET-LABEL NIL)
+	  (SEND W2 ':SET-LABEL NIL)
+	  (SEND W1 ':EXPOSE NIL ':CLEAN)		;Make sure they are both there
+	  (SEND W2 ':EXPOSE NIL ':CLEAN)))))
+    (SEND FRAME ':UPDATE-LABELS)))
+
+
+
+From saz@GSI-CAM Wed Jul 27 15:56:11 1988
+Received: from GSI-BRAHMS (lmi-fowlfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA04001; Wed, 27 Jul 88 15:56:02 edt
+Message-Id: <8807271956.AA04001@gsi-cam.UUCP>
+Date: Wednesday, 27 July 1988, 15:55-EDT
+From: David M.J. Saslav <saz@GSI-CAM>
+Subject: Nesting of keyboard macros doesn't work properly
+To: BUG-LISPM@GSI-CAM
+Cc: SAZ@angel
+
+In LMI System 125.19, ZWEI 125.3, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.2, Lambda-Diag 17.0,
+Experimental Window-Maker 2.4, microcode 1762, SDU Boot Tape 3.14,
+SDU ROM 103, 7/26/88 4.0, on Brahms' First (LAMBDA):
+
+1. Make a keyboard macro using control-x (, control-x ), any desired
+   keystrokes, and Meta-X Install Keyboard Macro (respond to the
+
+     "Name of macro to install (Return for last macro defined):"
+
+   prompt with a carriage return).
+2. Install the macro on Hyper-Super-Meta-Control-A.
+3. Make a second keyboard macro in the same way as in 1.
+4. Install this macro on Hyper-Super-Meta-Control-B.
+5. Now make a third keyboard macro with the same mechanism, one which
+   consists of a Hyper-Super-Meta-Control-A followed by a
+   Hyper-Super-Meta-Control-B.
+6. Install this "conglomerate macro" on Hyper-Super-Meta-Control-C.
+7. Press Hyper-Super-Meta-Control-C.
+
+The user is left in the minibuffer, which awaits a character to
+send to a mysterious control-x.  Typing ABORT at this point exits the
+minibuffer and causes the zmacs buffer to reflect all keystrokes which
+Hyper-Super-Meta-Control-C (actually) performed.
+
+saz
+
+
+
+From smh@GSI-CAM Thu Jul 28 13:19:19 1988
+Received: from GSI-HARPO (lmi-harpo.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05479; Thu, 28 Jul 88 13:19:11 edt
+Date: Thursday, 28 July 1988, 13:19-EDT
+From: <smh@GSI-CAM>
+Subject: patch Zwei 125.6 is dog meat
+To: rwk@GSI-CAM, bug-lispm@GSI-CAM
+Message-Id: <[GSI-HARPO].28-Jul-88 13:19:07.smh>
+
+I have revoked RWK's patch because it crashes LOAD-PATCHES.  The problem
+is not with content of the patch itself but with the fact that it was
+apparently compiled with some of RWK's incomplete recent cross
+compilation hackery in place on the lambda.  It looks like the patch
+qfasl file got written with a 8-bit bytes, or something like that.
+
+
+
+From pld@GSI-CAM Thu Jul 28 14:01:17 1988
+Received: from GSI-CTHULHU (lmi-cthulhu.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05531; Thu, 28 Jul 88 14:01:09 edt
+Date: Wednesday, 27 July 1988, 22:32-EDT
+From: Peter L. DeWolf <pld@GSI-CAM>
+Subject: patch Zwei 125.6 is dog meat
+To: smh@GSI-CAM, rwk@GSI-CAM, bug-lispm@GSI-CAM
+In-Reply-To: <[GSI-HARPO].28-Jul-88 13:19:07.smh>
+Message-Id: <[GSI-CTHULHU].27-Jul-88 22:32:36.pld>
+
+I un-revoked the patch after recompiling it with a working compiler.
+
+
+From smh@GSI-CAM Thu Jul 28 15:05:47 1988
+Received: from GSI-HARPO (lmi-harpo.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA05590; Thu, 28 Jul 88 15:05:40 edt
+Message-Id: <8807281905.AA05590@gsi-cam.UUCP>
+Date: Thursday, 28 July 1988, 15:05-EDT
+From: <smh@GSI-CAM>
+Subject: The GC has me pdl'd off
+To: BUG-LISPM@GSI-CAM
+
+In LMI ZWEI 125.6, ZMail 73.0, Local-File 75.1, File-Server 24.0,
+Unix-Interface 13.0, Tape 24.2, Lambda-Diag 17.0,
+Experimental System 126.3, microcode 1761, SDU Boot Tape 3.12,
+SDU ROM 102, 126.2 + k-sys, on Harpo (LAMBDA):
+
+My LISPM.INIT contains a (GC:GC-ON :DEGREE 1).  For some strange reason
+running the band noted above, when started the GC manages to use enough
+PDL to signal an error.  <RESUME> enlarges the stack enough to let it
+continue properly, but having to negotiate with the initial listener
+background stream is annoyificating, not to mention confusifying.
+
+
+
+
+From rwk@GSI-CAM Fri Jul 29 01:53:07 1988
+Received: from GSI-CLAUDE-DEBUSSY (lmi-claude-debussy.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA06226; Fri, 29 Jul 88 01:52:57 edt
+Date: Friday, 29 July 1988, 01:52-EDT
+From: Robert W. Kerns <rwk@GSI-CAM>
+Subject: patch Zwei 125.6 is dog meat
+To: smh@GSI-CAM, rwk@GSI-CAM, bug-lispm@GSI-CAM
+In-Reply-To: <[GSI-HARPO].28-Jul-88 13:19:07.smh>
+Message-Id: <[GSI-CLAUDE-DEBUSSY].29-Jul-88 01:52:38.RWK>
+
+    Date: Thursday, 28 July 1988, 13:19-EDT
+    From: smh@GSI-CAM
+    I have revoked RWK's patch because it crashes LOAD-PATCHES.  The problem
+    is not with content of the patch itself but with the fact that it was
+    apparently compiled with some of RWK's incomplete recent cross
+    compilation hackery in place on the lambda.  It looks like the patch
+    qfasl file got written with a 8-bit bytes, or something like that.
+
+
+In fact, that's just what happened, due to Jim's (uninstalled) patch
+that faked its parsing of the returned response from OPEN to be
+byte-size 8.  I'm currently working on that.  I presume you've restored
+and recompiled all the patches you revoked, no?  I can't do it until
+Jim & I get his QFASL changes working right again.
+
+
+
+
+
+From rwk@GSI-CAM Fri Jul 29 01:54:59 1988
+Received: from GSI-CLAUDE-DEBUSSY (lmi-claude-debussy.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA06237; Fri, 29 Jul 88 01:54:51 edt
+Date: Friday, 29 July 1988, 01:54-EDT
+From: Robert W. Kerns <rwk@GSI-CAM>
+Subject: patch Zwei 125.6 is dog meat
+To: pld@GSI-CAM, smh@GSI-CAM, rwk@GSI-CAM, bug-lispm@GSI-CAM
+In-Reply-To: <[GSI-CTHULHU].27-Jul-88 22:32:36.pld>
+Message-Id: <[GSI-CLAUDE-DEBUSSY].29-Jul-88 01:54:44.RWK>
+
+    Date: Wednesday, 27 July 1988, 22:32-EDT
+    From: Peter L. DeWolf <pld@GSI-CAM>
+    Subject: patch Zwei 125.6 is dog meat
+    To: smh@GSI-CAM, rwk@GSI-CAM, bug-lispm@GSI-CAM
+    In-reply-to: <[GSI-HARPO].28-Jul-88 13:19:07.smh>
+    Message-ID: <[GSI-CTHULHU].27-Jul-88 22:32:36.pld>
+
+OK, which of you two is running with your clock set way wrong???
+Or can you teach me how to reply to something the day before it
+was sent?
+
+    I un-revoked the patch after recompiling it with a working compiler.
+
+
+
+
+
+
+From keith@GSI-CAM Fri Jul 29 07:34:23 1988
+Received: from GSI-GLASS (lmi-fishfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA06688; Fri, 29 Jul 88 07:34:14 edt
+Date: Friday, 29 July 1988, 07:34-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: fs:file-properties on a generic pathname
+To: BUG-LISPM@GSI-CAM
+Message-Id: <[GSI-GLASS].29-Jul-88 07:34:08.keith>
+
+In LMI System 125.19, ZWEI 125.4, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.2, Lambda-Diag 17.0,
+Experimental Kermit 37.0, microcode 1762, SDU Boot Tape 3.14,
+SDU ROM 103, 7/21/88, on Breaking Glass (LAMBDA):
+
+(fs:file-properties "sys:sys;sysdcl  ") returned something new the
+other day -- the file properties on "sys:sys;sysdcl.fazl", a new K-fasl
+file.
+
+This happened to me on a rather esoteric MAKE-SYSTEM call, and I could
+not reproduce it in that way again.
+
+On further investigation I noted that in this case FS:FILE-PROPERTIES
+got a list of files with their associated properties, and the .FAZL file
+just happened to be the first in the list.  I'm not sure what file
+properties on a generic pathname <mean> exactly, but this seems bogus --
+perhaps the pathname could be sent :SOURCE-PATHNAME to get a real
+pathname to use (namely, the .LISP file)?
+
+By the way, this is an example of how something as innocuous as creating
+a new file type can screw the system...
+
+
+From keith@GSI-CAM Fri Jul 29 07:38:16 1988
+Received: from GSI-GLASS (lmi-fishfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA06698; Fri, 29 Jul 88 07:38:08 edt
+Date: Friday, 29 July 1988, 07:38-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: asin 2
+To: smh@GSI-CAM, bug-lispm@GSI-CAM
+In-Reply-To: <[GSI-ALEX].6-Jul-88 17:39:30.smh>
+Message-Id: <[GSI-GLASS].29-Jul-88 07:38:08.keith>
+
+    Date: Wednesday, 6 July 1988, 17:39-EDT
+    From: Steve Haflich <smh@GSI-CAM>
+    Subject: asin 2
+    To: bug-lispm@GSI-CAM
+    Message-ID: <[GSI-ALEX].6-Jul-88 17:39:30.smh>
+
+    On the lambda evaluate (ASIN 2).  The imaginary part of the
+    complex-number result is accurate only to two significant digits.
+
+    Do the PICON people know??
+
+
+
+I believe they do know about this -- ASIN's brokenness was an LMI
+legend.  (We're working on it...)
+
+But I don't know if they care -- they are pushing Exploders, these days.
+
+
+
+From keith@GSI-CAM Fri Jul 29 07:49:33 1988
+Received: from GSI-GLASS (lmi-fishfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA06715; Fri, 29 Jul 88 07:49:27 edt
+Date: Friday, 29 July 1988, 07:49-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: HARDCOPY commands don't work in ZMail (Son of Old Bug Report)
+To: BUG-LISPM@GSI-CAM
+Message-Id: <[GSI-GLASS].29-Jul-88 07:49:27.keith>
+
+In LMI System 125.19, ZWEI 125.4, ZMail 73.0, Local-File 75.0,
+File-Server 24.0, Unix-Interface 13.0, Tape 24.2, Lambda-Diag 17.0,
+Experimental Kermit 37.0, microcode 1762, SDU Boot Tape 3.14,
+SDU ROM 103, 7/21/88, on Breaking Glass (LAMBDA):
+
+All the HARDCOPY stuff for ZMail is broken.  Needs to be revamped in
+terms of how we do hardcopy devices.
+
+
+From keith@GSI-CAM Fri Jul 29 12:23:26 1988
+Received: from GSI-GLASS (lmi-fishfood.ARPA) by gsi-cam.UUCP (4.12/4.7)  id AA07485; Fri, 29 Jul 88 12:23:19 edt
+Date: Friday, 29 July 1988, 12:23-EDT
+From: Keith Corbett <keith@GSI-CAM>
+Subject: please load system 126 -- and <don't> patch system 125!
+To: info-lispm@GSI-CAM
+Message-Id: <[GSI-GLASS].29-Jul-88 12:23:13.keith>
+
+
+System 125 is the forever-forked, non-K-machine-softwared,
+patchable-on-customer-demand system level.
+
+System 126 was compiled a few days ago, and is actively being patched.
+This is the system all K development and K<>Lambda integration should be
+happening in.
+
+Please do one of the following next chance you get:
+
+a) run (make-system 'system) and save your own band, or
+b) copy a band from DJ, after we put one there, sometime today.
+
+Thanks...
+
+

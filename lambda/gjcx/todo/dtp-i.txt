@@ -1,0 +1,131 @@
+
+
+
+[SI:DTP-INDEXED-FORWARD][CDR-CODE][ADDRESS]
+
+Should act like an invisible pointer into SI:*INDEXED-CELL-ARRAY*
+which will be an ART-Q array. Like DTP-ONE-Q-FORWARD but with an index.
+
+If DTP-INDEXED-FORWARD is seen then the machine will get the word
+ (AREF SI:*INDEXED-CELL-ARRAY* ADDRESS)
+
+If SI:*INDEXED-CELL-ARRAY* is not an array or not big enough then we should probably
+signal a trap much like a DTP-TRAP error.
+
+A suggestion: to return NIL since programs like the inspector will not expect to
+find cells like SYMBOL-PLIST unbound. What about PUTPROP in this case?
+Clearly it should be an error.
+
+Or ADDRESS is actually [SEMANTICS][INDEX]
+where [SEMANTICS] controls default behavior. e.g. 0 = unbound/trap, 1 = NIL.
+
+
+Programs to worry about:
+ * inspector, must have SYMBOL-PLIST-BOUNDP.
+ * error handler. must have binding of SI:*INDEXED-CELL-ARRAY* from stack group being
+   debugged.
+ * special closures. Exactly what cell is going to be recorded as the internal value cell?
+ * property lists, e.g.
+
+ XCL1
+        (call-data-type-not-equal pdl-top (a-constant (byte-value q-data-type dtp-symbol)) trap)
+   (ERROR-TABLE ARGTYP SYMBOL PP T)
+   (ERROR-TABLE ARG-POPPED 0 PP)
+        (POPJ-AFTER-NEXT
+         (M-T) DPB Q-POINTER PDL-POP
+                (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-LOCATIVE)))
+       ((M-T) ADD M-T A-TEM1)
+
+
+ Code from rplacd:
+                           (LOCF (SYMBOL-PLIST SYMBOL-OR-PLIST))
+                         SYMBOL-OR-PLIST))
+           (RPLACD PLLOC (LIST*-IN-AREA (IF (= (%AREA-NUMBER SYMBOL-OR-PLIST) NR-SYM)
+
+This gets the locative                     (LOCF (SYMBOL-PLIST SYMBOL-OR-PLIST))
+ using XCL1 index (TEM1) = 3. But RPLACD should do
+the right thing here.
+
+
+Higher level constructs:
+
+Given a symbol, allocate slots in SI:*INDEXED-CELL-ARRAY* for its value, function, and property lists.
+Then copy the contents of those cells into the array. Then store DTP-INDEXED-FORWARD's into the
+symbol.
+
+
+
+ microcode dispatch tables effected.
+ * many tables have INDEXED-FORWARD handled like what small float (which type used to be)
+   used to do. FIX THESE.
+
+Trans-*
+
+        (INHIBIT-XCT-NEXT-BIT TRANS-OLD0)       ;0 ONE-Q-FORWARD
+        (INHIBIT-XCT-NEXT-BIT TRANS-OQF)        ;1 ONE-Q-FORWARD
+
+        (INHIBIT-XCT-NEXT-BIT PB-TRANS)         ;0 ONE-Q-FORWARD
+        (P-BIT R-BIT)                           ;1 ONE-Q-FORWARD
+
+D-GC-WRITE-TEST
+        (n-bit gc-write-trap)                   ;0 ONE-Q-FORWARD
+        (R-BIT)                                 ;1 ONE-Q-FORWARD
+
+
+CALL-INSTANCE-KEY-FOUND
+    .....
+        ((VMA-START-READ) ADD M-B (A-CONSTANT 1))  ;Assumes no ONE-Q-FORWARDs in the hash table.
+        (CHECK-PAGE-READ)
+        (DISPATCH TRANSPORT MD)
+
+
+(start-dispatch 5 0)
+d-structure-info
+        (p-bit r-bit)                           ;one-q-forward
+
+d-find-structure-header
+        (fsh-search-loop)                       ;one-q-forward
+
+d-verify-accumulator-simple                     ;Simple verifications of accumulator contents
+                                                ;to detect dangerous types being left in accumulators
+        (n-bit p-bit illop)                     ;one-q-forward
+
+
+CAR-PRE-DISPATCH
+        (P-BIT INHIBIT-XCT-NEXT-BIT TRAP)       ;ONE-Q-FORWARD
+
+
+CAR-PRE-DISPATCH-DIRECT
+        (P-BIT  TRAP)   ;ONE-Q-FORWARD
+CARCDR-DISPATCH-DIRECT
+        (P-BIT  CARCDR-NOT-LIST)        ;ONE-Q-FORWARD
+
+
+
+
+
+
+
+QSLQRY  ((VMA-START-READ) ADD A-Q M-array-origin)               ;Q-LIST ARRAY
+        (CHECK-PAGE-READ)                       ;NO TRANSPORT SINCE STORING AND JUST
+        ((WRITE-MEMORY-DATA-START-WRITE)        ;TOUCHED HEADER AND DON'T ALLOW ONE-Q-FORWARD
+                SELECTIVE-DEPOSIT READ-MEMORY-DATA Q-ALL-BUT-TYPED-POINTER A-T)
+        (CHECK-PAGE-WRITE)
+        (GC-WRITE-TEST)
+        (popj)
+
+;NEEDS TRANSPORTER HACKERY HERE IF ONE-Q-FORWARD S IN ARRAY-LEADERS ARE TO BE SUPPORTED.
+XSALDR-AREFI
+
+d-trans-old
+        (trans-old-copy)        ;one-q-forward
+
+;Enter here for one-q-forward.  Already transported if was old-space.
+TRANS-OQF
+        (JUMP-IF-BIT-SET (BYTE-FIELD 1 3) READ-I-ARG TRANS-DROP-THROUGH) ;IGNORE OQF IF JUST
+        (JUMP-XCT-NEXT TRANS-INVZ)                                       ;CHECKING CDR CODE
+       (CALL-IF-BIT-SET (BYTE-FIELD 1 2) READ-I-ARG ILLOP)      ;BARF IF TRANSPORT-HEADER
+
+d-scavenge-word
+
+        (p-bit r-bit)                                  ;one-q-forward

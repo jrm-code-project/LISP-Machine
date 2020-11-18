@@ -1,0 +1,44 @@
+
+
+                             CATCH and THROW
+
+
+
+   CATCH must dynamically bind an identifier to a continuation.
+Since one of the elements of the continuation is the level of the
+control stack it is usually convenient to deep bind the identifier
+and mark the level of the stack by representing the binding and
+continuation as a pseudo stack frame placed on the control stack.
+
+  We use this technique by opening a frame and marking it by setting O0
+to a special marker ('UNWIND-MARKER).  (This implies that no real
+function should be passed this marker as its first argument).
+
+
+  There are two binary decisions to be made when implementing CATCH,
+resulting in four slightly different implementations.  They are:
+
+  1. Should the body continuation and the throw continuation be
+     the same?
+
+  2. Should THROW pop the catch frame?
+
+
+  Decision 1.  THROW returns its value in a canonical place,  if THROW
+returns directly to the continuation of the body, then the body must
+also return its value in the same canonical place.  The Lisp Machine
+does this and the canonical place is the stack.  To return in a canonical
+place would not be too bad for us either, except for multiple values.
+Many implementations have VALUES look back on the stack for the number
+of values needed and a place to put them.
+In the general case we return multiple values in registers and set a bit which says multiple
+values were returned.  If the target of the values is apparent
+we can just move the values and not set the bit.
+THROW must use the general case and the throw continuation must call MVBIND,
+however, the body may be able to use the special case.  Therefore it seems
+better to allow the throw continuation to add some special code which will only
+be run when a throw occurs and then call the normal body continuation.
+
+
+  Decision 2.  ...
+

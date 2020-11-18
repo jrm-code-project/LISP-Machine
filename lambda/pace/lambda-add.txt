@@ -1,0 +1,275 @@
+(defun foo (a b)
+  (user-plus a b))
+foo:
+ 16 CALL D-RETURN FEF|6       ;#'USER-PLUS
+ 17 PUSH ARG|0                ;A
+ 18 MOVE D-LAST ARG|1         ;B
+
+
+(defun user-plus (a b)
+  (+ a b))
+USER-PLUS:
+ 14 PUSH ARG|0                ;A
+ 15 + ARG|1                   ;B
+ 16 MOVE D-RETURN PDL-POP
+
+
+
+;****
+;**** fetch 2 macroinstructions
+;****
+
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)        ;PUT BACK RETURN FOR NEXT TIME
+   (ERROR-TABLE ILLEGAL-INSTRUCTION)
+
+;****
+;**** execute CALL instruction
+;****
+
+qicall-fef
+        ((m-1) ldb (byte-field 8 0) macro-ir)
+        ((vma-start-read) add m-fef a-1)
+        (check-page-read)
+        (dispatch transport read-memory-data)
+        (no-op)
+
+;****
+;**** follow indirect link
+;****
+
+trans-evcp
+        (jump-if-bit-clear (byte-field 1 0) read-i-arg transport-header-drop-through)
+        ((m-tem1) md)
+        (popj-after-next
+          (vma-start-read) selective-deposit vma q-all-but-pointer a-tem1)
+       (check-page-read)
+
+        (dispatch transport read-memory-data)
+
+        ((m-t) q-typed-pointer md)
+
+;****
+;**** start stack frame
+;****   fill in pointers to previous frames
+;****
+
+CBM     ((M-C) macro-ir-DEST)           ;EVENTUAL DESTINATION
+CBM0                                    ;%OPEN-CALL-BLOCK etc. call in here
+        ((M-ZR) ADD PDL-BUFFER-POINTER  ;Open macro-to-macro call block
+                 (A-CONSTANT (EVAL %LP-CALL-BLOCK-LENGTH)))
+        ((M-TEM) SUB M-ZR A-IPMARK)     ;Compute delta to prev open block
+        ((m-TEM1) DPB M-TEM (LISP-BYTE %%LP-CLS-DELTA-TO-OPEN-BLOCK)
+                A-DEFAULT-CALL-STATE)   ;Normally fixnum 0, has %%lp-cls-attention set if
+                                        ; metering enabled.
+        ((M-TEM) SUB M-ZR A-AP)         ;Compute delta to prev active block
+        ((m-TEM1) DPB M-TEM (LISP-BYTE %%LP-CLS-DELTA-TO-ACTIVE-BLOCK) A-TEM1)
+        ((C-PDL-BUFFER-POINTER-PUSH)    ;Push LPCLS Q
+            DPB M-C (LISP-BYTE %%LP-CLS-DESTINATION) A-TEM1)
+        ((C-PDL-BUFFER-POINTER-PUSH)    ;Push LPEXS Q
+            (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-FIX)))
+        ((C-PDL-BUFFER-POINTER-PUSH)    ;Push LPENS Q
+            (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-FIX)))
+        (POPJ-AFTER-NEXT                ;Push LPFEF Q
+          (C-PDL-BUFFER-POINTER-PUSH) M-T)
+       ((A-IPMARK) PDL-BUFFER-ADDRESS-MASK M-ZR)        ;A-IPMARK -> new open block
+
+
+;****
+;**** push argument A
+;****
+
+qimove-pdl-arg
+        (popj-after-next
+          (pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+       ((c-pdl-buffer-pointer-push m-t) q-typed-pointer c-pdl-buffer-index)
+
+;****
+;**** fetch 2 macroinstructions
+;****
+
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)        ;PUT BACK RETURN FOR NEXT TIME
+   (ERROR-TABLE ILLEGAL-INSTRUCTION)
+
+;****
+;**** push argument B
+;****
+
+qimove-last-arg
+        ((pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+        (jump-xct-next qmrcl)
+       ((c-pdl-buffer-pointer-push) dpb c-pdl-buffer-index q-all-but-cdr-code
+            (a-constant (byte-value q-cdr-code cdr-nil)))
+
+
+;****
+;**** save return PC, check for PDL overflow
+;****
+;;; Activate pending call.
+QMRCL   ((M-S PDL-INDEX) M-AP)
+     ;; Shift 2 to align with location counter.
+        ((m-TEM1) DPB PDL-INDEX-INDIRECT (BYTE-FIELD Q-POINTER-WIDTH #+lambda 2 #+exp 1)
+                                 (A-CONSTANT 0))
+          ;Relative PC (hwds)
+        ((M-TEM) SUB LOCATION-COUNTER A-TEM1 #+lambda OUTPUT-SELECTOR-RIGHTSHIFT-1)
+        ((M-AP PDL-INDEX) A-IPMARK)
+        ((M-A) Q-TYPED-POINTER C-PDL-BUFFER-INDEX)
+        ((m-fef) m-a)
+     ;; M-R passes argument count to callee.
+        ((M-R) SUB OUTPUT-SELECTOR-MASK-11 PDL-BUFFER-POINTER A-IPMARK)
+     ;; Build exit-state word from PC, M-FLAGS, and previous contents (old QLLV)
+        ((PDL-INDEX) ADD M-S (A-CONSTANT (EVAL %LP-EXIT-STATE)))
+     ;; Code knows that %%LP-EXS-EXIT-PC is 0017
+        ((m-TEM1) SELECTIVE-DEPOSIT PDL-INDEX-INDIRECT (BYTE-FIELD 21 17) A-TEM)
+     ;; Save M-QBBFL then clear it. (cleared after dispatch-xct-next below for speed)
+        ((PDL-INDEX-INDIRECT) DPB M-FLAGS (LISP-BYTE %%LP-EXS-PC-STATUS) A-TEM1)
+     ;; Following code integrated from old FINISH-ENTERED-FRAME.
+        ((PDL-INDEX) ADD M-AP (A-CONSTANT (EVAL %LP-ENTRY-STATE)))
+        ((M-TEM) C-PDL-BUFFER-INDEX)
+        ((C-PDL-BUFFER-INDEX) DPB M-R (LISP-BYTE %%LP-ENS-NUM-ARGS-SUPPLIED) A-TEM)
+     ;; Compute new pdl level in PDL-INDEX (truncated to 10 bits).
+        ((PDL-INDEX) SUB M-AP A-S)
+        ((M-PDL-BUFFER-ACTIVE-QS) ADD PDL-INDEX A-PDL-BUFFER-ACTIVE-QS)
+     ;; Note: M-FLAGS must be taken care of in PDL-BUFFER-DUMP, also.
+        (CALL-GREATER-THAN M-PDL-BUFFER-ACTIVE-QS A-PDL-BUFFER-HIGH-WARNING
+            PDL-BUFFER-DUMP-RESET-FLAGS)
+        (dispatch-xct-next qmrcl-dispatch m-a)
+       ((M-FLAGS) SELECTIVE-DEPOSIT M-FLAGS M-FLAGS-EXCEPT-PROCESSOR-FLAGS A-ZERO)
+
+;****
+;**** figure out what kind of object we are calling
+;****
+
+QLENTR
+        (CHECK-PAGE-READ)
+   ;no transport necessary since MD not a pointer.
+meter-function-entry-return
+        (DISPATCH-XCT-NEXT (LISP-BYTE %%HEADER-TYPE-FIELD) MD D-QLENTR-DISPATCH)
+       ((M-J) (LISP-BYTE %%FEFH-PC) MD) ;MAY GET CHANGED DUE TO OPTIONAL ARGS.
+
+;****
+;**** now we know we are calling a FEF with a fixed number of arguments, and no locals
+;****
+
+QLENTR-FAST-FIXED-NO-LOCALS
+        ((M-1) DPB M-A (BYTE-FIELD Q-POINTER-WIDTH 1) (A-CONSTANT 0))   ;NOW UNRELOCATE PC
+        ((LOCATION-COUNTER) ADD M-1 A-J OUTPUT-SELECTOR-LEFTSHIFT-1)
+        ((M-E) (LISP-BYTE %%FEFH-ARGS-FOR-FANL) MD)
+        (POPJ-EQUAL M-E A-R)
+       ((A-IPMARK) M-AP)        ;NO OPEN CALL BLOCK YET
+
+
+;****
+;**** fetch 2 macroinstructions
+;****
+
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)        ;PUT BACK RETURN FOR NEXT TIME
+   (ERROR-TABLE ILLEGAL-INSTRUCTION)
+
+;****
+;**** push argument A
+;****
+
+qimove-pdl-arg
+        (popj-after-next
+          (pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+       ((c-pdl-buffer-pointer-push m-t) q-typed-pointer c-pdl-buffer-index)
+
+;****
+;**** add argument B
+;****
+
+qadd-arg
+; *** address the PDL buffer slot for argument B
+        ((pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+; *** check type of A, branch if hard case
+        (jump-data-type-not-equal c-pdl-buffer-pointer
+                (a-constant (byte-value q-data-type dtp-fix)) qadd-hard-pi)
+; *** check type of B, branch if hard case
+        (jump-data-type-not-equal c-pdl-buffer-index
+                (a-constant (byte-value q-data-type dtp-fix)) qadd-hard-pi)
+; *** both are fixnums, so sign extend them
+        ((M-1) OUTPUT-SELECTOR-EXTEND-25 C-PDL-BUFFER-POINTER-POP)
+        ((M-2) OUTPUT-SELECTOR-EXTEND-25 C-PDL-BUFFER-INDEX)
+; *** add
+        ((M-1) ADD M-1 A-2)
+; *** branch if overflow
+        (DISPATCH-POPJ-XCT-NEXT (I-ARG 1)       ;duplicate FIXPACK-P
+         (BYTE-FIELD 2 (DIFFERENCE Q-POINTER-WIDTH 1))
+         M-1 D-FXOVCK)
+; *** no overflow, replace FIXNUM data type
+       ((C-PDL-BUFFER-POINTER-PUSH M-T) DPB M-1 Q-POINTER
+                (A-CONSTANT (PLUS (BYTE-VALUE Q-DATA-TYPE DTP-FIX)
+                                  (BYTE-VALUE Q-CDR-CODE CDR-NEXT))))
+
+;****
+;**** fetch 2 macroinstructions
+;****
+
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)        ;PUT BACK RETURN FOR NEXT TIME
+   (ERROR-TABLE ILLEGAL-INSTRUCTION)
+
+
+;****
+;**** execute RETURN instruction
+;****
+
+qimove-return-pdl-pop
+        (jump-xct-next qmddr)
+       ((m-t) q-typed-pointer c-pdl-buffer-pointer-pop)
+
+;****
+;**** recompute pointers to old stack frames, return PC, return destination
+;****
+
+;;; DESTINATION RETURN  value in M-T.  Q-ALL-BUT-TYPED-POINTER bits must be 0.
+QMDDR
+        (CALL-DATA-TYPE-EQUAL M-T (A-CONSTANT (BYTE-VALUE Q-DATA-TYPE DTP-STACK-CLOSURE))
+                    STACK-CLOSURE-RETURN-TRAP)   ;do this first because it can result
+                ;in attention getting set in current frame!.
+        ((PDL-INDEX) ADD M-AP (A-CONSTANT (EVAL %LP-CALL-STATE)))
+        ((M-C) PDL-INDEX-INDIRECT)
+        (JUMP-IF-BIT-SET (LISP-BYTE %%LP-CLS-ATTENTION) PDL-INDEX-INDIRECT QMDDR-SLOW)
+        ((PDL-POINTER) SUB M-AP (A-CONSTANT (EVAL %LP-CALL-BLOCK-LENGTH))) ;FLUSH PDL
+        ((m-TEM1) (LISP-BYTE %%LP-CLS-DELTA-TO-OPEN-BLOCK) M-C)
+        ((A-IPMARK) SUB OUTPUT-SELECTOR-MASK-11 M-AP A-TEM1)            ;COMPUTE PREV A-IPMARK
+        ((m-TEM1) (LISP-BYTE %%LP-CLS-DELTA-TO-ACTIVE-BLOCK) M-C)
+        ((M-AP PDL-INDEX) SUB OUTPUT-SELECTOR-MASK-11 M-AP A-TEM1)      ;RESTORE M-AP
+        ((M-PDL-BUFFER-ACTIVE-QS) SUB M-PDL-BUFFER-ACTIVE-QS A-TEM1)
+        ;; Make sure frame being returned to is in the pdl buffer
+        (CALL-LESS-THAN M-PDL-BUFFER-ACTIVE-QS
+                        (A-CONSTANT PDL-BUFFER-LOW-WARNING) PDL-BUFFER-REFILL)
+        ;; Now restore the state of the frame being returned to.  We will restore
+        ;; the FEF stuff even if it's not a FEF frame, at the cost of a slight
+        ;; amount of time.
+
+        ((M-A) Q-POINTER PDL-INDEX-INDIRECT)    ;FUNCTION RETURNING TO
+  ;** speed this up, go directly to m-fef and use it from there.
+        ((m-fef) pdl-index-indirect)            ;do this after pdl-buffer-refill.
+        ((PDL-INDEX) ADD M-AP (A-CONSTANT (EVAL %LP-ENTRY-STATE)))
+        ((M-TEM) (LISP-BYTE %%LP-ENS-MACRO-LOCAL-BLOCK-ORIGIN) PDL-INDEX-INDIRECT)
+        ((A-LOCALP) ADD M-AP A-TEM)
+        ((PDL-INDEX) ADD M-AP (A-CONSTANT (EVAL %LP-EXIT-STATE)))
+        ((M-FLAGS) (LISP-BYTE %%LP-EXS-PC-STATUS) PDL-INDEX-INDIRECT A-FLAGS)
+
+                                ;FEF address in bytes
+        ((M-TEM) DPB M-A (BYTE-FIELD Q-POINTER-WIDTH #+lambda 2 #+exp 1) (A-CONSTANT 0))
+        ((m-TEM1) DPB PDL-INDEX-INDIRECT (BYTE-FIELD 17 #+lambda 1 #+exp 0) A-ZERO)
+                        ;CODE KNOWS THAT %%LP-EXS-EXIT-PC IS 0017
+        ((LOCATION-COUNTER) ADD M-TEM A-TEM1)
+F-QIMOVE-EXIT   ;Store into destination in M-C.  Could be D-MICRO
+        (DISPATCH (LISP-BYTE %%LP-CLS-DESTINATION) M-C QMDTBD)
+       ((PDL-PUSH) DPB M-T Q-ALL-BUT-CDR-CODE
+                        (A-CONSTANT (BYTE-VALUE Q-CDR-CODE CDR-NEXT)))
+

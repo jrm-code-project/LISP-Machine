@@ -1,0 +1,71 @@
+;Reading at top level in Lisp Listener 2.
+;Reading in base 8 in package USER with standard Zetalisp readtable.
+
+(si:describe-syscom 0 "lod1")
+System communications area of: SYS 3.18, + explorer ucode
+SYSTEM:%SYS-COM-AREA-ORIGIN-PNTR          =        4400       2304.
+SYSTEM:%SYS-COM-VALID-SIZE                =           0          0.
+SYSTEM:%SYS-COM-PAGE-TABLE-PNTR           =        7000       3584.
+SYSTEM:%SYS-COM-PAGE-TABLE-SIZE           =      120000      40960.
+SYSTEM:%SYS-COM-OBARRAY-PNTR              =      100144      32868.
+SYSTEM:%SYS-COM-ETHER-FREE-LIST           =           0          0.
+SYSTEM:%SYS-COM-ETHER-TRANSMIT-LIST       =           0          0.
+SYSTEM:%SYS-COM-ETHER-RECEIVE-LIST        =           0          0.
+SYSTEM:%SYS-COM-BAND-FORMAT               =        1000        512.
+SYSTEM:%SYS-COM-GC-GENERATION-NUMBER      =         103         67.
+SYSTEM:%SYS-COM-UNIBUS-INTERRUPT-LIST     =         500        320.
+SYSTEM:%SYS-COM-TEMPORARY                 =       40273      16571.
+SYSTEM:%SYS-COM-FREE-AREA#-LIST           =          77         63.
+SYSTEM:%SYS-COM-FREE-REGION#-LIST         =         240        160.
+SYSTEM:%SYS-COM-MEMORY-SIZE               =           0          0.
+SYSTEM:%SYS-COM-WIRED-SIZE                =      130400      45312.
+SYSTEM:%SYS-COM-CHAOS-FREE-LIST           =      175512      64330.
+SYSTEM:%SYS-COM-CHAOS-TRANSMIT-LIST       =           0          0.
+SYSTEM:%SYS-COM-CHAOS-RECEIVE-LIST        =           0          0.
+SYSTEM:%SYS-COM-DEBUGGER-REQUESTS         =           0          0.
+SYSTEM:%SYS-COM-DEBUGGER-KEEP-ALIVE       =           0          0.
+SYSTEM:%SYS-COM-DEBUGGER-DATA-1           =           0          0.
+SYSTEM:%SYS-COM-DEBUGGER-DATA-2           =           0          0.
+SYSTEM:%SYS-COM-MAJOR-VERSION             =         156        110.
+SYSTEM:%SYS-COM-DESIRED-MICROCODE-VERSION =        2751       1513.
+SYSTEM:%SYS-COM-HIGHEST-VIRTUAL-ADDRESS   =      157600      57216.
+SYSTEM:%SYS-COM-POINTER-WIDTH             =          31         25.
+SYSTEM:%SYS-COM-NUMBER-REGIONS            =         400        256.
+SYSTEM:%SYS-COM-NUMBER-AREAS              =         400        256.
+SI::%SYS-COM-BAND-CRC                     =           0          0.
+
+NIL
+(si:describe-syscom 4 "lod1")
+System communications area of: SYS 3.18
+SYSTEM:%SYS-COM-AREA-ORIGIN-PNTR          =        4400       2304.
+SYSTEM:%SYS-COM-VALID-SIZE                =       65472      27450.
+SYSTEM:%SYS-COM-PAGE-TABLE-PNTR           =        7000       3584.
+SYSTEM:%SYS-COM-PAGE-TABLE-SIZE           =       54000      22528.
+SYSTEM:%SYS-COM-OBARRAY-PNTR              =      100144      32868.
+SYSTEM:%SYS-COM-ETHER-FREE-LIST           =           0          0.
+SYSTEM:%SYS-COM-ETHER-TRANSMIT-LIST       =           0          0.
+SYSTEM:%SYS-COM-ETHER-RECEIVE-LIST        =           0          0.
+SYSTEM:%SYS-COM-BAND-FORMAT               =        1000        512.
+SYSTEM:%SYS-COM-GC-GENERATION-NUMBER      =         103         67.
+SYSTEM:%SYS-COM-UNIBUS-INTERRUPT-LIST     =         500        320.
+SYSTEM:%SYS-COM-TEMPORARY                 =      100000      32768.
+SYSTEM:%SYS-COM-FREE-AREA#-LIST           =          77         63.
+SYSTEM:%SYS-COM-FREE-REGION#-LIST         =         274        188.
+SYSTEM:%SYS-COM-MEMORY-SIZE               =           0          0.
+SYSTEM:%SYS-COM-WIRED-SIZE                =      130400      45312.
+SYSTEM:%SYS-COM-CHAOS-FREE-LIST           =      175512      64330.
+SYSTEM:%SYS-COM-CHAOS-TRANSMIT-LIST       =           0          0.
+SYSTEM:%SYS-COM-CHAOS-RECEIVE-LIST        =           0          0.
+SYSTEM:%SYS-COM-DEBUGGER-REQUESTS         =           0          0.
+SYSTEM:%SYS-COM-DEBUGGER-KEEP-ALIVE       =           0          0.
+SYSTEM:%SYS-COM-DEBUGGER-DATA-1           =           0          0.
+SYSTEM:%SYS-COM-DEBUGGER-DATA-2           =           0          0.
+SYSTEM:%SYS-COM-MAJOR-VERSION             =         156        110.
+SYSTEM:%SYS-COM-DESIRED-MICROCODE-VERSION =        2747       1511.
+SYSTEM:%SYS-COM-HIGHEST-VIRTUAL-ADDRESS   =      157600      57216.
+SYSTEM:%SYS-COM-POINTER-WIDTH             =          31         25.
+SYSTEM:%SYS-COM-NUMBER-REGIONS            =         400        256.
+SYSTEM:%SYS-COM-NUMBER-AREAS              =         400        256.
+SI::%SYS-COM-BAND-CRC                     =        6011       3081.
+
+NIL

@@ -1,0 +1,111 @@
+Babyl Options:
+Version:5
+Append:1
+
+0,,
+*** EOOH ***
+Date: Wednesday, 1 June 1988, 17:57-EDT
+From: William Foster <wkf@GSI-CAM>
+Subject: Coding conventions
+To: bug-falcon@GSI-CAM
+Message-ID: <[GSI-ORSON-WELLES].1-Jun-88 17:57:39.WKF>
+
+To make our life easier in the future, please follow these conventions when coding:
+
+ If you see a place in the code which could be optimized:
+
+;; @@@ Turn this into a macro later when stablized.  --wkf
+
+ If you see a place in the code which is broken:
+
+;; +++ This does not handle boundary cases properly.  --wkf
+
+This way we can tag search for "@@@" and "+++" and quickly find all such places.
+
+Thanks.
+
+--wkf
+
+
+
+0,,
+*** EOOH ***
+Date: Tuesday, 20 September 1988, 12:31-EDT
+From: William K. Foster <wkf@GSI-CAM>
+Subject: (k-cold:cold-loader-forget-everything)
+To: BUG-FALCON@GSI-CAM
+Message-ID: <[GSI-LOVE].20-Sep-88 12:31:32.wkf>
+
+In LMI FALCON in Experimental System 126.80, ZWEI 125.20, ZMail 73.2,
+Local-File 75.2, File-Server 24.1, Unix-Interface 13.0, Tape 24.2,
+Lambda-Diag 17.0, microcode 1762, SDU Boot Tape 3.13, SDU ROM 102, 8/17,
+on Love (LAMBDA):
+
+To avert possible confusion due to changing of variable *cold-files*,
+The function (k-cold:cold-loader-forget-everything) should assure the
+rebinding of *cold-files*.
+
+--wkf
+
+
+
+0,,
+*** EOOH ***
+Date: Monday, 10 October 1988, 12:13-EDT
+From: jim@GSI-CAM
+Subject: Failing K processor
+To: pfc@GSI-cam, dgs@GSI-CAM, BUG-FALCON@GSI-CAM
+CC: jim@angel
+In-reply-to: <8810041943.AA01254@gsi-cam.UUCP>
+Message-ID: <[GSI-RAVEL].10-Oct-88 12:13:03.JIM>
+
+    Date: Tuesday, 4 October 1988, 15:43-EDT
+    From: pfc@GSI-DJINN
+
+    In LMI Experimental System 126.100, ZWEI 125.20, ZMail 73.2,
+    Local-File 75.2, File-Server 24.1, Unix-Interface 13.0, Tape 24.2,
+    Lambda-Diag 17.0, microcode 1762, SDU Boot Tape 3.144, SDU ROM 8,
+    Kcold 20sept88, on Orson Welles (LAMBDA):
+
+
+    Insert your description of the circumstances here:
+
+
+    Trying to boot the new board set in ORSON/JACK ... this is one of the failure modes.
+
+            --pfc
+
+
+    >>ERROR: First phase of cold load failed to finish (10365 Illegal attempt to change the map status of a cluster in use.)
+    Backtrace from the debugger:
+
+    K-BOOT (P.C. = 122) (from file FALCON: K; WARM-FILES  )
+
+     Rest arg: (:INHIBIT-COLD-LOAD? T :COMPILE-TYPE :COMPILE ...)
+     Local 1 (INHIBIT-COLD-LOAD?): T
+     Local 2 (COMPILE-TYPE): :COMPILE
+     Local 3 (LOAD-TYPE): :LOAD
+     Local 4 (WARNING-STREAM): NIL
+     Local 5 (MSG): (10365 "Illegal attempt to change the map status of a cluster in use.")
+     Local 6 (FLAGS): NIL
+     Local 7 (ERROR): NIL
+
+
+    MEGA-BOOT (P.C. = 138) (from file FALCON: K; WARM-FILES  )
+
+     Rest arg: (:FAST T)
+     Local 1 (FAST): T
+     Local 2 (COMPILE-TYPE): :COMPILE
+     Local 3 (LOAD-TYPE): :LOAD
+     Local 4 (NO-WARN): :JUST-WARN
+     Local 5 (WARNING-STREAM): NIL
+     Local 6 (WINDOW9): #<TV:LISP-LISTENER Lisp Listener 1 12040000 exposed>
+     Local 7 (MOREP8): NIL
+
+
+
+s I understand it, Doug found a critical path in the hardware at 50 Mhz and slowed the clock
+down to 44 MHz and the problem went away. The debug machine in the middle of the room
+is still operating at 50 MHz.
+
+

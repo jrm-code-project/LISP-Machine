@@ -1,0 +1,481 @@
+                    Benchmark Results                       TI internal data                        20-May-86 20:06:15  Page   1
+
+LAMBDA-E                  LAM   LAMBDA-E   FAN24            LAMBDA-E   FAN24            LAMBDA-E   FAN24      LAMBDA  FAN24
+                          Num     Min        Min      2 rel   Mean       Mean     2 rel   Mean       Mean      Mean   Mean
+Benchmark Name            Run     Cpu        Cpu       to 1 RealTime   RealTime    to 1 PageTime   PageTime    Cons   Cons
+GABRIEL-BOYER               5   23.20 s    26.72 s     0.87 28.69 s    26.77 s     1.07 5.443 s     22.8 ms   478273 452928
+GABRIEL-FRPOLY-1-2          5      0        9.22 ms    0.00  16.7 ms    62.6 ms    0.27  3.33 ms    53.1 ms      232    204
+GABRIEL-FRPOLY-2-2          5      0        11.5 ms    0.00  36.7 ms    11.6 ms    3.17  23.3 ms      0          460    297
+GABRIEL-FRPOLY-3-2          5      0        11.5 ms    0.00  20.0 ms    11.5 ms    1.73  6.67 ms      0          379    266
+GABRIEL-FRPOLY-1-5          5    83.3 ms    106. ms    0.78  93.3 ms    106. ms    0.88  10.0 ms      0         2058   1932
+GABRIEL-FRPOLY-2-5          5    116. ms    143. ms    0.81  153. ms    143. ms    1.07  50.0 ms      0         2537   3407
+GABRIEL-FRPOLY-3-5          5    100. ms    132. ms    0.75  170. ms    132. ms    1.28  66.7 ms      0         3886   2681
+GABRIEL-FRPOLY-1-10         5    900. ms   1.319 s     0.68 1.147 s    1.319 s     0.87  233. ms      0        19526  18472
+GABRIEL-FRPOLY-2-10         5   1.500 s    2.011 s     0.75 1.830 s    2.011 s     0.91  303. ms      0        50803  48218
+GABRIEL-FRPOLY-3-10         5   1.217 s    1.643 s     0.74 1.490 s    1.643 s     0.91  246. ms      0        32957  27673
+GABRIEL-FRPOLY-1-15         5   6.283 s    10.33 s     0.61 8.750 s    10.33 s     0.85 2.473 s       0       103272  97784
+GABRIEL-FRPOLY-2-15         5   12.98 s    17.44 s     0.74 19.26 s    17.84 s     1.08 6.290 s     148. ms   426124 402480
+GABRIEL-FRPOLY-3-15         5   8.467 s    12.64 s     0.67 10.23 s    12.72 s     0.80 1.817 s     46.9 ms   186295 161580
+GABRIEL-PUZZLE              5   22.42 s    25.95 s     0.86 22.56 s    26.07 s     0.87  140. ms    128. ms       17      0
+GABRIEL-FFT                 5   20.00 s    23.08 s     0.87 20.14 s    23.25 s     0.87  136. ms    165. ms      344   1475
+GABRIEL-FFT2                5   20.48 s    22.88 s     0.90 20.53 s    22.98 s     0.89  36.7 ms    97.5 ms     1175   1473
+GABRIEL-BROWSE              5   24.08 s    35.17 s     0.68 28.28 s    35.92 s     0.79 4.083 s     460. ms   825529 827387
+GABRIEL-DERIV               5   5.517 s    11.02 s     0.50 5.717 s    11.03 s     0.52  176. ms    14.0 ms   343900 325000
+GABRIEL-DDERIV              5   5.900 s    11.58 s     0.51 7.980 s     11.6 s     0.69 1.943 s     12.7 ms   375192 355000
+GABRIEL-FFDERIV             5   6.150 s    11.47 s     0.54 8.410 s    11.49 s     0.73 2.280 s     13.3 ms   375192 355000
+GABRIEL-DIV2-1              5   4.150 s    3.094 s     1.34 6.513 s    3.114 s     2.09 2.263 s     18.8 ms   253440 240000
+GABRIEL-DIV2-2              5   7.667 s    4.601 s     1.67 10.23 s    4.602 s     2.22 2.550 s       0       253440 240000
+GABRIEL-DESTRU              5   3.300 s    3.582 s     0.92 4.313 s    3.582 s     1.20 1.003 s       0        91051  86210
+GABRIEL-TRAVERSE-INIT       5   16.63 s    19.49 s     0.85 17.69 s    19.51 s     0.91 1.030 s     26.3 ms    79012  74783
+GABRIEL-TRAVERSE            5   108.8 s    123.2 s     0.88 109.0 s    123.3 s     0.88    0          0           17      0
+GABRIEL-TRIANG              5   406.3 s    401.5 s     1.01 406.4 s    401.6 s     1.01  103. ms    34.2 ms    12950  12402
+GABRIEL-TAK                 5   1.383 s     1.69 s     0.82 1.420 s    1.701 s     0.83  23.3 ms    11.6 ms       17      0
+GABRIEL-TAKR                5   1.383 s    1.704 s     0.81 1.410 s    1.794 s     0.79  13.3 ms    89.7 ms       17      0
+GABRIEL-STAK                5   5.100 s    5.183 s     0.98 5.107 s    5.200 s     0.98    0        10.2 ms       16      0
+GABRIEL-CTAK                5   3.517 s    3.731 s     0.94 3.530 s    3.731 s     0.95    0          0           16      0
+GABRIEL-TAKL                5   14.27 s    16.38 s     0.87 14.29 s    16.39 s     0.87  6.67 ms    8.97 ms       38      0
+GABRIEL-TPRINT              5   7.450 s    8.247 s     0.90 7.497 s    8.394 s     0.89  46.7 ms    122. ms       17      0
+GABRIEL-TPRINT2             5   7.450 s    6.333 s     1.18 7.453 s    6.373 s     1.17    0        38.8 ms       16      0
+GABRIEL-FREAD               5   11.78 s    10.10 s     1.17 14.02 s    12.21 s     1.15 2.243 s    2.042 s      6208   5578
+GABRIEL-FPRINT              5   8.100 s    5.311 s     1.53 8.640 s    5.882 s     1.47  453. ms    483. ms     2475    367
+GABRIEL-NPRINT-T            5   4.683 s    2.822 s     1.66 4.713 s    2.926 s     1.61  13.3 ms    102. ms      844      0
+GABRIEL-NPRINT-F            5   6.067 s    3.861 s     1.57 6.070 s    3.935 s     1.54    0        73.8 ms       16      0
+Sum of MEAN for *GABRIEL-  37   778.3 s    835.5 s     0.93 813.8 s    839.7 s     0.97 35.51 s    4.226 s    3927741 3742598
+Mean of MEAN for *GABRIEL  37                          0.85                        1.10
+Sum of MAX for *GABRIEL-B  37   779.2 s    836.6 s     0.93 835.2 s    856.4 s     0.98 56.00 s    19.83 s    3926433 3742211
+Mean of MAX for *GABRIEL-  37                          0.85                        1.10
+Sum of MIN for *GABRIEL-B  37   777.4 s    834.5 s     0.93 804.0 s    834.5 s     0.96 26.52 s     14.0 ms   3914846 3741665
+Mean of MIN for *GABRIEL-  37                          0.85                        1.10
+
+                    Benchmark Results                       TI internal data                        20-May-86 20:06:24  Page   2
+
+LAMBDA-E                         LAM LAMBDA-E   FAN24            LAMBDA-E   FAN24            LAMBDA-E   FAN24
+                                 Num   Min        Min      2 rel   Max        Max      2 rel Std.Dev.   Std.Dev.
+Benchmark Name                   Run RealTime   RealTime    to 1 RealTime   RealTime    to 1 RealTime   RealTime
+GABRIEL-BOYER                      5 28.30 s    26.72 s     1.06 29.62 s    26.96 s     1.10  438. ms    87.9 ms
+GABRIEL-FRPOLY-1-2                 5    0        9.22 ms    0.00  33.3 ms    276. ms    0.12  9.62 ms    97.5 ms
+GABRIEL-FRPOLY-2-2                 5    0        11.5 ms    0.00  50.0 ms    11.7 ms    4.29  17.7 ms    48.7 us
+GABRIEL-FRPOLY-3-2                 5    0        11.5 ms    0.00  33.3 ms    11.6 ms    2.87  11.4 ms    44.6 us
+GABRIEL-FRPOLY-1-5                 5  83.3 ms    106. ms    0.78  100. ms    106. ms    0.94  7.45 ms    14.1 us
+GABRIEL-FRPOLY-2-5                 5  133. ms    143. ms    0.93  166. ms    144. ms    1.16  11.4 ms    102. us
+GABRIEL-FRPOLY-3-5                 5  166. ms    132. ms    1.26  183. ms    132. ms    1.38  6.09 ms    156. us
+GABRIEL-FRPOLY-1-10                5 1.117 s    1.319 s     0.85 1.183 s    1.319 s     0.90  22.4 ms    40.2 us
+GABRIEL-FRPOLY-2-10                5 1.700 s    2.011 s     0.85 1.900 s    2.011 s     0.94  74.8 ms    129. us
+GABRIEL-FRPOLY-3-10                5 1.467 s    1.643 s     0.89 1.517 s    1.644 s     0.92  18.3 ms    262. us
+GABRIEL-FRPOLY-1-15                5 7.483 s    10.33 s     0.72 10.38 s    10.33 s     1.00 1.052 s     161. us
+GABRIEL-FRPOLY-2-15                5 17.72 s    17.46 s     1.01 21.10 s    18.13 s     1.16 1.086 s     212. ms
+GABRIEL-FRPOLY-3-15                5 9.884 s    12.64 s     0.78 10.85 s    12.92 s     0.84  298. ms    97.5 ms
+GABRIEL-PUZZLE                     5 22.42 s    25.95 s     0.86 23.10 s    26.56 s     0.87  245. ms    225. ms
+GABRIEL-FFT                        5 20.00 s    23.08 s     0.87 20.68 s    23.92 s     0.86  248. ms    304. ms
+GABRIEL-FFT2                       5 20.48 s    22.88 s     0.90 20.65 s    23.37 s     0.88  59.0 ms    180. ms
+GABRIEL-BROWSE                     5 27.50 s    35.17 s     0.78 29.43 s    38.06 s     0.77  769. ms   1.005 s
+GABRIEL-DERIV                      5 5.583 s    11.02 s     0.51 5.867 s    11.09 s     0.53  102. ms    25.7 ms
+GABRIEL-DDERIV                     5 7.667 s    11.58 s     0.66 8.167 s    11.65 s     0.70  165. ms    23.1 ms
+GABRIEL-FFDERIV                    5 8.067 s    11.47 s     0.70 9.084 s    11.54 s     0.79  371. ms    24.4 ms
+GABRIEL-DIV2-1                     5 6.167 s    3.094 s     1.99 6.983 s    3.189 s     2.19  241. ms    34.6 ms
+GABRIEL-DIV2-2                     5 9.817 s    4.601 s     2.13 10.68 s    4.602 s     2.32  311. ms    146. us
+GABRIEL-DESTRU                     5 4.267 s    3.582 s     1.19 4.367 s    3.583 s     1.22  29.5 ms    116. us
+GABRIEL-TRAVERSE-INIT              5 17.52 s    19.49 s     0.90 18.13 s     19.6 s     0.93  209. ms    38.6 ms
+GABRIEL-TRAVERSE                   5 108.8 s    123.2 s     0.88 109.0 s    123.4 s     0.88  60.9 ms    68.0 ms
+GABRIEL-TRIANG                     5 406.4 s    401.5 s     1.01 406.5 s    401.7 s     1.01  62.7 ms    62.6 ms
+GABRIEL-TAK                        5 1.383 s     1.69 s     0.82 1.517 s    1.748 s     0.87  44.5 ms    21.2 ms
+GABRIEL-TAKR                       5 1.383 s    1.704 s     0.81 1.467 s    2.155 s     0.68  26.5 ms    164. ms
+GABRIEL-STAK                       5 5.100 s    5.183 s     0.98 5.117 s    5.238 s     0.98  7.45 ms    17.8 ms
+GABRIEL-CTAK                       5 3.517 s    3.731 s     0.94 3.533 s    3.731 s     0.95  6.09 ms    36.4 us
+GABRIEL-TAKL                       5 14.27 s    16.38 s     0.87 14.33 s    16.42 s     0.87  20.6 ms    16.4 ms
+GABRIEL-TPRINT                     5 7.450 s    8.247 s     0.90 7.683 s    8.923 s     0.86  85.2 ms    242. ms
+GABRIEL-TPRINT2                    5 7.450 s    6.333 s     1.18 7.467 s     6.53 s     1.14  6.09 ms    71.8 ms
+GABRIEL-FREAD                      5 11.85 s    10.10 s     1.17 22.60 s    20.02 s     1.13 3.916 s    3.567 s
+GABRIEL-FPRINT                     5 8.100 s    5.311 s     1.53 10.73 s    7.821 s     1.37  955. ms    887. ms
+GABRIEL-NPRINT-T                   5 4.683 s    2.822 s     1.66 4.833 s     3.34 s     1.45  54.8 ms    188. ms
+GABRIEL-NPRINT-F                   5 6.067 s    3.861 s     1.57 6.083 s    4.232 s     1.44  6.09 ms    135. ms
+Sum of MEAN for *GABRIEL-BENCHMA  37 813.8 s    839.7 s     0.97 813.8 s    839.7 s     0.97   353. ns     0
+Mean of MEAN for *GABRIEL-BENCHM  37                        0.94                        1.17
+Sum of MAX for *GABRIEL-BENCHMAR  37 835.2 s    856.4 s     0.98 835.2 s    856.4 s     0.98    0          0
+Mean of MAX for *GABRIEL-BENCHMA  37                        0.94                        1.17
+Sum of MIN for *GABRIEL-BENCHMAR  37 804.0 s    834.5 s     0.96 804.0 s    834.5 s     0.96    0          0
+Mean of MIN for *GABRIEL-BENCHMA  37                        0.94                        1.17
+
+                    Benchmark Results                       TI internal data                        20-May-86 20:06:33  Page   3
+
+LAMBDA-E                         LAM LAMBDA-E   FAN24            LAMBDA-E   FAN24            LAMBDA-E   FAN24
+                                 Num   Min        Min      2 rel   Max        Max      2 rel Std.Dev.   Std.Dev.
+Benchmark Name                   Run   Cpu        Cpu       to 1   Cpu        Cpu       to 1   Cpu        Cpu
+GABRIEL-BOYER                      5 23.20 s    26.72 s     0.87 23.17 s    26.85 s     0.86  94.0 ms    46.2 ms
+GABRIEL-FRPOLY-1-2                 5    0        9.22 ms    0.00  16.7 ms    10.6 ms    1.57  6.09 ms    498. us
+GABRIEL-FRPOLY-2-2                 5    0        11.5 ms    0.00  16.7 ms    11.7 ms    1.43  11.4 ms    48.7 us
+GABRIEL-FRPOLY-3-2                 5    0        11.5 ms    0.00  16.7 ms    11.6 ms    1.43  6.09 ms    44.6 us
+GABRIEL-FRPOLY-1-5                 5  83.3 ms    106. ms    0.78  83.3 ms    106. ms    0.78  9.62 ms    14.1 us
+GABRIEL-FRPOLY-2-5                 5  116. ms    143. ms    0.81  100. ms    144. ms    0.69  11.4 ms    102. us
+GABRIEL-FRPOLY-3-5                 5  100. ms    132. ms    0.75  116. ms    132. ms    0.88  6.09 ms    156. us
+GABRIEL-FRPOLY-1-10                5  900. ms   1.319 s     0.68  916. ms   1.319 s     0.69  11.4 ms    40.2 us
+GABRIEL-FRPOLY-2-10                5 1.500 s    2.011 s     0.75 1.517 s    2.011 s     0.75  28.2 ms    129. us
+GABRIEL-FRPOLY-3-10                5 1.217 s    1.643 s     0.74 1.267 s    1.644 s     0.77  15.5 ms    262. us
+GABRIEL-FRPOLY-1-15                5 6.283 s    10.33 s     0.61 6.300 s    10.33 s     0.61  20.6 ms    161. us
+GABRIEL-FRPOLY-2-15                5 12.98 s    17.44 s     0.74 13.08 s    17.62 s     0.74  114. ms    134. ms
+GABRIEL-FRPOLY-3-15                5 8.467 s    12.64 s     0.67 8.333 s    12.71 s     0.66  41.9 ms    30.4 ms
+GABRIEL-PUZZLE                     5 22.42 s    25.95 s     0.86 22.40 s    25.95 s     0.86  12.2 ms    11.1 ms
+GABRIEL-FFT                        5 20.00 s    23.08 s     0.87 20.00 s    23.09 s     0.87  6.09 ms    2.87 ms
+GABRIEL-FFT2                       5 20.48 s    22.88 s     0.90 20.52 s    22.89 s     0.90  12.2 ms    2.61 ms
+GABRIEL-BROWSE                     5 24.08 s    35.17 s     0.68 24.22 s    36.40 s     0.67  68.0 ms    438. ms
+GABRIEL-DERIV                      5 5.517 s    11.02 s     0.50 5.533 s    11.02 s     0.50  20.6 ms    170. us
+GABRIEL-DDERIV                     5 5.900 s    11.58 s     0.51 6.317 s    11.58 s     0.55  158. ms    35.5 us
+GABRIEL-FFDERIV                    5 6.150 s    11.47 s     0.54 6.133 s    11.47 s     0.53  26.2 ms    27.7 us
+GABRIEL-DIV2-1                     5 4.150 s    3.094 s     1.34 4.317 s    3.095 s     1.39  50.9 ms    296. us
+GABRIEL-DIV2-2                     5 7.667 s    4.601 s     1.67 7.717 s    4.602 s     1.68  31.9 ms    146. us
+GABRIEL-DESTRU                     5 3.300 s    3.582 s     0.92 3.350 s    3.583 s     0.94  20.6 ms    116. us
+GABRIEL-TRAVERSE-INIT              5 16.63 s    19.49 s     0.85 16.67 s    19.46 s     0.86  22.8 ms    9.42 ms
+GABRIEL-TRAVERSE                   5 108.8 s    123.2 s     0.88 109.0 s    123.4 s     0.88  60.9 ms    68.0 ms
+GABRIEL-TRIANG                     5 406.3 s    401.5 s     1.01 406.3 s    401.5 s     1.01  18.3 ms    694. us
+GABRIEL-TAK                        5 1.383 s     1.69 s     0.82 1.400 s    1.690 s     0.83  6.09 ms    60.5 us
+GABRIEL-TAKR                       5 1.383 s    1.704 s     0.81 1.400 s    1.706 s     0.82  6.09 ms    698. us
+GABRIEL-STAK                       5 5.100 s    5.183 s     0.98 5.117 s    5.187 s     0.99  7.45 ms    5.03 ms
+GABRIEL-CTAK                       5 3.517 s    3.731 s     0.94 3.533 s    3.731 s     0.95  6.09 ms    36.4 us
+GABRIEL-TAKL                       5 14.27 s    16.38 s     0.87 14.30 s    16.38 s     0.87  9.62 ms    108. us
+GABRIEL-TPRINT                     5 7.450 s    8.247 s     0.90 7.450 s    8.311 s     0.90    0        27.6 ms
+GABRIEL-TPRINT2                    5 7.450 s    6.333 s     1.18 7.467 s    6.336 s     1.18  6.09 ms    1.02 ms
+GABRIEL-FREAD                      5 11.78 s    10.10 s     1.17 11.77 s    10.17 s     1.16  7.45 ms    64.1 ms
+GABRIEL-FPRINT                     5 8.100 s    5.311 s     1.53 8.467 s    5.404 s     1.57  128. ms    63.0 ms
+GABRIEL-NPRINT-T                   5 4.683 s    2.822 s     1.66 4.767 s    2.826 s     1.69  30.4 ms    1.13 ms
+GABRIEL-NPRINT-F                   5 6.067 s    3.861 s     1.57 6.083 s    3.863 s     1.57  6.09 ms    646. us
+Sum of MEAN for *GABRIEL-BENCHMA  37 778.3 s    835.5 s     0.93 778.3 s    835.5 s     0.93    0         353. ns
+Mean of MEAN for *GABRIEL-BENCHM  37                        0.85                        0.97
+Sum of MAX for *GABRIEL-BENCHMAR  37 779.2 s    836.6 s     0.93 779.2 s    836.6 s     0.93    0          0
+Mean of MAX for *GABRIEL-BENCHMA  37                        0.85                        0.97
+Sum of MIN for *GABRIEL-BENCHMAR  37 777.4 s    834.5 s     0.93 777.4 s    834.5 s     0.93    0          0
+Mean of MIN for *GABRIEL-BENCHMA  37                        0.85                        0.97
+
+                    Benchmark Results                       TI internal data                        20-May-86 20:06:42  Page   4
+
+LAMBDA-E                         LAM LAMBDA-E   FAN24            LAMBDA-E   FAN24                  LAMBDA  FAN24
+                                 Num   Min        Min      2 rel   Max        Max      2 rel 2 rel   Max    Max  2 rel
+Benchmark Name                   Run PageTime   PageTime    to 1 PageTime   PageTime    to 1  to 1  Cons   Cons   to 1
+GABRIEL-BOYER                      5 5.100 s       0             6.450 s     114. ms   56.46 238.25 478274 452928  1.06
+GABRIEL-FRPOLY-1-2                 5    0          0              16.7 ms    265. ms    0.06  0.06    236    204  1.16
+GABRIEL-FRPOLY-2-2                 5    0          0              33.3 ms      0                      461    297  1.55
+GABRIEL-FRPOLY-3-2                 5    0          0              16.7 ms      0                      382    266  1.44
+GABRIEL-FRPOLY-1-5                 5    0          0              16.7 ms      0                     2061   1932  1.07
+GABRIEL-FRPOLY-2-5                 5  16.7 ms      0              66.7 ms      0                     5808   3407  1.70
+GABRIEL-FRPOLY-3-5                 5  66.7 ms      0              66.7 ms      0                     3886   2684  1.45
+GABRIEL-FRPOLY-1-10                5  216. ms      0              266. ms      0                    19525  18472  1.06
+GABRIEL-FRPOLY-2-10                5  200. ms      0              383. ms      0                    44234  48213  0.92
+GABRIEL-FRPOLY-3-10                5  250. ms      0              250. ms      0                    26406  27674  0.95
+GABRIEL-FRPOLY-1-15                5 1.200 s       0             4.083 s       0                   103272  97784  1.06
+GABRIEL-FRPOLY-2-15                5 4.733 s     14.0 ms   337.50 8.017 s     512. ms   15.65 42.36 419428 402467  1.04
+GABRIEL-FRPOLY-3-15                5 1.417 s       0             2.517 s     210. ms   11.95 38.73 189576 161580  1.17
+GABRIEL-PUZZLE                     5    0          0              700. ms    612. ms    1.14  1.09     20      0
+GABRIEL-FFT                        5    0          0              683. ms    826. ms    0.83  0.83    424   1454  0.29
+GABRIEL-FFT2                       5    0          0              133. ms    487. ms    0.27  0.38   4424   1456  3.04
+GABRIEL-BROWSE                     5 3.417 s       0             5.217 s    1.654 s     3.15  8.87 825292 827149  1.00
+GABRIEL-DERIV                      5  66.7 ms      0              333. ms    70.1 ms    4.76 12.61 343901 325000  1.06
+GABRIEL-DDERIV                     5 1.767 s       0             1.850 s     63.3 ms   29.23 153.53 375192 355000  1.06
+GABRIEL-FFDERIV                    5 1.917 s       0             2.950 s     66.7 ms   44.21 170.86 375192 355000  1.06
+GABRIEL-DIV2-1                     5 2.017 s       0             2.667 s     94.1 ms   28.33 120.22 253440 240000  1.06
+GABRIEL-DIV2-2                     5 2.150 s       0             2.967 s       0                   253439 240000  1.06
+GABRIEL-DESTRU                     5  966. ms      0             1.017 s       0                    91051  86210  1.06
+GABRIEL-TRAVERSE-INIT              5  883. ms      0             1.467 s     131. ms   11.16 39.18  78915  74692  1.06
+GABRIEL-TRAVERSE                   5    0          0                0          0                       19      0
+GABRIEL-TRIANG                     5  66.7 ms      0              216. ms    171. ms    1.27  3.02  12949  12402  1.04
+GABRIEL-TAK                        5    0          0              116. ms    57.8 ms    2.02  2.02     20      0
+GABRIEL-TAKR                       5    0          0              66.7 ms    448. ms    0.15  0.15     20      0
+GABRIEL-STAK                       5    0          0                0        50.9 ms    0.00  0.00     16      0
+GABRIEL-CTAK                       5    0          0                0          0                       16      0
+GABRIEL-TAKL                       5    0          0              33.3 ms    44.9 ms    0.74  0.74    128      0
+GABRIEL-TPRINT                     5    0          0              233. ms    611. ms    0.38  0.38     20      0
+GABRIEL-TPRINT2                    5    0          0                0        193. ms    0.00  0.00     16      0
+GABRIEL-FREAD                      5  66.7 ms      0             10.83 s    9.841 s     1.10  1.10   6697   5596  1.20
+GABRIEL-FPRINT                     5    0          0             2.267 s    2.417 s     0.94  0.94   7522    344 21.87
+GABRIEL-NPRINT-T                   5    0          0              66.7 ms    514. ms    0.13  0.13   4155      0
+GABRIEL-NPRINT-F                   5    0          0                0        368. ms    0.00  0.00     16      0
+Sum of MEAN for *GABRIEL-BENCHMA  37 35.51 s    4.226 s     8.40 35.51 s    4.226 s     8.40  8.40 3927741 3742598  1.05
+Mean of MEAN for *GABRIEL-BENCHM  37                       337.50                        8.91 34.81                1.98
+Sum of MAX for *GABRIEL-BENCHMAR  37 56.00 s    19.83 s     2.82 56.00 s    19.83 s     2.82  2.82 3926433 3742211  1.05
+Mean of MAX for *GABRIEL-BENCHMA  37                       337.50                        8.91 34.81                1.98
+Sum of MIN for *GABRIEL-BENCHMAR  37 26.52 s     14.0 ms   1890.71 26.52 s     14.0 ms   1890.71 1890.71 3914846 3741665  1.05
+Mean of MIN for *GABRIEL-BENCHMA  37                       337.50                        8.91 34.81                1.98
+
+                    Benchmark Results                       TI internal data                        20-May-86 20:06:53  Page   1
+
+LAMBDA-E                  LAM   LAMBDA-E   FAN24            LAMBDA-E   FAN24            LAMBDA-E   FAN24      LAMBDA  FAN24
+                          Num     Min        Min      2 rel   Mean       Mean     2 rel   Mean       Mean      Mean   Mean
+Benchmark Name            Run     Cpu        Cpu       to 1 RealTime   RealTime    to 1 PageTime   PageTime    Cons   Cons
+GABRIEL-FRPOLY-1-2          5      0        9.22 ms    0.00  16.7 ms    62.6 ms    0.27  3.33 ms    53.1 ms      232    204
+GABRIEL-FRPOLY-2-2          5      0        11.5 ms    0.00  36.7 ms    11.6 ms    3.17  23.3 ms      0          460    297
+GABRIEL-FRPOLY-3-2          5      0        11.5 ms    0.00  20.0 ms    11.5 ms    1.73  6.67 ms      0          379    266
+GABRIEL-DERIV               5   5.517 s    11.02 s     0.50 5.717 s    11.03 s     0.52  176. ms    14.0 ms   343900 325000
+GABRIEL-DDERIV              5   5.900 s    11.58 s     0.51 7.980 s     11.6 s     0.69 1.943 s     12.7 ms   375192 355000
+GABRIEL-FFDERIV             5   6.150 s    11.47 s     0.54 8.410 s    11.49 s     0.73 2.280 s     13.3 ms   375192 355000
+GABRIEL-FRPOLY-1-15         5   6.283 s    10.33 s     0.61 8.750 s    10.33 s     0.85 2.473 s       0       103272  97784
+GABRIEL-FRPOLY-3-15         5   8.467 s    12.64 s     0.67 10.23 s    12.72 s     0.80 1.817 s     46.9 ms   186295 161580
+GABRIEL-FRPOLY-1-10         5    900. ms   1.319 s     0.68 1.147 s    1.319 s     0.87  233. ms      0        19526  18472
+GABRIEL-BROWSE              5   24.08 s    35.17 s     0.68 28.28 s    35.92 s     0.79 4.083 s     460. ms   825529 827387
+GABRIEL-FRPOLY-3-10         5   1.217 s    1.643 s     0.74 1.490 s    1.643 s     0.91  246. ms      0        32957  27673
+GABRIEL-FRPOLY-2-15         5   12.98 s    17.44 s     0.74 19.26 s    17.84 s     1.08 6.290 s     148. ms   426124 402480
+GABRIEL-FRPOLY-2-10         5   1.500 s    2.011 s     0.75 1.830 s    2.011 s     0.91  303. ms      0        50803  48218
+GABRIEL-FRPOLY-3-5          5    100. ms    132. ms    0.75  170. ms    132. ms    1.28  66.7 ms      0         3886   2681
+GABRIEL-FRPOLY-1-5          5    83.3 ms    106. ms    0.78  93.3 ms    106. ms    0.88  10.0 ms      0         2058   1932
+GABRIEL-FRPOLY-2-5          5    116. ms    143. ms    0.81  153. ms    143. ms    1.07  50.0 ms      0         2537   3407
+GABRIEL-TAKR                5   1.383 s    1.704 s     0.81 1.410 s    1.794 s     0.79  13.3 ms    89.7 ms       17      0
+GABRIEL-TAK                 5   1.383 s     1.69 s     0.82 1.420 s    1.701 s     0.83  23.3 ms    11.6 ms       17      0
+GABRIEL-TRAVERSE-INIT       5   16.63 s    19.49 s     0.85 17.69 s    19.51 s     0.91 1.030 s     26.3 ms    79012  74783
+GABRIEL-PUZZLE              5   22.42 s    25.95 s     0.86 22.56 s    26.07 s     0.87  140. ms    128. ms       17      0
+GABRIEL-FFT                 5   20.00 s    23.08 s     0.87 20.14 s    23.25 s     0.87  136. ms    165. ms      344   1475
+GABRIEL-BOYER               5   23.20 s    26.72 s     0.87 28.69 s    26.77 s     1.07 5.443 s     22.8 ms   478273 452928
+GABRIEL-TAKL                5   14.27 s    16.38 s     0.87 14.29 s    16.39 s     0.87  6.67 ms    8.97 ms       38      0
+GABRIEL-TRAVERSE            5   108.8 s    123.2 s     0.88 109.0 s    123.3 s     0.88    0          0           17      0
+GABRIEL-FFT2                5   20.48 s    22.88 s     0.90 20.53 s    22.98 s     0.89  36.7 ms    97.5 ms     1175   1473
+GABRIEL-TPRINT              5   7.450 s    8.247 s     0.90 7.497 s    8.394 s     0.89  46.7 ms    122. ms       17      0
+GABRIEL-DESTRU              5   3.300 s    3.582 s     0.92 4.313 s    3.582 s     1.20 1.003 s       0        91051  86210
+Sum of MAX for *GABRIEL-B  37   779.2 s    836.6 s     0.93 835.2 s    856.4 s     0.98 56.00 s    19.83 s    3926433 3742211
+Sum of MEAN for *GABRIEL-  37   778.3 s    835.5 s     0.93 813.8 s    839.7 s     0.97 35.51 s    4.226 s    3927741 3742598
+Sum of MIN for *GABRIEL-B  37   777.4 s    834.5 s     0.93 804.0 s    834.5 s     0.96 26.52 s     14.0 ms   3914846 3741665
+GABRIEL-CTAK                5   3.517 s    3.731 s     0.94 3.530 s    3.731 s     0.95    0          0           16      0
+GABRIEL-STAK                5   5.100 s    5.183 s     0.98 5.107 s    5.200 s     0.98    0        10.2 ms       16      0
+GABRIEL-TRIANG              5   406.3 s    401.5 s     1.01 406.4 s    401.6 s     1.01  103. ms    34.2 ms    12950  12402
+GABRIEL-FREAD               5   11.78 s    10.10 s     1.17 14.02 s    12.21 s     1.15 2.243 s    2.042 s      6208   5578
+GABRIEL-TPRINT2             5   7.450 s    6.333 s     1.18 7.453 s    6.373 s     1.17    0        38.8 ms       16      0
+GABRIEL-DIV2-1              5   4.150 s    3.094 s     1.34 6.513 s    3.114 s     2.09 2.263 s     18.8 ms   253440 240000
+GABRIEL-FPRINT              5   8.100 s    5.311 s     1.53 8.640 s    5.882 s     1.47  453. ms    483. ms     2475    367
+GABRIEL-NPRINT-F            5   6.067 s    3.861 s     1.57 6.070 s    3.935 s     1.54    0        73.8 ms       16      0
+GABRIEL-NPRINT-T            5   4.683 s    2.822 s     1.66 4.713 s    2.926 s     1.61  13.3 ms    102. ms      844      0
+GABRIEL-DIV2-2              5   7.667 s    4.601 s     1.67 10.23 s    4.602 s     2.22 2.550 s       0       253440 240000
+Mean of MAX for *GABRIEL-  37                          0.85                        1.10
+Mean of MEAN for *GABRIEL  37                          0.85                        1.10
+Mean of MIN for *GABRIEL-  37                          0.85                        1.10
+Sum of MEAN for GABRIEL-C  37   778.3 s    835.5 s     0.93 813.8 s    839.7 s     0.97 35.51 s    4.226 s    3927741 3742598
+Mean of MEAN for GABRIEL-  37                          0.85                        1.10
+
+                    Benchmark Results                       TI internal data                        20-May-86 20:07:04  Page   2
+
+LAMBDA-E                  LAM   LAMBDA-E   FAN24            LAMBDA-E   FAN24            LAMBDA-E   FAN24      LAMBDA  FAN24
+                          Num     Min        Min      2 rel   Mean       Mean     2 rel   Mean       Mean      Mean   Mean
+Benchmark Name            Run     Cpu        Cpu       to 1 RealTime   RealTime    to 1 PageTime   PageTime    Cons   Cons
+Sum of MAX for GABRIEL-CP  37   779.2 s    836.6 s     0.93 835.2 s    856.4 s     0.98 56.00 s    19.83 s    3926433 3742211
+Mean of MAX for GABRIEL-C  37                          0.85                        1.10
+Sum of MIN for GABRIEL-CP  37   777.4 s    834.5 s     0.93 804.0 s    834.5 s     0.96 26.52 s     14.0 ms   3914846 3741665
+Mean of MIN for GABRIEL-C  37                          0.85                        1.10
+
+                    Benchmark Results                       TI internal data                        20-May-86 20:07:06  Page   3
+
+LAMBDA-E                         LAM LAMBDA-E   FAN24            LAMBDA-E   FAN24            LAMBDA-E   FAN24
+                                 Num   Min        Min      2 rel   Max        Max      2 rel Std.Dev.   Std.Dev.
+Benchmark Name                   Run RealTime   RealTime    to 1 RealTime   RealTime    to 1 RealTime   RealTime
+GABRIEL-FRPOLY-1-2                 5    0        9.22 ms    0.00  33.3 ms    276. ms    0.12  9.62 ms    97.5 ms
+GABRIEL-FRPOLY-2-2                 5    0        11.5 ms    0.00  50.0 ms    11.7 ms    4.29  17.7 ms    48.7 us
+GABRIEL-FRPOLY-3-2                 5    0        11.5 ms    0.00  33.3 ms    11.6 ms    2.87  11.4 ms    44.6 us
+GABRIEL-DERIV                      5 5.583 s    11.02 s     0.51 5.867 s    11.09 s     0.53  102. ms    25.7 ms
+GABRIEL-DDERIV                     5 7.667 s    11.58 s     0.66 8.167 s    11.65 s     0.70  165. ms    23.1 ms
+GABRIEL-FFDERIV                    5 8.067 s    11.47 s     0.70 9.084 s    11.54 s     0.79  371. ms    24.4 ms
+GABRIEL-FRPOLY-1-15                5 7.483 s    10.33 s     0.72 10.38 s    10.33 s     1.00 1.052 s     161. us
+GABRIEL-FRPOLY-3-15                5 9.884 s    12.64 s     0.78 10.85 s    12.92 s     0.84  298. ms    97.5 ms
+GABRIEL-FRPOLY-1-10                5 1.117 s    1.319 s     0.85 1.183 s    1.319 s     0.90  22.4 ms    40.2 us
+GABRIEL-BROWSE                     5 27.50 s    35.17 s     0.78 29.43 s    38.06 s     0.77  769. ms   1.005 s
+GABRIEL-FRPOLY-3-10                5 1.467 s    1.643 s     0.89 1.517 s    1.644 s     0.92  18.3 ms    262. us
+GABRIEL-FRPOLY-2-15                5 17.72 s    17.46 s     1.01 21.10 s    18.13 s     1.16 1.086 s     212. ms
+GABRIEL-FRPOLY-2-10                5 1.700 s    2.011 s     0.85 1.900 s    2.011 s     0.94  74.8 ms    129. us
+GABRIEL-FRPOLY-3-5                 5  166. ms    132. ms    1.26  183. ms    132. ms    1.38  6.09 ms    156. us
+GABRIEL-FRPOLY-1-5                 5  83.3 ms    106. ms    0.78  100. ms    106. ms    0.94  7.45 ms    14.1 us
+GABRIEL-FRPOLY-2-5                 5  133. ms    143. ms    0.93  166. ms    144. ms    1.16  11.4 ms    102. us
+GABRIEL-TAKR                       5 1.383 s    1.704 s     0.81 1.467 s    2.155 s     0.68  26.5 ms    164. ms
+GABRIEL-TAK                        5 1.383 s     1.69 s     0.82 1.517 s    1.748 s     0.87  44.5 ms    21.2 ms
+GABRIEL-TRAVERSE-INIT              5 17.52 s    19.49 s     0.90 18.13 s     19.6 s     0.93  209. ms    38.6 ms
+GABRIEL-PUZZLE                     5 22.42 s    25.95 s     0.86 23.10 s    26.56 s     0.87  245. ms    225. ms
+GABRIEL-FFT                        5 20.00 s    23.08 s     0.87 20.68 s    23.92 s     0.86  248. ms    304. ms
+GABRIEL-BOYER                      5 28.30 s    26.72 s     1.06 29.62 s    26.96 s     1.10  438. ms    87.9 ms
+GABRIEL-TAKL                       5 14.27 s    16.38 s     0.87 14.33 s    16.42 s     0.87  20.6 ms    16.4 ms
+GABRIEL-TRAVERSE                   5 108.8 s    123.2 s     0.88 109.0 s    123.4 s     0.88  60.9 ms    68.0 ms
+GABRIEL-FFT2                       5 20.48 s    22.88 s     0.90 20.65 s    23.37 s     0.88  59.0 ms    180. ms
+GABRIEL-TPRINT                     5 7.450 s    8.247 s     0.90 7.683 s    8.923 s     0.86  85.2 ms    242. ms
+GABRIEL-DESTRU                     5 4.267 s    3.582 s     1.19 4.367 s    3.583 s     1.22  29.5 ms    116. us
+Sum of MAX for *GABRIEL-BENCHMAR  37 835.2 s    856.4 s     0.98 835.2 s    856.4 s     0.98    0          0
+Sum of MEAN for *GABRIEL-BENCHMA  37 813.8 s    839.7 s     0.97 813.8 s    839.7 s     0.97   353. ns     0
+Sum of MIN for *GABRIEL-BENCHMAR  37 804.0 s    834.5 s     0.96 804.0 s    834.5 s     0.96    0          0
+GABRIEL-CTAK                       5 3.517 s    3.731 s     0.94 3.533 s    3.731 s     0.95  6.09 ms    36.4 us
+GABRIEL-STAK                       5 5.100 s    5.183 s     0.98 5.117 s    5.238 s     0.98  7.45 ms    17.8 ms
+GABRIEL-TRIANG                     5 406.4 s    401.5 s     1.01 406.5 s    401.7 s     1.01  62.7 ms    62.6 ms
+GABRIEL-FREAD                      5 11.85 s    10.10 s     1.17 22.60 s    20.02 s     1.13 3.916 s    3.567 s
+GABRIEL-TPRINT2                    5 7.450 s    6.333 s     1.18 7.467 s     6.53 s     1.14  6.09 ms    71.8 ms
+GABRIEL-DIV2-1                     5 6.167 s    3.094 s     1.99 6.983 s    3.189 s     2.19  241. ms    34.6 ms
+GABRIEL-FPRINT                     5 8.100 s    5.311 s     1.53 10.73 s    7.821 s     1.37  955. ms    887. ms
+GABRIEL-NPRINT-F                   5 6.067 s    3.861 s     1.57 6.083 s    4.232 s     1.44  6.09 ms    135. ms
+GABRIEL-NPRINT-T                   5 4.683 s    2.822 s     1.66 4.833 s     3.34 s     1.45  54.8 ms    188. ms
+GABRIEL-DIV2-2                     5 9.817 s    4.601 s     2.13 10.68 s    4.602 s     2.32  311. ms    146. us
+Mean of MAX for *GABRIEL-BENCHMA  37                        0.94                        1.17
+Mean of MEAN for *GABRIEL-BENCHM  37                        0.94                        1.17
+Mean of MIN for *GABRIEL-BENCHMA  37                        0.94                        1.17
+Sum of MEAN for GABRIEL-CPU       37 813.8 s    839.7 s     0.97 813.8 s    839.7 s     0.97   353. ns     0
+Mean of MEAN for GABRIEL-CPU      37                        0.94                        1.17
+
+                    Benchmark Results                       TI internal data                        20-May-86 20:07:16  Page   4
+
+LAMBDA-E                         LAM LAMBDA-E   FAN24            LAMBDA-E   FAN24            LAMBDA-E   FAN24
+                                 Num   Min        Min      2 rel   Max        Max      2 rel Std.Dev.   Std.Dev.
+Benchmark Name                   Run RealTime   RealTime    to 1 RealTime   RealTime    to 1 RealTime   RealTime
+Sum of MAX for GABRIEL-CPU        37 835.2 s    856.4 s     0.98 835.2 s    856.4 s     0.98    0          0
+Mean of MAX for GABRIEL-CPU       37                        0.94                        1.17
+Sum of MIN for GABRIEL-CPU        37 804.0 s    834.5 s     0.96 804.0 s    834.5 s     0.96    0          0
+Mean of MIN for GABRIEL-CPU       37                        0.94                        1.17
+
+                    Benchmark Results                       TI internal data                        20-May-86 20:07:18  Page   5
+
+LAMBDA-E                         LAM LAMBDA-E   FAN24            LAMBDA-E   FAN24            LAMBDA-E   FAN24
+                                 Num   Min        Min      2 rel   Max        Max      2 rel Std.Dev.   Std.Dev.
+Benchmark Name                   Run   Cpu        Cpu       to 1   Cpu        Cpu       to 1   Cpu        Cpu
+GABRIEL-FRPOLY-1-2                 5    0        9.22 ms    0.00  16.7 ms    10.6 ms    1.57  6.09 ms    498. us
+GABRIEL-FRPOLY-2-2                 5    0        11.5 ms    0.00  16.7 ms    11.7 ms    1.43  11.4 ms    48.7 us
+GABRIEL-FRPOLY-3-2                 5    0        11.5 ms    0.00  16.7 ms    11.6 ms    1.43  6.09 ms    44.6 us
+GABRIEL-DERIV                      5 5.517 s    11.02 s     0.50 5.533 s    11.02 s     0.50  20.6 ms    170. us
+GABRIEL-DDERIV                     5 5.900 s    11.58 s     0.51 6.317 s    11.58 s     0.55  158. ms    35.5 us
+GABRIEL-FFDERIV                    5 6.150 s    11.47 s     0.54 6.133 s    11.47 s     0.53  26.2 ms    27.7 us
+GABRIEL-FRPOLY-1-15                5 6.283 s    10.33 s     0.61 6.300 s    10.33 s     0.61  20.6 ms    161. us
+GABRIEL-FRPOLY-3-15                5 8.467 s    12.64 s     0.67 8.333 s    12.71 s     0.66  41.9 ms    30.4 ms
+GABRIEL-FRPOLY-1-10                5  900. ms   1.319 s     0.68  916. ms   1.319 s     0.69  11.4 ms    40.2 us
+GABRIEL-BROWSE                     5 24.08 s    35.17 s     0.68 24.22 s    36.40 s     0.67  68.0 ms    438. ms
+GABRIEL-FRPOLY-3-10                5 1.217 s    1.643 s     0.74 1.267 s    1.644 s     0.77  15.5 ms    262. us
+GABRIEL-FRPOLY-2-15                5 12.98 s    17.44 s     0.74 13.08 s    17.62 s     0.74  114. ms    134. ms
+GABRIEL-FRPOLY-2-10                5 1.500 s    2.011 s     0.75 1.517 s    2.011 s     0.75  28.2 ms    129. us
+GABRIEL-FRPOLY-3-5                 5  100. ms    132. ms    0.75  116. ms    132. ms    0.88  6.09 ms    156. us
+GABRIEL-FRPOLY-1-5                 5  83.3 ms    106. ms    0.78  83.3 ms    106. ms    0.78  9.62 ms    14.1 us
+GABRIEL-FRPOLY-2-5                 5  116. ms    143. ms    0.81  100. ms    144. ms    0.69  11.4 ms    102. us
+GABRIEL-TAKR                       5 1.383 s    1.704 s     0.81 1.400 s    1.706 s     0.82  6.09 ms    698. us
+GABRIEL-TAK                        5 1.383 s     1.69 s     0.82 1.400 s    1.690 s     0.83  6.09 ms    60.5 us
+GABRIEL-TRAVERSE-INIT              5 16.63 s    19.49 s     0.85 16.67 s    19.46 s     0.86  22.8 ms    9.42 ms
+GABRIEL-PUZZLE                     5 22.42 s    25.95 s     0.86 22.40 s    25.95 s     0.86  12.2 ms    11.1 ms
+GABRIEL-FFT                        5 20.00 s    23.08 s     0.87 20.00 s    23.09 s     0.87  6.09 ms    2.87 ms
+GABRIEL-BOYER                      5 23.20 s    26.72 s     0.87 23.17 s    26.85 s     0.86  94.0 ms    46.2 ms
+GABRIEL-TAKL                       5 14.27 s    16.38 s     0.87 14.30 s    16.38 s     0.87  9.62 ms    108. us
+GABRIEL-TRAVERSE                   5 108.8 s    123.2 s     0.88 109.0 s    123.4 s     0.88  60.9 ms    68.0 ms
+GABRIEL-FFT2                       5 20.48 s    22.88 s     0.90 20.52 s    22.89 s     0.90  12.2 ms    2.61 ms
+GABRIEL-TPRINT                     5 7.450 s    8.247 s     0.90 7.450 s    8.311 s     0.90    0        27.6 ms
+GABRIEL-DESTRU                     5 3.300 s    3.582 s     0.92 3.350 s    3.583 s     0.94  20.6 ms    116. us
+Sum of MAX for *GABRIEL-BENCHMAR  37 779.2 s    836.6 s     0.93 779.2 s    836.6 s     0.93    0          0
+Sum of MEAN for *GABRIEL-BENCHMA  37 778.3 s    835.5 s     0.93 778.3 s    835.5 s     0.93    0         353. ns
+Sum of MIN for *GABRIEL-BENCHMAR  37 777.4 s    834.5 s     0.93 777.4 s    834.5 s     0.93    0          0
+GABRIEL-CTAK                       5 3.517 s    3.731 s     0.94 3.533 s    3.731 s     0.95  6.09 ms    36.4 us
+GABRIEL-STAK                       5 5.100 s    5.183 s     0.98 5.117 s    5.187 s     0.99  7.45 ms    5.03 ms
+GABRIEL-TRIANG                     5 406.3 s    401.5 s     1.01 406.3 s    401.5 s     1.01  18.3 ms    694. us
+GABRIEL-FREAD                      5 11.78 s    10.10 s     1.17 11.77 s    10.17 s     1.16  7.45 ms    64.1 ms
+GABRIEL-TPRINT2                    5 7.450 s    6.333 s     1.18 7.467 s    6.336 s     1.18  6.09 ms    1.02 ms
+GABRIEL-DIV2-1                     5 4.150 s    3.094 s     1.34 4.317 s    3.095 s     1.39  50.9 ms    296. us
+GABRIEL-FPRINT                     5 8.100 s    5.311 s     1.53 8.467 s    5.404 s     1.57  128. ms    63.0 ms
+GABRIEL-NPRINT-F                   5 6.067 s    3.861 s     1.57 6.083 s    3.863 s     1.57  6.09 ms    646. us
+GABRIEL-NPRINT-T                   5 4.683 s    2.822 s     1.66 4.767 s    2.826 s     1.69  30.4 ms    1.13 ms
+GABRIEL-DIV2-2                     5 7.667 s    4.601 s     1.67 7.717 s    4.602 s     1.68  31.9 ms    146. us
+Mean of MAX for *GABRIEL-BENCHMA  37                        0.85                        0.97
+Mean of MEAN for *GABRIEL-BENCHM  37                        0.85                        0.97
+Mean of MIN for *GABRIEL-BENCHMA  37                        0.85                        0.97
+Sum of MEAN for GABRIEL-CPU       37 778.3 s    835.5 s     0.93 778.3 s    835.5 s     0.93    0          0
+Mean of MEAN for GABRIEL-CPU      37                        0.85                        0.97
+
+                    Benchmark Results                       TI internal data                        20-May-86 20:07:27  Page   6
+
+LAMBDA-E                         LAM LAMBDA-E   FAN24            LAMBDA-E   FAN24            LAMBDA-E   FAN24
+                                 Num   Min        Min      2 rel   Max        Max      2 rel Std.Dev.   Std.Dev.
+Benchmark Name                   Run   Cpu        Cpu       to 1   Cpu        Cpu       to 1   Cpu        Cpu
+Sum of MAX for GABRIEL-CPU        37 779.2 s    836.6 s     0.93 779.2 s    836.6 s     0.93    0          0
+Mean of MAX for GABRIEL-CPU       37                        0.85                        0.97
+Sum of MIN for GABRIEL-CPU        37 777.4 s    834.5 s     0.93 777.4 s    834.5 s     0.93    0          0
+Mean of MIN for GABRIEL-CPU       37                        0.85                        0.97
+
+                    Benchmark Results                       TI internal data                        20-May-86 20:07:30  Page   7
+
+LAMBDA-E                         LAM LAMBDA-E   FAN24            LAMBDA-E   FAN24                  LAMBDA  FAN24
+                                 Num   Min        Min      2 rel   Max        Max      2 rel 2 rel   Max    Max  2 rel
+Benchmark Name                   Run PageTime   PageTime    to 1 PageTime   PageTime    to 1  to 1  Cons   Cons   to 1
+GABRIEL-FRPOLY-1-2                 5    0          0              16.7 ms    265. ms    0.06  0.06    236    204  1.16
+GABRIEL-FRPOLY-2-2                 5    0          0              33.3 ms      0                      461    297  1.55
+GABRIEL-FRPOLY-3-2                 5    0          0              16.7 ms      0                      382    266  1.44
+GABRIEL-DERIV                      5  66.7 ms      0              333. ms    70.1 ms    4.76 12.61 343901 325000  1.06
+GABRIEL-DDERIV                     5 1.767 s       0             1.850 s     63.3 ms   29.23 153.53 375192 355000  1.06
+GABRIEL-FFDERIV                    5 1.917 s       0             2.950 s     66.7 ms   44.21 170.86 375192 355000  1.06
+GABRIEL-FRPOLY-1-15                5 1.200 s       0             4.083 s       0                   103272  97784  1.06
+GABRIEL-FRPOLY-3-15                5 1.417 s       0             2.517 s     210. ms   11.95 38.73 189576 161580  1.17
+GABRIEL-FRPOLY-1-10                5  216. ms      0              266. ms      0                    19525  18472  1.06
+GABRIEL-BROWSE                     5 3.417 s       0             5.217 s    1.654 s     3.15  8.87 825292 827149  1.00
+GABRIEL-FRPOLY-3-10                5  250. ms      0              250. ms      0                    26406  27674  0.95
+GABRIEL-FRPOLY-2-15                5 4.733 s     14.0 ms   337.50 8.017 s     512. ms   15.65 42.36 419428 402467  1.04
+GABRIEL-FRPOLY-2-10                5  200. ms      0              383. ms      0                    44234  48213  0.92
+GABRIEL-FRPOLY-3-5                 5  66.7 ms      0              66.7 ms      0                     3886   2684  1.45
+GABRIEL-FRPOLY-1-5                 5    0          0              16.7 ms      0                     2061   1932  1.07
+GABRIEL-FRPOLY-2-5                 5  16.7 ms      0              66.7 ms      0                     5808   3407  1.70
+GABRIEL-TAKR                       5    0          0              66.7 ms    448. ms    0.15  0.15     20      0
+GABRIEL-TAK                        5    0          0              116. ms    57.8 ms    2.02  2.02     20      0
+GABRIEL-TRAVERSE-INIT              5  883. ms      0             1.467 s     131. ms   11.16 39.18  78915  74692  1.06
+GABRIEL-PUZZLE                     5    0          0              700. ms    612. ms    1.14  1.09     20      0
+GABRIEL-FFT                        5    0          0              683. ms    826. ms    0.83  0.83    424   1454  0.29
+GABRIEL-BOYER                      5 5.100 s       0             6.450 s     114. ms   56.46 238.25 478274 452928  1.06
+GABRIEL-TAKL                       5    0          0              33.3 ms    44.9 ms    0.74  0.74    128      0
+GABRIEL-TRAVERSE                   5    0          0                0          0                       19      0
+GABRIEL-FFT2                       5    0          0              133. ms    487. ms    0.27  0.38   4424   1456  3.04
+GABRIEL-TPRINT                     5    0          0              233. ms    611. ms    0.38  0.38     20      0
+GABRIEL-DESTRU                     5  966. ms      0             1.017 s       0                    91051  86210  1.06
+Sum of MAX for *GABRIEL-BENCHMAR  37 56.00 s    19.83 s     2.82 56.00 s    19.83 s     2.82  2.82 3926433 3742211  1.05
+Sum of MEAN for *GABRIEL-BENCHMA  37 35.51 s    4.226 s     8.40 35.51 s    4.226 s     8.40  8.40 3927741 3742598  1.05
+Sum of MIN for *GABRIEL-BENCHMAR  37 26.52 s     14.0 ms   1890.71 26.52 s     14.0 ms   1890.71 1890.71 3914846 3741665  1.05
+GABRIEL-CTAK                       5    0          0                0          0                       16      0
+GABRIEL-STAK                       5    0          0                0        50.9 ms    0.00  0.00     16      0
+GABRIEL-TRIANG                     5  66.7 ms      0              216. ms    171. ms    1.27  3.02  12949  12402  1.04
+GABRIEL-FREAD                      5  66.7 ms      0             10.83 s    9.841 s     1.10  1.10   6697   5596  1.20
+GABRIEL-TPRINT2                    5    0          0                0        193. ms    0.00  0.00     16      0
+GABRIEL-DIV2-1                     5 2.017 s       0             2.667 s     94.1 ms   28.33 120.22 253440 240000  1.06
+GABRIEL-FPRINT                     5    0          0             2.267 s    2.417 s     0.94  0.94   7522    344 21.87
+GABRIEL-NPRINT-F                   5    0          0                0        368. ms    0.00  0.00     16      0
+GABRIEL-NPRINT-T                   5    0          0              66.7 ms    514. ms    0.13  0.13   4155      0
+GABRIEL-DIV2-2                     5 2.150 s       0             2.967 s       0                   253439 240000  1.06
+Mean of MAX for *GABRIEL-BENCHMA  37                       337.50                        8.91 34.81                1.98
+Mean of MEAN for *GABRIEL-BENCHM  37                       337.50                        8.91 34.81                1.98
+Mean of MIN for *GABRIEL-BENCHMA  37                       337.50                        8.91 34.81                1.98
+Sum of MEAN for GABRIEL-CPU       37 35.51 s    4.226 s     8.40 35.51 s    4.226 s     8.40  8.40 3927741 3742598  1.05
+Mean of MEAN for GABRIEL-CPU      37                       337.50                        8.91 34.81                1.98
+
+                    Benchmark Results                       TI internal data                        20-May-86 20:07:41  Page   8
+
+LAMBDA-E                         LAM LAMBDA-E   FAN24            LAMBDA-E   FAN24                  LAMBDA  FAN24
+                                 Num   Min        Min      2 rel   Max        Max      2 rel 2 rel   Max    Max  2 rel
+Benchmark Name                   Run PageTime   PageTime    to 1 PageTime   PageTime    to 1  to 1  Cons   Cons   to 1
+Sum of MAX for GABRIEL-CPU        37 56.00 s    19.83 s     2.82 56.00 s    19.83 s     2.82  2.82 3926433 3742211  1.05
+Mean of MAX for GABRIEL-CPU       37                       337.50                        8.91 34.81                1.98
+Sum of MIN for GABRIEL-CPU        37 26.52 s     14.0 ms   1890.71 26.52 s     14.0 ms   1890.71 1890.71 3914846 3741665  1.05
+Mean of MIN for GABRIEL-CPU       37                       337.50                        8.91 34.81                1.98
+
+"User JOHNSON"
+"20-May-86 19:14:02"
+"LMI Explorer Release 3.0 (Alpha Test), band 1 of EXP1. (Alpha VI)
+2560K physical memory, 19248K virtual memory, NuBus slot 0.
+ System Revision Level   3.29
+ Microcode            1520
+LMI Explorer One, with associated machine EXP1.
+"
+
+"User BOTTOLFSON"
+"5//07//86 15:47:02"
+"TI Explorer System, band LODA of D0. (FAN24-DALLAS-290)
+4 MB of physical memory, 73 MB of virtual memory.
+ Explorer System                          2.0+
+ System                                   2.50
+ Compiler                                 2.5
+ File System                              2.1
+ Window System                            2.8
+ ZMACS                                    2.8
+ Error Handler                            2.1
+ Suggestions                              2.14
+ Debug Utilities                          2.9
+ Explorer-Net                             2.6
+ Telnet                                   2.2
+ Net-Config                               2.2
+ Font Editor                              2.2
+ Mailer                                   2.5
+ Mail-Reader                              2.4
+ Streamer-Tape                            2.11
+ Local-File                               2.20
+ System-Log                               2.2
+ Serial-Parallel                          2.8
+ Printer                                  2.2
+ IMAGEN                                   2.1
+ NVRAM                                    2.3
+ IP                                       1.17
+ Experimental Code Management Interface   2.27
+ Experimental Explorer Bug System        20.1
+ Microcode                                290
+TI Computer Science Center Pinnochio, with associated machine Nose.
+"

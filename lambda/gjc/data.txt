@@ -1,0 +1,122 @@
+Received: from MIT-VAX by MIT-MC via Chaosnet; 5 APR 85  17:41:26 EST
+Received: by mit-vax.Mit-chaos.Arpa (4.12/4.8) with CHAOS id AA08257; Fri, 5 Apr 85 17:40:37 est
+Received: by TRANTOR.Mit-chaos.Arpa (4.12/4.8) id AA01912; Fri, 5 Apr 85 17:40:58 est
+Date: Fri, 5 Apr 85 17:40:58 est
+From: George Clark <gcc@TRANTOR>
+To: rz@TRANTOR
+
+
+Rich,
+
+   These are some notes that I reconstructed after comming back from MCC.
+I would be interested in any comments. If you wish to discuss any of this
+with the other SCHEMA people it is probably ok but you should probably delete
+any reference to MCC.
+
+MCC Database Stuff
+
+     The MCC CAD project is in the process of conceptualizing a distributed
+database which will be used to keep track of all design objects. In the MCC
+system all interesting objects are implemented using flavors in a manner
+that is similar to what is done in Schema. The following is a
+reconstruction of what I believe are the essential features of the MCC
+system based on conversations with Katie Rotzel and Mac Michaels. I have
+had to fill in some of the details from memory so this may not be completely
+accurate.
+
+     (1) Objects are under the control of an object manager which is
+resident on each LISP Machine in the system. The object manager is
+responsible for storing the object and for retrieving it when required.
+
+     (2) When an object is created a unique identifier is also generated
+and is bound to that object.  When the object is first created it is a
+private object and exists only in the editing environment of the local
+machine.  During this time it can be incrementally modified and added to as
+required by the designer.  When the designer is finished with the object
+(either temporarily or permanently) he sends it to the object manager.  The
+object manager stores the object on the disk by generating an appropriate
+dump-form and hashing the disk address under the unique ID.  He may also
+generate additional hashing keys to permit the object to be retrieved by
+attribute. Once an object is stored away it can never be destroyed and its
+identifier cannot be re-used for a different object. Thus one might wish to
+use a write once laser disk for this purpose.
+
+     (3) The identifier is the only pointer to a design object.  Objects,
+themselves, can only contain pointers to an identifier but never to the
+object itself. One consequence of this is that an object may be removed
+from the address space by binding its identifier to nil and letting the gc
+sweep it away.
+
+     (4) Exact copies of an object can be passed between machines by
+sending the appropriate dump forms from one object manager to an other and
+then creating an instance in the new address space. The copy is logged in
+with the local object manager and its dump-form may or may not be retained.
+The copy may be examined or used as the basis of a new part. It may not,
+however, be modified. It is also possible for the copy to be used as a
+part, maybe a prototype, provided that none of its pointers have to be
+reset.
+
+     (5) When a user or a piece of code needs to examine an object it does
+so through a call to get-object. Get-object looks to see if the ID is bound
+or is non-nil. If the ID is bound it returns the object. If not it sends
+the ID to the local object manager who looks to see if the object is in its
+local storage system. If so the object is instantiated, the ID is rebound
+to the new copy, and the new copy is returned. If the object is not in the
+local storage system a message is broadcast to all of the other object
+managers and the first one to determine that it has the object returns the
+appropriate dump forms. It is also possible to incorporate the identity of
+the creating object manager into the identifier. This is probably of
+limited usefulness since there is no requirement for the creating
+environment to retain permanent ownership.
+
+     (6) If a user or a piece of code needs to modify an object it must
+create a new instance and obtain a new ID. When the new instance is a
+modification to an existing instance it always contains a pointer back to
+its predecessor(s). In this way it is always possible to trace back through
+earlier versions and have an accurate reconstruction.  If a user updates a
+part of a larger object then he or she (or the system) must deliberately
+modify all of the objects which contain this part. This is always possible
+by making use of the history pointer on the object and the fact that
+objects will always be doubly linked to their actual parents.
+
+
+     At MCC they are experimenting with a system which writes design
+objects directly to the disk and have written some low level primitives for
+the LMI machine to do this. Since this is only experimental at this point
+they have not bothered to duplicate this code on the Symbolics machine. The
+dump forms that they are contemplating using are appropriate modifications
+of the FASD stuff. Since their objects do not contain any pointers to other
+instances they do not have to go through the usual step of unwinding and
+tabulating the instances and they can essentially get away with including
+the flavor dbg:fasd-options-mixin in all of their object definitions. As
+near as I can tell there is no real advantage to the FASD technique (over
+the Schema stuff) and in fact it creates dump forms which are not readily
+interpreted by humans. Short of being able to write an exact binary image
+(using stable storage objects) I believe that the Schema technique of using
+the maker functions as the dump forms is actually preferable.
+
+
+Date: Wednesday, 14 August 1985, 22:07-EDT
+From: George J. Carrette <GJC@MIT-MC.ARPA>
+To: GJC-AT-LMI@MIT-MC.ARPA
+Message-ID: <[MIT-MC.ARPA].613033.850814.GJC>
+
+Return-path: <RZ@ZERMATT>
+Date: Sat, 13 Jul 85 18:39 EDT
+From: Richard E. Zippel <RZ@MIT-ZERMATT.ARPA>
+Subject: Database accelerator
+To: jlk@SCRC-STONY-BROOK.ARPA
+cc: terman%VX@MIT-ZERMATT.ARPA, pos%VX@MIT-ZERMATT.ARPA,
+    rz@MIT-ZERMATT.ARPA, h@SCRC-STONY-BROOK.ARPA
+Message-ID: <850713183933.6.RZ@ZERMATT>
+
+When we've spoken about the database accelerator work before you've
+mentioned that both you and Jack were enthusiastic about helping us with
+the project.  Well, now we need some help.  Pete Osler (pos@vx) is the
+person who will be developing the board that the chips plug into.  He
+needs some questions answered about the general structure of the L bus
+so he can evaluate different alternatives.  Fortunately Chris Terman,
+whose office is 15 feet from Pete's, knows all the answers.  However,
+Chris needs to be assured by someone in authority that answering Pete's
+questions is OK with Symbolics.  Could you send Chris such a message?
+I'll try to catch you on Monday just in case.  Thanks.

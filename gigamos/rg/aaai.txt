@@ -1,0 +1,510 @@
+@comment -*- Mode:Text; Fonts:(TR12 CPTFONT TR12I HL12B TR12B TR12BI) -*-
+@library[patbo]
+@tolerance 300
+@overfullrule 0in
+@setpagewidth 6.25in
+@advance @normaloffset by 0.15in
+@begin[document]
+@baselineskip 13pt
+@parskip = 0.2in
+@sp 4
+
+@nopara
+@b[The MOBY Address(c) Scheme and its Application to AI Databases]
+
+@center @b(Submitted to AAAI-86)
+@center @b(Engineering Track)
+@center @b(AI Architectures and Languages)
+
+
+@format
+@center @b(Richard David Greenblatt)
+@center @b(LISP Machine, Inc.)
+@center @b(1000 Massachusetts Ave)
+@center @b(Cambridge, Mass, 02139.)
+@center @b(617-876-6819)
+@end format
+
+@nopara
+@b(Abstract: )
+
+  A method is presented by which the address space of a computer system,
+previously considered one of the most important hardware architectural
+parameters, can instead be made a software parameter.  This allows the
+implementation of address spaces of arbitrarily large size without changes to
+hardware.  The technique applies most naturally to tagged machine architectures.
+Beyond simply allowing the execution of very large programs, this scheme makes
+possible for the first time the implementation and maintainence of large
+non-volatile pointer-oriented data bases having symbol identity.  The symbol
+identity property is a primary requirement of the LISP language, and thus is a
+requirement of an exceptionally wide range of AI applications.  The scheme is
+fundamentally a run-time mapping operation on pointers.
+
+@page
+
+@nopara
+@b(Introduction:)
+
+  One of the most important characteristics of a computer system is the size of
+its ``address space''.  The effective address space size might be thought of as the
+limit to which a program can dynamically grow in a particular computer
+architecture without change to the logical structure of the program or its
+representation.  Until now, address space size has been considered to be a
+hardware determined parameter.  For example, the address space of the LMI
+LAMBDA processor family is 2**25. of 32. bit words; this number is determined
+by the width of certain hardware data paths, the size of certain mapping
+memories, etc.  Although there have been various attempts, such as "overlaying",
+to run programs larger than the basic address space of the computer involved,
+such efforts have usually encountered serious difficulties. This has been
+particularly true for heavily pointer-oriented applications such as LISP.
+
+  The size of address space found in most early computers was comparible to
+2**16.  We categorize address spaces of approximately this size as 3transient*, since
+the reuse of addresses is frequently necessary within a single application.  Most
+modern computers in use today implement address spaces comparable to 2**32,
+which we term 3volatile* address spaces since usually there are enough addresses
+to avoid address reuse within any single application.  However, the address space
+is discarded and reconstructed fairly frequently (i.e. when the machine is ``cold
+booted'').  3Volatile* address spaces are usually also 3locally* 3valid*, meaning that a
+particular address instance is meaningful only to a single processor (or perhaps a
+few closely coupled processors).  3Locally valid* address spaces may simplify
+problems of address space allocation, but make impossible direct communication
+of pointers from one machine to another.  A few current systems implement
+address spaces of 2**48 or more, which we categorize as 3persistent*.  A
+3persist*e3nt* address space remains valid over extended periods time, and is
+comparable in size to fundamental physical limiting constants
+such as the number of microseconds in a thousand years (about 2**55).    3Persist*e3nt*
+address spaces may also be 3globally* 3valid*, meaning that that direct communication
+of pointers between a wide community of machines is possible.  As AI databases
+become larger and incorporate experience accumulated over longer periods of
+time, the 3persistent* and 3globally* 3valid* properties will become crucial.
+Current techniques for implementing 3persistent* address spaces involve
+significant costs in system hardware requirements and system efficiency, because
+the wide pointers involved are directly handled by the system CPU
+(which has usually consisted of a rather inelegant composition of a previously
+available core CPU design with a special ``outboard'' extension).
+
+  The MOBY ADDRESS(c) technique is a fundamental advance which allows the
+implementation of 3persistent* and 3globally valid* address spaces of arbitrary size
+independent of particular hardware.  Briefly, the MOBY technique consists of
+coupling a conventional 3volatile, locally valid* address space supported by
+hardware (identified as the local address space), with a 3persistent, globally valid*
+address space (identified as the MOBY address space) by means of a runtime
+mapping operation on pointers.  Such a coupling is attractive since it allows
+actual computation to take place on local pointers of modest width, which saves
+hardware and increases efficiency.  The size of the MOBY space may be set to
+an arbitrarily high value since it is purely a software parameter.  The scheme
+necessitates the ability to reliably distinguish, at run time, pointer data from
+non-pointer data.  A tagged machine architecture is the best known means to
+support this requirement.
+
+  All address spaces used to implement LISP systems must exhibit a unique
+mapping between external names and internal names (i.e. symbols), which we
+term the 3symbolic* 3identity* property.  3Symbolic identity* underlies the EQ property
+of symbols, among many other things.  The INTERN function, which is
+responsible for external name to internal name conversion, operates with the aid
+of the object-list or oblist. (In newer LISP systems, the oblist has been
+elaborated into the ``package-structure'', which is logically equivalent for current
+purposes).  The oblist records every symbol which has ever been input to the
+system, together with the internal symbol object associated with that external
+name.  Implementing3 symbolic* 3identity* within a 3persistent* address space has not
+been practically possible prior to the MOBY technique, due to the intolerable
+system bottleneck represented by a single ``world-wide'' oblist.  A single process
+which grabbed the lock of the oblist data base and failed to release it would
+hang up the entire world of symbolic computation!!  Furthermore, the attempt to
+provide 3symbolic identity* within a conventional 3globally valid* address space would
+require that all participating hosts be in continuous network communication,
+an unacceptable constraint.
+
+ The ability to introduce functionality at the intermediate mapping layer (called
+the reconciliation layer) in the MOBY technique is the key to neatly solving
+these crucial difficulties.  Since computation never takes place directly
+with 3persistent* addresses, the 3symbolic identity* property is no longer required on
+them.  Instead, it is required that, after mapping, the resulting local addresses
+exhibit 3symbolic identity*, which is easily arranged.  Each host need only maintain
+a local oblist, so problems with locking or accessing a global oblist are bypassed.
+The exchange of a particular symbol pointer between a pair of hosts results in a
+single INTERN operation, as the mapping is established.  Any number of
+instances of that symbol can then be communicated between that host pair
+without further INTERNs.
+
+  An examination of experience with the two best known3 *long standing
+3persistent* address implementations, Multics[ML] and the Domain Network of
+Apollo Corp [DN] confirms the intractability of the 3symbolic identity* problem
+within these designs and the resulting inability to deliver hoped for advantages.
+
+  The Apollo system (at least in its usual implementation) is unsuitable in that
+the minimum ``object'' size is 32K bytes, which allows for only 512 objects
+simultaneously in the active address space of the commercially available CPU
+which is employed.  This probably explains why LISP implementations commonly
+employed on Apollo systems do not support wide pointers internally, thus, they
+are not a suitable basis for a 3persistent* data base implementation with 3symbolic identity*.
+
+  Among the long established system, Multics would seem to be the vehicle best
+suited for the implementation of a 3persistent* data base with 3symbolic identity*.
+(Although, technically speaking, addresses in Multics are only 3locally* 3valid*, this
+limitation is not crucial within the tightly coupled multiprocessor timesharing
+configuration employed.)  A mature LISP implementation for MULTICS
+supporting wide pointers does exist [GB].  Despite this, MULTICS LISP is unable
+to deliver to its users any significant feature related to 3persistent* pointers, such
+as effective exchange of pointers between computational environments or direct
+storage of pointer oriented symbolic data bases in non-volatile form.
+
+  One previously proposed design, the LOOM system advanced by the
+Smalltalk group at Xerox Parc [Ka], is similar to the present design in
+that it also is a software oriented mapping operation, although it was
+proposed to operate on object numbers, not general purpose addresses.
+Apparently, the design was not completed and its goals were considerably
+more restricted than those of the present design.  In particular,
+the problems of3 symbolic* 3identity* discussed here were not addressed.
+
+@nopara
+@b[The MOBY ADDRESS(c) System]
+
+  Suppose we have a program represented in the 3persistent* 2**50 address space
+of Figure 1.  We wish to execute this program on computer hardware
+implementing the 3volatile* 2**25 address space represented by the lower line in
+Figure 1.  Assume the desired program starts near location S in MOBY space.
+We begin by forming an association between a region M1 of MOBY addresses
+around S and a region of local addresses L1.  It could well happen that, as
+program execution proceeds, a pointer P2 in MOBY space is followed which
+points outside of region M1.  If that occurs, we form a second association
+between a region M2 containing P2 and a region of local addresses L2, and so on.
+
+  We refer to reconciliation as the operation of obtaining the associated local
+pointer of a given MOBY pointer by reference to the association data base.
+Dereconcilation proceeds in the opposite direction, obtaining the associated
+MOBY pointer of a given local pointer.
+
+@nopara
+@b[The MOBY ADDRESS(c) System compared with a conventional virtual address system]
+
+  Another way to view the MOBY scheme is by comparison with a conventional
+virtual address memory system such as is commonplace in current computer
+systems.  Such virtual address systems evolved in response to a need to run
+larger programs than the amount of physical primary memory (referred to as core
+memory) available.  A virtual address system can simulate the effect of a large
+amount of core memory with the combination of a smaller amount of core
+memory and a large backing store which is usually a disk.  The disk need not
+possess truly random access capability, and typically has a cost per bit several
+orders of magnitude lower than core memory.  Basically, the image to be run is
+maintained on disk, but active parts are ``swapped in'' to core.  The amount of
+core available affects only the number of swaps (and thus the time) necessary to
+run a given program; the ultimate result is the same as if the entire amount of
+physical core had existed.  Note that since the data format is exactly the same
+on disk and in core, only simple data transfers are required at the appropriate
+times.
+
+  The MOBY scheme is similar, with a key difference, namely, the data format
+on disk is NOT the same as the format in core.  In core, data exists with
+hardware determined pointer widths, etc, exactly as is conventionally the case.
+On disk, however, the data storage format is different, not a simple image of that
+in core.  For example, two 32-bit words on disk might be used to represent each
+32-bit word which exists in core.  This situation is diagrammed in figure 2.  The
+LOCAL format data, shown at the left of the figure, illustrates a 32 bit word
+divided into a 2 bit CDR-CODE, a 5 bit DATA-TYPE and 25 bits of pointer or
+identity.  This represents no change from the LAMBDA family architecture as it
+existed prior to the introduction of the MOBY scheme, thus allowing a mature
+software base to function with full efficiency and without modification.  The
+right side of the figure shows that the MOBY format provides for a 2 bit
+CDR-CODE, 5 bit data-type, and 25 bits of pointer width in word 0, plus an
+additional 25 bits in word 1 for a total of 50 bits.  This is sufficient to
+implement the 3persistent,* 3globally valid* address scheme desired.  (If still more
+address bits were desired, the ratio of words in MOBY representation to words in
+local representation could simply be increased).  Some of the remaining 7 bits in
+word 1 are used to specify storage consistency modes, mentioned below.
+
+  Swapping operations in the MOBY scheme are not quite as straightforward as
+in the ordinary virtual address case, since a format conversion is required.  To
+effect this conversion, it is crucial that it be possible to distinguish pointer
+data, which must be put through the reconciliation (or mapping) process, from
+non-pointer data such as integers, strings, etc., which must be passed though
+unchanged.  We estimate that, for a practical optimized system, the net time to
+swap in a page from MOBY space may be two to three times greater than the
+corresponding time in an ordinary virtual memory system.  (The data transfer
+time is significantly less than twice because disk latencies account for a
+substantial fraction of ordinary swapin time.  To this is added an estimation
+of time taken by reconciliation operations).
+
+@nopara
+@b(Incremental Reconciliation and Dereconcilation)
+
+  We introduce a data type (i.e. particular value for the 5 bit data-type field)
+called DTP-UNRECONCILED, with the definition that it serves as a placeholder
+for MOBY data.  A permissible operation, then, is to dereconcile any typed word
+in LOCAL space to MOBY space, and replace the data in local space with a
+DTP-UNRECONCILED item.  This operation will not affect program execution
+since any time an attempt is made to fetch the data in question into the CPU,
+the DTP-UNRECONCILED value in the data type field causes an immediate trap.
+This trap initiates the refetch and reconciliation of the MOBY data, after
+which, execution continues.  With aid of the DTP-UNRECONCILED data
+type, reconciliation operations need not be done immediately when data is
+swapped in, but can be delayed until actually necessary.
+
+@nopara
+@b(The Local Address Purging Problem)
+
+  It is necessary to be able to recycle local addresses within a MOBY scheme.
+One way to see this is to consider what happens if we start up a program 2**26
+locations long.  After 2**25 MOBY addresses have been touched, resulting in the
+assignment of 2**25 corresponding local addresses, a critical point is reached since
+no more local addresses are available, and it is evidently necessary to change the
+MOBY association of some local address space.  This, however, can only be done
+if there exist no local pointers to the address space in question, since they would
+be ``broken'' by any change in the association of the local address space to which
+they point.
+
+  The Local Address Purging Problem consists of (logically) making a linear
+sweep of the local address data base, dereconciling and replacing with
+DTP-UNRECONCILED any pointers to regions of local address space which have
+been selected for recycling.  This problem is similar in some respects to the
+well known garbage collection problem, but simpler in that pointer following is
+not required.
+
+@nopara
+@b(The Keeper)
+
+  Various techniques exist for the allocation of addresses in a distributed,
+3persistent, globally valid* address scheme.  One possibility, which avoids the need
+for the hosts in the network to maintain continuous communication, is to
+incorporate the host serial number in all addresses allocated by that particular
+host.  This method also avoids the necessity for any global locks connected with
+allocating address space.
+
+  By whatever means, it is important that one host, called the KEEPER, be
+assigned logical responsibility for each MOBY address.  (Actually, in a redundant
+file system design, there could be more than one KEEPER for a given address.
+These KEEPERs would have to know about each other, and act in a coordinated
+manner, however).  The KEEPER is normally responsible for the physical storage of the
+data corresponding to the MOBY address in question, or for knowing where it can
+be found if it has been ``checked-out''.
+
+  Each KEEPER maintains a listener which responds to requests for information
+(including the data itself) about the ranges of MOBY address space for which it is
+responsible.
+
+@nopara
+@b(Storage Consistency in a Distributed System)
+
+  For correct program execution, it is necessary to assure that, at a given
+moment, a particular MOBY address must have consistent contents as seen from
+anywhere within the entire distributed system.  Clearly, read-only data presents
+no problem in this regard and may be freely distributed throughout the network.
+Alternatively, if there is only a single active physical copy (which we term uniquely
+represented data) there is also no consistency problem, although there may well
+be a congestion problem if access to the data is required by many hosts.  The
+KEEPER would keep track of which processor possessed the physical copy at
+any given moment.
+
+  An interesting middle ground is termed write-rarely data.  Similar to read-only
+data, write-rarely data may be freely distributed throughout the network, thus
+exhibiting a high degree of multi-point availability.  Each host, however, must
+maintain the data with read-only protection.  If a write actually is attempted, a
+trap occurs.  The trap handler must then contact all hosts having a copy of the
+data (via the KEEPER), advising them of the update.  Only when a confirmation
+message is received from all hosts possessing a copy of the data can the write
+be considered complete.  Writing operations, then, are considerably more
+expensive than usual, however, if they are sufficiently rare, this may well be
+outweighed by the gain in read accessibility which has been obtained.  File
+directories are an example of data whose usage pattern is frequently well
+modelled by write-rarely data.
+
+ The ability of the MOBY system to allow dynamic transitions between these
+storage modes presents an interesting capability for optimizing network traffic
+without change to program structure.
+
+@nopara
+@b(Direct Exchange of Symbols)
+
+  As previously discussed, maintaining the correct semantics of pointers to
+symbols presents grave difficulties for a conventionally implemented distributed
+3persistent* address space, due to the necessity of a single system wide data base
+(or oblist).  In the MOBY system, because computation is never performed
+directly on MOBY quantities, the problem is neatly avoided.  That is, it is now
+acceptable for each distributed host to have its own oblist.  The fact that this
+will result in non-identity of MOBY representation for symbols does not matter.
+It is only required that the results obtained after the reconciliation mapping
+exhibit the required identity properties.  This is easily arranged by a slight
+modification to the reconciliation operation.  The result is that after a single
+INTERN operation, any number of MOBY pointers to a given symbol can be
+exchanged between a pair of hosts.
+
+@nopara
+@b(Persistent pointer data bases)
+
+  Quite possibly due to the implementation difficulties we have mentioned,
+large 3persistent* data bases with 3symbolic identity* are rarely, if ever, actually
+employed today.  Instead, the data is resident in a 3volatile* address space during
+active computation.  Periodically, writeouts are made to conventional,
+non-volatile, file systems which are capable of storing only ``flat'' objects such as
+integers or characters and incapable of storing pointers.  However, widely used techniques
+exist which convert a pointer data base to a sequence of integers [FASL].  While
+resident in the conventional file system, the data base is in an inert form and
+can not be referenced or updated directly.  However, the file can be loaded (as a
+whole) back into an active address space for further use.  Since the non-volatile
+form of the data does not contain pointers (or particularly pointers across file
+boundaries) some problems are avoided, albeit at a high, and in the long run
+unacceptable, price.  In particular, as the data base size increases, the copying
+operations become increasingly expensive, and the lack of interfile pointers will
+require discontinuous changes to program organization as the database is split
+into more and more files to attempt to reduce the copying cost.
+
+@nopara
+@b(Checkpointing pointer data bases with minimal interruption to ongoing
+computation)
+
+  Another fundamental capability which must exist if 3persistent* pointer databases
+are to be viable in practice is that of checkpointing the database efficiently.  In
+addition to the need for ordinary backup, there must be some way to ``back out''
+invalid computation, due to hardware or software malfunction, which may have
+corrupted the data base.  The MOBY scheme allows an elegant solution to this
+problem.  Briefly, the data to be checkpointed is dereconciled to MOBY space,
+producing a consistent updated copy in MOBY dataspace (i.e. the physical disk
+space used to hold MOBY representations).  Then those MOBY dataspace pages
+are ``frozen'' and the access control of the corresponding local memory pages set
+to read-only.  As further writes occur during ongoing execution, the trap
+handler must assign new MOBY dataspace for the modified pages.  As this
+scheme proceeds, a number of ``incarnations,'' or alternative contents for the
+MOBY namespace regions in question, are developed.  If it becomes desirable to
+revert to a saved checkpoint, one of these can be chosen and ``plugged'' back in.
+
+@nopara
+@b(Unique Address Allocation versus Garbage Collection)
+
+  An additional feature often found in 3persistent* address space architectures is
+unique allocation of addresses, meaning that a single address can never be
+allocated more than a single time in the entire ``history of the world''.  Although
+such a system must fail catastrophically eventually due to running out of
+addresses, that time of doom can be postponed indefinitely far into the future
+by making the address space large enough.
+
+  A considerable body of literature exists on the alternative possibility, which is
+to make possible the recycling of address space, a process known as garbage
+collection [BS] [Li].  Unfortunately, garbage collection of a 3persistent* sized
+address space presents nearly insuperable problems in spite of the clever
+techniques which have been proposed.  A huge amount of network
+traffic would almost certainly be required, not to mention the difficulties presented
+by write-once or off-line media.  This observation has been made before [Wh],
+but the alternative design therein proposed has not proved workable.
+
+  Some authors [Ba] have considered locality of reference improvement as a
+possible motivation for garbage collection.  The MOBY scheme dilutes such
+arguments, since improved locality of reference can probably be obtained
+through modifications to the local to MOBY mapping.
+
+@nopara
+@b(Sections, A Means for Direct Storage of Pointer Databases)
+
+  Sections are a conservative method of user interface to the MOBY
+address space.  They are a generalization of ordinary files in a
+conventional file system, with the additional properties that they can hold
+pointer objects such as lists, symbols, and flavor instances.  The usual CONS
+function can be used directly to allocate space in a section.  Sections appear in
+a directory and have a pathname exactly like ordinary files.  Sections are
+manually deleted in the same manner as ordinary files.  If a pointer to the
+deleted section still exists, an attempt to reference through it will attempt to
+retrieve the section from backing store if it has been saved, otherwise report an
+invalid reference.  Note, however, that undetected data corruption cannot occur
+since addresses are never reused.  Given the MOBY address space to build on,
+the implementation of section is quite straightforward.
+
+@nopara
+@b(Costs of the MOBY Scheme)
+
+  One of the most attractive features of the MOBY scheme is that once data is
+in local form, there is no overhead (or change whatsoever) in software which
+operates on local data.  Hopefully, in most applications, this property alone
+will render overheads negligible.
+
+  As previously mentioned, swapins from MOBY space are likely to be two to
+three times the cost of comparible swapins in an ordinary virtual address system.
+However, we believe it should usually be possible to avoid heavy paging from MOBY space,
+making the total cost of MOBY paging relatively modest.
+
+  A potentially troublesome cost could arise if the dynamic working set becomes
+large compared to the local address space, which could cause significant
+overheads due to local address space purging; the MOBY equivalent of disk thrashing.
+
+  Data bases must be maintained to hold the MOBY to local associations, etc.
+It is not anticipated that costs associated with these data bases will be
+significant.
+
+  Checkpointing pointer data bases in the manner suggested above involves various
+costs. However, these costs are likely to be similar to or less than those involved
+in accomplishing similar ends by other means.
+
+  It is beyond the scope of the present paper to evaluate the MOBY scheme
+applied to parallel processing situations, however, very good results may be
+obtained if the application allows sufficiently coarsely grained parallelism.
+
+@nopara
+@b(Derivative Properties of Symbols)
+
+  In addition to their identity, LISP symbols traditionally have associated
+properties such as value cells, property lists, etc.  How
+should these associated properties be carried over to MOBY space?  A full
+discussion of this issue would be beyond the scope of this paper, but we believe
+it is better in most cases NOT to simply locate the relevant cells in ordinary
+MOBY space.  Instead, obtaining these associations from hash tables is frequently
+a better choice.  Although the symbols themselves should be located in MOBY
+namespace to obtain the benefits of symbolic identity, the sharing of the
+dataspace which underlies this namespace should be controlled by an additional
+mechanism.  Machinery introduced in connection with the
+checkpointing feature is applicable to this problem as well.
+
+  In fact, a degree of control in sharing of address spaces is critically necessary
+to the functioning of a robust, distributed, LISP programming environment.  In
+particular, the global environment must not be damaged by a symbol (frequently
+NIL!) getting clobbered due to programmer error.
+
+@nopara
+@b(Conclusion)
+
+  We believe that the MOBY ADDRESS(c) Scheme provides the basis for solving
+a longstanding, fundamental problem in computer science.  A pilot implementation has
+been completed, however, the critical proof of concept will be a demonstration
+of a robust system under heavy use in a varied environment.
+
+@nopara
+@b(Acknowlegment)
+  The contributions of George Carrette, Pace Willisson, Joe Marshall, Steven Wyle,
+Mache Creeger, David Lienweber, Dawna Provost-Carrette, Sarah Smith and the
+LMI Cambridge staff are gratefully acknowleged.
+
+
+@sp 1
+@hrule
+@sp 1
+
+This paper describes research done at LISP Machine Inc, 1000 Massachusetts Ave,
+Cambridge, MA, 02139.  The author wishes to thank LMI management for their continued
+support of this project.
+
+@nopara
+@b(Bibliography)
+
+@itemize
+@item [Ba]  Baker, H.G., List processing in real time on a serial computer. Commun.
+        ACM 21, 4 (April 1978) 280-294.
+@item [Bs]   Bishop, P., Computer systems with a very large address space and
+         garbage collection.  Tech. Rept. TR-178, MIT Lab for Computer Science,
+         Cambridge, Mass, May 1977.
+@item [DN]  Nelson, David L. and Paul J. Leach, The Evolution of the
+Apollo Domain.  IEEE Compcon Digest of Papers, Spring 1984, pp. 132-141.
+@item [FASL] Moon, D. A., The MACLISP Reference Manual, MIT Laboratory for
+        Computer Science, Cambridge, Mass. (1974)
+@item [GB]   Greenburg, B.,  Multics MacLISP.  The most interesting background
+         on this system available is Prose and CONS, MULTICS EMACS: a commercial
+         text processing system in LISP.  In Proc. 1980 Lisp Conf., Stanford, Calif.
+@item [Ka]   Kaehler, T and Krasner, G, LOOM -- Large Object Oriented
+        Memory for Smalltalk-80 Systems, in Smalltalk-80,
+        Bits of History, Words of Advice,       Addison-Wesley, 1983.
+@item [ML]  Organick, E.I., The MULTICS System, MIT Press, 1972.
+@item [Li]   Lieberman, H and Hewitt, C, A real time garbage collector based on the
+         lifetimes of Objects, Commun. ACM 26, 6 (June 1983), 419-429.
+@item [Wh]   White, J. L., Memory management in a gigantic LISP environment,
+         or GC considered harmful.  In Proc. 1980 Lisp Conf., Stanford, Calif.
+@end(itemize)
+
+@end(document)
+

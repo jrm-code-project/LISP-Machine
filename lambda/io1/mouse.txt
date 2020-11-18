@@ -1,0 +1,80 @@
+;       ** (c) Copyright 1980 Massachusetts Institute of Technology **
+
+(DECLARE (SPECIAL DRAW-MODE MOUSE-REG1 MOUSE-REG2))
+
+
+;Mouse handler.  Returns 5 values:
+; Delta X from last time called - this is pretty weird, but for compatibility with
+; Delta Y from last time called - the old thing this is what it does.
+; Tail switch state (T pushed down, NIL normal)
+; Middle switch state
+; Head switch state
+;The interface presented by this function is kind of crockish.  It is only
+;used by PAINT.  Hopefully when a more winning one is written for the editor
+;this one can be flushed.  This version has problems with coordinate system
+;wrap-around, which I'm not going to bother fixing.
+
+(DECLARE (SPECIAL MOUSE-PREVIOUS-X MOUSE-PREVIOUS-Y))
+
+(DEFUN MOUSE ()
+  (PROG (V1 V2 X Y TEM)
+    (SETQ TEM (%UNIBUS-READ MOUSE-REG1))                ;FOR THE SWITCHES
+    (SETQ X (LOGAND 7777 (%UNIBUS-READ MOUSE-REG2))
+          Y (LOGAND 7777 TEM))
+    (OR (BOUNDP 'MOUSE-PREVIOUS-X)
+        (SETQ MOUSE-PREVIOUS-X X MOUSE-PREVIOUS-Y Y))
+    (COND ((> (SETQ V1 (- X MOUSE-PREVIOUS-X))
+              4000)
+           (SETQ V1 (- V1 10000)))
+          ((< V1 -4000)
+           (SETQ V1 (+ V1 10000))))
+    (COND ((> (SETQ V2 (- MOUSE-PREVIOUS-Y Y))       ;NOTE Y-COORD INVERTED
+              4000)
+           (SETQ V2 (- V2 10000)))
+          ((< V2 -4000)
+           (SETQ V2 (+ V2 10000))))
+    (SETQ MOUSE-PREVIOUS-X X)
+    (SETQ MOUSE-PREVIOUS-Y Y)
+    (RETURN V1
+            V2
+            (NOT (ZEROP (LOGAND TEM 10000)))
+            (NOT (ZEROP (LOGAND TEM 20000)))
+            (NOT (ZEROP (LOGAND TEM 40000))))))
+
+(DEFUN RODENT-CHASE NIL
+  (PROG ((PX 0) (PY 0) (X 0) (Y 0) TOPSW MIDSW (DRAW-MODE 'IOR))
+   A    (AND (KBD-TYI-NO-HANG)
+             (RETURN T))
+        (MULTIPLE-VALUE (X Y TOPSW MIDSW) (MOUSE))
+        (COND (TOPSW
+               (TV-CLEAR-SCREEN)
+               (SETQ PX 0
+                     X 0
+                     PY 0
+                     Y 0)
+               (GO A)))
+        (AND (= X 0)
+             (= Y 0)
+             (GO A))
+        (SETQ X (+ X PX)
+              Y (+ Y PY))
+        (COND ((NOT MIDSW)
+               (DRAW-LINE PX PY X Y))
+              (T ((LAMBDA (DRAW-MODE)
+                    (DRAW-LINE PX PY PX PY)
+                    (DRAW-LINE X Y X Y))
+                  'XOR)))
+        (SETQ PX X
+              PY Y)
+        (GO A)))
+
+(DEFUN RODENT NIL
+  (PROG (OLD NEW)
+   A    (AND (KBD-TYI-NO-HANG)
+             (RETURN T))
+        (AND (= OLD
+                (SETQ NEW (LOGAND 3417
+                                  (%UNIBUS-READ MOUSE-REG1))))
+             (GO A))
+        (PRINT (SETQ OLD NEW))
+        (GO A)))

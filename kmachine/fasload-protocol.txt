@@ -1,0 +1,33 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+FASLOAD PROTOCOL
+
+
+<String>:
+        STRING-OP               FASLOAD-OP      Identifies a string.
+        N-CHARACTERS            Boxed number    Length of string.
+        {CHAR-j}                Boxed char
+
+<Symbol>:
+        SYMBOL-OP               FASLOAD-OP      Identifies a symbol.
+        PACKAGE                 <String>
+        PRINT-NAME              <String>
+
+<Compiled function>:
+        COMPILED-FUNCTION-OP    FASLOAD-OP      Identifies a compiled function.
+        NAME                    <Symbol>        Name of function.
+        N-LOCAL-REFS            Boxed number    Number of local references.
+        {OFFSET-j               Boxed number
+         REFERENCE-j}           Boxed number
+        N-REFS                  Boxed number    Number of external references.
+        {OFFSET-j               Boxed number
+         NAME-j                 <Symbol>
+         NARGS-j}               Boxed number
+        N-ENTRY-POINTS          Boxed number    Number of entry points.
+        {}                      (undetermined)
+        N-INSTRUCTIONS          Boxed number    Number of instructions in code.
+        {INSTRUCTION-j}         Unboxed
+        N-IMMEDIATES            Boxed number    Number of immediates.
+        {OFFSET-j               Boxed number
+         OBJECT-j}              <Any object>

@@ -1,0 +1,9 @@
+
+Implementation of a Phoenix software simulator depends on the following:
+
+  - Accurate design of the chip:
+    - Pipeline.
+    - Instruction format and decode.
+    - ALU.
+    - Call hardware.
+    - ``Synchronous'' trap behavior.

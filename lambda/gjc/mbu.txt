@@ -1,0 +1,21 @@
+
+
+   TO:      DAN THOMAS, DG, BOBP, PACE, SWRS, ESMITH, KNICK
+   FROM:    GJC
+   DATE:    10/30/85 18:34:06
+   SUBJECT: LMI USERS and the Multibus. Request for Comment.
+
+   Here is a rought draft of some new and old material relating to the
+   use of the multibus by LMI users. There are four examples given,
+   1. a simple board that has I/O registers and does DMA.
+      This would be like a disk or tape controller or some array processors.
+      Or an ICON board (DR11-W emulator).
+   2. an array-processor that looks like multibus memory.
+      The example includes data conversion issues.
+   3. the emulex SCSI bus adaptor. This uses I/O registers, DMA, and interrupts.
+   4. the CD3508 communications board. This uses I/O registers, multibus memory,
+      DMA, and interrupts.
+
+  For Knick I've included some interesting material on IBM interfacing he
+  requested. Yet another useful looking multibus board.
+

@@ -1,0 +1,292 @@
+@c -*- Mode:Text; Package:USER; Readtable:CL -*-
+@chapter System Architecture
+@label[chapter-doc-architecture]
+@cindex[architecture]
+
+Lambda LISP machine systems provide Ethernet Local Area Network (LAN) communication
+using the Transmission Control Protocol (TCP) and/or
+the MIT Chaosnet protocol.
+Both protocols provide access to a variety of remote hosts
+for purposes such as file sharing, remote logins, and electronic mail.
+
+On the Lambda, both protocols are provided using a single hardware interface.
+Up to two interface boards may be present on a single chassis.
+
+@figure
+@setq figure-architecture figure-page
+@sp 1
+@caption Example: Lambda-2x2-Plus configuration
+@tex
+     \special{:saved-paint-image "dj:keith.release-4;paint-net-rel4.qfasl"
+                :magnification 1
+                :h-offset 650.
+                :v-offset (+ :pixel-v 150)
+                }
+@vskip 4in
+@end tex
+@end(figure)
+
+@ref[figure-architecture], is a diagram of the functional relationships between
+components of the Lambda communications architecture.
+
+Chapter @ref[chapter-architecture], @b(@nameref[chapter-architecture]), explains
+the relationship between the LISP processors and the hardware interfaces
+used by the networking software.
+
+This chapter provides some additional detail concerning the software architecture and
+a general overview of both Chaosnet and TCP/IP.
+
+@section Background
+
+The Lambda communications software attempts to implement both protocols fully
+while integrating them within the LISP world.
+For example, there is a standard set of ``generic'' file access routines
+layered on top of the communications protocols.
+Therefore, remote file access is transparent with respect to the particular protocol involved.
+
+The Chaosnet protocol originated in the MIT Artificial Intelligence Laboratory,
+where it was implemented on a number of host system types, including
+the early LISP machines developed there.
+Chaosnet has been an integral part of LISP machine software for many years.
+
+The focus of Chaosnet development was to provide deeply embedded and user-friendly communication functions
+that supported the needs of developers (such as LISP programmers)
+working on a local area network (such as in a research environment).
+A great deal of functional elaboration is dependent on or tightly attached to
+the protocol.
+
+For example, central to the Chaosnet protocol is the concept of
+``transparent access''.
+On the LISP machines running Chaosnet, users can specify filenames
+using a syntax approximating that of the server (remote) host;
+the user (local) host provides all required pathname parsing.
+Most utility functions on the Lambda are expected to deal with any ``legal'' pathname type.
+
+TCP/IP protocols evolved in a fairly secure mainframe environment, where hosts
+of various types may be separated by large distances.@cindex[TCP]
+These protocols were not optimized for either the degree of file sharing
+permissible on local area networks, nor for the styles of programming and file manipulation
+that were developed around LISP machines.
+Nevertheless, TCP/IP is a very popular protocol, given the wide range of
+host type implementations and the rigorous specification as endorsed for DOD use.
+
+The goal of networking on the Lambda is to provide ``the best of both worlds'':
+the transparent features of file access to all recognized host types,
+the tightly coupled programming features provided by Chaosnet,
+and the wide availability to TCP-compatible hosts.
+To the greatest possible extent, the Release 4 networking software
+provides the best protocol for each task.
+
+@figure
+@setq figure-chaos-protocols figure-page
+@sp 1
+@settabs 3 @columns
+@< @i[Feature] @\ @i[Description] @cr
+@sp 1
+@hrule
+@sp 1
+@< QFILE, LISPM-QFILE   @\ Transparent file access to remote hosts @cr
+@< Mail                 @\ Mail access to remote mail servers @cr
+@< Supdup               @\ Remote login @cr
+@< Tiger                @\ Printing to local/remote Lambda hosts * @cr
+@< Finger               @\ User login status @cr
+@< Hostat               @\ Remote host status @cr
+@< Extended Streams@tm@ @\ Inter-processor communications @cr
+@<                      @\ @ (streams and shared memory) * @cr
+@< Disk                 @\ Remote disk access @cr
+@< Time                 @\ Remote time-of-day access @cr
+@cleartabs
+@sp 1
+@< * Non-MIT, Lambda extension @cr
+@sp 1
+@caption Chaosnet Features and Functionality
+@end(figure)
+
+@fullpagefigure
+@setq figure-tcp-protocols figure-page
+@sp 1
+@settabs 5 @columns
+@< @i[Protocol] @\ @i[Description] @\ @\ @i[Use] @cr
+@sp 1
+@hrule
+@sp 1
+@< @b[Network Level:] @cr
+@sp 1
+@< IP @\ Internet Protocol @\                   @\ (System internal use only) @cr
+@sp 1
+@< @b[Control/Transport Levels:] @cr
+@sp 1
+@< TCP  @\ Transmission Control Protocol@\      @\ Implementing complex protocols @cr
+@< UDP  @\ User Datagram Protocol       @\      @\ Implementing simple protocols @cr
+@< ARP  @\ Address Resolution Protocol  @\      @\ (System internal use only) @cr
+@< ICMP @\ Internet Control Message     @\      @\ (System internal use only) @cr
+@<      @\ @ @ Protocol @cr
+@sp 1
+@< @b[Application Levels:] @cr
+@sp 1
+@< FTP  @\ File transfer protocol       @\      @\ Network-wide file access @cr
+@< SMTP @\ Simple Mail Transfer Protocol @\     @\ Mail access (used by ZMail) @cr
+@< TELNET @\ Telnet Protocol            @\      @\ Remote login @cr
+@< IMAGEN @\ Laser Printer Protocol     @\      @\ Printing to Imagen * @cr
+@sp 1
+@< @b[TCP and UDP Servers:] @cr
+@sp 1
+@< DISK @\ Remote Disk Protocol @\      @\ Network disk functions @cr
+@<      @\                      @\      @\ @ (such as band transfers) @cr
+@<      @\                      @\      @\ @ between Lambdas * @cr
+@< TIME @\ Host Time Protocol   @\      @\ Host time-of-day access * @cr
+@< FINGER @\ TCP Finger Server  @\      @\ User login status * @cr
+@< RWHO @\ Remote Who           @\      @\ User login status ** @cr
+@< RUPTIME @\ Remote Uptime     @\      @\ System up-time status ** @cr
+@sp 1
+@< @starspace*Non-DOD, Lambda extension @cr
+@< **Popular industry extension @cr
+@cleartabs
+@sp 1
+@caption TCP/IP Features and Functionality@csubindex[TCP][features]
+@end(fullpagefigure)
+
+@section Services and Functionality
+
+The table in @ref[figure-chaos-protocols], lists the Chaosnet features provided by the Lambda.
+@ref[figure-tcp-protocols], lists the supported TCP/IP features and Lambda extensions.
+
+@need 2000
+@section Network Software Initializations
+
+@cindex[startup initializations]@csubindex[initializations][network configuration]
+When a Lambda is cold-booted, it sets up (``configures'') its networking environment
+based on the following kinds of information:
+
+@enumerate
+@item Its own host identity
+@item The available hardware interfaces
+@item The network site configuration
+@end(enumerate)
+
+Early in this process, the Lambda determines its own host identity
+by inspecting the disk pack name.@cindex[pack name]@cindex[host name]
+A pack name is a list of host names, separated by spaces.
+Host names are listed in the pack name in the order they appear on the system Nubus;
+i.e, the slot 0 name is followed by the slot 4 name (if any), then the name of
+a Unix or third LISP processor (if any).
+
+The following LISP functions are used for setting and inspecting the pack name:
+
+@group
+@defun si:set-pack-name pack-name &optional unit
+Set the pack name to the string @i(pack-name).
+
+For example:
+
+@smalllisp
+(si:set-pack-name "lama")                  ;Lambda
+(si:set-pack-name "lama lamb unix-a")      ;Lambda 2x2-Plus
+@end(smalllisp)
+@end(defun)
+@end(group)
+
+@group
+@defun si:get-pack-name
+Obtain the pack name from the disk.
+Returns multiple values, one for each host name.
+
+For example:
+@lisp
+(multiple-value-setq (slot0 slot4 unix)
+    (si:get-pack-name)
+  (print slot0)
+  (print slot4)
+  (print unix))
+
+"MYHOST"
+"OTHER-HOST"
+"UNIX-A"
+@end(lisp)
+@end(defun)
+@end(group)
+
+The booted system determines its own host information
+from the loaded site information corresponding to its host name.
+Then, the host sets the variable @see[si:local-host][var] to the host object corresponding to itself.
+Other system variables depend on the local host object;
+see Section @ref[section-local-host-variables], @nameref[section-local-host-variables].
+
+If the system's own host information is not defined, the system continues to initialize itself,
+but it takes on the special host identity, @l(AMNESIA).
+When a host boots as @l(AMNESIA),
+a warning is printed to notify the user that the proper site information must be loaded.
+Remote file access and some local file operations will not function properly
+until site files are loaded which contain the system's own host identity.
+(For further information see Section @ref[section-amnesia], @nameref[section-amnesia]).
+
+When the network software is configured, various interfaces to
+protocols and drivers are established:
+
+@itemize @bullet
+@item ``ONE'' - 3COM or EXCELAN interface to the ETHERNET network
+@item ``SHARE'' - interface to BACKPLANE network (inter-processor streams)
+@item ``LOOPBACK'' interface to LOOPBACK network (used internally) @c???
+
+@item ``INTERNET'' - TCP and UDP
+@item ``CHAOS'' - Chaosnet
+@item ``ARP'' -  Address Resolution Protocol
+
+@item ``TCP'' - TELNET, FTP, SMTP, DISK, TIME, FINGER
+@item ``UDP'' - RWHO, NAMESPACE, TIME
+@item ``ICMP''  (control messages) @c???
+@end(itemize)
+
+Use the @l(Peek) program to examine the interfaces, protocols, and connections.
+(See Section @ref[section-peek]).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end arch2

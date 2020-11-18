@@ -1,0 +1,35 @@
+@c ;;; -*- Mode:Text; Package:User; Base:10 -*-
+
+@library(gsi-patbo)
+@library(lisp)
+@library(gsi)
+
+@tolerance 300
+@overfullrule 0in
+@setpagewidth  6.25in
+@textbodyindent = 0.5in
+@begin(document)
+@baselineskip 13pt
+@parskip = 0.2in
+@parindent = 0in
+@secheadingskip .25in
+
+@defindex cp
+
+@settitle K/Mac Interface
+@setx titlecomment Design Issues and Requirements
+@setx gsipart Rev 4 - @datestamp
+@headings off
+@titlepage
+
+@include copyright-page
+@include booting
+@include configuration-files
+@include shared-memory
+@include file-system-interface
+@include devices-and-peripherals
+@include stream-io
+@include paging-io
+@include screen-keyboard-mouse
+@include other-software-issues
+@end(document)

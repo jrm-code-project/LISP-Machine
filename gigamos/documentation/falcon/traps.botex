@@ -1,0 +1,337 @@
+@c traps.botex
+@c
+@c    Apr-88, Kent Hoult
+@c 21-May-88, James Rauen
+
+
+@chapter Traps
+
+       The K processor has a single entry point for all traps and
+       interrupts (location zero). Prioritizing of the trap causes
+       is handled by software. When a trap occurs, any instruction
+       that has passed the commit point will be completed. All
+       others will be aborted and rerun after the trap return.
+
+@section The Commit Point
+
+          Instructions have a logical point in their execution
+          referred to as the commit point. Before this point the
+          instruction can be aborted, any side effects undone, and
+          then be re-run later.
+
+          Once the clock edge at the ALU/OREG boundary has occured,
+          the commit point has been passed.  The instruction then cannot
+be stopped from writing its destination.
+
+@section Trap Entry
+
+          When a trap request occurs while traps are enabled, the
+          processor clock that was about to occur will be delayed by
+          one cycle. The CMEM1 clock edge that occurs wher the CPROC1 was
+          about to occur will set the TRAP1 bit. This flag indicates
+          the first state of a trap entry.
+
+          TRAP1 has multiple functions. It forces the PC to zero, the
+          instruction cache is forced to restart its instruction
+          access (possibly going to memory if the low-core cache is
+          disabled), the call hardware will undo its previous
+          function, the next two destination writes will be aborted,
+          and the clock enables on some interesting registers will be
+          turned off by the Trap State Machine (TSM).
+
+
+@section Trap State Machine (TSM)
+
+          The TSM is a finite state machine that watches for certain
+          PC values to occur, and then disables or enables the loading
+          of  certain
+          hardware registers.  The TSM wAtches for PCs
+          in the range 0 to 31. This section of memory holds the
+          trap entry and exit code.
+
+          The TSM also has the trace trap bit and several feedback
+          bits as inputs to allow it to handle some special functions
+          during trap exits.
+
+@section Trap Entry Sequence
+
+          The following piece of assembly code is the instruction
+          sequence that the TSM expects to find at location zero:
+
+@smalllisp
+          (defafun trap ()
+            ;; The hardware depends on this loaded at location 0.
+            ;; Save the oreg, source doesn't matter because pipeline
+               is shut off.
+            (alu setl gr::*save-oreg* r0 r0 bw-32 boxed-left)
+
+            ;; Oreg clock comes on, we save the left alu input
+            (alu setl gr::*save-left* r0 r0 bw-32 boxed-left)
+
+            ;; Left clock comes on, we save the right alu input
+            (alu setr gr::*save-right* r0 r0 bw-32 boxed-right)
+
+            ;; Right clock comes on, we save the alu status
+            (alu pass-status gr::*save-status* r0 r0 bw-32 unboxed)
+
+            ;; Alu clock comes on, we save the jump condition
+            (alu-field extract-bit-right gr::*save-jcond* r0
+             processor-status (byte 1. (+ 32. 17.)) unboxed)
+
+            ;; Jump condition clock comes on, find out which trap went
+            ;; off.
+            (alu-field field-and gr::*save-trap* gr::*trap-mask*
+             trap-register (byte 31. 0.) unboxed)
+
+            (alu prioritize-r gr::*trap-temp1* r0 gr::*save-trap*
+             bw-32 unboxed)
+
+            (alu-field set-bit-right gr::*trap-temp1* r0
+             gr::*trap-temp1* (byte 1. 5.) unboxed)
+
+            ;; Save pc
+            (alu merge-r gr::*save-trap-pc*  gr::*trap-dtp-code-5*
+             trap-pc bw-24 boxed)
+
+            ;; Save pc + 1, dispatch to trap handler
+            (alu merge-r gr::*save-trap-pc+* gr::*trap-dtp-code-5*
+             trap-pc+  bw-24 boxed next-pc-dispatch)
+@end smalllisp
+
+          The registers mentioned in the code will be re-enabled just
+          after they are saved, thus allowing the processor to return to
+          normal functionality as the sequence proceeds.
+
+@section Normal Trap Exits (Non-modifying)
+
+          A normal trap exit will completely re-execute the trapped
+          instruction. Since all of its side effects were undone when
+          it was aborted, this doesn't cause any problem. The
+          following instruction sequence is the normal trap exit code:
+
+@smalllisp
+          (defafun non-modifying-exit ()
+            ;; The hardware depends on this loading at location 12.
+            ;; Jump condition gets fed to magic flipflop.
+            (alu-field field-pass processor-control gr::*save-jcond*
+             processor-control (byte 1. 4.))
+
+            ;; Restore status of trapped instruction, alu clock turns
+            ;; off.
+            (alu load-status-r nop r0 gr::*save-status* bw-32)
+
+            ;; Pipeline saved pc for returning.
+            (alu setl gr:*trap-temp1* gr::*save-trap-pc*
+             gr::*save-right*  bw-32 boxed-left)
+
+            ;; Pipeline saved pc+ for restarting dispatch
+            ;; instructions.
+            (alu setl gr:*trap-temp1* gr::*save-trap-pc+*
+             gr::*save-right*  bw-32 boxed-left)
+
+            ;; Jump to trapped instruction, pipeline jump condition
+            ;; for trapped jumps.
+            (alu setl gr:*trap-temp1* gr::*save-oreg* gr::*save-right*
+             bw-32 next-pc-dispatch br-jindir boxed-left)
+@end smalllisp
+
+@section Modifying Trap Exits
+
+          A modifying trap exit is a special exit used for datatype
+          and overflow traps. If the datatype trap is serviceable, then
+          the effective result of the aborted instruction will be
+          computed and put into GR:*SAVE-RIGHT*, The status will be
+          put into GR:*SAVE-STATUS*, and then the modifying exit code will be
+          run. This will have the effect of mostly re-executing the
+          trapped instruction. However, instead of the ALU result
+          being written to the destination, the value in the right
+          register will be written instead (the ALU opcode will be
+          forced to PASS-RIGHT and the box code to BOXED-RIGHT). In addition,
+          datatype traps will be suppressed during this instruction to
+          prevent recausing the same trap.
+
+          This all has the effect of allowing the trap routine to
+          substitute a result for the instruction. This is useful, for
+          example, when adding two complex numbers.
+
+          The folowing is the non-modifying exit code sequence:
+
+@smalllisp
+          (defafun modifying-exit ()
+            ;; The hardware depends on this loading at location 20.
+            ;; Jump condition gets fed to magic flipflop.
+            (alu-field field-pass processor-control gr::*save-jcond*
+             processor-control (byte 1. 4.))
+
+            ;; Restore status of trapped instruction, alu clock turns
+            ;; off.
+            (alu load-status-r nop r0 gr::*save-status* bw-32)
+
+            ;; Pipeline saved pc for returning. Right side clock shuts
+            ;; off, save right gets caught.
+            (alu setl gr:*trap-temp1* gr::*save-trap-pc*
+             gr::*save-right* bw-32 boxed-left)
+
+            ;; Pipeline saved pc+1 for dispatches.
+            (alu setl gr:*trap-temp1* gr::*save-trap-pc+*
+             gr::*save-right* bw-32 boxed-left)
+
+            ;; Jump to trapped instruction, setup saved jump
+            ;; condition.
+            (alu setl gr:*trap-temp1* gr::*save-oreg* gr::*save-right*
+             bw-32 next-pc-dispatch br-jindir boxed-left)
+@end smalllisp
+
+@section Diagnostic Trap Exits
+
+          This code sequence is used only for instruction cache
+          diagnostics. It allows the data in the cache to be read and
+          held in the cache transceiver registers. It can be read later for
+          running cache diagnostics. This can also be used to
+          force cache locations to be accessed and loaded from memory
+          (as in initializing the low-core cache). The exit sequence
+          proceeds only far enough to allow the cache to fetch the
+          desired instruction.  Then the single step trap will
+          return control to the trap handler.
+
+@smalllisp
+          (defafun diagnostic-trap-exit ()
+            ;; The hardware depends on this assembling at location 28.
+            ;; It causes a trap to happen after the instruction fetch
+            ;; but before the instruction register gets loaded.  This
+            ;; enables us to run icache diagnostics.
+
+            ;; Dispatch to trap pc.
+            (alu setl nop gr::*save-trap-pc*  gr::*save-right* bw-32)
+
+            ;; This instruction can be ignored.
+            (alu setl nop gr::*save-trap-pc+* gr::*save-right* bw-32)
+
+            ;; This just does a dispatch.
+            (move nop gr::*save-oreg* bw-32 next-pc-dispatch)
+@end smalllisp
+
+
+
+@section Trace Trapping
+
+          The TSM handles the trace trap function. If the trace trap
+          bit in the control register is set when a trap exit sequence
+          is executed, then the TSM will cause a trap requested just
+          after the trapped instruction has passed its commit point.
+
+          Note that some other trap can still come in before the commit
+          point. However, when that trap handler returns the trace trap
+          will occur.
+
+          The trace trap will occur early in the case of the
+          diagnostic exit since we want to abort very early in the
+          instruction.
+
+@section Trap Vector Table
+
+          This is the 32-entry vector table that the trap entry code
+          will branch to after saving its registers. They correspond
+          to the bits of the trap register.
+
+@smalllisp
+          (defafun trap-vector-table () ;;; at absolute location 32.
+
+          ;; This "function" is actually a dispatch table.
+
+          trap-vector-reset       ;Bit 31 - addr 32 - Highest priority
+            (jump reset-trap-handler ())
+
+          trap-vector-trace       ;Bit 30 - addr 33
+            (jump trace-trap-handler ())
+
+          trap-vector-icache-parity    ;Bit 29 - addr 34
+            (jump icache-parity-trap-handler ())
+
+          trap-vector-icache-nubus-err    ;Bit 28 - addr 35
+            (jump icache-nubus-error-trap-handler ())
+
+          trap-vector-icache-nubus-timeout    ;Bit 27 - addr 36
+            (jump icache-nubus-timeout-trap-handler ())
+
+          trap-vector-icache-page-fault    ;Bit 26 - addr 37
+            (jump icache-map-fault-trap-handler ())
+
+          trap-vector-proc-mread-parity    ;Bit 25 - addr 38
+            (jump memory-read-parity-trap-handler ())
+
+          trap-vector-proc-mread-nubus-err    ;Bit 24 - addr 39
+            (jump memory-read-nubus-error-trap-handler ())
+
+          trap-vector-proc-mread-nubus-timeout   ;Bit 23- addr 40
+            (jump memory-read-nubus-timeout-trap-handler ())
+
+          trap-vector-proc-mread-page-fault   ;Bit 22 - addr 41
+            (jump memory-read-page-fault-trap-handler ())
+
+          trap-vector-proc-mread-transporter   ;Bit 21 - addr 42
+            (jump memory-read-transporter-trap-handler ())
+
+          trap-vector-proc-mwrite-nubus-err   ;Bit 20 - addr 43
+            (jump memory-write-nubus-error-trap-handler ())
+
+          trap-vector-proc-mwrite-nubus-timeout   ;Bit 19-  addr 44
+            (jump memory-write-nubus-timeout-trap-handler ())
+
+          trap-vector-proc-mwrite-page-fault   ;Bit 18 - addr 45
+            (jump memory-write-page-fault-trap-handler ())
+
+          trap-vector-proc-mwrite-gc    ;Bit 17 - addr 46
+            (jump memory-write-gc-trap-handler ())
+
+          trap-vector-floating-point    ;Bit 16 - addr 47
+            (jump floating-point-trap-handler ())
+
+          trap-vector-heap-empty     ;Bit 15 - addr 48
+            (jump heap-empty-trap-handler ())
+
+          trap-vector-instruction-bit    ;Bit 14 - addr 49
+            (jump instruction-trap-handler ())
+
+          trap-vector-datatype     ;Bit 13 - addr 50
+            (jump datatype-trap-handler ())
+
+          trap-vector-overflow     ;Bit 12 - addr 51
+            (jump overflow-trap-handler ())
+
+          trap-vector-spare11     ;Bit 11 - addr 52
+            (jump spare11-trap-handler ())
+
+          trap-vector-interrupt7     ;Bit 10 - addr 53
+            (jump debugger-trap-handler ())
+
+          trap-vector-interrupt6     ;Bit 09 - addr 54
+            (jump interrupt6-trap-handler ())
+
+          trap-vector-interrupt5     ;Bit 08 - addr 55
+            (jump interrupt5-trap-handler ())
+
+          trap-vector-interrupt4     ;Bit 07 - addr 56
+            (jump iop-trap-handler ())
+
+          trap-vector-interrupt3     ;Bit 06 - addr 57
+            (jump interrupt3-trap-handler ())
+
+          trap-vector-interrupt2     ;Bit 05 - addr 58
+            (jump interrupt2-trap-handler ())
+
+          trap-vector-interrupt1     ;Bit 04 - addr 59
+            (jump interrupt1-trap-handler ())
+
+          trap-vector-interrupt0     ;Bit 03 - addr 60
+            (jump interrupt0-trap-handler ())
+
+          trap-vector-timer-1024     ;Bit 02 - addr 61
+            (jump timer-1024-trap-handler ())
+
+          trap-vector-timer-16384     ;Bit 01 - addr 62
+            (jump timer-16384-trap-handler ())
+
+          trap-vector-spurious     ;Bit 00 - addr 63
+            (jump spurious-trap-handler ()))
+@end smalllisp

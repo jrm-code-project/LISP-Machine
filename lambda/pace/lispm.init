@@ -1,0 +1,72 @@
+;;; -*- Mode:LISP; Package:USER; Base:8; Readtable:ZL -*-
+
+;(setq *zmail-init-file-host* "dj")
+
+(when (= si:%microcode-version-number 1600.)
+  (setf (ldb (byte 1 4) si:%disk-switches) 1))
+
+(setq zwei:*converse-end-exits* t)
+(tv:remove-system-key #/G)
+
+(send tv:initial-lisp-listener :set-more-p nil)
+
+(si:write-meter 'si:%aging-depth 3)
+
+(login-setq zwei:*FROM-USER-ID* user-id)
+(login-setq zwei:*FROM-HOST* "cap")
+
+(load-patches :noselective)
+;(make-system 'pace-hacks :noconfirm :silent)
+;(make-system 'imicro :noconfirm :silent)
+
+(si:write-meter 'si:%tv-clock-rate 60.)
+
+;(load "dj:pace;disable-page-out-words")
+
+(when (null (lam:lam-select-symbols-for-version-if-possible %microcode-version-number))
+  (lam:lam-load-ucode-symbols-for-version %microcode-version-number))
+
+(defvar zwei:zwei-line-area)
+(setf (ldb si:%%region-volatility (aref #'si:area-region-bits zwei:zwei-line-area)) 1)
+(setf (ldb si:%%region-volatility (aref #'si:area-region-bits fs:pathname-area)) 0)
+(setf (ldb si:%%region-volatility (aref #'si:area-region-bits tv:sheet-area)) 0)
+
+(when (eq si:local-host (si:parse-host "LENE"))
+  (setf (aref gc:*level-control* 3)   90000.)
+  (setf (aref gc:*level-control* 2)  200000.)
+  (setf (aref gc:*level-control* 1) 1000000.)
+  (setf (aref gc:*level-control* 0) t)
+
+  (gc:flip :volatility 2 :reclaim-mode :batch))
+
+;(load "dj:bobp;unix-print") ; type (set-unix-print-options) if necessary
+
+;(let ((tcp-host (cond ((chaos:host-up "lam6") "lam6")
+;                     ((chaos:host-up "ravel") "ravel"))))
+;  (when tcp-host
+;    (si:set-site-option :FRONT-END-TCP-CHAOS-SERVER tcp-host)
+;    (multiple-value-bind (nil error-p)
+;       (ignore-errors (funcall (intern "START" "TCP")))
+;      (cond ((null error-p)
+;            (setq si:*default-printer* "im2"))))))
+
+(send tv:initial-lisp-listener :set-more-p t)
+
+
+(defun hack-hosts ()
+  (si:define-host "LMI-SOL"
+  ':HOST-NAMES '("SOL")
+  ':MACHINE-TYPE ':VAX
+  ':SYSTEM-TYPE ':UNIX
+  ':INTERNET '(#x6400001f))
+  )
+
+zwei:
+(zwei:defcom com-skip-to-next-defun "" ()
+  (move-bp (point) (zwei:zwei-search (point) #.(format nil "~%(") nil t))
+  (move-bp (point) (zwei:beg-line (point)))
+  (zwei:com-reposition-window))
+
+(zwei:set-comtab zwei:*zmacs-comtab* '(#/hand-right zwei:com-skip-to-next-defun))
+
+(pushnew (char-int #\\) zwei:*paragraph-delimiter-list*)

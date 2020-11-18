@@ -1,0 +1,481 @@
+-*- Mode:Text -*-
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                           BUILDING NEW LAMBDA SYSTEMS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+This document was written by Keith Corbett, Peter DeWolf, and David Saslav.
+
+This document is proprietary to GigaMos Systems, Inc., and is intended for
+internal use only.  Unauthorized use is prohibited.
+
+
+
+                   PART I: WHAT IS THIS DOCUMENT FOR?
+
+     This document describes the process of building new Lambda software
+systems, "from scratch".  This can only be done by first constructing a
+"cold load band," a partition of your Lambda disk which contains an
+extremely rudimentary ("inner") LISP world.  The cold load world
+contains virtually none of the important interfacing features offered by
+finished Lambda systems, and thus is not suited for any form of Lambda
+development other than new system construction.  In fact, cold load
+bands are designed specifically for one purpose only: to be able to
+perform sufficient computation to construct a new, clean LISP world for
+use in development and in running application software.
+
+     Making a cold load world is, then, a rather drastic step.  When is
+it necessary or desirable to make a cold load world?  To answer this
+question, it is almost necessary to understand completely the mechanism
+involved in building a cold load world.  Put simply, though, new cold
+load worlds reflect fundamental LISP changes made to your environment
+through modification of certain critical source files.  These files are
+listed in the file "SYS:SYS;INNER-SYSTEM-FILE-ALIST".
+
+     The files in si:inner-system-file-alist are modified less
+frequently than other source files, and for good reason.  However, as
+changes to these files do occur, it is a good idea to construct new cold
+load worlds on a periodic basis.  In addition, you should construct a
+new cold world whenever a known change or set of changes is made to one
+or more of these files
+
+     Constructing a cold load band requires:
+
+        o a dedicated system configuration consisting of a 2x2 Lambda
+          processor (with two monitors).
+
+        o one Lambda partition consisting of at least 12000 pages of
+          virtual memory.  This is the "CLDx" partition which will
+          receive the new cold load band.  In addition, to build a new
+          world, a load band ("LODx" partition) of at least 25000 pages
+          is required.  This is the partition which will hold the new,
+          bootable world band.
+
+     The procedure lasts approximately fifteen hours from start to
+finish (assuming continuous, successful operation).  (A continuously
+successful operation has not been observed to date.)
+
+     Parts of this procedure must be performed from one of the two
+available Lambda monitors; where relevant, each monitor-specific
+instruction will be preceded by an indicative line such as:
+
+***************                                       ***************
+FROM MONITOR 1:                 or                    FROM MONITOR 2:
+***************                                       ***************
+
+     This document assumes that the reader is intimately familiar with
+Lambda operations, including the MAKE-SYSTEM mechanism.  Anyone
+attempting to create a cold load band should have a relatively complete
+knowledge of the status of system bugs at the time of the cold load
+construction.
+
+
+                      PART II: COMPILING THE SYSTEM
+
+1. Begin by checking to see that all desired patches have been included
+in the world (i.e., their source files updated to include all desired
+changes).  Once this has been accomplished, decide which compiling
+strategy you wish to follow:
+
+        o If you wish to recompile all source files, evaluate the form
+
+          (MAKE-SYSTEM 'SYSTEM :RECOMPILE :DEFAULTED-BATCH)
+
+        o If you wish only to recompile those source files which have
+          changed since they were last compiled, evaluate the form
+
+          (MAKE-SYSTEM 'SYSTEM :COMPILE :DEFAULTED-BATCH)
+
+        o If you know that all source files have been successfully
+          compiled, and wish to have them make up the new world "as is",
+          simply evaluate
+
+          (MAKE-SYSTEM 'SYSTEM :DEFAULTED-BATCH)
+
+        With the :DEFAULTED-BATCH keyword, you may leave the process
+unattended, if you prefer.  MAKE-SYSTEM will keep a file of compiler warnings
+which you can review via the ZMacs "Edit System Warnings" command.
+:DEFAULTED-BATCH also turns off more-processing, answers all questions without
+the aid of user input, and inhibits function redefinition warnings.
+
+     It is also a good idea to recompile the OUTER-SYSTEM system, which
+contains the file system, ZWEI, etc.  OUTER-SYSTEM is loaded late in the
+process of making the world band.
+
+     When recompiling the Lambda sources, be sure to do so from a LISP
+Listener that is using the ZetaLISP (ZL) readtable.  (That is only necessary
+at this time because some files do not have the appropriate readtable
+attribute set.  Such a source file written in ZL will not compile correctly
+from a CommonLISP listener.)
+
+     Recompiling a full system currently takes approximately 12 hours to run
+(on the system host).  Of course, the exact time will vary, depending on
+problems that may be encountered, and as the size of the total system grows
+and shrinks.
+
+2. Find partitions of sufficient size for the cold load band and bootable
+world load band.  To see the available partitions, execute:
+
+     (SI:DESCRIBE-PARTITIONS)
+
+     The cold load band will require a partition containing at least 12K
+pages, and the world load band must be at least 25K pages.  The partitions
+should have names of the form "CLDx" and "LODx", respectively, where x is an
+integer less than 10.  Note that it is acceptable to use an existing, obsolete
+"LOD" partition in place of a "CLD" partition.
+
+
+                 PART III: LOADING THE COLD LOAD BUILDER
+
+3.  Recompile and/or load the cold load builder by evaluating
+
+     (MAKE-SYSTEM 'COLD :RECOMPILE :DEFAULTED-BATCH)
+  or (MAKE-SYSTEM 'COLD :NOCONFIRM).
+
+This should take at most twenty minutes.
+
+
+                    PART IV: MAKING A COLD LOAD WORLD
+
+4.  Now use the cold load builder to create the cold load world and store it
+in the 12K page "CLDx" band.  Execute:
+
+        (COLD:MAKE-COLD "CLDx")
+
+where x represents the number of the selected CLD partition.
+
+     COLD:MAKE-COLD creates a cold load world by loading all of the files
+specified by SI:LAMBDA-COLD-LOAD-FILE-LIST into the specified partition.  As
+discussed in Part I, making changes to any of these files necessitates the
+construction of a new Lambda system.
+
+     COLD:MAKE-COLD requires confirmation before taking effect; after user
+confirmation, this process takes approximately forty minutes to complete.
+
+
+      PART V: MAKING THE NEW LAMBDA WORLD FROM THE COLD LOAD WORLD
+
+***************
+FROM MONITOR 1:
+***************
+
+5. Run a cold load server by pressing <System>-7.
+
+     The first of the two monitors divides into two windows, one labeled "LAM"
+and one labeled "Mini Server Window".  LAM is the microcode debugger; it
+enables debugging of the companion processor of your (2x2) Lambda.  The Mini
+Server acts as a file server for the cold load band, accepting single file
+load requests via shared memory, fetching the file over the network.
+
+***************
+FROM MONITOR 1:
+***************
+
+6. Move the mouse to the Mini Server Window and click, making this window
+the currently selected window.  From the Mini Server Window, evaluate
+
+     (mini-server-process)
+
+***************
+FROM MONITOR 2:
+***************
+
+7.  Bring up the SDU Newboot program by typing
+control-meta-control-meta-<LINE>.  The Newboot program's command loop is
+recognizable by its prompt, which is
+
+     COMMAND:
+
+***************
+FROM MONITOR 2:
+***************
+
+8.  Set the current band to the "CLD" band located in step (3), by
+typing
+
+     COMMAND: set-band CLDx
+
+to the COMMAND: prompt.
+
+***************
+FROM MONITOR 1:
+***************
+
+9A.  It is now time to boot from the new cold load band.  Click the mouse in
+the LAM window.  Initialize LAM by executing (SETUP) and choose the option
+"L".  Then run LAM by executing (LAM), and type the command :REBOOT followed
+by a carriage return.  This command attempts to boot the companion (Monitor 2)
+processor.
+
+     If the processor fails to boot, try again, by proceeding to step (9B).
+
+     If, on the other hand, the LAM :reboot command successfully initiates a
+booting sequence on the companion processor, then the string "-RUN-" will
+appear on Monitor 1, and the wholine will indicate that the processor is in
+the "Stop or Input" state.  If at any time before the booting sequence
+finishes the string "STOP" appears on Monitor 1, and the wholine changes to
+indicate the "Keyboard" state, the cold load has halted in microcode, and you
+will need to debug.  Otherwise, a "lisp" <?> prompt will appear on Monitor 1,
+and you should proceed to step (11).
+
+     Booting all processors takes approximately fifteen minutes to finish.
+
+***************
+FROM MONITOR 2:
+***************
+
+(EXECUTE THIS STEP ONLY IF THE COMPANION PROCESSOR DOES NOT START
+BOOTING IN RESPONSE TO THE :REBOOT COMMAND.)
+
+9B. If the companion processor fails to begin booting after step (9A), press
+control-meta-control-meta-end on Monitor 2 and type
+
+  boot
+
+to the newboot COMMAND: prompt, followed by a carriage return. This command
+should cause the processor associated with monitor 2 to begin booting.  When
+the processor has finished booting, proceed to step (10).
+
+     Booting the second processor takes approximately 15 minutes.
+
+***************
+FROM MONITOR 2:
+***************
+
+10. Evaluate the form:
+
+        (SI:QLD)
+
+EXERCISE EXTREME CARE TO TYPE THIS FORM CORRECTLY!  Neither microcode traps
+nor error-handlers have been defined at this stage of cold load construction;
+any error or trap here will force you to repeat step (9).
+
+     The function QLD uses the Mini Server to load all of the files
+defined in the file "SYS:SYS;INNER-SYSTEM-FILE-ALIST".  QLD then
+executes (si:lisp-reinitialize), which brings up a Lisp Listener, with
+accompanying error handler, on Monitor 2.  This eliminates the need to
+use LAM for the duration of the Lambda system construction process.
+Another result of si:lisp-reinitialze's evaluation is the creation of a
+basic network, thus eliminating the need for further use of the Mini
+Server.
+
+     QLD also does a (make-system 'system), thereby loading the rest of
+the world, and then prompts the user for other systems to be loaded at
+this stage, with the prompt
+
+        List of names of additional systems to load:
+
+When you see this prompt, you should simply type
+
+        (outer-system)
+
+to indicate that you wish to load all of the standard user interface
+systems.
+
+     Finally, QLD performs a full garbage collection and object LISP
+analysis of the system, and prints out the processor's disk label.
+
+     (si:qld) takes approximately four hours to finish evaluating.
+
+***************
+FROM MONITOR 2:
+***************
+
+11.  Choose a "LOD" partition from the disk label large enough to hold the
+newly created world (approximately 25,000 pages), and evaluate
+
+     (disk-save "LODx")
+
+using the selected partition as argument.  The disk-save will take
+approximately fifteen minutes, after which time you will have completed
+building the system, and Lambda operations may commence.
+
+
+
+************************************************************************
+************************************************************************
+********************************* SUMMARY ******************************
+************************************************************************
+************************************************************************
+
+     This is a summary of the required user input during the
+construction of a new Lambda system from a dedicated 2x2 Lambda
+configuration.  Wait until each step has finished before proceeding to
+the next.  Approximate execution/evaluation times appear at the end of
+each instruction.
+
+*************************
+   From Either Monitor
+*************************
+
+1. EVALUATE
+
+        (make-system 'system :defaulted-batch)
+or
+        (make-system 'system :compile :defaulted-batch)
+or
+        (make-system 'system :recompile :defaulted-batch)
+
+Approximate evaluation time: 8-12 hours.
+
+
+2. EVALUATE
+
+        (si:describe-partitions)
+
+and locate two bands, one of size 12K page or more,
+one of size 25,000 pages or more.  Call these "CLDx"
+and "LODx".
+
+Approximate evaluation time: Ten seconds.
+
+3. EVALUATE
+
+        (make-system 'cold :noconfirm)
+
+Approximate evaluation time: 20 minutes.
+
+
+4. EVALUATE
+
+        (cold:make-cold "CLDx")
+
+Approximate evaluation time: 40 minutes.
+
+
+
+     ********************                ********************
+        From Monitor 1                      From Monitor 2
+     ********************                ********************
+
+
+5. TYPE
+<System>-7
+
+thus creating two windoes on
+Monitor 1, the LAM window
+and the Mini Server Window.
+
+Approximate execution time: 15 seconds.
+
+
+6. From the Mini Server Window,
+EVALUATE
+
+(mini-server-process)
+
+Approximate evaluation time: 15 seconds. <?>
+
+
+                                         7. TYPE
+                                         control-meta-control-meta LINE,
+                                         bringing up the SDU Newboot
+                                         program.
+
+                                         Approximate execution time:
+                                         One second.
+
+
+                                         8. TYPE
+
+                               COMMAND:  set-band LODx
+
+                                         Approximate execution time:
+                                         One second.
+
+
+9. In the LAM Window, TYPE
+
+:reboot
+
+Approximate execution time: 10 minutes.
+
+
+
+
+     ********************                ********************
+        From Monitor 1                      From Monitor 2
+     ********************                ********************
+
+
+                                        (9A. If nothing happens, TYPE
+
+                               COMMAND:  boot
+
+                                         to begin the booting process.
+
+                                         Approximate execution time:
+                                         10 minutes.)
+
+
+                                         10. EVALUATE
+
+                                         (si:qld)
+
+                                         When prompted for additional
+                                         systems to load, type
+
+                                         (outer-system)
+
+                                         Approximate evaluation time:
+                                         4 hours.
+
+
+                                         11. EVALUATE
+
+                                         (disk-save "LODx")
+
+                                         Approximate evaluation time:
+                                         15 minutes.
+
+

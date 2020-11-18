@@ -1,0 +1,151 @@
+@chapter Summary of Major Changes
+@label[chapter-architecture]
+@cindex[architecture]
+
+Lambda computer systems support LAN (Local Area Network) communications
+by means of two different Ethernet@tm@  software protocols: TCP/IP and Chaosnet.
+
+With Release 4, the Lambda networking software has undergone a substantial overhaul.
+The overall architecture has been radically altered,
+based upon a new functional relationship between the hardware interfaces and LISP processors.
+The low-level drivers (board interfaces) have been revamped, and
+the intermediate protocol layers are now almost completely device-independent.
+These changes result in significant improvements in performance and reliability.
+
+@ref[figure-compare-architecture], depicts the functional relationships
+between components of the communications architecture
+in the ``old'' and ``new'' schemes.
+
+@fullpagefigure
+@setq figure-compare-architecture figure-page
+
+@tex
+     \special{:saved-paint-image "dj:keith.release-4;paint-net-rel3.qfasl"}
+@end tex
+@vskip 4in
+@tex
+     \special{:saved-paint-image "dj:keith.release-4;paint-net-rel4.qfasl"}
+
+@end tex
+
+@caption Comparison, Release 3 vs@. Release 4
+@end(fullpagefigure)
+
+No major new restrictions have been imposed by the new architecture, and
+no hardware modifications are required.
+As before,
+the Lambda system as a whole can support up to two boards, one of each type: 3COM and Excelan.
+Two boards of the same kind cannot be combined within one Lambda chassis.
+
+In previous releases, each network protocol was implemented with a
+different hardware interface: a 3COM board was required for Chaosnet,
+and an Excelan board was required for TCP/IP.
+On Lambda systems with
+multiple LISP processors, the first processor to boot allocated the
+Ethernet board(s) and served as the front-end for other processors on
+the bus.@cindex[front-end TCP Chaos server]
+Given a heavy load of
+network traffic, this resulted in noticeable performance degradation.
+
+In Release 4, both types of hardware interface support both TCP @i(and) Chaosnet.
+This significant change
+results in improvements over Release 3 even for
+systems with a single hardware interface,
+since the LISP software may now use either protocol.
+
+As before, if only one interface board is available, all Lambdas in the system
+may still access the network.
+When the LISP processors boot up,
+a system with a single board will configure itself such that
+the first processor to boot controls the board.
+The other LISP processor(s) will
+use the Extended Streams Interface@tm@  to access the network through the processor controlling the hardware.
+
+As a result of the new device-independent scheme,
+two LISP processors on the same chassis can each control their own hardware interface.
+This leads to improved performance and reliability,
+since inter-processor communications is reduced to a minimum.
+
+@cindex[boot order]
+The order in which LISP processors boot up is not important, but for consistency,
+the first processor to boot up will allocate the 3COM board (if present),
+the second will allocate the Excelan board (if present).
+Any other processors (such as Unix or a third Lambda) will
+use the Extended Streams Interface  to access the network through the processor controlling the 3COM board.
+
+Note, however, that any time a Lambda-Plus Unix processor boots first@cindex[Lambda-Plus]
+(i.e., before the LISP processors),
+it will allocate the 3COM  (if available) to itself for direct Chaosnet access.
+This boot order causes a problem in a 3COM-only configuration:
+Chaosnet works because the LISP processor(s) can and will route Chaosnet packets to the Unix processor, but
+@ii(TCP/IP will fail)
+because the Unix Chaosnet software cannot handle TCP/IP packets.@csubindex[TCP][and Lambda-Plus]
+
+For this reason it is generally recommended that all processors be booted in sequence
+(at least on initial power-up)
+with the SDU command @b(newboot -a).
+This is not a new restriction.
+
+@sp 1
+@textbox
+@b[IMPORTANT NOTE:] It is not advisable to boot multiple hosts within the same chassis
+on different releases.
+Problems arise, for example,
+due to incompatible handling of inter-processor communications and IP routing.
+
+Some problems may even occur using TCP/IP
+to communicate between Release 3 and Release 4 hosts on the same network.
+See Section @ref[section-compatibility] for a detailed
+explanation of the restrictions on compatibility between Release 3 and Release 4 TCP/IP.
+@end(textbox)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end arch1

@@ -1,0 +1,734 @@
+@c -*- Mode:Text; Package:USER; Readtable:CL -*-
+
+@chapter Network Programming Topics
+@label[chapter-doc-programs]
+
+@section Host Objects - Brief Overview
+@label[section-host-objects]
+
+In keeping with the Flavors object-oriented programming methodology,
+the concept of a ``host object type'' is best described by
+1) the context in which the type is used, and
+2) the instance variables and methods the type offers.
+
+Host objects have two major purposes:
+first, they identify a ``file computer''
+(a remote host, accessible on the network, that has files)
+to use inside pathnames;
+second, they serve to implement name and address mapping on networks.
+
+Note that host flavors need not correspond directly to pathname flavors;
+indeed, the hierarchy of pathname flavors is completely separate from host flavors.
+The relationship is two-way:
+each host type offers operations related to pathname parsing
+via instances of a designated pathname type;
+and, of course, a host object is part of most network pathname instances. @footnote[The comments
+in the system source file @l("SYS: IO; FILE; PATHNM")
+describe how pathname parsing interacts with host objects in more detail.]
+
+The flavor @l(si:basic-host)@findex[si:basic-host]
+is included in host objects of all types.
+
+``Pathname hosts'' are host objects that can be specified within pathnames.
+A subset of these are the ``network hosts'', which correspond to physical entities on the network.
+The flavor @l(si:host)@findex[si:host]
+is included in the definition of network host types.
+
+There are other types of pathname hosts which point to devices or application-specific objects.
+The flavor @l(si:shared-device-pathname)@findex[si:shared-device-pathname]
+is included in the definition of devices that may be shared by multiple processors.
+
+The following are examples of extended pathname host types:
+
+@lisp
+(pathname "ed:foo.lisp")       ;A ZMacs editor buffer
+(pathname "unix-stream-1:")    ;LISP/Unix extended stream #1
+(pathname "sdu-serial-b:")     ;Serial port B
+@end(lisp)
+
+Additional information on host types is provided in the @LMM@.
+
+@need 1000
+@subsection Obtaining a Host Object
+
+Known network hosts are kept on a list, @l(si:host-alist).
+To obtain the host object corresponding to a particular network host by name,
+use @l(si:parse-host).
+
+@defun si:parse-host host &optional (no-error-p nil) (unknown-ok t)
+
+Return a host object for name @i(host), taken from the @l(si:host-alist).
+
+@i(host) can also be a host object already; then it's simply returned.
+@i(no-error-p) says just return @l(NIL) if there is no such host known.
+
+@end(defun)
+
+@defvar si:host-alist
+An association list, indexed by primary host name, containing the associated host object@cindex[host object]
+and other relevant information (most of which can be obtained from the host
+object itself).
+@end(defvar)
+
+To obtain the host object corresponding by name to a pathname host,
+use @l(fs:get-pathname-host):
+
+@defun fs:get-pathname-host host-name &optional (no-error-p nil) (unknown-ok nil)
+Parse a host for use in a pathname.
+@i(host-name) can be a host object or a host name.
+
+If @i(no-error-p) is non-NIL, we return NIL if given an undefined host name.
+@end(defun)
+
+@group
+When a pathname host is first referred to within a pathname, it
+gets stored on the list @l(fs:*pathname-host-list*):
+
+@defvar fs:*pathname-host-list*
+The list of established pathname host objects.
+@end(defvar)
+@end(group)
+
+@need 1000
+@subsection Host Object Methods
+
+The following is a brief summary of the most useful flavor methods
+implemented by network host types.
+
+@subsubsection Obtaining Host Attributes
+
+The following methods return information that is useful to developers:
+
+@table 3
+@item :NAME
+Returns the official host name.
+@c end (defmetamethod)
+
+@item :SHORT-NAME
+Returns the shortest host name.
+Used, for example, on the who-line file summary.
+@c end (defmetamethod)
+
+@item :STRING-FOR-PRINTING
+Generally the same as the official name, but this
+method may be modified to perform special transformations.
+Used, for example, when printing pathnames.
+@c end (defmetamethod)
+
+@item :HOST-NAMES
+Returns the list of all names by which this host is known.
+@c end (defmetamethod)
+
+@item  :MACHINE-TYPE
+@itemx :SYSTEM-TYPE
+@itemx :FILE-SYSTEM-TYPE
+
+These methods return the respective host type attribute.
+
+@item :PRIMARY-DEVICE
+Returns the default device for the host, as specified by the
+:HOST-DEFAULT-DEVICE-ALIST site option.
+
+@end(table)
+
+@subsubsection Obtaining Host Addresses
+
+The following methods return assigned network addresses:
+
+@table 3
+@item   :NETWORK-ADDRESSES
+Returns the list of all defined network addresses;
+this is a property-list with alternating pairs of network protocol keywords and address lists.
+@c end (defmetamethod)
+
+@item :NETWORK-ADDRESS @i(<network>)
+Returns the primary address for the specified NETWORK keyword.
+@c end (defmetamethod)
+
+@item   :CHAOS-ADDRESS
+Returns the primary Chaos address for this host.
+@c end (defmetamethod)
+
+@item  :CHAOS-ADDRESSES
+Returns the list of all Chaos addresses for this host.
+@c end (defmetamethod)
+
+@item   :INTERNET-ADDRESS
+Return the primary Internet address for this host.
+@c end (defmetamethod)
+
+@item :INTERNET-ADDRESSES
+Returns the list of all assigned Internet addresses for this host.
+@c end (defmetamethod)
+
+@item   :NETWORK-TYPE
+Returns the first network keyword of the host's network-addresses.
+@c end (defmetamethod)
+
+@item :NETWORK-TYPEP @i(<network>)
+A predicate for determining whether the host has an address for the specified network.
+@c end (defmetamethod)
+
+@item :UNPARSED-NETWORK-ADDRESS @i(<network>)
+Returns the unparsed primary address for the specified network.
+@c end (defmetamethod)
+
+@item :UNPARSED-NETWORK-ADDRESSES @i(<network>)
+Returns the list of all unparsed addresses for the specified network.
+@c end (defmetamethod)
+
+@end(table)
+
+@subsubsection Host File Operations
+
+The following are file-related methods supported by network host types:
+
+@table 3
+
+@item :CLOSE-ALL-FILES
+Close all open file streams connected to the host.
+@c end (defmetamethod)
+
+@item :OPEN-STREAMS
+Returns the list of all open streams connected to the host.
+@c end (defmetamethod)
+
+@item :SAMPLE-PATHNAME
+Returns a sample pathname object.
+This pathname is used as a template for pathnames to this host;
+the components are not filled in, except for the host itself.
+@c end (defmetamethod)
+
+@end(table)
+
+@need 1000
+@section Obtaining Host Addresses
+
+The following functions are provided for programming with network addresses.
+
+@defun ip:parse-internet-address address
+
+Parses @i(address) into a numeric Internet address.
+@i(address) can be a number, a string, a symbol, or a host object.
+Symbols and strings are parsed for dotted decimal or numeric format.
+Given a host object, its first Internet address is returned (a number), or NIL.
+
+The second value returned, if non-NIL, is a host object corresponding to the specified @i(address).
+
+@end(defun)
+
+@defun chaos:address-parse address
+
+Coerces the argument into a chaosnet address.
+The argument can be a host name, a host object, or an address.
+
+The second value returned, if non-NIL, is a host object corresponding to the given @i(address).
+
+@end(defun)
+
+@defun net:parse-address address network-type &optional (start 0) end
+
+Given a string, parses it as an address for @i(network-type), a keyword
+(:CHAOS or :INTERNET).
+@end(defun)
+
+@defun net:unparse-address address network-type
+
+Returns the unparsed form of a given network @l(address)
+for the appropriate network indicated by @l(network-type) (:CHAOS or :INTERNET).
+This is useful, for example, when printing an address obtained from a host object.
+
+Chaos addresses are translated into a string representation of the corresponding octal address number.
+
+Internet addresses are translated into dotted-decimal strings.
+
+@end(defun)
+
+@need 1000
+@section Local Host Variables
+@label[section-local-host-variables]
+
+Several variables hold information related to the local host.
+
+@defvar si:local-host
+This is the host object for this machine (the one that is running).
+@end(defvar)
+
+@defvar si:local-host-name
+This is the full name of this machine as a host.
+@end(defvar)
+
+@defvar si:local-pretty-host-name
+This is a pretty form of the name of this machine.
+@end(defvar)
+
+@defvar si:local-finger-location
+This is a string containing the machine location information for the local host
+as entered in the file @l("SYS: SITE; LMLOCS LISP").
+This should include the name of the primary user or other descriptive information to be printed by @l(finger).
+@end(defvar)
+
+@defvar si:local-floor-location
+This is also a string containing part of the machine location information for the local host
+as entered in the file @l("SYS: SITE; LMLOCS LISP").
+Traditionally, this is a list describing the building name and floor where the machine is located.
+@end(defvar)
+
+@defvar si:associated-machine
+Default machine for locating login directories (a host object).
+The associated machine is assigned for each host in @l("SYS:SITE;LMLOCS LISP").
+@end(defvar)
+
+@need 1000
+@section Communications Streams
+@label[section-chaosnet-streams]
+
+Communications streams provide techniques for writing programs that
+make ``direct contact'' with a specific network protocol or server.
+Remote file streams are opened in the normal way (as described in the @LMM@ ),
+simply by using a remote host's pathname as part of the @l(OPEN) form.
+
+The material in this section describes the use of streams at a lower level.
+Before attempting to write programs using communications streams,
+be sure to read the material on streams in the @LMM@.
+
+Typical applications of these techniques include the development of a custom
+server program, or the development of a user interface to a working server.
+
+@need 1000
+@subsection Chaosnet Streams
+
+There are two distinct mechanisms for communicating with Chaosnet servers:
+streams, and ``simple'' connections.
+For each server type, the proper method must be used.
+Examples of both methods are provided in
+Chapter @ref[chapter-doc-chaos-app].
+
+@need 1000
+@subsubsection Chaosnet I/O Streams
+
+@l(chaos:open-stream) opens an I/O stream connection to a (normally remote) server.
+
+@defun chaos:open-stream host contact-name &key (window-size default-window-size) (timeout (* 10 60)) (direction :bidirectional) (error t) (characters t) ascii-translation)
+
+Open a chaosnet connection and return an I/O stream.
+
+@i(host) is the host to connect to.
+
+The argument @i(contact-name) should be a string which contains the server's protocol name
+as well as any arguments handled by the server upon the initial connection.
+
+The keyword arguments are:
+@itemize -
+@item @i(:window-size) - number of packets to allow in transit to this host over the connection.
+@item @i(:timeout) - how long to wait before assuming the host is down.
+@item @i(:ascii-translation) - if non-NIL, assume the data on the connection is in ASCII
+and translate to and from the Lisp machine character set as appropriate.
+@item @i(:direction), @i(:characters), @i(:error) - as in @l(OPEN); defaults to @i(:bidirectional).
+@end(itemize)
+
+@end(defun)
+
+Following is an example illustrating the specification of a contact name.
+The first example specifies @l("EVAL"), the server name, as the contact name;
+the second example also includes arguments to the server.
+
+@lisp
+(chaos:open-stream "lambda-host" "EVAL" ..)
+(chaos:open-stream "unix-host" "EVAL ls -l" ..)
+@end(lisp)
+
+Notice above that the Lambda EVAL server does not take any arguments, but
+some Unix EVAL server implementations do take arguments specifying the
+command(s) to be executed.
+
+The @i(timeout) argument applies only to the initial attempts to connect;
+input operations will hang forever if there is no input pending from the remote server.
+For this reason, it can be difficult to implement complex I/O transactions between
+a user and server.
+Fortunately, most of the servers present little difficulty in this regard.
+
+Depending on the value of the open mode @i(:direction),
+the typical stream input operations (@l(:tyi, :line-in)) and/or
+output operations (@l(:tyo, :line-out)) may be used on the returned Chaosnet connection.
+Other standard I/O operations such as @l(:close) are also defined.
+Thus, standard higher-level functions may be used, such as:
+
+@itemize @bullet
+@item READ
+@item WRITE, PRINT
+@item READLINE, READ-LINE
+@item WRITE-LINE
+@item CLOSE
+@item WITH-OPEN-STREAM
+@end(itemize)
+
+Some servers (such as EVAL) receive and transmit using ASCII characters;
+in these cases, the @i(:ascii-translation) argument must be specified non-NIL.
+It may be still necessary to perform some character translation, for example to translate
+line-terminating characters.
+
+@need 1000
+@subsubsection Simple Chaosnet Transactions
+
+@l(chaos:simple) is used with servers (such as TIME) that do not
+attempt to open connections, but which merely return an answer to the request for connection.
+
+@defun chaos:simple address contact-name &optional (timeout 600.)
+
+Send a message to @i(contact-name) at @i(address), expecting one ANS packet in return.
+No connection is established; if the other host tries to create a connection,
+it is considered an error.
+If successful, the ANS packet object is returned.
+Otherwise, a string describing the reasons for failure is returned.
+@i(timeout) is how long to wait before giving up, in units 60 per second.
+
+@end(defun)
+
+Normally, a Chaos ANS packet is returned by @l(chaos:simple), and the packet's
+contents must be decomposed.
+The function @l(chaos:pkt-string) returns the data contents of a packet as a string.
+
+For example:
+
+@lisp
+(chaos:pkt-string (chaos:simple "IT" "UPTIME"))
+@end(lisp)
+
+@need 1000
+@subsection TCP and UDP Streams
+
+Extended pathname types exist to provide a direct stream interface to TCP and UDP services
+This section documents the pathname and OPEN syntax for both types of streams.
+
+These techniques should not be used in conjunction with standard applications;
+this documentation is for developers providing local extensions (local protocols).
+
+Most local extensions are implemented with UDP (User Datagram Protocol).
+Some simple standard protocols and applications are implemented with UDP,
+due to either the lower overhead of sending a single packet, or to the
+lower code complexity of handling only this service level in smaller systems.
+Unlike TCP stream operations that receive characters in the same order
+that they were sent, UDP packets are ``not guaranteed to arrive'';
+UDP applications must deal with potential data conflicts and lost information.
+
+@subsubsection TCP and UDP Pathnames
+
+There are extensions to the pathname syntax that make it easy to connect
+to remote TCP and UDP services.
+The special pathname hosts @l("TCP-HOST") and @l("UDP-HOST") are provided for calls to OPEN.
+
+The general format of a @l(TCP-HOST) or @l(UDP-HOST) pathname is:
+
+@lisp
+<host>.<remote-port>#<local-port>
+<host>.<remote-port>                    ;default local port to remote #
+<host>#<remote-port>                    ;Release 3 compatibility
+@end(lisp)
+
+A @l(<host>) specification in this syntax can be any of the following:
+
+@itemize @bullet
+@item A simple host name:
+@l(MYHOST)
+@item A host with domain names:
+@l(GS.GS.ENG.REL)
+@item Dotted decimal Internet address:
+@l(100.0.0.15)
+@item Decimal Internet address:
+1677721615
+@end(itemize)
+
+A @l(<remote-port>) or @l(<local-port>) specification in this syntax can be:
+
+@itemize @bullet
+@item Decimal port number: @l(23)
+@item Symbolic port name: @l(TIMESERVER)
+@end(itemize)
+
+Symbols for standard reserved ports and local extensions
+are listed in the source file @l("SYS:NETWORK;IP-TCP;KERNEL;PORTS.LISP").
+The symbol @l[tcpa:ipport-telnet], for example,
+corresponds to the port name @l(telnet).
+
+In the following example, the pathname
+corresponds to a Telnet server on host @l(MYHOST):
+@lisp
+(pathname "TCP-HOST:MYHOST.TELNET")
+@end(lisp)
+
+@subsubsection TCP and UDP Stream Flavors
+
+A TCP stream is a bidirectional stream of 8-bit bytes.
+Data may be transferred in one or both directions simultaneously.
+
+Some protocols such as FTP require a special extra data connection;
+the easy stream methods documented here do not apply in these cases.
+
+The flavors of streams provided are:
+
+@defflavor  tcp:tcp-buffered-stream
+@defflavorx tcp:tcp-unbuffered-stream
+Bidirectional stream flavors that provide the basic translation
+of the socket-level functionality to the stream level.
+@end(defflavor)
+
+@defflavor tcp:tcp-auto-buffered-stream
+Flavor that provides a stream like @l(tcp:tcp-buffered-stream)
+except that it provides a settable @l(:force-output-p) flag
+to control the automatic sending of a @l(:force-output) message
+after every output operation.
+(It may also send a @l(:force-output) message before every input operation.)
+This stream type is very useful in the initial debugging of interactive applications.
+@end(defflavor)
+
+UDP streams do not support most standard stream operations.
+The I/O methods @l(:write-packet) and @l(:read-packet) are used
+To write or read a packet of information from a UDP server.
+
+@defflavor  udp:udp-stream
+@defflavorx udp:udp-buffered-stream
+UDP access to data packets
+(raw or buffered, respectively).
+@end(defflavor)
+
+@subsubsection Opening TCP and UDP Streams
+
+User (client) programs normally open a TCP stream using @l(OPEN).
+Server programs should open a stream using @see[tcpa:define-network-service][fun].
+Call @l(OPEN) with the appropriate host type, and use a pathname as described above.
+
+There are also utility functions which bypass the pathname parsing mechanism.
+These ``easy'' interfaces take arguments corresponding to each pathname component.
+They also differ from @l(OPEN) in that they do not require the caller to ``log into'' the remote host
+(using the Lambda conventions).
+
+@defun  tcpa:open-easy-tcp-stream remote-address remote-port local-port &rest args
+@defunx tcpa:open-easy-udp-stream remote-address remote-port local-port &rest args
+@end(defun)
+
+Note that the normal TCP conventions for logging into the remote host must still be followed.
+
+Both @l(OPEN) and ``easy'' routines accept the following keyword arguments:
+
+@table 7
+@item :keyword -
+A symbolic name for display within @l(Peek).
+@item :connect -
+@l(T) to connect on OPEN (the default), NIL to listen but not connect.
+@item :buffered -
+@l(T) to return a buffered stream (the default), @l(NIL) for unbuffered.
+@item :auto-force-output -
+@l(T) to perform @l(:force-output) after each operation; @l(NIL) is default.
+@item :direction -
+@l(:both) for bidirectional I/O (the default),
+or either @l(:input) or @l(:output).
+@item :input-buffers -
+Number of buffers for input side (default is 4).
+@item :output-buffers -
+Number of buffers for output side (default is 4).
+@item :for-udp
+If @l(T), returns a UDP stream.
+@item  :initial-gauges -
+@itemx :gauge-name -
+A list of gauge keywords to create, and
+the name for window gauges.
+@l(gauge-name) defaults to ``TCP #'' or ``UDP #'',
+where ``#'' is the local port number.
+See the @i(Lambda 4.0 Release Notes) for information on the new @l(tv:fancy-landscape) gauges configuration.
+@item :connect -
+For TCP only, open the stream but do not connect.
+Use the stream's @l(:accept) method to connect later (see below).
+@end(table)
+
+UDP open calls also accept the following keyword arguments:
+
+@table 7
+@item :raw -
+@l(T) for a raw UDP packet stream (the default).
+@item :receives-out -
+Number of pending packets UDP will keep for this stream (default is 4).
+@end(table)
+
+The following keyword arguments pertain to socket-level control.
+Except as indicated, they apply to TCP streams only.
+
+@table 7
+@item :optimistic -
+@l(T) to set an ``optimistic window'':
+TCP advertises a window that is ``bigger'' than (exceeds the number of)
+available buffers.
+This works well if the stream uses up input data faster than the sender
+and does not get blocked.
+@item :open-timeout -
+Timeout, in units 60 per second, for connection or listen.
+@item :send-timeout -
+Data timeout, in units 60 per second.
+@comment ??? @item :ip-header-options -
+@end(table)
+
+@subsubsection TCP Server Streams
+
+The following function defines a TCP server utility, that is,
+a service that runs in a background process and communicates with its clients
+via a bidirectional TCP stream.
+This function does all the work of socket creation,
+listening and accepting, process creation, and cleanup.
+
+@defun tcpa:define-network-service name protocol-name transport-protocol documentation &key toplevel-function listen-port auto-enable? stream-flavor
+Causes the networking software to create a socket to listen on @i(listen-port).
+@i(transport-protocol) may be either @l(:TCP) or @l(:UDP) for stream and datagram oriented services respectively.
+
+When somebody connects to this port, a process is created in which the @i(toplevel-function) is called
+on a stream connected to the active socket.
+The stream and socket are automatically closed when the function exits.
+If @i(auto-enable?) is non-NIL, this server will enabled by calls to @see[enable-all-network-services][fun],
+which is run whenever the networking software is initialized.
+@end(defun)
+
+@subsubsection Operations on TCP Streams
+
+TCP streams support the standard I/O stream operations,
+such as @l(:tyi), @l(:tyo), @l(:string-out), @l(:listen), and so forth.
+
+In addition, TCP streams support the following operations:
+
+@table 7
+@item :accept -
+If the stream was created with the ``easy'' interface,
+and the @l(:connect) argument was NIL,
+this method blocks waiting for the connection to open.
+@item :close <mode> -
+The standard @l(:close) semantics apply.
+A @i(mode) of @l(:normal) is equivalent to @i(NIL);
+a normal closing is non-blocking, allowing further data to arrive.
+A @i(mode) of @l(:discard) does not permit further I/O.
+A @i(mode) of @l(:abort) aborts the connection.
+@end(table)
+
+@subsubsection Operations on UDP Streams
+
+I/O on a UDP stream is performed with the @l(:read-packet) and/or @l(:write-packet) method.
+
+@table 7
+@item :read-packet &optional pkt (start 0) end -
+Get the next packet string.
+If @i(pkt) is supplied, it must be a normal vector or string, and the packet data is copied into it.
+Otherwise, a @l(UDP-BUFFER) is returned.
+@item :write-packet pkt &optional (start 0) (end (length pkt)) remote-port remote-address
+Write the packet data from @i(pkt), an array, out over the UDP stream.
+@i(remote-port) and @i(remote-address)
+are only required if they were not specified on @l(:open).
+@item :bind remote-port remote-address
+If the @i(remote-port) or @i(remote-address) were not specified on @l(:open),
+associate these values with this stream
+so that they are no longer needed for @l(:write-packet) operations.
+@end(table)
+
+@subsubsection TCP and UDP Streams Examples
+
+The following examples implement very simple stream operations.
+The techniques illustrated here are not ideal; they are provided for illustration only.
+
+@b(UDP Streams Example:)
+
+This example uses a UDP stream to get the status information from an Imagen standalone network printer.
+The source for the actual Lambda interface to the Imagen, which does not use streams,
+is contained in the file @l("SYS:NETWORK;IP-TCP;USER;IMAGEN").
+
+@include udp-stream
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c end programs

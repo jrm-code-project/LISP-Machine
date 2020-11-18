@@ -1,0 +1,27 @@
+;;; -*- Mode:LISP; Package:USER; Base:8; Readtable:ZL -*-
+
+(send tv:selected-window :set-more-p nil)
+
+(login-setq zwei:*FROM-USER-ID* user-id)
+(login-setq zwei:*FROM-HOST* "angel")
+
+(gc:gc-on :degree 2)
+
+;(hacks:background-mail-check user-id "angel" (format nil "angel://usr//mail//~a" user-id) t)
+; (hacks:background-check-hosts t "cap" "angel")
+
+(load-patches :noselective)
+; (make-system 'pace-hacks :noconfirm :silent)
+(make-system 'unix :noconfirm)
+
+(setq si:*enable-spelling-dwim?* t)
+
+;(if (probef (format nil "cap://usr//mail//~a" user-id))
+;    (format t "~&You have mail.~&"))
+
+
+(load "dj:bobp;unix-print")
+; (load "dj:bobp;cp")
+
+;(defun dj-to-lad ()
+;  (fs:balance-directories "dj:bobp;*" "lad:bobp;*" :direction :1->2))

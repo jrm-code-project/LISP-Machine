@@ -1,0 +1,95 @@
+
+
+   IBM CHANNEL INTERFACE
+Documentation in /lmi/gjc/doc/gchan.botex
+Also an extensive project notebook.
+
+Bruce has support letter I wrote to IBM. Dont know status.
+Also has expense report. Status?
+
+Project will be complete when Command-Chaining question is resolved.
+(Then short report with IBM on future possibilities. )
+May take another trip to Rochester by myself and Middleton of Auscom.
+Costs LMI about $1200 a day (not including my salary) to have us
+out at Rochester. So working with IBM personel via phone to
+help debug this. Also using FAX to send printouts of code and debug trace.
+IBM people learning a lot about the LAMBDA doing this, so not great
+preasure to resolve this via brute force.
+
+
+   DOCUMENTATION SUPPORT
+
+Have DVI preview program working. Generates IMPRESS for IMAGEN also.
+Working on screen-dump (PAINT) inclusion in documents for Dawna.
+Need help from RPK to move latest botex to VMS VAX which would be
+a good BOTEX server.
+
+
+  EXPLORER, LAMBDA-E, MIT
+
+new lmi debug board in LAMBDA-2 and EXP1.
+Kent showed me cable hookup. SPI code in dj:bobp;
+Other code (NUBUS) in sys:lambda-diag;
+Must integrate this in lambda diag, probably system 116 version.
+ Problems: basic problem with network code. Nubus timeouts in
+           access to ethernet board that TI doesnt have.
+           Looking at how TI does it to find out whats wrong.
+           WRITE-INTERNAL-PROCESSOR-MEMORIES needed for incremental microassembler.
+           Tape stuff well in hand at Chapparel Dallas.
+
+
+  WRIGHT PATTERSON AFB
+Code in DJ:ATN-TASC-WILBUR; gets error on demo. Looks like
+problem in demo file itself, inconsistent with rule base in NODES.LISP.
+July 23 date for demo including communication with fortran code on 68010.
+ Problem: WPAFB side itself is wimpy. Want turn-key demo. Not putting any
+ effort into understanding the code itself. Needs to be resolved with
+ supervisory persons at WPAFB.
+
+
+ CARNEGIE GROUP
+
+Chance to get off on the right foot with a good software supplier/house.
+Main issue will be speed since compatibility issues are well in hand.
+Did have to fix quite a few system bugs last time guy from Carnegie was
+at LMI. But he fix half of them himself. Probable two days mid july
+in Pittsburg.
+
+
+
+  TCP-IP
+
+Late july expect new NET/download module from Excelan. Should work with
+CHAOS/TCP at same time. Need more excelan boards to test this out.
+Problem: Need to do TCP in lisp for new product.
+Helen not much help in fixing lisp bugs. Roger extremely slow
+going on learning system. Bad situation.
+Unix TCP: going ok. Maybe can teach wolfgang enough lisp so
+he can implement the lisp side of an excelan sharing protocol?
+Maybe will have to go for the two-board situation for MCC HI group.
+
+
+ GENERAL NETWORKING
+Need work on TELNET type interfaces. Unification of user side. General
+server capability. RMS worked on ZMACS other-window display for
+using ZMACS from network.
+
+
+
+  TIMESHARING/ENVIRONMENTS
+
+System 116 has data type. Need to write 10 lines of microcode for
+DTP-INDEXED-FORWARD then lisp support for MAKE-ENVIRONMENT
+and kludges in package system for automatic environment management.
+Testbed: DOE-MACSYMA
+
+
+
+
+  RPC XDR NFS for SUN
+
+Did a bit of XDR, but could get XDR RPC from Glenn at Lincoln Labs
+in exchange for NFS on top of it. Simple enough though that
+probably better to do myself, avoid various issues.
+Problem: Configure sun with NFS stuff in it.
+Excelan board in more machines to debug from/to.

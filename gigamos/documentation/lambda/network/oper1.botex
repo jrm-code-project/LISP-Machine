@@ -1,0 +1,241 @@
+@comment -*- Mode:Text; Package:USER; Readtable:CL -*-
+@chapter Changes to Operating Procedures
+@label[chapter-operating]
+
+This chapter details changes to network operating and management procedures.
+These changes include LISP functions and variables
+that have been added, modified, or removed.
+
+
+This chapter contains only a summary of changes;
+complete documentation on operating procedures may be found in
+Chapter @ref[chapter-doc-operating], @b(@nameref[chapter-doc-operating]).
+
+Changes to specific TCP/IP protocols are discussed in
+Chapter @ref[chapter-tcp-app], @b[@nameref(chapter-tcp-app)].
+
+@section LISP Packages
+@setq lisp-packages section-page
+
+In previous releases of TCP/IP, almost all symbols
+were in the @l(TCP:) package.
+In Release 4, many symbols have been moved to different packages.
+For example, generic network functions have generally been moved to the @l(NETWORK:) package.
+
+Most Chaosnet symbols are in the @l(CHAOS:) package,
+but some reside in @l(SI:), @l(GLOBAL:), and elsewhere.
+
+@ref[figure-lisp-packages], provides a summary of the LISP packages created and used by networking software.
+
+@fullpagefigure
+@setq figure-lisp-packages figure-page
+@sp 6
+@settabs 4 @columns
+@< @\ @i[Package (Alias)] @\ @i(Description) @cr
+@sp 1
+@< @\ NETWORK: (NET:) @\ Generic network functions @cr
+@sp 1
+@< @\ ETHERNET: @\ Hardware drivers (3COM and Excelan) @cr
+@sp 1
+@< @\ ARP: @\ Address Resolution Protocol @cr
+@sp 1
+@< @\ CHAOS: @\ Chaosnet protocol @cr
+@sp 1
+@< @\ INTERNET: (IP:) @\ Internet Protocol @cr
+@sp 1
+@< @\ ICMP: @\ Internet Control Message Protocol @cr
+@sp 1
+@< @\ UDP: @\ User Datagram Protocol @cr
+@sp 1
+@< @\ TCP: @\ Transmission Control Protocol @cr
+@sp 1
+@< @\ TELNET: @\ Remote Login application @cr
+@sp 1
+@< @\ FTP: @\ File Transfer Protocol @cr
+@sp 1
+@< @\ SMTP: @\ Simple Mail Transfer Protocol @cr
+@sp 1
+@< @\ TCP-APPLICATION: @cr
+@< @\ @ @  (TCPA:) @\ Other TCP and UDP applications @cr
+@cleartabs
+@sp 1
+@caption Release 4 Networking Software -- LISP Packages
+@end(fullpagefigure)
+
+@section Name Changes and Deletions
+
+@ref[figure-name-changes], shows the most significant changes
+to Release 3 networking functions and variables.
+
+@fullpagefigure
+@setq figure-name-changes figure-page
+
+@sp 1
+@settabs 5 @columns
+@< @i(Release 3 Names) @\ @\ @i(Release 4 Names) @\ @\ @i(Comments) @cr
+@sp 1
+@< FUNCTIONS: @cr
+@sp 1
+@< chaos:print-int-pkt-status @\ @\ net:print-int-pkt-status @\ @\ renamed, modified @cr
+@< @\ @\ ethernet:netspy @\ @\ new @cr
+@< ftp:cmd @\ @\ ftp:ftp @\ @\ renamed, modified @cr
+@< global:peek @\ @\ @\ @\ modified @cr
+@< @\ @\ icmp:ping @\ @\ new @cr
+@< @\ @\ ip:list-route-table @\ @\ new @cr
+@< @\ @\ net:configure @\ @\ new @cr
+@< @\ @\ net:deconfigure @\ @\ new @cr
+@< si:set-processor-owning-ethernet @\  @\ @\ @\ modified @cr
+@< tcp:add-route @\ @\ @\ @\ deleted @cr
+@< tcp:delete-route @\ @\ @\ @\ deleted @cr
+@< tcp:display-arp @\ @\ arp:addr-stat @\ @\ renamed, modified @cr
+@< tcp:exos-stats @\ @\ ethernet:exos-stats @\ @\ renamed @cr
+@< tcp:exos-ethernet-stats @\ @\ @\ @\ deleted @cr
+@< tcp:print-bogus-packet @\ @\ @\ @\ deleted @cr
+@< tcp:reset-exos-ethernet-stats @\ @\ @\ @\ deleted @cr
+@< tcp:start @\ @\ @\ @\ deleted @cr
+@< tcp:tcp-disable @\ @\ @\ @\ deleted @cr
+@< tcp:transmit-raw-ethernet-packet @\ @\ @\ @\ deleted @cr
+@< @\ @\ tcpa:disable-all-network-services @\ @\ new @cr
+@< @\ @\ tcpa:disable-one-network-service @\ @\ new @cr
+@< @\ @\ tcpa:enable-all-network-services @\ @\ new @cr
+@< @\ @\ tcpa:enable-one-network-service @\ @\ new @cr
+@< tcpa:telnet-glass-tty @\ @\ telnet:telnet-glass-tty @\ @\ renamed @cr
+@< @\ @\ telnet:telnet @\ @\ new @cr
+@sp 3
+@< VARIABLES: @cr
+@sp 1
+@<                              @\ @\ net:*network-protocols*   @\ @\ new @cr
+@<                              @\ @\ si:dont-use-3com          @\ @\ new @cr
+@<                              @\ @\ si:dont-use-excelan       @\ @\ new @cr
+@< tcp:*last-bogus-packet*      @\ @\                           @\ @\ deleted @cr
+@< tcp:*netload-debug-p*        @\ @\                           @\ @\ deleted @cr
+@< tcp:dma-initialized-p        @\ @\                           @\ @\ deleted @cr
+@<                              @\ @\ tcpa:*network-services*   @\ @\ new @cr
+@<                              @\ @\ tcpa:*udp-rwho-server-enabled* @\ @\ new @cr
+@cleartabs
+@sp 1
+@caption Summary of Changes to Functions and Variables
+@end(fullpagefigure)
+
+@need 1600
+@section Functions
+
+Many of the network configuration and management functions
+have been replaced and/or enhanced:
+
+@itemize @bullet
+
+@item Resetting Chaosnet - The use of @l[chaos:reset] @findex[chaos:reset] for
+resetting Chaosnet software is obsolete for
+most purposes, but it is still available for the purpose of resetting open Chaos
+connections.
+To reset the software @i(without) affecting open Chaos
+connections use @see[net:configure][fun].
+
+@item Resetting TCP/IP -@findex[tcp:start]@findex[tcp:tcp-disable]
+The TCP functions @l(tcp:start) and @l(tcp:tcp-disable) are no longer implemented.@csubindex[TCP][start-up]
+Use @l[net:configure] and @see[net:deconfigure][fun] instead.
+
+@item (De)allocating hardware interfaces -
+The function @l(si:set-processor-owning-ethernet)@findex[si:set-processor-owning-ethernet]
+has been enhanced to handle both types of hardware interface.
+Also refer to @l[si:dont-use-3com] and @see[si:dont-use-excelan][var].
+
+@item File Transfer Protocol command -
+Previously called @l(ftp:cmd),
+the FTP command mode is now named @see[ftp:ftp][fun].
+It has been enhanced significantly.
+
+@item Ping -
+TCP/IP now answers to ``Ping'' requests,
+and can send various Ping requests with @see[icmp:ping][fun].
+
+@item Exos Diagnostics -
+These routines have been modified and renamed;
+new functions are
+@see[ethernet:exos-stats][fun], and
+@see[ethernet:netspy][fun].
+
+@end(itemize)
+
+@section Variables
+
+The variable @b[tcp:dma-initialized-p] is no longer defined.@vindex[tcp:dma-initialized-p]
+Formerly, this variable had to be reset in order to reinitialize the Excelan board.@cindex[hardware initialization]
+This is no longer necessary; the hardware interfaces are initialized by @l(net:configure).@findex[net:configure]
+
+See Section @ref[section-variables], @nameref[section-variables],
+for details on networking control/parameter variables.
+
+@section New Peek ``Network'' Command
+
+@csubindex[network][statistics]
+@csubindex[Peek][network]
+A new command mode, @l(Network), has been added to the @l(Peek) program.
+This command displays status and statistical information
+on each network protocol and interface.
+See Section @ref[section-peek], @nameref[section-peek], for details.
+
+@section Messages and Errors
+
+Networking operation run-states (status messages on the Who-Line or reported by Peek)
+are documented in Section @ref[section-messages], @nameref[section-messages].
+
+The run-state ``Exos Reply'' has been replaced by ``TCP Socket I/O''.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@

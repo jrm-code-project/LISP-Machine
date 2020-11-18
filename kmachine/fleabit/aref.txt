@@ -1,0 +1,62 @@
+
+  interrupts off
+  garbage <- free-pointer - limit
+  tem2 <- free-pointer
+  jump-greater-than
+  md <- a0
+  vma-start-write-early <- tem2
+  free-pointer <- tem2 + 2
+  md <- a1
+  vma-start-write-cdr-early <- tem2
+  interrupts on
+  return tem2 + dtp-list
+
+
+AREF
+  open o1 <- index check dt fix,  24 bit
+  ldb dt array-pointer
+  call less than negative index
+  dispatch-call o0 <- array-pointer
+
+art-q:
+  vma-start-read-early array-pointer
+  tem1 <- dpb easy-bit index, 24 bit
+  md - tem1, 24 bit
+  tem2 <- array-pointer + index + 1
+  jump greater index out of bounds
+  vma-start-read-early <- tem2
+  x
+  return md
+
+
+ASET
+  open o2 <- data
+  o1 <- index check dt fix,  24 bit
+  ldb dt array-pointer
+  call less than negative index
+  dispatch-call o0 <- array-pointer
+
+art-q:
+  vma-start-read-early array-pointer
+  tem1 <- dpb easy-bit index, 24 bit
+  md - tem1, 24 bit
+  tem2 <- array-pointer + index + 1
+  jump greater index out of bounds
+  md <- data
+  vma-start-write-early <- tem2
+  return data
+
+
+
+
+(move vma-start-read aptr dt-trap-if-not-array-ptr)
+(open-call aref <dest> (o0 index))
+
+aref
+(ldb nop *zero* a0 (byte 2. 22.) dt-trap-if-not-fixnums)
+(alu l+r nop-no-overflow a0 md bw-24 br-not-zero)
+(branch index-bad (alu load-status-r nop *data-type-byte-spec*) bw-16 br-greater)
+(branch hard (alu dpb a1 *dtp-locative* vma) pw-rr)
+(alu l+r+c vma-start-read a1 a0 carry-in-1 bw-24)
+(nop)
+(return md)

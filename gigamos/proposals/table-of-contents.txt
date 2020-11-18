@@ -1,0 +1,122 @@
+;-*- Mode:Text; Base:10 -*-
+
+*************************************************************************
+                                                                        *
+                                PROPOSALS                               *
+                                                                        *
+                            TABLE OF CONTENTS                           *
+                                                                        *
+*************************************************************************
+                                                                        *
+     All proposals with Status: Open (named with the string found in the*
+ File Name: field) are stored in the directory "JB:PROPOSALS;", with the*
+ suffix ".TEXT".                                                        *
+                                                                        *
+     All proposals with Status: Closed and Vote Result: Accepted (named *
+ with the string found in the File Name: field) are stored in the direc-*
+ tory "JB:PROPOSALS.ACCEPTED;", with the suffix ".TEXT".                *
+                                                                        *
+     All proposals with Status: Closed and Vote Result: Rejected (named *
+ with the string found in the File Name: field) are stored in the direc-*
+ tory "JB:PROPOSALS.ARCHIVE;", with the suffix ".TEXT".                 *
+                                                                        *
+     Topics for which background material exist (in the directory       *
+ "JB:PROPOSALS.BACKGROUND") are listed at the end of this file.  Any    *
+ remaining questions regarding proposals should be directed to the      *
+ Proposal Author.                                                       *
+                                                                        *
+ Currently, the files in "JB:PROPOSALS.BACKGROUND;" are:                *
+                                                                        *
+ Author Title                   Description                  Last Mod   *
+ ---------------------------------------------------------------------- *
+ RG     CRITICAL-SECTIONS       Atomic Actions,              10/01/88   *
+                                Storage Convention Issues,              *
+                                Mainline System Speed                   *
+                                                                        *
+ JIM    HARDWARE-PLAN-SUMMARY   Statement of current status  10/01/88   *
+                                and goals of the project's              *
+                                hardware                                *
+                                                                        *
+ JIM    SOFTWARE-PLAN-SUMMARY   Statement of current status  10/01/88   *
+                                and goals of the project's              *
+                                software                                *
+                                                                        *
+ SMH    CROSS-COMPILING         Lambda system source code    11/01/88   *
+                                conditionalization for the              *
+                                Falcon processor                        *
+                                                                        *
+*************************************************************************
+
+Proposal:               A Mechanism for Generating Technical Proposals
+Author:                 SAZ
+Date Last Modified:     Nov. 01, 1988
+Date Distributed:       Oct. 19, 1988
+Date of Company Vote:   Oct. 20, 1988
+Status:                 Closed
+  Vote Result:             Accepted
+File Name:              "PROPOSAL-MECHANISM"
+
+
+Proposal:               A Proposal for Annotating Source File Changes
+Author:                 SMH
+Date Last Modified:     Nov 01, 1988
+Date Distributed:       Oct. 19, 1988
+Date of Company Vote:   Oct. 20, 1988
+Status:                 Open
+File Name               "ALTERING-SOURCE-FILES"
+
+
+Proposal:               Expanding the LISP Regression Test Suite
+Author:                 SAZ
+Date Last Modified:     Oct 17, 1988
+Date Distributed:
+Date of Company Vote:
+Status:                 Open
+File Name:              "REGRESSION-TEST-SUITE"
+
+
+Proposal:               Compiling References to Foreign
+                        (Target Processor) Symbols
+Author:                 KEITH
+Date Last Modified:     Oct 17, 1988
+Date Distributed:
+Date of Company Vote:
+Status:                 On hold
+File Name:              "FOREIGN-SYMBOL"
+
+
+Proposal:               Lambda System Source Code Conditionalization
+                        for the Falcon Processor
+Author:                 SMH
+Date Last Modified:     Nov 1, 1988
+Date Distributed:
+Date of Company Vote:
+Status:                 Open
+File Name:              "CONDITIONALIZATIONS"
+
+
+Proposal:               Argument Descriptor Modifications
+Author:                 KEITH
+Date Last Modified:     Nov 01, 1988
+Date Distributed:
+Date of Company Vote:
+Status:                 On hold
+File Name:              "ARGUMENT-DESCRIPTORS"
+
+
+Proposal:               Priority Goals for the December Prototype
+Author:                 JIM
+Date Last Modified:     Nov. 01, 1988
+Date Distributed:       Oct. 25, 1988
+Date of Company Vote:
+Status:                 Open
+File Name:              "DECEMBER-DELIVERABLE"
+
+
+Proposal:               Generating Internal Releases
+Author:                 JIM
+Date Last Modified:     Nov. 1, 1988
+Date Distributed:
+Date of Company Vote:
+Status:                 Open
+File Name:              "GENERATING-INTERNAL-RELEASES"

@@ -1,0 +1,253 @@
+@comment -*-Mode:Text; Package:User; Readtable:CL -*-
+@chapter Known Bugs and Limitations
+@label[chapter-limitations]
+
+@section General Limitations
+@label[section-limitations]
+
+The following list describes the major recognized limitations pertaining to
+Lambda TCP/IP and Chaosnet.
+
+@itemize @bullet
+
+@item Chaos/TCP priority -
+The control variable @see[net:*network-protocols*][var]
+is not ``honored'' by all communications functions.
+For example, the normal LISP remote-file functions --
+including @l(listf), @l(dired), and @l(viewf) --
+will always choose to use Chaosnet to access any host that has a Chaos address.
+But note the comments in
+Section @ref[section-tcp-chaos-priority], @nameref[section-tcp-chaos-priority], below.
+
+@item Access path recovery -
+In theory, if an access path to a remote host is defined but not operative
+(for example, when a connection request has timed out),
+the software could ``fail over'' to another available protocol.
+This has not been implemented.
+
+@item Hanging/waiting -
+Some low-level network functions (particularly within Chaosnet) can hang in certain run-states
+waiting for a reply.
+Where expected, the software may fail to time out.
+Recommended action: use @ctrl[@abort] to interrupt the hanging function and retry the operation.
+@cindex[aborting hung connections]
+
+Rarely, a process will hang displaying the run-state @l(Network buffer).
+This means that all internal packet buffers have been used up;
+if the process is truly hung, there will be no more free packet buffers
+to permit ongoing operations.
+A temporary break in the physical network connection may cause this to occur.
+Recommended action: use @ctrl[@abort] to interrupt
+the hanging process;
+verify that the  physical connection is working,
+e.g. with @see[icmp:ping][fun];
+and finally, execute @l(net:configure) to reconfigure the networking software.
+
+@item Enabling services -
+There are separate mechanisms for controlling TCP and Chaosnet services
+(see @ref[section-tcp-service-funcs] and @ref[section-chaosnet-service-funcs]).
+
+@end(itemize)
+
+This list does not include certain unresolved problems related to compatibility with
+other networking implementations.
+(Note that it is not always possible to provide complete integration with other systems.)
+
+@need 1200
+@section Compatibility with Previous Releases
+@label[section-compatibility]
+
+The discussion of obsoleted site file options in
+Chapter @ref[chapter-configuration]
+describes certain limitations to
+communications between Release 3 and Release 4 systems.
+This section is intended to clarify these compatibility problems
+and to offer some advice on communicating between incompatible systems.
+All the restrictions documented below apply only to TCP/IP software.
+
+@need 1400
+@subsection Compatibility - Overview
+
+With the new release, Release 2 becomes obsolete, and is no longer supported as such;
+however, for the purposes of this discussion, Release 2 TCP/IP may be considered compatible with Release 3.
+
+Many changes to TCP/IP are not downward-compatible.
+The most important restrictions are as follows:@csubindex[TCP][compatibility with earlier releases]
+
+@enumerate
+@item
+In general, you should not boot hosts on the same system with different LISP software releases.
+Specifically, when Lambda TCP/IP is in use,
+it is @i(absolutely critical) that all the hosts boot with the same software release.
+For example, if the loaded site information contains Internet addresses for
+the slot 0 and slot 4 processors on a Lambda-2x2,
+then they must be booted with the same release.
+
+Booting hosts in the same chassis with incompatible software
+can cause any number of strange symptoms.
+Problems may occur with interprocessor communication and packet routing;
+for example, remote hosts may contact the wrong host,
+or a Release 3 host may reject packets forwarded by the Release 4 host.
+
+@item
+Some networking problems may occur when Release 3 and Release 4 hosts are
+booted on the same network.
+Since the Release 3 site information contains one Internet address for each host on a chassis,
+the Release 3 host will not be able to contact a Release 4 host with its new address.
+@end(enumerate)
+
+We recommend that every Lambda on your network be upgraded to Release 4 and booted with the new release at all times.
+If it becomes necessary to boot on a prior release, use the function
+@l(si:set-current-band) to designate the prior release band, then initialize the system
+at the SDU and use @b(newboot -a) to reboot @ii(all) LISP processors with the old software.
+
+Notwithstanding these restrictions, the following sections offer some advice on
+handling the occasional requirement for communicating with TCP between Release 3 and Release 4 Lambdas.
+
+@subsection Communicating With TCP-Only Lambdas
+@label[section-tcp-chaos-priority]
+
+@cindex TCP-only Lambdas
+In Release 3 it was necessary to designate Lambdas as ``TCP-only'' if
+they only had access to the Excelan interface.
+Release 4 does not support this option.
+
+A Release 4 Lambda will regard any remote host as a fully capable host -- one running both protocols --
+if it has both a Chaos and an Internet address.
+And of course it is mandatory to specify Chaos addresses for all Lambda hosts,
+because the Chaos address is used for interprocessor communications.
+Therefore, all remote Lambdas appear to be Chaos-capable from
+the perspective of a Release 4 Lambda.
+Since most functions go through Chaosnet by default,
+a Release 4 system @i(cannot)  connect with a Release 3 TCP-only Lambda in the usual manner.
+
+If all systems are updated with Release 4, and if the proper
+site file modifications are made,
+then this compatibility problem will never arise.
+
+But if it becomes necessary, on a temporary basis, to boot
+a system with a Release 3 band that defines hosts as TCP-only,
+then all other Release 4 hosts must be told to access the Release 3 host via TCP/FTP only.
+
+@cindex[file access paths]
+On a temporary basis, a user can force Release 4 to access a Lambda by TCP/FTP only
+by resetting the file access paths to the Release 3 host,
+and then forcing a TCP/FTP access path to be created.
+The function @l(fs:reset-file-access) causes existing file access paths
+to be ``forgotten'' and, optionally, reestablished with the desired access flavor.
+
+For example, assume that a user on a Release 4 host is trying to list files
+on a Release 3 TCP-only host named ``OTHER-HOST''.
+The following would do so via TCP:
+
+@lisp
+(fs:reset-file-access "other-host" 'fs:ftp-access)
+@end(lisp)
+
+An established access path normally remains in effect until
+the next time site information is loaded (or until the system is re-booted).
+
+@need 1200
+@subsection Front End TCP-Chaos Servers
+@label[section-front-end]
+
+@cindex[front-end TCP Chaos server]
+Release 4 hosts do not provide the ``front-end TCP-CHAOS server''
+that was provided in Release 3 for Chaos-only Lambdas.
+If a system that was acting as a front-end server is upgraded,
+then the Release 3 Chaos-only Lambdas will not be able to access the Internet until
+they are upgraded to Release 4.
+Naturally, Release 4 systems will be able to access Release 3 Chaos-only hosts.
+
+@need 1200
+@subsection DISK Server
+@label[section-tcp-disk-compatibility]
+
+The previous LMI releases of TCP/IP software used a reserved TCP port for
+the DISK server; the port has been changed for Release 4
+to ensure compatibility with the Internet specification.@csubindex[TCP][DISK protocol]
+By default, TCP-only hosts running Release 2 or 3
+will not be able to communicate with the DISK server of a Release 4 host,
+and vice versa.
+
+There is a work-around which enables a Release 4 host to create a DISK server that is
+compatible with previous releases.
+On the Release 4 host, execute the following:
+
+@lisp
+;;;Define the Release 3-compatible server:
+
+(tcpa:define-network-service
+  tcpa:*old-tcp-disk-service*
+  :old-disk :tcp
+  "Old Disk Server"
+  :toplevel-function 'tcpa:serial-stream-disk-server
+  :listen-port #o145)
+
+;;;Enable the server:
+
+(tcpa:enable-one-network-service tcpa:*old-tcp-disk-service*)
+
+;;;When you are done, if desired, to disable the server:
+
+(tcpa:disable-one-network-service tcpa:*old-tcp-disk-service*)
+@end(lisp)
+
+This should only be executed as needed; the service will not be
+activated automatically, e.g. after a cold-boot.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end bugs1

@@ -1,0 +1,278 @@
+@comment -*- Mode:Text; Package:CL-Tests; Base:10; ReadTable:CL -*-
+
+@itemize @bullet
+
+@item ZetaLISP accepts a wider range of character codes
+(including negative numbers) than Common LISP provides for.
+
+[ADJOIN, INT-CHAR, SET-CHAR-BIT, CODE-CHAR]
+
+@item In ZetaLISP, all arrays are adjustable.
+
+[ADJUST-ARRAY, VECTOR-PUSH-EXTEND, ADJUSTABLE-ARRAY-P]
+
+@item ZetaLISP @l(ADJUST-ARRAY) does not always check for erroneous types of
+@l(:INITIAL-ELEMENT) arguments; the argument can be ignored if no new elements are required.
+
+[ADJUST-ARRAY]
+
+@item ZetaLISP coerces certain types in reference to arrays, e.g. numbers into characters for strings.
+
+[VECTOR-PUSH-EXTEND, ADJUST-ARRAY, COERCE]
+
+@item When ZetaLISP stores a number into a number array, it saves only
+the least significant N bits, where N is the bit element size.
+
+[VECTOR-PUSH-EXTEND, SBIT, BIT, AREF, ADJUST-ARRAY]
+
+@item ZetaLISP does not implement a distinct DOUBLE-FLOAT type;
+all arrays created by specifying  :ELEMENT-TYPE 'DOUBLE-FLOAT
+have @l(ARRAY-ELEMENT-TYPE) of FLOAT.
+
+[ARRAY-ELEMENT-TYPE]
+
+@item ZetaLISP does not allow a type specifier of the form @l(#'predicate).
+It appears that this is not required by Common LISP.  Such
+a test should be specified as @l['(...(SATISFIES predicate))].
+
+@item ZetaLISP @l(ARRAY-IN-BOUNDS-P) returns NIL, without signalling an
+error, for invalid array subscripts.  This appears to be acceptable
+behavior.
+
+[ARRAY-IN-BOUNDS-P]
+
+@item ZetaLISP BIT functions accept non-bit arrays, applying
+the appropriate logical function to elements.
+
+[BIT-NOT, BIT-ORC2, BIT-ORC1, BIT-ANDC2, BIT-ANDC1, BIT-NOR, BIT-NAND, BIT-EQV, BIT-XOR, BIT-IOR, BIT-AND]
+
+@item ZetaLISP defines @l(BUTLAST) in terms of @l(ZL:FIRSTN), so
+by using a negative argument it is possible to get
+a resultant list that has more arguments than the input, all set to NIL.
+
+For example:
+@lisp
+(butlast '(a b c) -3)
+
+(A B C NIL NIL NIL)
+@end(lisp)
+
+[BUTLAST]
+
+@item During the expansion of certain pre-defined macros,
+optional errors relating to argument types may not be caught.
+These errors are, however, caught during COMPILE and/or EVAL.
+
+[CASE, TYPECASE, [DOTIMES, DOLIST, DEFCONSTANT, DEFPARAMETER, DEFVAR, PSETQ]
+
+@item Many ZetaLISP functions that accept character objects also accept fixnums.
+
+[CHAR-INT, CHAR-DOWNCASE, CHAR-UPCASE, ALPHANUMERICP, BOTH-CASE,
+LOWER-CASE, UPPER-CASE, ALPHA-CHAR, STRING-CHAR, GRAPHIC-CHAR,
+STANDARD-CHAR, ADJUST-ARRAY, CHAR-FONT, CHAR-BITS, CHAR-CODE,
+CHAR-NOT-LESSP, CHAR-NOT-GREATERP, CHAR-EQUAL, CHAR-GREATERP, CHAR-LESSP,
+CHAR-NOT-EQUAL, CHAR>=, CHAR<=, CHAR>, CHAR<, CHAR/=, CHAR=,
+DIGIT-CHAR-P]
+
+@item Zetalisp  is willing and able to coerce bit vectors into strings.
+
+[COERCE]
+
+@item Some ZetaLISP list functions will accept atoms passed as arguments,
+returning some value rather than signalling an error.
+
+[COPY-LIST, COPY-ALIST, LAST, LIST-LENGTH, NSUBLIS, SUBLIS, NSUBST, SUBST]
+
+@item ZetaLISP documentation ``strings'' can be symbols.
+
+[DEFCONSTANT, DEFPARAMETER, DEFVAR]
+
+@item
+@l(DEFUN) accepts certain forms of function specs that are not correct Common LISP.
+These are provided to handle certain extensions and downward-compatible features.
+
+[DEFUN]
+
+@item For ZetaLISP compatibility, @l(DESCRIBE) returns the object described.
+
+[DESCRIBE]
+
+@item For ZetaLISP compatibility, @l(APROPOS) returns the list of symbols found.
+
+[APROPOS]
+
+@item ZetaLISP @l(DIGIT-CHAR) does not complain about base 1:
+
+@lisp
+(digit-char 0 1)
+
+NIL
+@end(lisp)
+
+[DIGIT-CHAR]
+
+@item ZetaLISP's @l(DOCUMENTATION), compatibly, returns NIL for the undefined result
+of DOCUMENTATION on an invalid argument.
+
+[DOCUMENTATION]
+
+
+@item ZetaLISP @l(FORMAT), with @l("~:C") and @l("~:@@C") directives,
+prints as in  ``Control-Shift-A'', not ``Control-\A''.
+ZetaLISP considers the two forms equivalent on input.
+
+[FORMAT]
+
+@item ZetaLISP @l(FORMAT) with @l("~@@R") directive prints decimal if it can't print Roman,
+and @l("~:@@R") prints decimal if it can't print Old Roman.
+
+[FORMAT]
+
+@item ZetaLISP @l(FORMAT) ignores @l(":") and @l("@@") flags on @l("~%") directives.
+
+[FORMAT]
+
+@item ZetaLISP @l(FORMAT) treats a negative directive parameter such as @l("~-1%") as 0.
+
+[FORMAT]
+
+@item ZetaLISP @l(FORMAT) @l("~E") directive prints lower-case ``e'', not upper-case ``E''.
+
+[FORMAT]
+
+@item ZetaLISP @l(FORMAT) assumes NIL for unspecified format directive arguments:
+
+@lisp
+(format t "--> ~A")
+--> NIL
+@end(lisp)
+
+[FORMAT]
+
+@item ZetaLISP @l(FORMAT) @l("~G") directive, e.g. @l("~9,2G"),
+defaults dependably to a 1-digit exponent;
+other results differ from validation tests where ZetaLISP pads field with spaces rather than padding exponent with 0's.
+
+[FORMAT]
+
+@item ZetaLISP @l(LIST*) returns NIL if given no arguments
+
+[LIST*]
+
+@item ZetaLISP implements additional :TEST functions for @l(MAKE-HASH-TABLE), notably @l(#'EQUALP).
+
+[MAKE-HASH-TABLE]
+
+@item ZetaLISP @l(NAME-CHAR) accepts any argument that can be coerced into a string,
+returning NIL if no special-character name is found.
+
+[NAME-CHAR]
+
+@item ZetaLISP extends some list functions to work with dotted lists.
+
+[NBUTLAST, BUTLAST, TAILP, NRECONC, NCONC, APPEND, REVAPPEND, NTHCDR, LIST-LENGTH, LDIFF]
+
+@item ZetaLISP, compatibly, signals an error when @l(NCONC) is called with its
+first argument not a list
+
+[NCONC]
+
+@item For ZetaLISP @l(PAIRLIS) and @l(ACONS),
+the third argument need not be a list, which can result
+in the return value being a dotted list.
+
+[PAIRLIS, ACONS]
+
+@item ZetaLISP @l(PAIRLIS) accepts lists with differing number of elements, and
+stops pairing elements when shortest list terminates.
+
+[PAIRLIS]
+
+@item Some ZetaLISP functions allow a radix greater than 36.
+They might not do the right thing with the inputs.
+
+[PARSE-INTEGER, DIGIT-CHAR]
+
+@item ZetaLISP implements @l(SVREF), @l(SBIT), and @l(BIT) simply as @l(AREF), which is compatible with Common LISP.
+
+[SVREF, SBIT, BIT]
+
+
+@end(itemize)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end cl-issues
+

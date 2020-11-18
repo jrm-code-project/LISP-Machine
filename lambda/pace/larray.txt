@@ -1,0 +1,118 @@
+;;;aref to stack (fastest case of aref)
+;;;             25 instructions cached    * 200ns = 5,000 ns
+;;;             34 instructions uncached  * 200ns = 6,800 ns
+;;;new machine
+;;;              8 instructions always    *  80ns =   640 ns
+;;;           or 7 if user can use no-op  *  80ns =   560 ns
+;;;
+;;; 7.8 times faster in cached case   with no-op
+;;;10.6 times faster in uncached case with no-op
+;;; 8.9 times faster in cached case   with useful instruction at #8
+;;;12.1 times faster in uncached case with useful instruction at #8
+
+(defun foo (a b)
+  (bar (aref a b) 1))
+
+New machine:
+
+1       dispatch-address <- type-of-array-pointer + aref-base
+2       vma-start-read-early <- array-pointer;
+                         check data-type array-pointer; transport
+3       dispatch-lowx16; temp<-array-pointer+index+1 in 24 bit mode
+
+aref-q
+4       temp2 <- index + array-header type + not-hard bit;
+                         trap if index not fixnum
+5       garbage <- md - temp2
+6       vma-start-read-early <- temp2; transport
+7       return if positive
+
+8       no-op
+        use MD
+
+
+Lambda:
+
+FOO:
+ 16 CALL D-RETURN FEF|6       ;#'BAR
+ 17 PUSH ARG|0                ;A
+ 18 PUSH ARG|1                ;B
+ 19 (MISC) AR-1 D-PDL
+ 20 MOVE D-LAST '1
+
+
+QMLP
+  (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+  ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+ ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+
+qimove-pdl-arg
+  (popj-after-next
+   (pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+ ((c-pdl-buffer-pointer-push m-t) q-typed-pointer c-pdl-buffer-index)
+
+qimove-pdl-arg
+  (popj-after-next
+   (pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+  ((c-pdl-buffer-pointer-push m-t) q-typed-pointer c-pdl-buffer-index)
+
+QMLP
+  (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+  ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+ ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+
+MISC-PDL
+  ((oa-reg-low m-last-micro-entry) dpb
+        macro-ir-decode-misc-enable oal-jump a-zero)
+  (call 0)
+  (no-op)
+
+xar-1
+  (trap-unless-fixnum c-pdl-buffer-pointer :argument 1)
+  ((m-q) q-pointer c-pdl-buffer-pointer-pop)
+  (call-not-equal-xct-next c-pdl-buffer-pointer a-array-pointer
+         decode-1d-array-uncached)
+ ((m-array-pointer) validate-array-cache c-pdl-buffer-pointer-pop)
+
+;;----------------------------------------------------------------
+;;add these instructions for uncached case
+
+decode-1d-array-uncached
+  (jump-data-type-not-equal m-array-pointer
+    (a-constant (byte-value q-data-type dtp-array-pointer))
+    decode-1d-stack-group)
+decode-1d-array-d
+  ((vma-start-read) m-array-pointer)
+  (check-page-read)
+  (dispatch transport-header md)
+  ((m-array-origin) output-selector-mask-25 add vma (a-constant 1))
+  ((m-array-header) md)
+decode-1d-array-force-entry
+  ((m-tem) and m-array-header
+    (a-constant (plus (byte-value %%array-long-length-flag 1)
+                      (byte-value %%array-displaced-bit 1)
+                      (byte-value %%array-number-dimensions 7777)
+                      (byte-value q-data-type 77777))))
+  (popj-after-next
+    (m-array-length) (lisp-byte %%array-index-length-if-short) m-array-header)
+ (call-not-equal m-tem
+    (a-constant (plus (byte-value %%array-number-dimensions 1)
+                      (byte-value q-data-type dtp-array-header)))
+    decode-unusual-1d-array)
+;;----------------------------------------------------------------
+
+xar-1-x
+        (dispatch-xct-next (lisp-byte %%array-type-field) m-array-header
+            array-type-ref-dispatch-jump)
+        (call-greater-or-equal m-q a-array-length array-subscript-error)
+
+QQARY   ((VMA-START-READ) ADD A-Q M-array-origin)
+        (CHECK-PAGE-READ)
+        (POPJ-AFTER-NEXT DISPATCH TRANSPORT READ-MEMORY-DATA)
+       ((M-T) Q-TYPED-POINTER READ-MEMORY-DATA)
+
+m-t-to-stack
+        (POPJ-AFTER-NEXT (C-PDL-BUFFER-POINTER-PUSH) Q-TYPED-POINTER M-T
+                        (A-CONSTANT (BYTE-VALUE Q-CDR-CODE CDR-NEXT)))
+       (NO-OP)
+

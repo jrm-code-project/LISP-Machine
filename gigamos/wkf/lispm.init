@@ -1,0 +1,36 @@
+;;; -*- Mode:LISP; Package:USER; Lowercase:T; Readtable:CL -*-
+
+#-LISPM (error "Do you really expect this to work on a ~A ?" (machine-type))
+
+(gc:gc-on)
+
+(login-setq *read-base*                                 10.
+            *print-base*                                10.
+            si:user-id                                  "wkf"
+            fs:user-personal-name                       "Foster, William K."
+            fs:user-personal-name-first-name-first      "William K. Foster"
+            zwei:*notify-on-new-mail-in-background*     :CONVERSE
+            fs:user-host-password-alist                 '((("wkf" "GSI-CAM") "") (("wkf" "GSI-DJINN") ""))
+            zwei:*zmail-startup-file-name*              "GSI-CAM: /lmi/wkf/mail.bb"
+            zwei:*from-user-id*                         "wkf"
+            zwei:*from-host*                            (si:parse-host "GSI-CAM")
+            zwei:*zmail-usual-mail-file-directory*      "GSI-CAM: /lmi/wkf/"
+            zwei:*zmail-homedir-real-new-mail-filename* "GSI-CAM: /usr/spool/mail/wkf"
+            zwei:*PRUNE-HEADERS-AFTER-YANKING*          T
+            zwei:*REPLY-WINDOW-MODE*                    :YANK)
+
+(send tv:initial-lisp-listener :set-more-p nil)
+(send tv:initial-lisp-listener :set-deexposed-typeout-action :permit)
+(send tv:initial-lisp-listener :set-deexposed-typein-action  :notify)
+
+(defsystem wkf
+  (:name                "WKF")
+  (:pathname-default    "dj:wkf;")
+  (:module lisp-custom  "lisp-init")
+  (:module zwei-custom  "zwei-init" "dj:smh;isearch")
+  (:module zmail-custom "zmail-init")
+  (:compile-load lisp-custom  ()                                 ())
+  (:compile-load zwei-custom  (:fasload lisp-custom)             (:fasload lisp-custom))
+  (:compile-load zmail-custom (:fasload lisp-custom zwei-custom) (:fasload lisp-custom zwei-custom)))
+
+(make-system 'wkf :compile :noconfirm)

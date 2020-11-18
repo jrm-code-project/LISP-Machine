@@ -1,0 +1,26 @@
+;;; -*- Mode:LISP; Package:USER; Base:10 -*-
+
+(when (string-equal si:user-id "dawna")
+  (setq si:user-id "dawna"))
+
+(load "dj:dawna;dawna-utilities" :set-default-pathname nil)
+
+(defun iptex (name &optional dir force)
+  (or dir (setq dir "angel://lmi//dawna//"))
+  (let* ((pathname (send (fs:merge-pathnames name dir) :new-type "DVI"))
+         (output (send pathname :new-pathname
+                       :host "lam15"
+                       :directory "TMP"
+                       :type "IMPRESS")))
+    (or (probe-file pathname)
+        (return-from iptex (format nil "file not found: ~A" pathname)))
+    (if (or (not (find-package'dvi))
+            (not (fboundp (intern "PROCESS-DVI" 'DVI))))
+        (make-system'dvi :noconfirm))
+    (when (or force
+              (not (probe-file output))
+              (> (send (open pathname :direction nil) :creation-date)
+                 (send (open output :direction nil) :creation-date)))
+      (funcall (intern "PROCESS-DVI" 'DVI) pathname "imagen" :output-file output))
+    (funcall (intern "MAKE-PRINTER-IMAGEN" 'tcp-application) "im1")
+    (hardcopy-file output :format :impress)))

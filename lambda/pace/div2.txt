@@ -1,0 +1,347 @@
+(defun iterative-div2 (l)
+  (do ((l l (cddr l))
+       (a () (push (car l) a)))
+      ((null l) a)))
+
+ITERATIVE-DIV2:
+ 14 PUSH ARG|0                ;L
+ 15 BR 22
+ 16 CDDR D-PDL LOCAL|0        ;L
+ 17 CAR D-PDL LOCAL|0         ;L
+ 18 PUSH LOCAL|1              ;A
+ 19 (MISC) CONS D-PDL
+ 20 MOVEM LOCAL|1             ;A
+ 21 POP LOCAL|1               ;A
+ 22 POP LOCAL|0               ;L
+ 23 BR-NOT-NIL 16
+ 24 MOVE D-RETURN LOCAL|1     ;A
+
+ 14 PUSH ARG|0                ;L
+qimove-pdl-arg (macro-ir-decode (move pdl arg))
+        (popj-after-next
+          (pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+       ((c-pdl-buffer-pointer-push m-t) q-typed-pointer c-pdl-buffer-index)
+ 15 BR 22
+        ((m-1) dpb macro-ir (byte-field 8. #+lambda 1 #+exp 0) a-zero)
+        (popj-after-next (location-counter) add location-counter a-1)
+       (no-op)
+ 16 CDDR D-PDL LOCAL|0        ;L
+qicxr-pdl-local (macro-ir-decode ((caar cadr cdar cddr) pdl local))
+        ((pdl-buffer-index) add macro-ir-displacement a-localp)
+        (dispatch-xct-next macro-ir-op cxr-execute-call-xct-next)
+       ((m-t) q-typed-pointer c-pdl-buffer-index)
+qcddr
+        (dispatch dispatch-write-vma (i-arg instance-invoke-cdr) q-data-type m-t cdr-pre-dispatch-direct)
+QCDR4   (CHECK-PAGE-READ)               ;COME DIRECTLY HERE FROM CDR-PRE-DISPATCH-DIRECT.
+QCDR-SB-1
+        (DISPATCH TRANSPORT-CDR MD)     ;Check for invz, don't really transport.
+        (DISPATCH Q-CDR-CODE MD CDR-CDR-DISPATCH-MASK-VMA-ON-CDR-NEXT)
+CDR-FULL-NODE
+        ((VMA-START-READ) ADD VMA (A-CONSTANT 1))
+        (CHECK-PAGE-READ)
+        (POPJ-AFTER-NEXT DISPATCH TRANSPORT MD) ;CHECK FOR INVISIBLE, GC
+       ((M-T) Q-TYPED-POINTER MD)
+
+        (JUMP QCDR)
+
+QCDR (declare (args a-t) (values a-t))
+        (DISPATCH (I-ARG INSTANCE-INVOKE-CDR) Q-DATA-TYPE M-T CDR-PRE-DISPATCH)
+        ;; I-ARG is in case go to QCARCDR-INSTANCE.
+   (ERROR-TABLE ARGTYP CONS M-T T CDR CDR)
+;; Drop through for CDR of a CONS.
+QCDR3   ((VMA-START-READ) M-T)
+QCDR4   (CHECK-PAGE-READ)               ;COME DIRECTLY HERE FROM CDR-PRE-DISPATCH-DIRECT.
+QCDR-SB-1
+        (DISPATCH TRANSPORT-CDR MD)     ;Check for invz, don't really transport.
+        (DISPATCH Q-CDR-CODE MD CDR-CDR-DISPATCH-MASK-VMA-ON-CDR-NEXT)
+        (no-op)
+
+CDR-FULL-NODE
+        ((VMA-START-READ) ADD VMA (A-CONSTANT 1))
+        (CHECK-PAGE-READ)
+        (POPJ-AFTER-NEXT DISPATCH TRANSPORT MD) ;CHECK FOR INVISIBLE, GC
+       ((M-T) Q-TYPED-POINTER MD)
+
+        (popj-after-next
+         (c-pdl-buffer-pointer-push) dpb m-t q-all-but-cdr-code
+                (a-constant (byte-value q-cdr-code cdr-next)))
+       (no-op)
+
+ 17 CAR D-PDL LOCAL|0         ;L
+qicar-pdl-local (macro-ir-decode (car pdl local))
+        ((pdl-buffer-index) add macro-ir-displacement a-localp)
+        (jump-data-type-not-equal c-pdl-buffer-index
+                                  (a-constant (byte-value q-data-type dtp-list))
+                                  qicar-pdl-local-hard)
+        ((vma-start-read) c-pdl-buffer-index)
+        (check-page-read)
+        (popj-after-next dispatch transport md)
+       ((pdl-push m-t) dpb md q-all-but-cdr-code (a-constant (byte-value q-cdr-code cdr-next)))
+ 18 PUSH LOCAL|1              ;A
+qimove-pdl-local (macro-ir-decode (move pdl local))
+        (popj-after-next
+          (pdl-buffer-index) add macro-ir-displacement a-localp)
+       ((c-pdl-buffer-pointer-push m-t) q-typed-pointer c-pdl-buffer-index)
+ 19 (MISC) CONS D-PDL
+xcons   (call-xct-next allocate-list-storage-default)
+       ((m-b) (a-constant 2))
+allocate-list-storage-default
+        ((m-s) dpb m-zero q-all-but-typed-pointer a-default-cons-area)
+allocate-list-storage-kernel
+        (jump-not-equal m-s a-active-cons-cache-area allocate-list-storage-uncached)
+        ((a-active-cons-cache-allocation-status q-r) add m-b a-active-cons-cache-allocation-status)
+        (jump-greater-than q-r a-list-allocation-threshold allocate-list-storage-cached-list-header)
+        ((m-3) output-selector-mask-25 add m-b a-active-cons-cache-free-pointer)
+        (jump-greater-than m-3 a-active-cons-cache-free-limit allocate-list-storage-uncached)
+        (popj-after-next
+          (m-t) a-active-cons-cache-free-pointer)
+       ((a-active-cons-cache-free-pointer) m-3)
+store-values-in-cons
+        ((md) dpb q-typed-pointer pdl-pop (a-constant (byte-value q-cdr-code cdr-error)))
+        ((vma-start-write) add m-t (a-constant 1))
+        (check-page-write)
+        (gc-write-test)
+        ((md) dpb q-typed-pointer pdl-pop (a-constant (byte-value q-cdr-code cdr-normal)))
+        ((vma-start-write m-t) dpb m-t q-pointer (a-constant (byte-value q-data-type dtp-list)))
+        (check-page-write)
+        (gc-write-test)
+        (popj)
+ 20 MOVEM LOCAL|1             ;A
+qimvm-local     (macro-ir-decode (qind3 movem local))
+        (popj-after-next
+         (pdl-buffer-index) add macro-ir-displacement a-localp)
+       ((c-pdl-buffer-index m-t) q-typed-pointer c-pdl-buffer-pointer)
+ 21 POP LOCAL|1               ;A
+qipop-local     (macro-ir-decode (qind3 pop local))
+        (popj-after-next
+         (pdl-buffer-index) add macro-ir-displacement a-localp)
+       ((c-pdl-buffer-index m-t) q-typed-pointer c-pdl-buffer-pointer-pop)
+ 22 POP LOCAL|0               ;L
+qipop-local     (macro-ir-decode (qind3 pop local))
+        (popj-after-next
+         (pdl-buffer-index) add macro-ir-displacement a-localp)
+       ((c-pdl-buffer-index m-t) q-typed-pointer c-pdl-buffer-pointer-pop)
+ 23 BR-NOT-NIL 16
+qbrnnl-neg    (macro-ir-decode (branch qbrnnl (4 5 6))) ;negative delta, not long
+        (popj-equal m-t a-v-nil)                ;POPJ ON NO BRANCH. (LONG NOT POSSIBLE)
+        ((m-1) dpb macro-ir (byte-field 8 1) a-minus-one)
+        (popj-after-next (location-counter) add location-counter a-1)
+       (no-op)
+ 24 MOVE D-RETURN LOCAL|1     ;A
+qimove-return-local (macro-ir-decode (move return local))
+        ((pdl-buffer-index) add macro-ir-displacement a-localp)
+        (jump-xct-next qmddr)
+       ((m-t) q-typed-pointer c-pdl-buffer-index)
+
+
+--------
+
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 14 PUSH ARG|0                ;L
+qimove-pdl-arg (macro-ir-decode (move pdl arg))
+        (popj-after-next
+          (pdl-buffer-index) add macro-ir-displacement a-ap alu-carry-in-one)
+       ((c-pdl-buffer-pointer-push m-t) q-typed-pointer c-pdl-buffer-index)
+ 15 BR 22
+        ((m-1) dpb macro-ir (byte-field 8. #+lambda 1 #+exp 0) a-zero)
+        (popj-after-next (location-counter) add location-counter a-1)
+       (no-op)
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 22 POP LOCAL|0               ;L
+qipop-local     (macro-ir-decode (qind3 pop local))
+        (popj-after-next
+         (pdl-buffer-index) add macro-ir-displacement a-localp)
+       ((c-pdl-buffer-index m-t) q-typed-pointer c-pdl-buffer-pointer-pop)
+ 23 BR-NOT-NIL 16
+qbrnnl-neg    (macro-ir-decode (branch qbrnnl (4 5 6))) ;negative delta, not long
+        (popj-equal m-t a-v-nil)                ;POPJ ON NO BRANCH. (LONG NOT POSSIBLE)
+        ((m-1) dpb macro-ir (byte-field 8 1) a-minus-one)
+        (popj-after-next (location-counter) add location-counter a-1)
+       (no-op)
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 16 CDDR D-PDL LOCAL|0        ;L
+qicxr-pdl-local (macro-ir-decode ((caar cadr cdar cddr) pdl local))
+        ((pdl-buffer-index) add macro-ir-displacement a-localp)
+        (dispatch-xct-next macro-ir-op cxr-execute-call-xct-next)
+       ((m-t) q-typed-pointer c-pdl-buffer-index)
+qcddr
+        (dispatch dispatch-write-vma (i-arg instance-invoke-cdr) q-data-type m-t cdr-pre-dispatch-direct)
+QCDR4   (CHECK-PAGE-READ)               ;COME DIRECTLY HERE FROM CDR-PRE-DISPATCH-DIRECT.
+QCDR-SB-1
+        (DISPATCH TRANSPORT-CDR MD)     ;Check for invz, don't really transport.
+        (DISPATCH Q-CDR-CODE MD CDR-CDR-DISPATCH-MASK-VMA-ON-CDR-NEXT)
+CDR-FULL-NODE
+        ((VMA-START-READ) ADD VMA (A-CONSTANT 1))
+        (CHECK-PAGE-READ)
+        (POPJ-AFTER-NEXT DISPATCH TRANSPORT MD) ;CHECK FOR INVISIBLE, GC
+       ((M-T) Q-TYPED-POINTER MD)
+
+        (JUMP QCDR)
+
+QCDR (declare (args a-t) (values a-t))
+        (DISPATCH (I-ARG INSTANCE-INVOKE-CDR) Q-DATA-TYPE M-T CDR-PRE-DISPATCH)
+        ;; I-ARG is in case go to QCARCDR-INSTANCE.
+   (ERROR-TABLE ARGTYP CONS M-T T CDR CDR)
+;; Drop through for CDR of a CONS.
+QCDR3   ((VMA-START-READ) M-T)
+QCDR4   (CHECK-PAGE-READ)               ;COME DIRECTLY HERE FROM CDR-PRE-DISPATCH-DIRECT.
+QCDR-SB-1
+        (DISPATCH TRANSPORT-CDR MD)     ;Check for invz, don't really transport.
+        (DISPATCH Q-CDR-CODE MD CDR-CDR-DISPATCH-MASK-VMA-ON-CDR-NEXT)
+        (no-op)
+
+CDR-FULL-NODE
+        ((VMA-START-READ) ADD VMA (A-CONSTANT 1))
+        (CHECK-PAGE-READ)
+        (POPJ-AFTER-NEXT DISPATCH TRANSPORT MD) ;CHECK FOR INVISIBLE, GC
+       ((M-T) Q-TYPED-POINTER MD)
+
+        (popj-after-next
+         (c-pdl-buffer-pointer-push) dpb m-t q-all-but-cdr-code
+                (a-constant (byte-value q-cdr-code cdr-next)))
+       (no-op)
+
+ 17 CAR D-PDL LOCAL|0         ;L
+qicar-pdl-local (macro-ir-decode (car pdl local))
+        ((pdl-buffer-index) add macro-ir-displacement a-localp)
+        (jump-data-type-not-equal c-pdl-buffer-index
+                                  (a-constant (byte-value q-data-type dtp-list))
+                                  qicar-pdl-local-hard)
+        ((vma-start-read) c-pdl-buffer-index)
+        (check-page-read)
+        (popj-after-next dispatch transport md)
+       ((pdl-push m-t) dpb md q-all-but-cdr-code (a-constant (byte-value q-cdr-code cdr-next)))
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 18 PUSH LOCAL|1              ;A
+qimove-pdl-local (macro-ir-decode (move pdl local))
+        (popj-after-next
+          (pdl-buffer-index) add macro-ir-displacement a-localp)
+       ((c-pdl-buffer-pointer-push m-t) q-typed-pointer c-pdl-buffer-index)
+ 19 (MISC) CONS D-PDL
+xcons   (call-xct-next allocate-list-storage-default)
+       ((m-b) (a-constant 2))
+allocate-list-storage-default
+        ((m-s) dpb m-zero q-all-but-typed-pointer a-default-cons-area)
+allocate-list-storage-kernel
+        (jump-not-equal m-s a-active-cons-cache-area allocate-list-storage-uncached)
+        ((a-active-cons-cache-allocation-status q-r) add m-b a-active-cons-cache-allocation-status)
+        (jump-greater-than q-r a-list-allocation-threshold allocate-list-storage-cached-list-header)
+        ((m-3) output-selector-mask-25 add m-b a-active-cons-cache-free-pointer)
+        (jump-greater-than m-3 a-active-cons-cache-free-limit allocate-list-storage-uncached)
+        (popj-after-next
+          (m-t) a-active-cons-cache-free-pointer)
+       ((a-active-cons-cache-free-pointer) m-3)
+store-values-in-cons
+        ((md) dpb q-typed-pointer pdl-pop (a-constant (byte-value q-cdr-code cdr-error)))
+        ((vma-start-write) add m-t (a-constant 1))
+        (check-page-write)
+        (gc-write-test)
+        ((md) dpb q-typed-pointer pdl-pop (a-constant (byte-value q-cdr-code cdr-normal)))
+        ((vma-start-write m-t) dpb m-t q-pointer (a-constant (byte-value q-data-type dtp-list)))
+        (check-page-write)
+        (gc-write-test)
+        (popj)
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 20 MOVEM LOCAL|1             ;A
+qimvm-local     (macro-ir-decode (qind3 movem local))
+        (popj-after-next
+         (pdl-buffer-index) add macro-ir-displacement a-localp)
+       ((c-pdl-buffer-index m-t) q-typed-pointer c-pdl-buffer-pointer)
+ 21 POP LOCAL|1               ;A
+qipop-local     (macro-ir-decode (qind3 pop local))
+        (popj-after-next
+         (pdl-buffer-index) add macro-ir-displacement a-localp)
+       ((c-pdl-buffer-index m-t) q-typed-pointer c-pdl-buffer-pointer-pop)
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 22 POP LOCAL|0               ;L
+qipop-local     (macro-ir-decode (qind3 pop local))
+        (popj-after-next
+         (pdl-buffer-index) add macro-ir-displacement a-localp)
+       ((c-pdl-buffer-index m-t) q-typed-pointer c-pdl-buffer-pointer-pop)
+ 23 BR-NOT-NIL 16
+qbrnnl-neg    (macro-ir-decode (branch qbrnnl (4 5 6))) ;negative delta, not long
+        (popj-equal m-t a-v-nil)                ;POPJ ON NO BRANCH. (LONG NOT POSSIBLE)
+        ((m-1) dpb macro-ir (byte-field 8 1) a-minus-one)
+        (popj-after-next (location-counter) add location-counter a-1)
+       (no-op)
+QMLP
+        (CALL-CONDITIONAL PG-FAULT-INTERRUPT-OR-SEQUENCE-BREAK QMLP-P-OR-I-OR-SB)
+        ((MD) READ-MEMORY-DATA MACRO-IR-DISPATCH SOURCE-TO-MACRO-IR)
+       ((MICRO-STACK-DATA-PUSH) A-MAIN-DISPATCH)
+ 24 MOVE D-RETURN LOCAL|1     ;A
+qimove-return-local (macro-ir-decode (move return local))
+        ((pdl-buffer-index) add macro-ir-displacement a-localp)
+        (jump-xct-next qmddr)
+       ((m-t) q-typed-pointer c-pdl-buffer-index)
+
+
+-------
+
+(defun iterative-div2 (l)
+  (do ((l l (cddr l))
+       (a () (push (car l) a)))
+      ((null l) a)))
+
+  (PROG ((L L) (A NIL))
+        #:G2734
+        (WHEN (NULL L) A)
+        (PSETQ L (CDDR L)
+               A (PUSH (CAR L) A))
+        (GO #:G2734))
+
+  (prog ((a nil))
+   start
+    (if (null l) (return a))
+    (setq a (cons (car l) a))
+    (setq l (cddr l))
+    (go start))
+
+        check # args = 1
+
+        R4 <- NIL
+..2
+        compare R3 NIL
+        jump-equal ..1
+        compare-data-type R3 dtp-list
+        jump-not-equal error
+        vma-start-read <- R3
+        check-page-read
+        dispatch transport md
+        F1 <- MD
+        F2 <- R4
+        call cons
+        R4 <- F1
+        compare-data-type R3 dtp-list
+        jump-not-equal error
+        vma-start-read <- R3 + 1
+        check-page-read
+        dispatch transport md
+        compare-data-type MD dtp-list
+        jump-not-equal error
+        vma-start-read <- MD + 1
+        check-page-read
+        dispatch transport md
+        R3 <- MD
+        jump ..2
+
+..1
+        R-RETURN R4
+        jump return

@@ -1,0 +1,92 @@
+@chapter Installation Procedure
+@label[chapter-installation]
+
+@section Software Installation
+
+The Release 4 networking software is loaded in the distribution band
+and does not require a separate installation or enabling procedure.
+
+@subsection Installing Sources and Options
+
+The networking software source directory @l("SYS:NETWORK;")
+is provided with the @i(``Release 4 Sources Tape'').
+
+The Site Editor utility is provided on the @i(``Release 4 Options Tape'').
+
+See the @i(Lambda 4.0 LISP Release Notes) for information on installing Release 4 sources and options.
+
+@subsection Upgrading TCP-only Lambdas
+
+The most direct way to upgrade each Lambda at your site
+is to restore the @i(``Release 4 Band/Microcode Tape'') on each system.
+But to upgrade a Lambda that does not have a tape drive,
+you must use the network.
+
+System managers upgrading to Release 4
+on Lambdas which contain only the Excelan hardware interface should
+see Section @ref[section-tcp-disk-compatibility], @nameref[section-tcp-disk-compatibility],
+for information on communicating between Release 3 and Release 4 DISK servers.
+The special procedure documented in that section is required in order
+to use TCP/IP to copy partitions between a Release 3 Lambda and a Release 4 Lambda.
+
+The procedure below is a third alternative;
+it will work only if the system host contains an Excelan board and a tape drive.
+
+@enumerate
+
+@item
+Save a Release 4 band on the system host with updated site files.
+@item
+Reboot the system host on Release 3.
+@item
+Run @l(si:copy-disk-partition) and copy the updated Release 4 band from the system host
+to each Lambda running Release 3 TCP/IP.
+
+@end(enumerate)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end install

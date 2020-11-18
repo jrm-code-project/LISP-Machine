@@ -1,0 +1,242 @@
+Date: Thursday, 10 July 1986, 10:49-EDT
+From: Ken Traub <KT@XX.LCS.MIT.EDU>
+Subject: A modest list of suggestions for a better ILL.
+To: bug-illustrate@MC.LCS.MIT.EDU
+Message-ID: <12221577435.10.KT@XX.LCS.MIT.EDU>
+
+I humbly offer the following suggestions for the improvement of ILL,
+arrived at during the course of a marathon session of creating over
+40 complex illustrations.  A copy may be found in oak:>kt>ill-suggestions.text.
+
+OK Richard, you asked for it.  Sorry I couldn't think of more things, but after
+all I can't spend my time just thinking of improvements for Illustrate...
+
+
+GENERAL PHILOSOPHY
+------------------
+
+The panes need to be grouped better.  The fonts and text-mode panes are fine;
+they both hack text, and they are adjacent.  On the other hand, the shapes,
+dashing patterns, brush type, brush size, and color panes should all be grouped
+together.  I'm continually zipping from the shapes pane to the brush size pane
+to the drawing pane.
+
+The splines and closed splines "commands" belong in the shapes pane, not the
+command pane.
+
+The flashy transformations belong in the transformation pane, not the misc.
+pane.
+
+You have some commands available via mouse, some via keystroke, and some via
+m-X (and various combinations thereof).  I think the heuristic for deciding
+which should go where should be:
+     Via Mouse - only if their use requires mouse input in the drawing pane.
+                 These should also be available via keystroke (see below).
+     Via Keyboard - includes commands that need only keyboard input, or no
+                    other input at all.
+     Via M-X - infrequently used commands not needing mouse input.
+
+There are only a few violations of this principle currently:  The file hacking
+commands, undelete, and position text should be via keystroke (only).  The
+configure and options commands should be via m-x.  The change grid spacing
+should be via keystroke and via mousing the grid spacing pane.
+
+Illustrate commands fall into five paradigms.
+  1)  Operate on a single object --- Edit and Describe
+  2)  Operate on several objects --- Delete, Rebrush, Cut, Select, and Recolor.
+  3)  Do something indicated by mouse input --- Magnify and all drawing
+      functions.  (Magnify is somewhat different than all the others.)
+  4)  Operate on several objects, where the operation is described by mouse
+      input --- The transformations.
+  5)  Alter illustrate's state in a multiple choice way--- font selection, etc.
+  6)  Do something described by typein --- grid size, write files, etc.
+
+The current assignment of keystrokes is schizoid to the extreme.  I think the
+following is a consistent model for assigning mousestrokes/keystrokes to these
+paradigms:
+
+Paradigm 1)
+  Mouse on icon enters a state where mouse-left on an object does it to that
+    object.
+  Control-Shift-<letter> also enters that state.
+
+Paradigm 2)
+  Mouse on icon enters a state where mouse-left on an object does it to that
+    object, and mouse-right does it to all objects in a box.
+  Control-Shift-<letter> also enters that state.
+  Control-<letter> does it to all selected objects.
+
+Paradigm 3)
+  Mouse on icon enters a state where that operation may be done by giving the
+    appropriate mouse strokes.  Left for point under mouse, right for nearest
+    grid point, and middle to complete the operation (when needed, e.g. for
+    splines or continuous lines).
+
+Paradigm 4)
+  Mouse on icon enters a state where the appropriate mousestrokes performs the
+    operation.
+  Control-Shift-<letter> also enters that state.
+  Control-<letter> does it to all selected objects.
+
+Paradigm 5)
+  Mouse on icon performs the selection.
+
+Paradigm 6)
+  Keystroke or M-x command does it, prompting for input if needed.
+
+Note that Paradigm 1 stuff could be made more like Paradigm 2 if you
+interpreted doing it to several objects as doing it to them one at a time, in
+some sequence of illustrate's choosing (perhaps highlighting the object in the
+drawing pane as it moves from one to the next).
+
+The rationale for the control/control-shift choice is that the
+Control-Shift-<letter> stuff will be done infrequently, with the user
+preferring the mouse for that purpose.  On the other hand, the control-<letter>
+stuff will be done more frequently.
+
+
+NEW/ALTERED COMMANDS
+--------------------
+
+The cut command should change the dashing pattern to the one currently
+selected, and there should be a solid pattern.  Thus, the notion of "uncutting"
+is eliminated.
+
+Cut, Rebrush, and Recolor should all be combined into something which does them
+all at once.  If you did this, you could even eliminate the individual ones!
+This new command would be paradigm 2.  (Note that cut does dashing patterns,
+recolor does colors, and rebrush does brush shape, size, and font all at once.
+This is a little non-symmetric.)
+
+There should be something which sets the current color, font, brush shape,
+brush size, and dashing pattern from a moused object; i.e., something like
+Describe but which "remembers" the attributes of what was described.  This
+would be paradigm 1.
+
+You need something which puts stuff into the kill ring without removing it from
+the current illustration; analagous to EMACS' m-W.  This would be paradigm 2.
+
+Yanked stuff (c-Y) should be selected thereafter.  m-Y should do the EMACSy
+thing (I think you told me you did this already...)
+
+There should be a command (via keystroke) to turn off selection without
+entering the selection state (analagous to c-G in ZMACS).
+
+There should be some sort of search command which selects all objects of a
+given class.  Examples:  all text objects, all rectangles, all red things, all
+stuff in brush thickness two, etc, etc, etc.  This is infinitely open-ended, I
+realize, but you can probably think up some useful versions of this.
+
+Along the lines above, there ought to be some sort of query replace for text.
+
+There should be an UNDO command, which undoes transformations, rebrushing, etc.
+This should be a keystroke.
+
+
+GRIDS
+-----
+
+The current grid spacing should be recorded in the ILL file, and restored when
+the file is read back in (this should not prevent the user from switching among
+various grid spacings when editing, of course).
+
+The grid should have some indication of every fifth (or tenth) grid point.  One
+method is to omit the grid points at the corners of the 5x (10x) grid.  Another
+method is to make them darker.  Yet another is to have tick marks in the
+margin.  I am forever counting grid points, ruining my eyes in the process.
+
+
+FILES AND HARDCOPY
+------------------
+
+Illustrate has all sorts of output types:  ILL files, PRESS files, HP files,
+and soon to be IMP, DVI, etc etc etc.  (how about TTY files?).  I suggest the
+following mechanism for dealing with this:  associate a major mode (a la ZMACS)
+with each hardcopy type.  This mode is recorded in the ILL file, and determines
+which fonts, colors, etc, are available.  Then you can provide explicit
+conversion commands for converting from one type to another, which will make
+the best approximations it can at converting text and other hard stuff.
+Conversions are important when you need something in a hurry and your chosen
+hardcopy device has crashed.
+
+Given the above, every illustration can generate two kinds of files:  ILL
+files, and X files, where X is the major mode of the file.  With each buffer,
+then, there will be two associated filenames and two modified bits.  Illustrate
+should query before killing any buffer in which the ILL modified bit is set (I
+got screwed by this when I accidently killed an illustration for which I had
+written only a PRESS file).
+
+Given the above, the file hacking commands would be:
+c-x c-f --- Find ILL file, a la ZMACS (Dawn just wrote the code for this).
+            This is complicated, as I explained to Dawn.
+c-x I   --- Insert ILL file (read an ill file into the current buffer).
+c-x c-v --- Visit ILL File a la ZMACS (not a la EMACS).  Use Help in ZMACS to
+            find out exactly what this is for.
+c-x c-s --- Save ILL File.  Write an ILL file using buffer's file name.
+c-x c-w --- Write ILL File.  Write an ILL file, prompting for a file name.
+[something] --- Write Device File.  Write the buffer in format X, where X is the
+                major mode for the buffer.
+M-X Find X File --- Like Find ILL File, but reads a file in format X, making
+                    the buffer be that major mode.
+M-X Insert Device File --- Like Insert ILL File, but reads in format X, where X
+                           is the major mode for the buffer.
+M-X X Mode --- Sets the major mode for the buffer.  If the buffer has stuff in
+               it, this implies conversion, and so should query the user first.
+M-X Hardcopy --- Sends directly to a device of the appropriate type.
+
+None of the file hacking commands should be via mousestrokes.
+
+There should be a device-independent "marker" object, recorded as such in ILL
+files, but written to PRESS files as <==<<, to other files as appropriate.
+
+
+CONTINUOUS LINES
+----------------
+
+Continuous lines should create a bunch of individual lines, not one "continuous
+lines" object.  Compromise:  let an option control the behavior of continuous
+lines in this respect.  In both cases, aborting gets rid of all segments, and
+rubout backs up one point.
+
+When you hit rubout during continuous lines, the mouse position should be
+warped to the place where the erased point was.
+
+
+MISCELLANEOUS
+-------------
+
+I prefer ZMACS-style help (select D, C, or A, then give input, one shot only)
+to the present ILL-style help.  I'm not too picky about this one, though.
+
+Illustrate INIT files should have the capability of reassigning all keystrokes,
+and maybe even icon configuration (!).
+
+Is it possible to maintain two rasters at once, a magnified one and a full
+scale one, so that alternation between the two is very fast (via bitblt)?
+
+Here's an idea for the equivalent of keyboard macros:  Let the user select some
+objects, drop one, two, or three points, and then assign it a name and
+optionally a keystroke.  When the user does m-x name or the assigned keystroke,
+he/she then does one, two, or three points on the drawing, and the saved
+objects are two, four, or six point transformed into the illustration.  Cool,
+huh?
+
+Selection is too hard (we discussed this), but I'm not sure there are any
+better solutions.
+
+
+BUGS
+----
+
+The c-m-s-h-V family does not align the illustration properly on the grid
+points.
+
+The flashy transformations makes the grid go away sometimes.
+
+If you try to do a circular arc where the first two points are along the line
+X = Y, you get an error!
+
+c-m-s-h-sh-W starts on the second line of the quatrain, not the first (Richard,
+this is the most serious problem with Illustrate to date.  I hope AIA doesn't
+go down the tubes because of it).
+-------

@@ -1,0 +1,45 @@
+Babyl Options:
+Version:5
+Append:1
+
+0,,
+*** EOOH ***
+Date: Saturday, 18 June 1988, 15:27-EDT
+From: David M.J. Saslav <saz at GSI-CAM>
+Subject: corresponding via zmail about the KMac Project (Project Ostrich)
+To: RWK@Angel
+CC: SAZ at angel, keith@angel
+FCC: ANGEL: /lmi/doc/kmac/KMAIL.TXT#>
+     DJ: SAZ; KMAIL.TXT#>
+
+Bob
+
+Message received, contents follow for Keith's benefit:
+
+        KMac is also a file type we're requesting from Apple.  It will
+        be used for files needed by the KMac application itself, such as
+        configuration files.
+
+In the future, let's use our wonderful mail environment as propitiously
+as possible (that is, let's be sure to cc: both of the others in any
+documentation-related messages).  The first file in the fcc: list above
+(angel:/lmi/doc/kmac/KMAIL.TXT) will be the archive for messages.
+The latter may be used as a backup source for angel-downtime.
+
+Do FCC's remain in header fields at upon replies in ZMail? I wonder.
+
+saz
+
+
+0,,
+*** EOOH ***
+Date: Saturday, 18 June 1988, 16:16-EDT
+From: David M.J. Saslav <saz at GSI-CAM>
+Subject: corresponding via zmail about the KMac Project (Project Ostrich)
+To: David M.J. Saslav <saz@GSI-CAM>
+CC: SAZ at angel
+FCC: DJ: SAZ; KMAIL.TXT#>
+
+just a test -- to see if appending works when using FCC:...
+
+

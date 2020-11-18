@@ -1,0 +1,22 @@
+
+The following is inferred largely from the hardware documentation.
+
+@i(Why You Don't Need Local Memory on the Processor Board to Boot Up a K/Mac:)
+
+Initial virtual --> physical memory map built into the processor board.
+Mac sets up initial part of memory;
+in so doing, the Program Counter is initialized on processor memory board:
+
+@example
+Processor Memory Board ---> Initial Map ---> Physical Memory Board
+@end(example)
+
+PC (a valid virtual address) is then translatable into a physical address.
+
+Low memory is always in the cache (IR cache?).
+Cache misses may be only way to fill it -- can cache misses even occur?
+
+Issue:  Can the communication area exist in low memory?  Is cache conflict
+a problem?
+Is there instruction caching, but no data caching?? Ask Rick.
+

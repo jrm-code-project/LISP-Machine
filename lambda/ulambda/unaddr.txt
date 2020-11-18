@@ -1,0 +1,519 @@
+This file needs to be revised when the physical quantum mapping
+feature is fully implemented.
+
+
+
+Lambda IO devices:
+  Hardware wise, things are simplified by the slot-space concept, in conjunction
+with the 32 bit (of bytes) physical address space.  However, now we have the
+problem that we dont have enuf virtual address space to simply map in all the
+physical address space.  From a practical point of view, the main things
+we are interested in mapping are the multibus address space, and the multibus
+IO registers.  These are both physically contained in the slot address space of
+the SDU card.  (See the TI/Irvine blurb for a complete listing of SDU addresses)
+
+  The multibus address space is a 20 bit byte address, while the IO space
+is a 18 bit byte address.  However, much less that this is normally used.
+
+Interm Lambda (24 bit) virtual address mapping:
+  In the CADR, XBUS I/O space occupied 77000000 to 77377777 and the unibus
+was mapped to 77400000 to 77777777.  So a total of 18 bits of 32 bit words
+worth of virtual address space is available for "redeployment".
+
+  76,,300000 - 76,,477777   Grey video buffer, Pixel mode.
+    translated to byte address 0 - 00777777 on Grey-board-slot.
+  76,,500000 - 76,,677777   Grey video buffer, Plane mode.
+    translated to byte address 04000000 - 04777777 on Grey-board-slot.
+  76,,700000 - 76,,717777   Grey color map, registers, and prom
+    translated to byte address 77700000 - 77777777 on Grey-board-slot.
+
+                            Reserved to map in all A memory someday, plus some left over.
+  76,,776000 - 77,,777777   Mapped to A memory (first 1024. for now).
+  77,,000000 - 77,,077777   32K worth of main TV bitmap,
+    ;in here go rest of multibus address registers.  Another idea is to allocate
+    ;a couple of pages per card slot.
+
+;---
+;<77,,200000 - 77,,277777>  CADR COLOR TV VIDEO BUFFER (4-BIT)
+
+  77,,277400 -> 77,,277777  quad video control registers
+;---
+
+  77,,300000 -> 77,,337777
+        64. pages for more communication
+
+  77,,340000 ->  A block of 32. pages on a 32. boundary. This is to be hardwired to a
+        32. second level block (176 octal is proposed.).  then %nubus-read, etc, would not
+        have to restore any map entrys they use.
+
+  77,,360000  ->  reserved for more communication pages, a la below ones.
+       the next four pages were formerly assigned to the tv scan line table
+       four pages to share with unix
+  77,,366000 - 77,,366377 (1)   share tty
+  77,,366400 - 77,,366777 (1)   ethernet buffer a
+  77,,367000 - 77,,367377 (1)   ethernet buffer b
+  77,,367400 - 77,,367777 (1)   configuration page
+
+  77,,370000 - 77,,370377 (1)   low byte of SDU control regs at 1c000 in multibus space
+                                see below for description of regs
+  77,,370400 - 77,,370777 (1)   mapped to TV control registers. F<tv>000000-FF hex.
+  77,,371000 - 77,,376777 (12.)  used to reference multibus->nubus mapping registers.
+                                There are 1024 such registers, ea 24 bits long (in a
+                                32 bit word).  Lossage is, these registers only work
+                                if referenced in byte mode.  Thus, 6 pages are set up as
+                                2 pages for referencing byte 0, 2 for byte 1, 2 for byte 2.
+  77,,377000 - 77,,377377 (1)   mapped to multibus IO space. F<SDU>100000-FF hex.
+                                used notably for disk control registers.
+
+  77,,377400 - 77,,377777 (1)   This page left unused to trap unconverted CADR control
+                                register references.
+
+  multibus io space.  64K bytes.
+
+   The multibus "replaces" the UNIBUS.  Note, however, that we have only 17 bits of words,
+   or 19 bits of bytes, available.  Thus the top half of the multibus address space
+   cannot be directly referenced (you have to set up the map specially, etc).
+  77,,400000 - 77,,777777       mapped to F<SDU>000000-7FFFF
+
+  notable areas in Multibus space: (these are not handled specially. See SDU address map.)
+
+  77,,400000 - 77,,437777   00000-0FFFF   internal RAM within SDU
+  77,,460000 - 77,,461777   18000-183FF   multibus -> nubus map registers BUT!!
+        DO NOT REFERENCE THESE REGISTERS THIS WAY.  THEY ONLY WORK IF REFERENCED ON SINGLE
+        BYTE TRANSFERS.  THREE PAGES ARE SPECIALLY ALLOCATED ABOVE TO DEAL WITH THIS!!
+
+                  1024 registers
+                                            each 32 bits, of which 24 are present.
+                                            1 bit enable, 1 bit unused, 22 bits hi NUBUS adr.
+                                          divide 20 bit multibus into 2 10 bit pieces:
+                                           each register maps a 1K byte segment to a 1K nubus
+                                           page.
+
+
+Usage of MULTI-NUBUS mapping registers:
+  Microcode disk routines in ULAMBDA use mapping registers starting at 577
+   21 registers can be used.
+  also uses 576 for share-iopb structure
+  The prom bootstram uses mapping register:
+        570 for DATA
+        571 for IOPB
+        576 for share-iopb structure
+
+  The SDU uses some...
+
+  The console program uses 477 and on..
+
+  Magtape code uses 540 and on.
+
+Disk configuration info
+The CMOS ram contains a complicated structure, but here is what is interesting:
+
+  Multibus location (low 8 bits used)
+
+   360140  #/d
+   360144  #/i
+   360150  #/s
+   360154  #/k
+
+   360210  number of heads
+   360214  number of sectors/track
+
+If we want, we can check for the "disk" string, for insurance against changes.
+But in any case the other two locations will work for as long as we use the
+same setup tapes, maybe longer.
+
+SDU control registers - this single page of SDU space is mapped to from 4 pages
+of virtual address space so it can be accessed in byte mode.
+The following are hex multibus byte addresses
+
+        #x1c080 front panel led's low three bits implemented - when a bit
+                is zero, the corresponding light is on
+        #x1c084 low four bits give switch setting, high four bits are slot number
+                of SDU
+        #x1c088 SDU CSR0
+        #x1c08c SDU CSR1
+        #x1c100-#x1c11c
+                8 selectable A/D channels
+        #x1c120 time of day chip data register
+        #x1c124 time of day chip address register
+        #x1c150 console serial data register
+        #x1c154 console serial command register
+        #x1c158 other serial data register
+        #x1c15c other serial command register
+        #x1c160 Interval timer (PIT) #1, counter #0 (console baud clock generator)
+        #x1c164 PIT #1 counter #1 (local baud clock generator)
+        #x1c168 PIT #1 counter #2
+        #x1c16c PIT #1 mode register
+        #x1c170 PIT #0 counter #0
+        #x1c174 PIT #0 counter #1
+        #x1c178 PIT #0 counter #2
+        #x1c17c PIT #0 mode register
+        #x1c180 nubus timeout registeer
+        #x1c1a0 1/4" tape control register
+        #x1c1a8 - #x1c1bc
+                bus integrity registers
+        #x1c1c0 interrupt controller (PIC) #0 OCW/ICW0
+        #x1c1c4 PIC #0 OCW/ICW1
+        #x1c1d0 PIC #1 OCW/ICW0
+        #x1c1d4 PIC #1 OCW/ICW1
+        #x1c1e0 initiate multibus interrupt #0
+        #x1c1e4 initiate multibus interrupt #1
+        #x1c1e8 initiate multibus interrupt #2
+        #x1c1ec initiate multibus interrupt #3
+        #x1c1f0 initiate multibus interrupt #4
+        #x1c1f4 initiate multibus interrupt #5
+        #x1c1f8 initiate multibus interrupt #6
+        #x1c1fc initiate multibus interrupt #7
+
+-*- Text -*-
+
+This file is supposed to document Unibus addresses used in the Lisp machine.
+    Also see section on Xbus addresses after Unibus.
+    First, we have a textual description of the more important things.
+
+The unibus and xbus can be referred to through the virtual memory of the
+Lisp machine.  When this is done, the unibus runs from address 77400000
+to address 777777777.  The xbus i/o space runs from 770000000 to 773777777.
+The xbus i/o space contains 32-bit words just like Lisp machine memory.
+The unibus is made of 16-bit words, and each word is stored in the least
+significant bits of one Lisp machine word.  So, to convert a unibus
+address to a Lisp machine virtual address, you must divide by two (bytes
+to words) and then add 774000000.  Normally programs access the unibus with
+the functions %UNIBUS-READ and %UNIBUS-WRITE, so they don't need to contain
+these numbers.
+
+The unibus map
+
+When unibus devices do direct memory access to Lisp machine memory, they
+do so through a special facility in the bus interface which allows some
+parts of the Lisp machine main memory to appear on the unibus.  Any 16.
+pages of main memory can be selected to appear in 16. slots, which take
+up the range from 140000 to 177777 in unibus addresses.  Each Lisp
+machine memory word is accessed as two unibus words; the low half has
+the lower unibus address.  The unibus device should always access both
+unibus words, low word first, in order for the hardware to work.  This
+is because the bus interface actually stores half of the xbus word and
+usually accesses the main memory only once for each pair of unibus
+operations.  A special mode called write through mode exists in which
+each unibus write operation will actually write the xbus location.  This
+only applies to the second half of the mapped unibus pages, and is
+turned on by bit 7 (200) in the bus interface's Error Status register.
+
+To select the xbus pages to map into the unibus address space, you use the
+sixteen map registers which exist in the unibus at 766140 through 766176.
+Each register is one unibus word.  Bit 15 of the register signifies that
+mapping of that page is turned on; otherwise, that section of the unibus
+is non-existent memory.  Bit 14 enables write access from the unibus.
+The remainder of the register is the page number (address divided by 400)
+of the xbus page to be accessed from this unibus page.
+
+The 16-bit parallel I/O register.
+
+The I/O board contains one 16-bit register which can be connected to an
+arbitrary device.  Any unibus word written to this register appears on one
+set of connector pins; reading from this register samples another set of
+connector pins.  The register unibus address is 764126.
+
+To attach a 16-bit input device, use connector J07 on the I/O board.
+Pins 1 through 16 on this connector connect to the input bits.
+(Pins 17 through 20 connect to output bits 0 through 3).
+Similarly, connector J08 contains all the output bits and the low four
+input bits, in the same arrangement.  Use this for a 16-bit output device.
+
+Connector J05 contains input bits 0 through 9 and output bits 0 through 9,
+in connector pins 1 through 10 and 11 through 20.  This is good for a single
+bidirectional device.
+
+If you connect to two of these connectors, all connections to the same input
+or output pin are shorted together.
+
+Serial I/O.
+
+The serial I/O port uses unibus locations from 764160 through 164166.
+It interrupts with vector 264.  More information needs to be inserted here.
+
+Timers.
+
+The I/O board contains three timers: the microsecond clock, the 60 cycle clock,
+and the interval timer.  The first two are registers that you can read.  The
+last functions by generating interrupts.  (The 60 cycle clock can also
+be enabled to interrupt).
+
+The microsecond clock is incremented every microsecond.  It is a 32-bit register
+which is accessed as two unibus locations, at addresses 764120 and 764122.
+The low address is the low half of the register.  This half must be accessed
+first if you want to get two halfwords that are compatible with each other
+(no carries appear to have happened between one reference and the other).
+This clock is used for the function TIME, and for updating the who line.
+
+The 60 cycle clock is under the control of the AC power.  It has 16 bits,
+and appears at unibus address 764124.  You must read the clock repeatedly
+until two references get the same value; otherwise you may have referred to
+it while a carry was propagating and get an incorrect value.  The Lisp machine
+system does not use this clock.
+
+Ths interval timer can be used to generate an interrupt after a specified
+amount of time, in units of 16 microseconds.  The timer register is write-only
+and located at unibus address 764124 (the same address which, when read, gives
+the 60 cycle clock).  The timer increments each 16 microseconds, and when it
+reaches zero, it requests an interrupt with a vector of 274.
+
+Keyboard.
+
+Data from the keyboard appears in a 32-bit register at unibus addresses
+764100 and 764102.  The high half must be read first.  The keyboard generates
+an interrupt with vector number 260 when data is available, if enabled
+(see the I/O board status register).
+
+Connector J03 on the I/O board runs to the console, carrying the keyboard,
+mouse and speaker signals as well as the video output signal that runs through
+the I/O board from the TV board.
+
+Mouse.
+
+The mouse X position, in 16 bits, is accessible at unibus address
+764106, and the Y position and buttons are in 764104.  Only the
+difference between two X-positions or Y-positions is meaningful.
+Changes in the mouse position or buttons can cause an interrupt, but the
+Lisp machine system does not enable the interrupt.  If enabled, the
+interrupt vector is 260.
+
+Speaker.
+
+To complement the signal sent to the keyboard speaker, refer to unibus
+location 764110.  The value is meaningless.  A sound is produced by
+complementing the signal at the desired frequency.
+
+I/O board status register.
+
+Unibus address 764112 contains the I/O board status register.
+In this register:
+ Bit 0  enables the remote mouse (?)
+ Bit 1  enables interrupts on change of mouse status.
+ Bit 2  enables interrupts from the keyboard.
+ Bit 3  enables clock interrupts.
+ Bit 7  enables input interrupts from the serial I/O port.
+
+Chaos Interface.
+
+The I/O board contains the interface to the Chaos network.
+
+The chaosnet interface registers appear at addresses 764140 through
+764152 on the unibus, and it interrupts with vector 270.  For
+programming information, see the AI lab memo on the Chaosnet.
+
+The interface contains two DIP switches which control the network
+address of the interface.  The address is a 16 bit number whose high 8
+bits are the subnet number.  DIP D10 sets the subnet number and DIP D12
+sets the low 8 bits of the address.  A switch which is "ON" signifies
+a zero in the network address!  If a ten-switch DIP is used, only the
+middle 8 switches are meaningful.  The switches are numbered from least
+significant bit upward.
+
+The machine can read its own network address from unibus address 764142.
+This is the only way that the Lisp machine operating system knows which
+Lisp machine it is running on: it reads the machine's network address
+and looks that up in the host table.
+
+Not all chaosnet subnets correspond to physical cables, but each physical
+cable is one subnet, and has a unique subnet number.  All the net interfaces
+connected to the cable must have that subnet number in their net addresses.
+
+Connector J01 on the I/O board runs to the transceiver box.
+
+Table of all unibus addresses used.
+
+
+140000-177777   (in CADR)  UNIBUS region mapped to XBUS
+
+600000-617777  MIP-3/A A/D converter -- buffer memory (4k x 16b)
+
+764040  Summagraphics tablet status register. (interrupt vector 114)
+764042  Tablet X register
+764044  Tablet Y register (last tablet reg)
+
+764000-764176 IOB addresses, detailed below:
+
+764100  Kbd data low
+764102  kbd data hi.  Read hi first then low.
+764104  Mouse Y
+764106  Mouse x
+764110  click audio
+764112  kbd/mouse CSR: bit 0 remote mouse enable, 1 mouse int enable, 2 kbd int enable
+                3 clock int enable, 7 serial input int enable
+
+764120  Time of Day, low part.  read low then hi
+764122  Time of Day, high part
+764124  interval timer
+764126  GPIO
+
+764140  Chaos net -- Control/Status register.
+764142  My number (this machine's chaos address).
+764144  Data register.
+764146  Bit count register.
+764152  Activate transmitter (upon being read!)
+
+        serial interface  (vector 264)
+764160  read received data, write transmit data
+764162  read data set status, write send weird characters in synchronous mode
+764164  mode selection
+764166  command register
+
+;document other IOB devices here.
+
+764200-764216   Ethernet (used at Xerox)
+
+764300-764377  MIP-3/A A/D converter -- control registers (32 x 16b)
+
+764400-764416  LMUNET robotics controller
+
+766000 start of CADR processor UNIBUS area
+766000-766036  CADR Spy locations
+766040         CADR UNIBUS interrupt status
+766042          also CADR UNIBUS interrupt related
+766044         CADR XBUS error status
+
+766100  CADR Debuggee's selected UNIBUS location
+766104  CADR Debuggee's status info
+766110  CADR Debuggee additional info
+766114  CADR Debuggee selected address
+
+766136  end of CADR processor UNIBUS area
+
+766140 - 766176   CADR XBUS<-> UNIBUS mapping registers
+        These map UNIBUS addresses 140000-177777.
+        Bits are valid, write-enable, page.  If high 5 bits of page=1, writes MD register.
+        Allocation of mapping registers:
+                766140-766156   For use by software running on the same machine (the following
+                                are merely suggestions):
+                  766140        Ethernet (Used at Xerox)
+                  766142        Ethernet (Used at Xerox)
+                  766142        Versatec
+                  766144        FPS Array Processor
+                  766144        Ethernet (Used at Xerox)
+                766160-766170   unassigned
+
+                766172          Debugging microprocessor
+
+                766174          CC-WRITE-MD
+
+                766176          DBG-READ-XBUS and related routines
+
+
+774000 - 774116  FPS Control and Status Registers (Interrupt Vector 170)
+
+776000  Cheops Control Register
+776002  Cheops Status Register
+776004  Cheops DBR Register
+776006  Cheops MUX
+
+777500  Versatec plotter byte count
+777502  Versatec data buffer memory address extension
+777504  Versatec printer byte count
+777506  Versatec data buffer address
+777510  Versatec plotter control and status
+777512  Versatec plotter data buffer
+777514  Versatec printer control and status
+777516  Versatec printer data buffer
+
+XBUS ADDRESSES
+
+Virtual address space.  Implemented by microcode.
+0          -               ordinary
+76,,776000 - 76,,777777    mapped to A memory locations 0-1777 by microcode.
+77,,000000 - 77,,377777    Xbus IO space.  see below for further breakdown
+77,,400000 - 77,,777777    mapped to Unibus.   Each Xbus address is mapped to
+                           one 16 bit Unibus location.
+
+
+XBUS IO space (octant 6 of the XBUS)
+
+Current XBUS physical address assignments
+
+;these first two only accessible if lowest-direct-virtual-address set down.
+; (normally 76776000 -> 16,,776000, on CADR it was set to 15,,400000).
+15,,400000 to 15,,577777        Grey TV in Pixel mode
+15,,600000 to 15,,777777        Grey TV in Plane mode
+
+17,,000000 to 17,,077777        Main TV screen
+17,,100000 to 17,,107777        Convolution box (offsets described below)
+17,,110000 to 17,,110017        Scheme chip interface (offsets described below)
+17,,140000 to 17,,177777        Audio i/o memory
+17,,200000 to 17,,277777        Color TV
+17,,377500 to 17,,377537        Grey TV (and frame grabber)
+17,,377600 to 17,,377677        Vision hardware control
+17,,377740 to 17,,377747        Audio i/o control registers
+17,,377750 to 17,,377757        Color TV control
+17,,377760 to 17,,377767        Main TV control
+17,,377770 to 17,,377773        Second disk control
+17,,377774 to 17,,377777        Disk control
+
+Note: octant 7 of the XBUS cannot be accessed by the Lisp Machine,
+because those physical addresses are mapped to the unibus.
+
+CONVOLUTION BOX ADRS
+
+00x xxx xxx xxx   -> PATCH MEM 0-1777    11:0
+01x xxx xxx xxx   -> MASK ELEMENT 0-1777  9:0
+10x xxx xxx xxx   -> MASK VALUE 0-1777   11:0
+11x xxx xx0 x00   -> MASK ADR  11:0      -> MASK ADR
+          0 x01   -> OFFSET     9:0      -> OFFSET
+          0 x10   -> MSP                 -> START       DATA 3:0 GIVES SPEED
+          0 x11   -> LSP                 -> SINGLE-STEP  ", ALSO, 100 BIT -> CLEAR DONE AND
+                                                            PIPELINED DONE.
+            100   ->                     -> RESET
+
+11x xxx xx1 x00   -> READ-STATUS
+
+
+Scheme chip interface registers:
+00      RW      Clock duration -  Delay 1
+01      RW      Clock duration - Phase 2
+02      RW      Clock duration - Delay 2
+03      RW      Clock duration - Phase 1
+04      RW      Write: Map address (for examine/deposit)
+                Read: Memory address chip last referenced
+05      RW      Map data (addressed by Map Address register)
+06      RW      Control
+                Bit     RW      Function
+                0        W      Reset
+                1       RW      Run (turns on/off clock, clock registers should not
+                                     be changed with run on)
+                2       RW      External freeze (freezes chip, does not stop clock)
+                3       R       Chip is frozen
+                4       R       NXM (cleared by reset or mem start)
+                5       R       Parity error (cleared by reset or mem start)
+                6       R       Invalid map location addressed (cleared by reset or mem start)
+                7       RW      Freeze on error (causes chip to be frozen when one of
+                                                  above conditions is true)
+                8       RW      Freeze on GC (freeze when GC interrupt is set)
+                9       R       GC Needed
+                10      R       GC interrupt in progress
+                11      R       External interrupt request
+                12      R       External interrupt in progress
+                13      R       Single stepping in progress
+                14      RW      Read: Read request in progress
+                                Write: Mem restart (writing a 1 restarts the Scheme chip
+                                after a failing memory cycle.  LISPM should have
+                                looked at the write data for a write, or stored
+                                the read data for a read)
+                15      R       State hacking (reading or writing) in progress
+                16      R       Chip read signal (chip is waiting for a memory cycle)
+                17      R       Chip write signal (chip is starting a write)
+                18      R       Chip cdr (whether current memory cycle is a car or a cdr)
+                19      R       Chip is reading interrupt vector
+                20      R       GC Needed
+                21      R       Chip address latch enable
+                22      R       Memory freeze -- chip is waiting for a memory cycle
+07      RW      Single Step (single steps chip up to 256 times, only useful when Force Freeze
+                             is set and RUN is on)
+                Reading reads the current state of the counter.  Useful if froze due to
+                memory cycle
+10      RW      Reading reads latched state, writing causes state to be latched at
+                next convenient time
+11      RW      Int Vector
+12      RW      GC vector (vector sent to chip for GC interrupt)
+13       W      Loads new state into chip
+14      RW      Memory data
+15       W      Clears external interrupt request, data is ignored
+16       W      Writing causes an external interrupt

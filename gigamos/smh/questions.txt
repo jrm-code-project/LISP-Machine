@@ -1,0 +1,50 @@
+
+
+                   * * *  Questions and Issues  * * *
+
+
+This is a list of issues which are not already obvious task items. They
+either require study or information which we do not yet have.
+
+KEY: To what project periods is the issue relevant?
+
+      Hardware:
+        *H0: Development (Immediate)
+        *H1: Board-level processor
+        *H2: First-generation chip processor
+        *H3: Second-generation chip processor
+        *H4: Future generations or applications
+      Software:
+        *S0: Alpha -- (immediate) support of development
+        *S1: Beta release
+        *S2: Release 1
+        *S3: Release 1.5 (tuning)
+        *S4: Release 2
+
+I1. Physical site maintenance and support.
+  I1a. Air conditioning. *H0
+  I1b. Clean up machine room cabling. *H0
+  I1c. Partitions. *H0
+
+I2. K memory: static column vs page mode. *H0*H1*H2
+
+I3. K memory: maximum memory. *H2
+
+I4. Study K and disk power usage problems in MAC. *H2
+
+I5. Investigate number of hardware stack frames. *H2
+
+I6. Investigate instruction cache size. *H2
+
+I7. Study trap/tag architecture vs software efficiency. *H3*H4
+
+I8. Apple VAR software compatibility issues. *H0*H1*S0
+    May affect K-MAC design spec.
+
+I9. Compatibility with TI Mac product (Symbolics also?). *S0
+
+I10. Do Lisp Machines need uucp? *S3*S4
+
+I11. Should we write a quick K functional simulator (affects [I5] [I6]).
+     *S0*H2*H3
+

@@ -1,0 +1,1011 @@
+@comment -*- Mode:Text; Package:USER -*-
+
+@library(gsi-patbo)
+@library(lisp)
+
+@tolerance 300
+@overfullrule 0in
+@setpagewidth  6.25in
+@textbodyindent = 0.5in
+@begin(document)
+@baselineskip 13pt
+@parskip = 0.2in
+@parindent = 0in
+@secheadingskip .25in
+
+@defindex cp
+@synindex fn cp
+@synindex vr cp
+@synindex fl cp
+@synindex kw cp
+
+@settitle Lambda 4.0 LISP
+@setx titlecomment Release Notes / Installation Guide
+@setx gsipart Part 3342-0000 (Rev 8 Preliminary) - @datestamp
+@headings off
+@titlepage
+
+@copyrightpage
+
+@format
+@ZLP
+@end(format)
+@sp 2
+
+Comments on this manual, and on GigaMos documentation in general, should
+be addressed to:
+
+@display
+GigaMos Systems, Inc.
+675 Mass. Ave.
+Cambridge, MA 02139
+  Attn: Documentation
+@end(display)
+@end(copyrightpage)
+
+@setchapternewpage odd
+@headings off
+@headings on
+@evenheading @thispage@|@|@thistitle
+@oddheading @thistitle@|@|@thispage
+
+@chapter Introduction
+
+This manual accompanies the Release 4 LISP update distribution kit.
+The kit consists of the following parts:
+
+@sp 1
+@settabs 5 @columns
+@< @\ @i(Part #) @\ @i(Description) @\ @\ @i(Material) @cr
+@sp 1
+@< @\ (3338-0000)       @\  Release 4 LISP update kit:  @cr
+@< @\ @ 3338-9900       @\  @ @ Release 4 Cover Letter  @\ @\ letter @cr
+@< @\ @ 3339-0000       @\  @ @ Release 4 Band/Microcode Tape @\ @\ tape @cr
+@< @\ @ 3340-0000       @\  @ @ Release 4 Options Tape  @\ @\ tape @cr
+@< @\ @ 3341-0000       @\  @ @ Release 4 Sources Tape  @\ @\ tape @cr
+@< @\ @ 3342-0000       @\  @ @ Lambda 4.0 LISP Release Notes @\ @\ manual @cr
+@< @\ @ 3343-0000       @\  @ @ Lambda Networking Guide @\ @\ manual @cr
+@cleartabs
+@sp 1
+
+Note that three tapes are included in the kit.
+The LISP files that were previously provided on one tape (``the sources'')
+have been distributed on two tapes for Release 4:
+
+@enumerate
+
+@csubindex[LISP options][tape contents]
+@item
+The @i(``Release 4 Options Tape'') contains the software systems
+that are frequently loaded and used, including:
+@include options
+
+@cindex[LISP sources]
+@item
+The @i(``Release 4 Sources Tape'') contains the @l(".LISP") files that
+make up most of the ZetaLISP-Plus@tm@  system software;
+these are provided for the users' reference,
+to assist in such operations as diagnosis of programming problems.
+@end(enumerate)
+
+The system manager should determine from the description above
+what tapes need to be restored.
+The restoration procedures are described separately, further in this document.
+
+This update kit is all that is required to upgrade a system to Release 4, provided
+that the following requirements are met:
+
+@table 3
+
+@cindex[software prerequisites]
+@item
+PREREQUISITE SOFTWARE -
+It is not necessary to load a prior release of LISP software before loading Release 4.
+You can update a blank system, or one that has been running Lambda LISP software
+(Release 2, 3, or 4) previously.
+However, the Lambda @ii[must have been updated with a Release 3 SDU ``boot tape''].
+
+@cindex[boot tape]
+The best way to confirm that the system disk has been updated with Release 3 SDU software
+is to run the @l(load) command at the SDU.
+Use the @l(print) command to inspect the disk label.
+The LISP label must be located on cylinder 1.
+Verify that there is a partition named @l(UNX6);
+this is the partition that contains the Release 3 SDU software.
+
+@b[If the system has not been upgraded with a Release 3 boot tape,]
+do not proceed with the installation of Release 4.
+For information on upgrading with a boot tape, see the @i(Lambda Operations Manual).
+
+@cindex[backups]
+@item
+BACKUPS -
+Customers who have been running a prior release should make full backups
+of their LISP file system(s) and load band(s).
+The procedure for performing full backups is documented in the @i(Tape Software Manual).
+
+@item
+INSTALLING SOFTWARE ON A BLANK DISK (OR NEW SYSTEM) -
+Software installation on a blank disk is performed with the SDU @l(load) program.
+See the @i(Lambda Operations Manual) for the complete procedure.
+Use the @i(``Release 4 Band/Microcode Tape'') in place of the
+Release 3 band tape mentioned in that manual.
+
+@item
+FREE DISK PARTITIONS -
+Loading the LISP run-time software from the @i(``Release 4 Band/Microcode Tape'') uses up
+one of the available load (``LOD'') bands and
+two of the microcode (``LMC'') bands on the disk.
+Make a backup of any Release 3 load bands that you may need to use in the future.
+
+If you have customized site files, or if you load optional systems,
+you will have to save the updated LISP world
+to a second load band.
+It is possible to @l(disk-save) on top of the current load band, but
+this is not recommended.
+
+The procedure for saving a LISP load band is explained in the installation instructions
+later in this manual.
+
+@item
+FREE FILE SPACE -
+A significant quantity of file space is used up when the LISP software
+(the options and/or the system sources) is restored.
+Select the desired options carefully, and
+estimate the amount of file space remaining before proceeding
+to load the optional files.
+
+@itemize -
+@item The @i(Release 4 LISP Options) files occupy about 9,000 blocks.
+@item The @i(Release 4 LISP Sources) files occupy about 12,000 blocks.
+@end(itemize)
+
+List a directory on the system host to verify that there
+is sufficient free space.
+Note the text @l("Free=12010") displayed in the following example:
+
+@smalllisp
+(listf "LM:~;")
+
+MASTER: ~; *.*#*
+Free=12010, Reserved=10, Used=48000 (12 pages used in )
+  :
+ OUR-SITE.DIRECTORY  #1   3   DIRECTORY !   05/27/88 13:45:45   pld
+ REL.DIRECTORY   #1   1   DIRECTORY !   11/10/86 19:51:02       rel
+ TMP.DIRECTORY   #1   5   DIRECTORY !   07/20/88 23:01:51       pld
+  :
+@end(smalllisp)
+
+In this example, there are 12010 free blocks.
+This is enough space to restore all the options, @ii(or) the sources, but not both.
+
+@end(table)
+
+@chapter New Features and Improvements
+
+Release 4 includes hundreds of bug fixes and improvements throughout the system.
+The sections in this chapter describe the most visible and significant changes.
+
+@need 1000
+@section LISP Language Features
+@subsection CommonLISP
+@include cltl
+
+@need 1000
+@subsection ZetaLISP-Plus
+@include zetalisp
+
+@need 1000
+@subsection Format
+@include format
+
+@need 1000
+@section LISP Listener Enhancements
+@include listeners
+
+@need 1000
+@section File System
+@include file-system
+
+@need 1000
+@section ZMacs
+@include zmacs
+
+@need 1000
+@section Networking Software
+
+@cindex[networking software]
+There are significant changes and enhancements in the Lambda networking software.
+The new @i(Lambda Networking Guide)
+(included with this release)
+contains release notes that explain the major improvements.
+These release notes also explain the changes required for proper network configuration  (``site files'').
+The second section of the @i(Lambda Networking Guide)
+provides a comprehensive guide to networking configuration, operations, and applications.
+
+@need 1000
+@section Operating System
+@include internals
+
+@need 1200
+@section Windows and Interfaces
+@include windows
+
+@need 1200
+@section Utilities
+
+The following is a summary of improvements to utilities and interfaces:
+
+@enumerate
+@item
+Various enhancements to the Site Editor have been made
+to improve the interface and solve known problems.
+@item
+The @l(:IMAGEN) printer driver has been enhanced.
+See the @i(Lambda Networking Guide) for further information.
+@item
+Two new (experimental) Tape system formats, ``TANALYZ-FORMAT'' and ``TAR-FORMAT'',
+have been implemented.
+@item
+The Kermit window has been enhanced, and
+known problems with the SDU serial ports have been resolved.@cindex[Kermit]
+@item
+Various enhancements to the Window-Maker have been made
+to improve the interface and solve known problems.@cindex[Window-Maker]
+@end(enumerate)
+
+Some of these improvements are discussed further, below.
+
+@need 1200
+@subsection Site Editor
+
+The Site Editor is not loaded in the default band;
+it can be restored and loaded from the @i(``Release 4 Options Tape'') (see below).
+
+Once it is installed,
+the Site Editor can be invoked by executing @l[(sited:sited)],
+or by pressing @syson[@gkey-E].
+
+@cindex[site editor]
+The major Site Editor commands are now grouped under logical headings.
+This new configuration is invoked by default, but the wide-area
+configuration that was provided in Release 3 is still available.
+Clicking on the menu command @mouseditem(Configure Window)
+toggles between the two configurations.
+
+A new command is provided, @mouseditem(Point to Site Files), which
+prompts the user for the parameters to execute @l(si:set-sys-host).
+Use this function to point to your set of site files.
+See the @i(Lambda Networking Guide) for further information
+about @l(si:set-sys-host).
+
+@need 1200
+@subsection Kermit
+
+@cindex[Kermit]
+Kermit is not loaded in the default band;
+it can be restored and loaded from the @i(``Release 4 Options Tape'') (see below).
+
+Once it is installed, Kermit can be invoked by pressing @syson[K].
+
+The major Kermit commands are now grouped under logical headings.
+
+Clicking on the menu command @mouseditem(Configure Window)
+toggles between two configurations, varying the size of the terminal emulator window.
+
+The command @mouseditem[Serial Port] prompts the user for the parameters
+for initializing the serial port.
+This is a modified version of the @mouseditem[Set Baud Rate] command in earlier releases.
+
+Serial port ``open forms'' that were not fully implemented have been removed from the command menu.
+
+A new Kermit parameter under @mouseditem[Review Parameters] determines the enabling
+of XON/XOFF (software flow control) on the serial port lines.
+The option, @l(*sdu-serial-xon-xoff-p*), is enabled by default;
+software flow control is commonly used
+to connect terminals and personal computers to the Lambda serial ports.
+
+@subsection Spelling Checker
+
+The Spelling Checker may be restored from the @i(``Release 4 Options Tape'')
+and installed as the ``ISPELL'' system.
+With the spelling checker installed, ZMacs offers a useful command interface.
+
+@cindex[spelling checker]
+To check the spelling of a particular word from ZMacs,
+position the cursor on or near the word and press @meta[$].
+
+If the word (or its root) is found, a message to this effect
+is printed in the ZMacs echo area, along with its derivation, if any.
+If the word cannot be found, valid alternatives are listed in the echo area.
+To select one of the displayed alternatives, press the corresponding numeric key.
+Press @spacekey to leave the word ``as is''.
+Press ``R'' to replace the word with text you type in the mini-buffer;
+ZMacs will replace the word in the buffer.
+
+@group
+The LISP interface function @l(spell:spell-word) is also provided:
+
+@defun spell:spell-word word &optional (start 0) end
+
+The interface to the spelling checker.
+@i(word) is a string containing the word to be checked.
+
+The return value can be:
+@itemize
+@item
+The input @i(word): The word was found either in the system dictionary or your private dictionary.
+@item Another word: This string, derived by stripping suffixes
+from the original word, was found in the system dictionary.
+@item A list of words: These strings are words that are ``close''
+to the original word.
+They are  capitalized like the original word.
+@item NIL: Neither the original or any near misses could be found.
+@end(itemize)
+@end(defun)
+@end(group)
+
+@need 1200
+@subsection Inspector
+
+INSPECTing an instance and modifying a slot that was not listed
+in the Flavor's :settable-instance-variables no longer causes the error,
+"The object received a :set ... message which went unclaimed."
+The message was accurate, but misleading, as INSPECT
+proceeds to set the instance variable by another method.
+
+@need 1200
+@subsection New Tape Formats
+
+Two new tape formats have been implemented.
+Their purpose and use is explained below.
+
+To invoke the menu-driven interface to the tape software,
+press @syson[B].
+To select a tape format, click left with the mouse on the current format --
+by default, @mouseditem[LMFL-FORMAT] --
+displayed under the column marked @i(Selected Format).
+This will bring up a menu of supported tape formats;
+click to select the desired format.
+At this point you may be prompted
+to set any options that are specific to the selected tape format.
+
+You can always return to the default @mouseditem(LMFL-FORMAT) by right-clicking
+on the currently selected format.
+
+When you use the tape software functions in LISP
+(such as @l(tape:list-files)), you can also select a specific tape format
+by binding the variable @l(tape:*selected-format*).
+Use the function @l(tape:parse-format) to obtain the flavor object
+corresponding to a tape format,
+and @l(tape:set-format-options) to set options for the selected format.
+
+@defvar tape:*selected-format*
+The currently selected tape format.
+The binding of this (as a special variable)  affects the behavior
+of most tape software functions.
+@end(defvar)
+
+@defun tape:parse-format &rest init-options
+Takes a format name, flavor-symbol, or format object
+and returns a format object initialized according to INIT-OPTIONS.
+@end(defun)
+
+@defun tape:set-format-options &optional options &key (format-spec tape:*selected-format*)
+Set the options of a particular format.  Options should be a
+list of the form ((:<option> <value>) ...) or NIL, in which case
+the user may be presented with a menu of options to change.
+@end(defun)
+
+@need 1000
+For example, to list a @l(TAR) tape, you could execute:
+
+@lisp
+(let ((tape:*selected-format*
+        (tape:parse-format "TAR")))
+  (tape:set-format-options)
+  (tape:list-files))
+@end(lisp)
+
+See the @i(Tape Software Guide) for further information.
+
+@need 1200
+@subsubsection TANALYZ Format
+
+@cindex[tape analyzer]@cindex[TANALYZ (tape format)]
+The new TANALYZ tape format is designed solely for
+analyzing foreign tapes.
+It provides formatted hexadecimal and text displays of the data contained on a tape.
+TANALYZ is a ``raw format'', in that it treats a tape as a stream of unformatted data.
+Within the constraints of the tape hardware,
+TANALYZ should be able to read and display portions of almost any tape,
+regardless of its format.
+This can be useful in several different ways:
+
+@itemize @bullet
+@item
+To tape software developers (for debugging)
+@item
+For trouble-shooting tape I/O errors (format processing is bypassed)
+@item
+For use with utilities such as Unix @l(TAR) or @l(DD), to determine
+a tape's logical blocking parameters
+@end(itemize)
+
+By examining a TANALYZ tape listing, it is possible to determine the
+details of a tape's logical formatting
+such as blocking factor, character set, and new-line conventions.
+
+The most useful operation for TANALYZ-FORMAT is @l(:LIST-FILES).
+No read/write operations are supported.
+
+@ref[figure-tanalyz], contains an example of the output from the @mouseditem(LIST-TAPE) tape
+frame command with TANALYZ-FORMAT selected.
+By examining the TANALYZ tape listing, it is possible to determine that the
+tape in question was probably formatted with the Unix @l(TAR) utility.
+
+@figure
+@setq figure-tanalyz figure-page
+@example
+@include tanalyz
+@end(example)
+@sp 1
+@caption Example Tape Listing from Tanalyz-Format
+@end(figure)
+
+When you select TANALYZ-FORMAT, you will be prompted for two options,
+as follows:
+
+@table 1
+@item @b(Blocking factor in kilobytes:)
+This specifies the  (maximum) physical blocking factor.
+The default is 32  (32768 bytes)
+which is the maximum physical block size
+that the tape device interface can handle.
+
+@item @b(Output Mode:)
+Choose either @i(Brief), @i(Verbose), or @i(Full).
+These specify increasing levels of detail in the tape listing.
+
+@itemize @bullet
+@item Brief mode displays one line of data from the beginning of each file.
+@item Verbose mode (the default) displays a hexadecimal and text representation
+of the beginning of each tape block.
+@item Full mode display is similar to the Verbose display, but
+every character in each block is displayed.
+@end(itemize)
+
+@end(table)
+
+@need 1200
+@subsubsection TAR Format
+
+@cindex[TAR tape format]
+TAR Format provides limited capabilities for reading and writing tapes on the Lambda
+in a format that is compatible with the System 5 Unix @l(TAR) utility.
+
+Most important tape operations have been implemented, including
+@l(list-files), @l(restore-file), @l(compare-file), and @l(write-file).
+Tape file streams have not been implemented.
+
+When you select TAR-FORMAT, you will be prompted for its options, as follows:
+
+@table 1
+
+@item Record Size:
+Specify the length, in bytes, of each physical tape block.
+This must be a multiple of 512, up to a maximum of 10240.
+The maximum corresponds to a @l(TAR) blocking factor of 20.
+
+@item Character set translation:
+Choose one of @l(determine-by-type), @l(always), @l(query), or @l(never).
+This option determines if and when character translations are performed
+between LISPM and ASCII formats.
+
+The choice @l(always) indicates that character set translation should
+always be performed, on every file.
+
+The choice @l(never) indicates that character set translation should never be performed.
+
+The choice @l(query) indicates that the tape software should query the user
+as to whether a file in question contains ASCII characters.
+
+The default, @l(determine-by-type), attempts to translate the file type
+for each file to determine if it is a binary file.
+Otherwise, it is assumed that each file is text, and character translations are performed.
+The known binary file types are listed in the following variable:
+
+@csubindex[binary files][for foreign tapes]
+@defvar tape:*raw-file-canonical-types*
+A list of canonical file types which normally contain binary data, not text.
+@end(defvar)
+
+@item Defaults for relative host/directory:
+This is a pathname used to supply default host and directory components
+for merging with relative pathnames found on the tape.
+Note that @l(TAR) only stores absolute pathnames (which include the source directory)
+when they are specified on the command line.
+The target host, used for restoring files, is also defaulted from this option.
+
+On @mouseditem(RESTORE-FILES), the @l("File Restore Transform") parameter
+is applied as usual, to allow for more complex pathname transformations.
+
+@end(table)
+
+@sp 1
+@textbox
+@b(Note:) The TAR-FORMAT driver defines a pathname host named ``TAR-FORMAT''.
+@ii(Do not define a host with this name in your site files.)
+@end(textbox)
+
+@chapter Known Bugs and Limitations
+
+@section Common LISP Issues
+
+This section outlines issues ZetaLISP-Plus programmers should be aware of regarding
+Lambda Common LISP.
+The discussion is based on the results of
+third-party tests, customer problem reports, and internal investigations.
+Some negative results are reported, along with
+clarifications of technical issues that have been raised
+in regard to potential conflicts with the Common LISP language standard efforts.
+
+This document does not represent any statement or promise to the effect
+that compatibility problems will be resolved in any particular manner.
+However, the general intention is
+to follow the ongoing standards discussions
+and to provide a useful Common LISP development environment.
+In this light, the following discussion is a clarification of the technical points.
+
+@subsection ZetaLISP Extensions and Optional Errors
+
+The following issues represent either legitimate extensions to Common LISP specifications
+or clarifications of issues raised by problem reports.
+In many of these cases, where CommonLISP specifies ``optional error'' situations,
+ZetaLISP has defined an appropriate behavior.
+
+@include cl-issues
+
+@need 1200
+@subsection CommonLISP Incompatibility
+
+For some of the following problem reports,
+severe differences between Lambda CommonLISP and ZetaLISP cause significant technical problems.
+In some of these situations, the Lambda implementation has difficiencies
+that may be addressed by future software updates.
+
+@include cl-bugs
+
+@chapter Installing Release 4
+
+@need 1200
+@section Installing Release 4 Band and Microcode
+
+This section summarizes the procedures for installing Release 4 software.
+The procedure is identical to that documented
+for installing the Release 3 LISP band and microcode
+as documented in the @i(Lambda Operations Manual).
+
+@cindex[system host]
+If you have multiple Lambda systems, you should
+start with the Lambda that acts as your system host.
+The system host is the one that will contain important files such
+as the network configuration information.
+The role of the system host and procedures for updating multiple Lambdas
+are discussed in the @i(Lambda Networking Guide).
+
+If you are installing Release 4 LISP on a new system (or on an initialized disk),
+you should use the SDU @l(load) program to install the band and microcode partitions
+from tape.
+If you are upgrading a system that is running a prior release of LISP software,
+you can instead install the band and microcode while running in LISP.
+
+@cindex[pack name]
+In either case, before you perform the installation, be sure to
+check the ``pack name'', as discussed below.
+The pack name is a text string stored in the disk label
+which determines the names of the system processor(s)
+as they boot up.
+
+Use the @l(print) command in the SDU @l(load) program to
+view the current pack name.
+Use the @l(set-machine-name) command to change the pack name.
+
+The pack name should contain the name of every host processor on the system.
+Enter host names in the pack name in the slot order that the corresponding
+processor hardware is located
+(from right to left, beginning with the slot 0 processor name).
+
+If you are updating a new system, a default pack name
+may have been established.
+If you will need to customize the Lambda site configuration information,
+you may want to also assign your own host names.
+
+In previous releases, it was not required to include the host name
+for an attached 68010 Unix processor in the pack name.
+Release 4 networking software will not function properly unless the
+Unix processor is included; it should be the last name in the pack name.
+
+If you worked with Release 3 before, and you have your own set of working site files,
+you should check the pack name to be sure all the hosts are included.
+Also remember that you will have to modify and reload your site files
+after booting the distribution Release 4 band.
+
+@need 1200
+@subsection Begin Installation from the SDU
+
+@itemize @bullet
+@item
+To begin the installation, first mount the @i(``Release 4 Band/Microcode Tape'') in the tape drive.
+@item
+Initialize the system by pressing the reset switch on the back of the cabinet.
+@item
+At the SDU prompt, run @l(load).
+@end(itemize)
+
+@need 1200
+@subsubsection Setting the Pack Name in LOAD
+
+@cindex[pack name]@cindex[load program]@csubindex[SDU][load]
+Use the @l(load) command @l(set-machine-name) to set the pack name to contain
+the names of every host processor on the system.
+
+@b(Example:) create the pack name for a system that contains two Lambda processors
+and a 68010 Unix processor, using the default host names:
+
+@lisp
+>> @i(load)
+   :
+   :
+>> @i(set-machine-name lama lamb unix-a)
+   :
+   :
+@end(lisp)
+
+@need 1200
+@subsubsection Installing LISP from the SDU
+
+Within the @l(load) program,
+use the @l(install) command to load the Release 4 software partitions.
+The @i(``Release 4 Band/Microcode Tape'') contains two copies of the Release 4 microcode
+and one copy of the Release 4 distribution load band.
+
+The @l(install) command will load the band and microcode into
+``empty'' partitions (if there are any).
+For this purpose, empty partitions are indicated by a lack of a label comment.
+
+If all of your LOD and LMC partitions are full, you should first display the disk label by running @l(print).
+The @l(install) command will prompt you for the names of two microcode (LMC) partitions, and one
+load band (LOD) partition.
+You must select partitions that you are willing to overwrite.
+
+@need 1000
+For example,
+
+@comment ???this is LISP - get load picture
+@lisp
+>> @i(load)
+using ...k in slot...
+load version...
+   :
+load> @i(print)
+unit 0 of glass brahms: eagle; RELEASE GROUP SYSTEM
+834 cylinders, 20 heads, 25 blocks per track
+** Backup label at track 16707 **
+LISP area starts at cylinder 1.
+Current microload: LMC1; Current band: LOD1
+  UNX6 start 25;  size 1500, "SDU5 3.0 rev 14"
+* LMC1 start 1525; size 500, "ULAMBDA 1600"
+  LMC2 start 2025; size 500, "ULAMBDA 1600"
+  LMC3 start 2525; size 500, ""
+  LMC4 start 3025; size 500, ""
+   :
+  LOD2 start 358175; size 30000, "Rel 3.0"
+   :
+load> @i(install)
+   :
+Enter partition...
+--> @i(lmc3)
+   :
+Enter partition...
+--> @i(lmc4)
+   :
+Enter partition...
+--> @i(lod2)
+   :
+@end(lisp)
+
+@cindex[install command]@csubindex[SDU][install]
+After the microcode and LISP partitions are restored, @l(install)
+will configure the system to boot with the new software  by default.
+
+To set the defaults manually, use the commands @l(set-band) and @l(set-uload).
+
+@need 1000
+For example,
+
+@lisp
+load> @i(set-band lod2)
+load> @i(set-uload lmc2)
+@end(lisp)
+
+Use the ``@l(x)'' command to exit @l(load), and then run
+@l(newboot -a) to boot with the Release 4 software.
+
+@need 1200
+@subsection Installing LISP From LISP
+
+It is possible to install Release 4 LISP while running a previous LISP release
+(either Release 2, Release 3, or a pre-release version of Release 4).
+
+@findex[print-disk-label]
+Before beginning the installation, execute the LISP command @l[(print-disk-label)]
+to list the disk partitions.
+You should select two LMC partitions and one LOD partition which will
+be overwritten by the new software.
+@ii(Write down the names of these partitions.)
+Use the tape software to backup existing partitions before you overwrite them.
+
+@cindex[pack name]@findex[si:set-pack-name]
+Use the function @l(si:set-pack-name) to set the pack name to contain
+all the host processor names.
+
+@need 1000
+@b(Example:)
+
+@lisp
+(si:set-pack-name "lama lamb unix-a")
+@end(lisp)
+
+To begin the installation, first mount the @i(``Release 4 Band/Microcode Tape'') in the tape drive.
+
+@itemize @bullet
+@item
+If you are booted in Release 2, use the function @l(fs:restore-magtape)
+to restore the band and microcode partitions:
+
+@lisp
+(fs:restore-magtape)
+@end(lisp)
+
+@item
+If you are booted in Release 3 or 4, use @l(tape:restore-files):
+
+@lisp
+(tape:restore-files)
+@end(lisp)
+
+Alternatively, you can use the Tape Frame; press @syson[B], click on the command mode
+@mouseditem(RETRIEVE), and then click left on the command @mouseditem(RESTORE-FILES).
+
+@end(itemize)
+
+As the tape software reads the header for each partition, you will be prompted
+to enter the name of a target partition (the one to load into).
+You will also be asked to confirm that you want to overwrite the contents
+of each paritition.
+
+Finally, after the microcode and LISP partitions have been restored,
+execute @l(set-current-band) to configure the system to
+boot with the new software  by default.
+
+For example,
+
+@lisp
+(si:set-current-band 'lod2)
+LOD2 goes with ucode 1762, which is not selected.
+Partition LMC1 claims to contain ucode 1762.
+ Select it? (Y or N) @i(Y)
+T
+@end(lisp)
+
+@cindex[cold boot]
+To cold-boot the entire system:
+reset the hardware with the rear panel switch and execute @l(newboot -a) at the SDU prompt.
+
+@need 1200
+@section After Booting Release 4
+
+After successfully booting with the distribution band, you will be running
+in a software environment with default network configuration information.
+The default configuration is probably not appropriate for your environment.
+Read the @i(Lambda Networking Guide)
+for information on modifying and loading your site files.
+
+@cindex[default site files]
+Note that the default network configuration may be acceptable
+if @ii(all) of the following conditions are true:
+
+@itemize -
+@item
+Your Lambda hosts all have unique system names
+of the form ``LAMA'', ``LAMB'', etc., through ``LAMH''.
+These default names are assigned unique Chaosnet addresses,
+which ensures that systems with this default information can
+communicate with each other.
+@item
+The only printer on the network is a TI-855 physically connected
+to the host ``LAMA''.
+@item
+You plan to use Chaosnet communications @ii(only), which provide
+networking capability between a limited range of foreign system hosts,
+such as other suitably equipped LISP machines.
+@end(itemize)
+
+Under any other circumstances, you must follow the complete procedures
+for configuring your network.
+
+After completing the network configuration process,
+you should proceed to install selected LISP software options and/or sources
+from the other tapes provided with your distribution kit.
+
+@need 1200
+@section Installing LISP Options
+
+Optional LISP software is contained on the @i(``Release 4 Options Tape'') in
+distribution tape format.
+Some of these are LISP @ii(systems) which should be loaded into the running LISP
+world if they will be accessed frequently.
+These systems are:
+@include options
+
+If you plan to load any of these systems, you should first
+prepare your site files.
+Immediately before beginning the optional software installation,
+cold-boot the syste host, and load current site information.
+
+@cindex[system host]
+You should perform the installation on the system host, the system
+that is defined in your site files as containing the sources and system files for
+your network.
+
+To begin the installation, mount the @i(``Release 4 Options Tape'') in the tape drive.
+In the Initial Lisp Listener, execute the following:
+
+@lisp
+(tape:install-distribution-tape)
+@end(lisp)
+
+During the installation you will be prompted
+at each step for all the information required by the procedure.
+Following is a summary of each phase of the installation:
+
+@enumerate
+
+@item Introduce options -
+lists out the available options, and optionally provides additional information
+on each option.
+
+@item Installation parameters -
+confirm the name of the system host, the host to which files will be restored.
+Also, determine whether files must be restored from tape before the desired
+systems can be loaded.
+
+@item Select options -
+you are presented with a menu of available options.
+For each option to be restored, click under the indicated column.
+If an option is a system that can be loaded, click under the indicated column if
+you want the system loaded.
+
+@item System files -
+this step makes sure that the system host is available, and that the procedure
+can get to the required system definition files.
+Any problems with your loaded site information will be explained, along with
+remedial suggestions.
+
+@item Restore -
+copy files for selected options from tape to disk.
+
+@item Copying -
+copy system files for selected systems into your site file directory.
+
+@item Execute commands -
+run @l(make-system) to load any selected systems.
+
+@end(enumerate)
+
+When you have completed the installation, you may want to save the running LISP environment to disk.
+This is only necessary if you have loaded any of the optional systems.
+
+@include disksave
+
+@need 1200
+@section Installing LISP Sources
+
+@cindex[sources]
+At times you may  find it useful to look up the definition of system functions.
+For example, you can use the ZMacs command @meta[.] to locate the definition of
+a system function such as @l(print-herald) to find out how to access the kind of
+information that function displays.
+
+To load the LISP sources, mount the @i(``Release 4 Sources'') tape in the tape drive.
+Execute the LISP command @l[(tape:restore-files)].
+Interaction with the procedure should not be required, unless there
+is a problem with your file system or the tape drive.
+
+@need 1200
+@section Copying Release 4 Software to Other Lambdas
+
+If you have multiple Lambda systems, you will want to copy
+the Release 4 software from the system host to every other system.
+If the systems are interconnected by Ethernet,
+you can use the function @l(si:copy-disk-partition) to copy the microcode and load bands
+to each system.
+The @i(Networking Guide), in the chapter on ``Configuration Procedures'',
+describes the procedure for copying load bands across the network.
+
+If you have Lambdas that are not physically connected via Ethernet,
+you must use a tape drive on each system to restore the Release 4 software.
+See the @i(Tape Software Guide) for information on making a tape.
+Your tape should include the distributed microcode partition
+as well as a copy of your updated, customized Release 4 load band.
+
+@unnumbered Index
+@printindex cp
+
+@contents
+
+@end(document)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@C ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+@c ---------------------------------------------------------------------------
+
+@c end 4notes
